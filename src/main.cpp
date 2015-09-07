@@ -1,15 +1,12 @@
-#include <iostream>
-#include <cstdlib>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
+#include <common.h>
 
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
-//#define FULLSCREEN
+SDL_Window    *window = NULL;
+SDL_Surface   *renderSurface = NULL;
+SDL_GLContext  mainGLContext = NULL;
 
+bool gameRunning = true;
 
-#include "gameHeader.h"
-
+UIClass ui;
 
 int main(int argc,char **argv){
     //runs start-up procedures
@@ -20,7 +17,7 @@ int main(int argc,char **argv){
 		//Turn on double Buffering
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         //create the window
-        window = SDL_CreateWindow("Independent Study v. Alpha -1.0", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
+        window = SDL_CreateWindow("Independent Study v.0.1 alpha", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
                                   #ifdef FULLSCREEN
                                   | SDL_WINDOW_FULLSCREEN
                                   #endif // FULLSCREEN
