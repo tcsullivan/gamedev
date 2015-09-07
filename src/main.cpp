@@ -44,7 +44,7 @@ int main(int argc,char **argv){
 	glClearColor(1,1,1,0);
 	while(gameRunning){
 		glClear(GL_COLOR_BUFFER_BIT);
-		SDL_UpdateWindowSurface(window);
+		SDL_GL_SwapWindow(window);
 		while(SDL_PollEvent(&e)){
 			if(e.type==SDL_QUIT)
 				gameRunning=false;
