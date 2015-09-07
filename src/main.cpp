@@ -10,13 +10,13 @@
 SDL_Window    *window = NULL;
 SDL_Surface   *renderSurface = NULL;
 SDL_GLContext  mainGLContext = NULL;
-SDL_Renderer  *gRenderer = NULL;
 
 const float sh = SCREEN_HEIGHT;
 const float sw = SCREEN_WIDTH;
 bool gameRunning = true;
 
 int main(int argc,char **argv){
+	SDL_Event e;
     //runs startup procedures
     if(SDL_Init(SDL_INIT_VIDEO) < 0){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
@@ -37,21 +37,19 @@ int main(int argc,char **argv){
             mainGLContext = SDL_GL_CreateContext(window);
             if(mainGLContext == NULL){
             	std::cout << "The OpenGL context failed to initialize! Error: " << SDL_GetError() << std::endl;
-            }else{
-                //get window surface
-                renderSurface = SDL_GetWindowSurface(window);
-                //set renderer
-                gRenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-                if(gRenderer == NULL){
-                    std::cout << "The variable 'gRenderer' was not able to initialize! Error: " << SDL_GetError() << std::endl;
-                }
-                //background white
-                SDL_FillRect(renderSurface, NULL, SDL_MapRGB(renderSurface->format, 0xFF, 0xFF, 0xFF));
-                //update window
-                SDL_UpdateWindowSurface(window);
-			}
+            }
 		}
     }
+	// main loop
+	glClearColor(1,1,1,0);
+	while(gameRunning){
+		glClear(GL_COLOR_BUFFER_BIT);
+		SDL_UpdateWindowSurface(window);
+		while(SDL_PollEvent(&e)){
+			if(e.type==SDL_QUIT)
+				gameRunning=false;
+		}
+	}
     //closes the window and frees resources
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
