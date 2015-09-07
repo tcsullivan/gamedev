@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <iostream>
 #include "SDL.h"
 #include "SDL_opengl.h"
@@ -67,4 +68,12 @@ int main(int argc, char** argv){
     SDL_DestroyWindow(window);
     SDL_Quit();
     return 0;
+=======
+#include <stdio.h>
+#include <SDL2/SDL.h>
+
+int main(int argc,char **argv){
+	puts("Hello, world!");
+	return 0;
+>>>>>>> origin/master
 }
