@@ -7,17 +7,12 @@
 #define SCREEN_HEIGHT 720
 //#define FULLSCREEN
 
-SDL_Window    *window = NULL;
-SDL_Surface   *renderSurface = NULL;
-SDL_GLContext  mainGLContext = NULL;
 
-const float sh = SCREEN_HEIGHT;
-const float sw = SCREEN_WIDTH;
-bool gameRunning = true;
+#include "gameHeader.h"
+
 
 int main(int argc,char **argv){
-	SDL_Event e;
-    //runs startup procedures
+    //runs start-up procedures
     if(SDL_Init(SDL_INIT_VIDEO) < 0){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 	}else{
@@ -25,7 +20,7 @@ int main(int argc,char **argv){
 		//Turn on double Buffering
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         //create the window
-        window = SDL_CreateWindow("Sword Swinger", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
+        window = SDL_CreateWindow("Independent Study v. Alpha -1.0", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
                                   #ifdef FULLSCREEN
                                   | SDL_WINDOW_FULLSCREEN
                                   #endif // FULLSCREEN
@@ -33,36 +28,32 @@ int main(int argc,char **argv){
         if(window == NULL){
         	std::cout << "The window failed to generate! Error: " << SDL_GetError() << std::endl;
         }else{
-            //set opengl context
+            //set OpenGL context
             mainGLContext = SDL_GL_CreateContext(window);
             if(mainGLContext == NULL){
             	std::cout << "The OpenGL context failed to initialize! Error: " << SDL_GetError() << std::endl;
             }
 		}
     }
-	// main loop
+	
+	
+	/**************************
+	****     GAMELOOP      ****
+	**************************/
+	
 	glClearColor(1,1,1,0);
 	while(gameRunning){
 		glClear(GL_COLOR_BUFFER_BIT);
 		SDL_GL_SwapWindow(window);
-		while(SDL_PollEvent(&e)){
-			switch(e.type){
-			case SDL_QUIT:
-				gameRunning=false;
-				break;
-			case SDL_KEYDOWN:
-				switch(e.key.keysym.sym){
-				case 27:
-					gameRunning=false;
-					break;
-				default:
-					break;
-				}
-			default:
-				break;
-			}
-		}
+		
+		ui.handleEvents();
 	}
+	
+	/**************************
+	****  CLOSE PROGRAM    ****
+	**************************/
+	
+	
     //closes the window and frees resources
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);

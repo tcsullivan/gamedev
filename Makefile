@@ -3,10 +3,10 @@ FLAGS_WIN32 = -lopengl32 -lmingw32 #-lSDL2_Image
 FLAGS = -m32 -Iinclude -Wall -Werror -lSDL2main -lSDL2
 
 all:
-	@g++ src/main.cpp -o main $(FLAGS_LINUX) $(FLAGS)
+	@g++ src/main.cpp src/UIClass.cpp -o main $(FLAGS_LINUX) $(FLAGS)
 
 win32:
-	@g++ -L lib/ src/main.cpp -o main.exe $(FLAGS_WIN32) $(FLAGS)
+	@g++ -L lib/ src/main.cpp src/UIClass.cpp -o main.exe $(FLAGS_WIN32) $(FLAGS)
 
 clean:
 	rm main*
