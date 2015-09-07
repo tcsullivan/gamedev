@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
@@ -20,6 +21,7 @@ int main(int argc,char **argv){
     if(SDL_Init(SDL_INIT_VIDEO) < 0){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 	}else{
+		atexit(SDL_Quit);
 		//Turn on double Buffering
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         //create the window
@@ -41,7 +43,7 @@ int main(int argc,char **argv){
                 //set renderer
                 gRenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
                 if(gRenderer == NULL){
-                    std::cout << "The variable 'gRenderer' was not able to initialize! Error: " << SDL_GetError() << std::endl;\
+                    std::cout << "The variable 'gRenderer' was not able to initialize! Error: " << SDL_GetError() << std::endl;
                 }
                 //background white
                 SDL_FillRect(renderSurface, NULL, SDL_MapRGB(renderSurface->format, 0xFF, 0xFF, 0xFF));
@@ -53,6 +55,5 @@ int main(int argc,char **argv){
     //closes the window and frees resources
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
-    SDL_Quit();
     return 0;
 }
