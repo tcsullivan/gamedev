@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #include <iostream>
 #include "SDL.h"
 #include "SDL_opengl.h"
@@ -17,9 +16,6 @@ bool gameRunning = true;
 
     const float sh = SCREEN_HEIGHT;
     const float sw = SCREEN_WIDTH;
-
-#include "gameHeader.h"
-
 
 int main(int argc, char** argv){
     //runs startup procedures
@@ -55,8 +51,6 @@ int main(int argc, char** argv){
                     //update window
                     SDL_UpdateWindowSurface(window);
 
-                    configRender();
-                    gameLoop();
                 }
             }
 
@@ -68,12 +62,4 @@ int main(int argc, char** argv){
     SDL_DestroyWindow(window);
     SDL_Quit();
     return 0;
-=======
-#include <stdio.h>
-#include <SDL2/SDL.h>
-
-int main(int argc,char **argv){
-	puts("Hello, world!");
-	return 0;
->>>>>>> origin/master
 }
