@@ -46,8 +46,21 @@ int main(int argc,char **argv){
 		glClear(GL_COLOR_BUFFER_BIT);
 		SDL_GL_SwapWindow(window);
 		while(SDL_PollEvent(&e)){
-			if(e.type==SDL_QUIT)
+			switch(e.type){
+			case SDL_QUIT:
 				gameRunning=false;
+				break;
+			case SDL_KEYDOWN:
+				switch(e.key.keysym.sym){
+				case 27:
+					gameRunning=false;
+					break;
+				default:
+					break;
+				}
+			default:
+				break;
+			}
 		}
 	}
     //closes the window and frees resources
