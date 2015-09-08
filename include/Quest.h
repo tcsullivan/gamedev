@@ -1,7 +1,7 @@
 #ifndef QUEST_H
 #define QUEST_H
 
-#include <cstdlib>
+#include <common.h>
 #include <cstring>
 
 #define QUEST_LIMIT 5
