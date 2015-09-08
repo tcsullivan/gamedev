@@ -19,6 +19,14 @@
 	<h2>Description</h2>
 	<p>Quest.h provides quest functionality, including the master list of quests and methods for the player to access them.</p>
 	<br>
+	<h3>Macros</h3>
+	<div class="code">#define QUEST_LIMIT 5<br>
+	#define TOTAL_QUESTS 1
+	</div>
+	<ul>
+		<li><b>QUEST_LIMIT</b>: Total number of quests a QuestHandler can handle.</li>
+		<li><b>TOTAL_QUESTS</b>: Total number of quests in the game.</li>
+	</ul>
 	<h3>class Quest</h3>
 	<div class="code"><b>public:</b><br>
 	char *title,*desc;<br>
@@ -38,7 +46,7 @@
 	<h3>class QuestHandler</h3>
 	<div class="code"><b>private:</b><br>
 	unsigned char ccnt;<br>
-	Quest *current[];<br>
+	Quest *current[QUEST_LIMIT];<br>
 <b>public:</b><br>
 	QuestHandler();<br>
 	int assign(const char *t);<br>
