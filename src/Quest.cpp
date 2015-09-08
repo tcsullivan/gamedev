@@ -1,11 +1,9 @@
 #include <Quest.h>
 
-Quest QuestList[TOTAL_QUESTS]={
+const Quest QuestList[TOTAL_QUESTS]={
 	Quest("Test","A test quest",0)
 };
 
-Quest::Quest(){
-}
 Quest::Quest(const char *t,const char *d,unsigned int x){
 	size_t len;
 	title=(char *)malloc((len=strlen(t)));

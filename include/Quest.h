@@ -11,7 +11,6 @@ class Quest {
 public:
 	char *title,*desc;
 	unsigned int xp;
-	Quest();
 	Quest(const char *t,const char *d,unsigned int x);
 	~Quest();
 };
