@@ -18,7 +18,7 @@ public:
 class QuestHandler {
 private:
 	unsigned char ccnt;
-	Quest *current[QUEST_LIMIT];
+	const Quest *current[QUEST_LIMIT];
 public:
 	QuestHandler();
 	int assign(const char *t);
