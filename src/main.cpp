@@ -7,6 +7,7 @@ SDL_GLContext  mainGLContext = NULL;
 bool gameRunning = true;
 
 UIClass ui;
+Window win;
 
 int main(int argc,char **argv){
     //runs start-up procedures
@@ -38,12 +39,10 @@ int main(int argc,char **argv){
 	****     GAMELOOP      ****
 	**************************/
 	
-	glClearColor(1,1,1,0);
+	win.setupRender();
 	while(gameRunning){
-		glClear(GL_COLOR_BUFFER_BIT);
-		SDL_GL_SwapWindow(window);
-		
 		ui.handleEvents();
+		win.render();
 	}
 	
 	/**************************
