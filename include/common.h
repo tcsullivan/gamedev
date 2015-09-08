@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <UIClass.h>
+#include <windowClass.h>
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
