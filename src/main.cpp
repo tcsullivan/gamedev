@@ -13,6 +13,7 @@ int main(int argc,char **argv){
     //runs start-up procedures
     if(SDL_Init(SDL_INIT_VIDEO) < 0){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
+		return -1;
 	}else{
 		atexit(SDL_Quit);
 		//Turn on double Buffering
@@ -25,6 +26,7 @@ int main(int argc,char **argv){
                                   );
         if(window == NULL){
         	std::cout << "The window failed to generate! Error: " << SDL_GetError() << std::endl;
+        	return -1;
         }else{
             //set OpenGL context
             mainGLContext = SDL_GL_CreateContext(window);
