@@ -6,7 +6,7 @@ all:
 	@g++ src/*.cpp -o main $(FLAGS_LINUX) $(FLAGS)
 
 win32:
-	@g++ -L lib/ src/main.cpp src/UIClass.cpp src/windowClass.cpp src/Quest.cpp -o main.exe $(FLAGS_WIN32) $(FLAGS)
+	@g++ -L lib/ src/*.cpp -o main.exe $(FLAGS_WIN32) $(FLAGS)
 
 clean:
 	rm main*
