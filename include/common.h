@@ -9,10 +9,10 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_opengl.h>
 #include <UIClass.h>
-#include <windowClass.h>
+#include <World.h>
 
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
+#define SCREEN_WIDTH  640
+#define SCREEN_HEIGHT 480
 //#define FULLSCREEN
 
 //SDL VARIABLES
