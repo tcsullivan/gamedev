@@ -1,22 +1,26 @@
 #include <common.h>
 #include <ctime>
 
+#define TICKS_PER_SEC 20
+#define MSEC_PER_TICK (1000/TICKS_PER_SEC)
+
 SDL_Window    *window = NULL;
 SDL_Surface   *renderSurface = NULL;
 SDL_GLContext  mainGLContext = NULL;
 
 bool gameRunning = true;
 
-const float ticksPerSec = 20;
-const float msecPerTick = 1000 / ticksPerSec;
-int prevTime = GetTickCount();
-int currentTime = 0;
-float deltaTime = 0;
+static unsigned int tickCount   = 0,
+					prevTime    = 0,
+					currentTime = 0,
+					deltaTime   = 0;
 
 Entities *entit1;
 Player player;
 UIClass ui;
 World *currentWorld;
+
+unsigned int logic(unsigned int interval,void *param);
 
 float interpolate(float goal, float current, float dt){
 	float difference = goal - current;
@@ -61,6 +65,7 @@ int main(int argc,char **argv){
 		return -1;
 	}
 	srand(time(NULL));
+	SDL_AddTimer(MSEC_PER_TICK,logic,NULL);
 	glClearColor(.3,.5,.8,0);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -70,37 +75,35 @@ int main(int argc,char **argv){
 	**************************/
 
 	entit1 = &player;
-	entit1->spawn(4, 0);
+	entit1->spawn(0, 0);
 
 	World *w=NULL;
 	World *w2=new World(4,w,NULL);
 	w=new World(2,NULL,w2);
 	currentWorld=w;
 	
+	float gw;
+	
 	while(gameRunning){
 		prevTime = currentTime;
-		currentTime = GetTickCount();
+		currentTime = tickCount;
 		deltaTime = currentTime - prevTime;
-
-		if(prevTime + msecPerTick <= GetTickCount()){		//HANDLE ALL LOGIC STUFF HERE
-			ui.handleEvents();								// Handle events
-
-			player.vel.x = 0;
-
-			std::cout << player.vel.x << std::endl;
-			std::cout << player.velg.y << std::endl;
-			std::cout << "d:" << deltaTime << std::endl;
-
-			prevTime = GetTickCount();
-		}
 															//DO ALL RENDERING HERE		
-		player.vel.x = interpolate(player.velg.x, player.vel.x, deltaTime) * .001;
+		player.vel.x = interpolate(player.velg.x, player.vel.x, deltaTime) * .005;
 		if(player.vel.x > .05) player.vel.x = .05;
 		if(player.vel.x < -.05) player.vel.x = -.05;
 		player.loci.x += player.vel.x;
 
-		render();
+		gw=currentWorld->getWidth();
+		if(player.loci.x+player.width>-1+gw&&currentWorld->toRight){
+			goWorldRight(currentWorld);
+			player.loci.x=-1+HLINE;
+		}else if(player.loci.x<-1&&currentWorld->toLeft){
+			goWorldLeft(currentWorld);
+			player.loci.x=currentWorld->getWidth()-1-player.width-HLINE;
+		}
 
+		render();
 	}
 	
 	/**************************
@@ -141,4 +144,17 @@ void render(){
 
 		glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
 		SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
+}
+
+unsigned int logic(unsigned int interval,void *param){
+	ui.handleEvents();								// Handle events
+
+	player.vel.x = 0;
+
+	//std::cout << player.vel.x << std::endl;
+	//std::cout << player.velg.y << std::endl;
+	//std::cout << "d:" << deltaTime << std::endl;
+
+	tickCount++;
+	return interval;
 }

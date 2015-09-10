@@ -78,3 +78,6 @@ void World::detect(vec2 *v,const float width){
 		}
 	}
 }
+float World::getWidth(void){
+	return (lineCount-1)*HLINE;
+}

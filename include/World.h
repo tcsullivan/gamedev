@@ -19,6 +19,7 @@ public:
 	World(const float width,World *l,World *r);
 	void draw(void);
 	void detect(vec2 *v,const float width);
+	float getWidth(void);
 };
 
 #endif // WORLD_H
