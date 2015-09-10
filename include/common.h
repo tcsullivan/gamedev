@@ -1,6 +1,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+typedef struct{float x; float y;}vec2;
+
 ///THIS FILE IS USED FOR VARIABLES THAT WILL BE ACCESED BY MULTIPLE CLASSES/FILES
 
 #include <iostream>
@@ -9,18 +11,21 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_opengl.h>
 #include <UIClass.h>
+#include <entities.h>
 #include <World.h>
 
-#define SCREEN_WIDTH  640
-#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH  1280
+#define SCREEN_HEIGHT 720
 //#define FULLSCREEN
+
+#define HLINE (2.0f / (SCREEN_WIDTH / 4))
 
 //SDL VARIABLES
 extern SDL_Window    *window;
 extern SDL_Surface   *renderSurface;
 extern SDL_GLContext  mainGLContext;
 
-//WINODWS VARIABLES
+//WINDOW VARIABLES
 extern bool gameRunning;
 
 #endif // COMMON_H

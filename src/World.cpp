@@ -2,7 +2,7 @@
 
 World::World(float width){
 	unsigned int i;
-	lineCount=width/HLINE;
+	lineCount=width/HLINE+1;
 	if((line=(struct line_t *)calloc(lineCount,sizeof(struct line_t)))==NULL){
 		std::cout<<"Failed to allocate memory!"<<std::endl;
 		abort();
@@ -19,11 +19,11 @@ void World::draw(void){
 			glColor3ub(0,255,0);
 			glVertex2f((HLINE*i)-1      ,line[i].start);
 			glVertex2f((HLINE*i)-1+HLINE,line[i].start);
-			glVertex2f((HLINE*i)-1+HLINE,line[i].start-0.02);
-			glVertex2f((HLINE*i)-1      ,line[i].start-0.02);
+			glVertex2f((HLINE*i)-1+HLINE,line[i].start-HLINE*2);
+			glVertex2f((HLINE*i)-1      ,line[i].start-HLINE*2);
 			glColor3ub(150,100,50);
-			glVertex2f((HLINE*i)-1      ,line[i].start-0.02);
-			glVertex2f((HLINE*i)-1+HLINE,line[i].start-0.02);
+			glVertex2f((HLINE*i)-1      ,line[i].start-HLINE*2);
+			glVertex2f((HLINE*i)-1+HLINE,line[i].start-HLINE*2);
 			glVertex2f((HLINE*i)-1+HLINE,-1);
 			glVertex2f((HLINE*i)-1      ,-1);
 		}

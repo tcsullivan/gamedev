@@ -7,7 +7,28 @@ SDL_GLContext  mainGLContext = NULL;
 
 bool gameRunning = true;
 
+const float ticksPerSec = 20;
+const float msecPerTick = 1000 / ticksPerSec;
+int prevTime = GetTickCount();
+int currentTime = 0;
+float deltaTime = 0;
+
+Entities *entit1;
+Player player;
 UIClass ui;
+
+float interpolate(float goal, float current, float dt){
+	float difference = goal - current;
+	if(difference > dt){
+		return current + dt;}
+	if(difference < dt){
+		return current - dt;}
+	return goal;
+}
+
+
+World *w=new World(2);
+void render();
 
 int main(int argc,char **argv){
     //runs start-up procedures
@@ -48,43 +69,34 @@ int main(int argc,char **argv){
 	/**************************
 	****     GAMELOOP      ****
 	**************************/
-	
-	World *w=new World(2);
+
+	entit1 = &player;
+	entit1->spawn(4, 0);
 	
 	while(gameRunning){
-		ui.handleEvents();								// Handle events
-														//a matrix is a blank canvas for the computer to draw on, the matrices are stored in a "stack"
-														//GL_PROJECTION has 2 matrices
-														//GL_MODELVIEW has 32 matrices
-		glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
-		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
-		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
-		//glOrtho(0,SCREEN_WIDTH, 0,SCREEN_HEIGHT, -1,1); //set the the size of the screen
-		glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
-		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
-		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
-		glPushMatrix();									//basically here we put a blank canvas (new matrix) on the screen to draw on
-		glClear(GL_COLOR_BUFFER_BIT); 					//clear the matrix on the top of the stack
+		prevTime = currentTime;
+		currentTime = GetTickCount();
+		deltaTime = currentTime - prevTime;
 
-		/**************************
-		**** RENDER STUFF HERE ****
-		**************************/
-		
-		/*glColor3f(1.0f, 0.0f, 0.0f); //color to red
-		glRectf(0,0, 50,50); //draw a test rectangle
-		glColor3f(0.0f, 1.0f, 0.0f); //color to blue
-		glRectf(50,0, 100,50); //draw a test rectangle
-		glColor3f(0.0f, 0.0f, 1.0f); //color to green
-		glRectf(100,0,150,50); //draw a test rectangle*/
-		
-		w->draw();
-		
-		/**************************
-		****  CLOSE THE LOOP   ****
-		**************************/
+		if(prevTime + msecPerTick <= GetTickCount()){		//HANDLE ALL LOGIC STUFF HERE
+			ui.handleEvents();								// Handle events
 
-		glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
-		SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
+			player.vel.x = 0;
+
+			std::cout << player.vel.x << std::endl;
+			std::cout << player.velg.y << std::endl;
+			std::cout << "d:" << deltaTime << std::endl;
+
+			prevTime = GetTickCount();
+		}
+															//DO ALL RENDERING HERE		
+		player.vel.x = interpolate(player.velg.x, player.vel.x, deltaTime) * .001;
+		if(player.vel.x > .05) player.vel.x = .05;
+		if(player.vel.x < -.05) player.vel.x = -.05;
+		player.loci.x += player.vel.x;
+
+		render();
+
 	}
 	
 	/**************************
@@ -95,4 +107,34 @@ int main(int argc,char **argv){
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
     return 0;
+}
+
+void render(){
+														//a matrix is a blank canvas for the computer to draw on, the matrices are stored in a "stack"
+														//GL_PROJECTION has 2 matrices
+														//GL_MODELVIEW has 32 matrices
+		glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
+		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
+		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
+		glOrtho(-1 + player.loci.x, 1 + player.loci.x , -1, 1, -1,1); //set the the size of the screen
+		glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
+		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
+		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
+		glPushMatrix();									//basically here we put a blank canvas (new matrix) on the screen to draw on
+		glClear(GL_COLOR_BUFFER_BIT); 					//clear the matrix on the top of the stack
+
+		/**************************
+		**** RENDER STUFF HERE ****
+		**************************/
+		 
+		w->draw();
+		glColor3ub(0,0,0);
+		glRectf(player.loci.x, player.loci.y, player.loci.x + player.width, player.loci.y + player.height);
+		
+		/**************************
+		****  CLOSE THE LOOP   ****
+		**************************/
+
+		glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
+		SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
 }

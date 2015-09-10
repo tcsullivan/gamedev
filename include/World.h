@@ -3,8 +3,6 @@
 
 #include <common.h>
 
-#define HLINE (2.0f/ 200 )
-
 class World {
 private:
 	struct line_t {
