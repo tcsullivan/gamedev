@@ -1,38 +1,31 @@
 #include <World.h>
 
-World::World(const char *l1,const char *l2,const char *l3,const char *bg){
-	unsigned char i=0;
-	SDL_Surface *l;
-	const char *f[4]={l1,l2,l3,bg};
-	memset(layer,0,sizeof(struct layer_t)*4);
-	for(;i<4;i++){
-		l=IMG_Load(f[i]);
-		if(l!=NULL){
-			glGenTextures(1,&layer[i].tex);
-			glBindTexture(GL_TEXTURE_2D,layer[i].tex);
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-			glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,l->w,l->h,0,GL_RGB,GL_UNSIGNED_BYTE,l->pixels);
-			SDL_FreeSurface(l);
-		}
+World::World(float width){
+	unsigned int i;
+	lineCount=width/HLINE;
+	if((line=(struct line_t *)calloc(lineCount,sizeof(struct line_t)))==NULL){
+		std::cout<<"Failed to allocate memory!"<<std::endl;
+		abort();
+	}
+	line[0].start=(rand()%100)/100.0f-1; // lazy
+	for(i=1;i<lineCount;i++){
+		line[i].start=line[i-1].start+(float)((rand()%20)-10)/1000.0f;
 	}
 }
 void World::draw(void){
-	int i;
-	float x;
-	glEnable(GL_TEXTURE_2D);
-	for(i=2;i>=0;i--){
-		glBindTexture(GL_TEXTURE_2D,layer[i].tex);
-		glBegin(GL_QUADS);
-			for(x=-1;x<=1;x+=(TEX_SIZE/(float)(i+1))){
-				glTexCoord2d(1,1);glVertex2f(x   	   ,LAYER0_Y-TEX_SIZE+(i*.2));
-				glTexCoord2d(0,1);glVertex2f(x+TEX_SIZE,LAYER0_Y-TEX_SIZE+(i*.2));
-				glTexCoord2d(0,0);glVertex2f(x+TEX_SIZE,LAYER0_Y			+(i*.2));
-				glTexCoord2d(1,0);glVertex2f(x		   ,LAYER0_Y			+(i*.2));
-			}
-		glEnd();
-	}
-	glDisable(GL_TEXTURE_2D);
+	unsigned int i;
+	glBegin(GL_QUADS);
+		for(i=0;i<lineCount;i++){
+			glColor3ub(0,255,0);
+			glVertex2f((HLINE*i)-1      ,line[i].start);
+			glVertex2f((HLINE*i)-1+HLINE,line[i].start);
+			glVertex2f((HLINE*i)-1+HLINE,line[i].start-0.02);
+			glVertex2f((HLINE*i)-1      ,line[i].start-0.02);
+			glColor3ub(150,100,50);
+			glVertex2f((HLINE*i)-1      ,line[i].start-0.02);
+			glVertex2f((HLINE*i)-1+HLINE,line[i].start-0.02);
+			glVertex2f((HLINE*i)-1+HLINE,-1);
+			glVertex2f((HLINE*i)-1      ,-1);
+		}
+	glEnd();
 }

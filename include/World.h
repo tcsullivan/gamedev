@@ -2,21 +2,19 @@
 #define WORLD_H
 
 #include <common.h>
-#include <cstring>
 
-#define LAYER0_Y (-0.8f)
-#define TEX_SIZE ( 0.2f)
+#define HLINE (2.0f/ 200 )
 
 class World {
 private:
-	struct layer_t {
-		unsigned int tex;
-		float offset; 
-	} layer[4];
+	struct line_t {
+		// x = 2.0 (window width) / HLINES
+		float start; // Where to change to dirt, going down (y)
+	} *line;
+	unsigned int lineCount;
 public:
-	World(const char *l1,const char *l2,const char *l3,const char *bg);
+	World(float width);
 	void draw(void);
-	void update(int player_accel);
 };
 
 #endif // WORLD_H

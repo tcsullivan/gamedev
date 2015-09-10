@@ -1,4 +1,5 @@
 #include <common.h>
+#include <ctime>
 
 SDL_Window    *window = NULL;
 SDL_Surface   *renderSurface = NULL;
@@ -39,7 +40,7 @@ int main(int argc,char **argv){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 		return -1;
 	}
-	
+	srand(time(NULL));
 	glClearColor(.3,.5,.8,0);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -48,10 +49,7 @@ int main(int argc,char **argv){
 	****     GAMELOOP      ****
 	**************************/
 	
-	World *w=new World("res/dirt.jpg",
-					   "res/dirt.jpg",
-					   "res/dirt.jpg",
-					   "res/dirt.jpg");
+	World *w=new World(2);
 	
 	while(gameRunning){
 		ui.handleEvents();								// Handle events
