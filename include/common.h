@@ -18,7 +18,7 @@ typedef struct{float x; float y;}vec2;
 #define SCREEN_HEIGHT 800
 #define FULLSCREEN
 
-
+#define HLINE (2.0f/(SCREEN_WIDTH/4))
 
 //SDL VARIABLES
 extern SDL_Window    *window;

@@ -3,7 +3,8 @@
 
 #include <common.h>
 
-#define HLINE (2.0f/(SCREEN_WIDTH/4))
+#define goWorldLeft(w)  if(w->toLeft){w=w->toLeft;}
+#define goWorldRight(w) if(w->toRight){w=w->toRight;}
 
 class World {
 private:
@@ -13,7 +14,9 @@ private:
 	} *line;
 	unsigned int lineCount;
 public:
-	World(float width);
+	World *toLeft,*toRight;
+	World(void);
+	World(const float width,World *l,World *r);
 	void draw(void);
 	void detect(vec2 *v,const float width);
 };

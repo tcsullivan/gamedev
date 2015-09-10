@@ -1,12 +1,35 @@
 #include <World.h>
 
-World::World(float width){
+World::World(void){
+	line=NULL;
+	lineCount=0;
+	toLeft=toRight=NULL;
+}
+World::World(const float width,World *l,World *r){
 	unsigned int i;
 	double f;
 	lineCount=width/HLINE+1;
 	if((line=(struct line_t *)calloc(lineCount,sizeof(struct line_t)))==NULL){
 		std::cout<<"Failed to allocate memory!"<<std::endl;
 		abort();
+	}
+	toLeft=l;
+	toRight=r;
+	if(toLeft){
+		if(toLeft->toRight){
+			std::cout<<"There's already a world to the left!"<<std::endl;
+			abort();
+		}else{
+			toLeft->toRight=this;
+		}
+	}
+	if(toRight){
+		if(toRight->toLeft){
+			std::cout<<"There's already a world to the right!"<<std::endl;
+			abort();
+		}else{
+			toRight->toLeft=this;
+		}
 	}
 	line[0].start=(rand()%100)/100.0f-0.8f; // lazy
 	if(line[0].start>-0.5f)line[0].start=-0.7f;

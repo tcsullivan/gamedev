@@ -10,6 +10,7 @@ bool gameRunning = true;
 UIClass ui;
 Entities *entit1;
 Player player;
+World *currentWorld;
 
 int main(int argc,char **argv){
     // Initialize SDL
@@ -54,7 +55,10 @@ int main(int argc,char **argv){
 	entit1 = &player;
 	entit1->spawn(0,0);
 
-	World *w=new World(2);
+	World *w=NULL;
+	World *w2=new World(4,w,NULL);
+	w=new World(2,NULL,w2);
+	currentWorld=w;
 	
 	while(gameRunning){
 		ui.handleEvents();								// Handle events
@@ -75,7 +79,7 @@ int main(int argc,char **argv){
 		**** RENDER STUFF HERE ****
 		**************************/
 		 
-		w->draw();
+		currentWorld->draw();
 		glColor3ub(0,0,0);
 		glRectf(player.loc.x, player.loc.y, player.loc.x + player.width, player.loc.y + player.height);
 		
