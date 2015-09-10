@@ -62,6 +62,7 @@ void World::draw(void){
 		}
 	glEnd();
 }
+#include <stdio.h>
 void World::detect(vec2 *v,const float width){
 	unsigned int i;
 	for(i=0;i<lineCount;i++){
@@ -71,10 +72,10 @@ void World::detect(vec2 *v,const float width){
 			}else if(v->x+width>(HLINE*i)-1&&v->x+width<(HLINE*i)-1+HLINE){
 				v->x=(HLINE*i)-1-width;
 			}else{
-				v->y=line[i].start;
+				v->y=line[i].start+HLINE/4;
 			}
-		}else if(v->y>line[i].start+HLINE/2){
-			v->y-=HLINE/4;
+		}else if(v->y>line[i].start+HLINE/4){
+			//v->y-=HLINE/8;
 		}
 	}
 }

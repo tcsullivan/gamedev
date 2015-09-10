@@ -159,6 +159,7 @@ unsigned int logic(unsigned int interval,void *param){
 	ui.handleEvents();								// Handle events
 
 	player.vel.x = 0;
+	currentWorld->detect(&player.loci,player.width);
 
 	//std::cout << player.vel.x << std::endl;
 	//std::cout << player.velg.y << std::endl;
