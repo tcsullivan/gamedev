@@ -95,12 +95,21 @@ int main(int argc,char **argv){
 		player.loci.x += player.vel.x;
 
 		gw=currentWorld->getWidth();
-		if(player.loci.x+player.width>-1+gw&&currentWorld->toRight){
-			goWorldRight(currentWorld);
-			player.loci.x=-1+HLINE;
-		}else if(player.loci.x<-1&&currentWorld->toLeft){
-			goWorldLeft(currentWorld);
-			player.loci.x=currentWorld->getWidth()-1-player.width-HLINE;
+		if(player.loci.x+player.width>-1+gw){
+			if(currentWorld->toRight){
+				goWorldRight(currentWorld)
+				player.loci.x=-1+HLINE;
+			}else{
+				player.loci.x=gw-1-player.width-HLINE;
+			}
+		}
+		if(player.loci.x<-1){
+			if(currentWorld->toLeft){
+				goWorldLeft(currentWorld);
+				player.loci.x=currentWorld->getWidth()-1-player.width-HLINE;
+			}else{
+				player.loci.x=-1+HLINE;
+			}
 		}
 
 		render();
