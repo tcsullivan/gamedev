@@ -8,38 +8,40 @@ SDL_GLContext  mainGLContext = NULL;
 bool gameRunning = true;
 
 UIClass ui;
+Entities *entit1;
+Player player;
 
 int main(int argc,char **argv){
-    //runs start-up procedures
+    // Initialize SDL
     if(!SDL_Init(SDL_INIT_VIDEO)){
     	atexit(SDL_Quit);
-    	if(!(IMG_Init(IMG_INIT_PNG|IMG_INIT_JPG)&(IMG_INIT_PNG|IMG_INIT_JPG))){
-			std::cout<<"Could not init image libraries!\n"<<std::endl;
-			return -1;
-		}
-		atexit(IMG_Quit);
-		//Turn on double Buffering
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        //create the window
-        window = SDL_CreateWindow("Independent Study v.0.1 alpha", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
-                                  #ifdef FULLSCREEN
-                                  | SDL_WINDOW_FULLSCREEN
-                                  #endif // FULLSCREEN
-                                  );
-        if(window){
-        	//set OpenGL context
-            mainGLContext = SDL_GL_CreateContext(window);
-            if(mainGLContext == NULL){
-            	std::cout << "The OpenGL context failed to initialize! Error: " << SDL_GetError() << std::endl;
-            }
-		}else{
-			std::cout << "The window failed to generate! Error: " << SDL_GetError() << std::endl;
-        	return -1;
-        }
     }else{
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 		return -1;
 	}
+	// Initialize SDL_image
+	if((IMG_Init(IMG_INIT_PNG|IMG_INIT_JPG)&(IMG_INIT_PNG|IMG_INIT_JPG))){
+		atexit(IMG_Quit);
+	}else{
+		std::cout<<"Could not init image libraries!\n"<<std::endl;
+		return -1;
+	}
+	// Create the window
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    window = SDL_CreateWindow("Independent Study v.0.1 alpha", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
+                              #ifdef FULLSCREEN
+                              | SDL_WINDOW_FULLSCREEN
+                              #endif // FULLSCREEN
+                              );
+	if(!window){
+		std::cout << "The window failed to generate! Error: " << SDL_GetError() << std::endl;
+		return -1;
+	}
+	// Set OpenGL context
+	if((mainGLContext = SDL_GL_CreateContext(window))==NULL){
+		std::cout << "The OpenGL context failed to initialize! Error: " << SDL_GetError() << std::endl;
+	}
+	// Setup rand() and OpenGL
 	srand(time(NULL));
 	glClearColor(.3,.5,.8,0);
 	glEnable(GL_BLEND);
@@ -48,7 +50,10 @@ int main(int argc,char **argv){
 	/**************************
 	****     GAMELOOP      ****
 	**************************/
-	
+
+	entit1 = &player;
+	entit1->spawn(0,0);
+
 	World *w=new World(2);
 	
 	while(gameRunning){
@@ -59,7 +64,7 @@ int main(int argc,char **argv){
 		glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
 		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
-		//glOrtho(0,SCREEN_WIDTH, 0,SCREEN_HEIGHT, -1,1); //set the the size of the screen
+		glOrtho(-1,1,-1,1,-1,1);						//set the the size of the screen
 		glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
 		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
@@ -69,15 +74,10 @@ int main(int argc,char **argv){
 		/**************************
 		**** RENDER STUFF HERE ****
 		**************************/
-		
-		/*glColor3f(1.0f, 0.0f, 0.0f); //color to red
-		glRectf(0,0, 50,50); //draw a test rectangle
-		glColor3f(0.0f, 1.0f, 0.0f); //color to blue
-		glRectf(50,0, 100,50); //draw a test rectangle
-		glColor3f(0.0f, 0.0f, 1.0f); //color to green
-		glRectf(100,0,150,50); //draw a test rectangle*/
-		
+		 
 		w->draw();
+		glColor3ub(0,0,0);
+		glRectf(player.loc.x, player.loc.y, player.loc.x + player.width, player.loc.y + player.height);
 		
 		/**************************
 		****  CLOSE THE LOOP   ****
