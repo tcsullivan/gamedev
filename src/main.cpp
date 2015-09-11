@@ -1,4 +1,5 @@
 #include <common.h>
+#include <cstdio>
 #include <ctime>
 
 #define TICKS_PER_SEC 20
@@ -77,10 +78,27 @@ int main(int argc,char **argv){
 	entit1 = &player;
 	entit1->spawn(0, 0);
 
-	World *w=NULL;
-	World *w2=new World(4,w,NULL);
+	// Generate the world
+	World *w=NULL,*w2=NULL;
+	w2=new World(4,w,NULL);
 	w=new World(2,NULL,w2);
+	
 	currentWorld=w;
+	
+	// Save the world if necessary
+	/*static FILE *f=fopen("world.dat","r");
+	if(f==NULL){
+		f=fopen("world.dat","w");
+		if(f!=NULL){
+			currentWorld->saveToFile(f,currentWorld);
+			fclose(f);
+		}else{
+			std::cout<<"Error! Couldn\'t save the world!"<<std::endl;
+		}
+	}else{
+		currentWorld->loadFromFile(f,currentWorld);
+		fclose(f);
+	}*/
 	
 	float gw;
 	

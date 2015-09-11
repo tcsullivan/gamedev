@@ -11,7 +11,7 @@ private:
 	struct line_t {
 		// x = 2.0 (window width) / HLINES
 		double start; // Where to change to dirt, going down (y)
-	} *line;
+	} __attribute__ ((packed)) *line;
 	unsigned int lineCount;
 public:
 	World *toLeft,*toRight;
@@ -20,6 +20,8 @@ public:
 	void draw(void);
 	void detect(vec2 *v,const float width);
 	float getWidth(void);
+	void saveToFile(FILE *f,World *parent);
+	void loadFromFile(FILE *f,World *parent);
 };
 
 #endif // WORLD_H

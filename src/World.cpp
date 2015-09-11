@@ -1,4 +1,5 @@
 #include <World.h>
+#include <cstdio>
 
 World::World(void){
 	line=NULL;
@@ -62,7 +63,6 @@ void World::draw(void){
 		}
 	glEnd();
 }
-#include <stdio.h>
 void World::detect(vec2 *v,const float width){
 	unsigned int i;
 	for(i=0;i<lineCount;i++){
@@ -82,3 +82,27 @@ void World::detect(vec2 *v,const float width){
 float World::getWidth(void){
 	return (lineCount-1)*HLINE;
 }
+void World::saveToFile(FILE *f,World *parent){
+	fwrite(&lineCount,sizeof(unsigned int) ,1        ,f);
+	fwrite(&line     ,sizeof(struct line_t),lineCount,f);
+	if(toLeft!=NULL&&toLeft!=parent->toLeft){
+		toLeft->saveToFile(f,toLeft);
+	}
+	if(toRight!=NULL&&toRight!=parent->toRight){
+		toRight->saveToFile(f,toRight);
+	}
+}
+void World::loadFromFile(FILE *f,World *parent){
+	fread(&lineCount,sizeof(unsigned int) ,1        ,f);
+	line=(struct line_t *)malloc(lineCount*sizeof(struct line_t *));
+	fread(&line     ,sizeof(struct line_t),lineCount,f);
+	if(toLeft!=NULL&&toLeft!=parent->toLeft){
+		toLeft->loadFromFile(f,toLeft);
+	}
+	std::cout<<toRight<<" "<<parent->toRight<<std::endl;
+	if(toRight!=NULL&&toRight!=parent->toRight){
+		puts("A");
+		toRight->loadFromFile(f,toRight);
+	}
+}
+
