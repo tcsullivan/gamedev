@@ -15,8 +15,8 @@ typedef struct{float x; float y;}vec2;
 #include <World.h>
 
 #define SCREEN_WIDTH  1280
-#define SCREEN_HEIGHT 720
-//#define FULLSCREEN
+#define SCREEN_HEIGHT 800
+#define FULLSCREEN
 
 #define HLINE (2.0f / (SCREEN_WIDTH / 4))
 
@@ -27,5 +27,7 @@ extern SDL_GLContext  mainGLContext;
 
 //WINDOW VARIABLES
 extern bool gameRunning;
+
+extern int grand(void);
 
 #endif // COMMON_H

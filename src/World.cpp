@@ -9,7 +9,7 @@ World::World(void){
 World::World(const float width,World *l,World *r){
 	unsigned int i;
 	double f;
-	lineCount=width/HLINE+1;
+	lineCount=width/HLINE+11;
 	if((line=(struct line_t *)calloc(lineCount,sizeof(struct line_t)))==NULL){
 		std::cout<<"Failed to allocate memory!"<<std::endl;
 		abort();
@@ -32,10 +32,10 @@ World::World(const float width,World *l,World *r){
 			toRight->toLeft=this;
 		}
 	}
-	line[0].start=(rand()%100)/100.0f-0.8f; // lazy
+	line[0].start=(grand()%100)/100.0f-0.8f; // lazy
 	if(line[0].start>-0.5f)line[0].start=-0.7f;
 	for(i=10;i<lineCount;i+=10){ 
-		line[i].start=((double)(rand()%40+200))/1000.0f-1;
+		line[i].start=((double)(grand()%40+200))/1000.0f-1;
 	}
 	for(i=0;i<lineCount;i++){
 		if(!(i%10)||!i){
@@ -49,7 +49,7 @@ World::World(const float width,World *l,World *r){
 void World::draw(void){
 	unsigned int i;
 	glBegin(GL_QUADS);
-		for(i=0;i<lineCount;i++){
+		for(i=0;i<lineCount-10;i++){
 			glColor3ub(0,255,0);
 			glVertex2f((HLINE*i)-1      ,line[i].start);
 			glVertex2f((HLINE*i)-1+HLINE,line[i].start);
@@ -65,22 +65,24 @@ void World::draw(void){
 }
 void World::detect(vec2 *v,const float width){
 	unsigned int i;
-	for(i=0;i<lineCount;i++){
+	for(i=0;i<lineCount-10;i++){
 		if(v->y<line[i].start){
 			if(v->x>(HLINE*i)-1&&v->x<(HLINE*i)-1+HLINE){
-				v->x=(HLINE*i)-1+HLINE;
+				v->y=line[i].start;
+				return;
+				//v->x=(HLINE*i)-1+HLINE;
 			}else if(v->x+width>(HLINE*i)-1&&v->x+width<(HLINE*i)-1+HLINE){
-				v->x=(HLINE*i)-1-width;
-			}else{
-				v->y=line[i].start+HLINE/4;
+				v->y=line[i].start;
+				return;
+				//v->x=(HLINE*i)-1-width;
 			}
 		}else if(v->y>line[i].start+HLINE/4){
-			//v->y-=HLINE/8;
+			v->y-=HLINE/8;
 		}
 	}
 }
 float World::getWidth(void){
-	return (lineCount-1)*HLINE;
+	return (lineCount-11)*HLINE;
 }
 void World::saveToFile(FILE *f,World *parent){
 	fwrite(&lineCount,sizeof(unsigned int) ,1        ,f);

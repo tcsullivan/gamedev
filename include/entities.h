@@ -13,10 +13,7 @@ public:
 	vec2 loci;
 	vec2 vel;
 	vec2 velg;
-
 	void spawn(float, float);
-
-
 };
 
 class Player : public Entities{

@@ -21,6 +21,16 @@ Player player;
 UIClass ui;
 World *currentWorld;
 
+//static int randNext=1;
+
+void irand(unsigned int seed){
+	srand(seed);
+}
+
+int grand(void){
+	return rand();
+}
+
 unsigned int logic(unsigned int interval,void *param);
 
 float interpolate(float goal, float current, float dt){
@@ -65,7 +75,6 @@ int main(int argc,char **argv){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 		return -1;
 	}
-	srand(time(NULL));
 	SDL_AddTimer(MSEC_PER_TICK,logic,NULL);
 	glClearColor(.3,.5,.8,0);
 	glEnable(GL_BLEND);
@@ -86,19 +95,21 @@ int main(int argc,char **argv){
 	currentWorld=w;
 	
 	// Save the world if necessary
-	/*static FILE *f=fopen("world.dat","r");
-	if(f==NULL){
+	/*FILE *f=fopen("world.dat","r");
+	unsigned int fSave;
+	if(!f){
 		f=fopen("world.dat","w");
-		if(f!=NULL){
-			currentWorld->saveToFile(f,currentWorld);
+		if(f){
+			fSave=time(NULL);
+			fwrite(&fSave,sizeof(unsigned int),1,f);
 			fclose(f);
-		}else{
-			std::cout<<"Error! Couldn\'t save the world!"<<std::endl;
 		}
 	}else{
-		currentWorld->loadFromFile(f,currentWorld);
+		fread(&fSave,sizeof(unsigned int),1,f);
 		fclose(f);
 	}*/
+	irand(time(NULL));
+>>>>>>> Stashed changes
 	
 	float gw;
 	
@@ -106,11 +117,6 @@ int main(int argc,char **argv){
 		prevTime = currentTime;
 		currentTime = tickCount;
 		deltaTime = currentTime - prevTime;
-															//DO ALL RENDERING HERE		
-		player.vel.x = interpolate(player.velg.x, player.vel.x, deltaTime) * .005;
-		if(player.vel.x > .05) player.vel.x = .05;
-		if(player.vel.x < -.05) player.vel.x = -.05;
-		player.loci.x += player.vel.x;
 
 		gw=currentWorld->getWidth();
 		if(player.loci.x+player.width>-1+gw){
@@ -130,6 +136,10 @@ int main(int argc,char **argv){
 			}
 		}
 
+		player.vel.x = interpolate(player.velg.x, player.vel.x, deltaTime) * .005;
+		if(player.vel.x > .05) player.vel.x = .05;
+		if(player.vel.x < -.05) player.vel.x = -.05;
+		player.loci.x += player.vel.x;
 		render();
 	}
 	
@@ -162,7 +172,7 @@ void render(){
 		**************************/
 		 
 		currentWorld->draw();
-		glColor3ub(0,0,0);
+		glColor3ub(120,30,30);
 		glRectf(player.loci.x, player.loci.y, player.loci.x + player.width, player.loci.y + player.height);
 		
 		/**************************
@@ -176,7 +186,7 @@ void render(){
 unsigned int logic(unsigned int interval,void *param){
 	ui.handleEvents();								// Handle events
 
-	player.vel.x = 0;
+	player.vel.x=0;
 	currentWorld->detect(&player.loci,player.width);
 
 	//std::cout << player.vel.x << std::endl;
@@ -185,4 +195,4 @@ unsigned int logic(unsigned int interval,void *param){
 
 	tickCount++;
 	return interval;
-}
+}	
