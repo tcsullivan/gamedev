@@ -5,7 +5,6 @@ World::World(void){
 	line=NULL;
 	lineCount=0;
 	toLeft=toRight=behind=infront=NULL;
-	root=false;
 }
 World::World(const float width,World *l,World *r){
 	unsigned int i;
@@ -18,7 +17,6 @@ World::World(const float width,World *l,World *r){
 	toLeft=l;
 	toRight=r;
 	behind=infront=NULL;
-	root=false;
 	if(toLeft){
 		if(toLeft->toRight){
 			std::cout<<"There's already a world to the left!"<<std::endl;
@@ -49,39 +47,47 @@ World::World(const float width,World *l,World *r){
 		}
 	}
 }
-static float hline=HLINE;
-static float back=0;
+static float drawOffsetX=0,
+			 drawOffsetY=0;
 void World::draw(void){
 	unsigned int i;
-	if(behind){
-		hline*=.5;
-		back+=.2;
-		behind->draw();
-	}else{
-		hline*=.5;
-		back+=.2;
+	float x,y;
+	static World *root,*cur;
+	root=cur=this;
+LOOP:
+	if(cur->behind){
+		drawOffsetX+=(cur->getWidth()-cur->behind->getWidth())/2;
+		drawOffsetY+=.3;
+		cur=cur->behind;
+		goto LOOP;
+		//behind->draw();
 	}
-	if(root){
-		hline=HLINE;
-		back=0;
-	}else{
-		hline*=2;
-		back-=.2;
-	}
+LOOP2:
 	glBegin(GL_QUADS);
-		for(i=0;i<lineCount-10;i++){
-			glColor3ub(0,255,0);
-			glVertex2f((hline*i)-1      ,line[i].start+back);
-			glVertex2f((hline*i)-1+hline,line[i].start+back);
-			glVertex2f((hline*i)-1+hline,line[i].start-hline*2+back);
-			glVertex2f((hline*i)-1      ,line[i].start-hline*2+back);
+		for(i=0;i<cur->lineCount-10;i++){
+			x=(HLINE*i)-1+drawOffsetX;
+			y=cur->line[i].start+drawOffsetY;
+			glColor3ub(0,200,0);
+			glVertex2f(x      ,y);
+			glVertex2f(x+HLINE,y);
+			y-=HLINE*2;
+			glVertex2f(x+HLINE,y);
+			glVertex2f(x	  ,y);
 			glColor3ub(150,100,50);
-			glVertex2f((hline*i)-1      ,line[i].start-hline*2+back);
-			glVertex2f((hline*i)-1+hline,line[i].start-hline*2+back);
-			glVertex2f((hline*i)-1+hline,-1+back);
-			glVertex2f((hline*i)-1      ,-1+back);
+			glVertex2f(x	  ,y);
+			glVertex2f(x+HLINE,y);
+			glVertex2f(x+HLINE,-1);
+			glVertex2f(x	  ,-1);
 		}
 	glEnd();
+	if(root!=cur){
+		cur=cur->infront;
+		drawOffsetX-=(cur->getWidth()-cur->behind->getWidth())/2;
+		drawOffsetY-=.3;
+		goto LOOP2;
+	}else{
+		drawOffsetX=drawOffsetY=0;
+	}
 }
 void World::detect(vec2 *v,const float width){
 	unsigned int i;
@@ -127,14 +133,11 @@ void World::loadFromFile(FILE *f,World *parent){
 		toRight->loadFromFile(f,toRight);
 	}
 }
-void World::addLayer(void){
+void World::addLayer(const float width){
 	if(behind){
-		behind->addLayer();
+		behind->addLayer(width);
 	}else{
-		behind=new World((lineCount-1)*HLINE+LAYER_SCALE,NULL,NULL);
+		behind=new World(width,NULL,NULL);
 		behind->infront=this;
 	}
-}
-void World::setRoot(void){
-	root=true;
 }

@@ -97,12 +97,10 @@ int main(int argc,char **argv){
 	// Generate the world
 	World *w=NULL,*w2=NULL;
 	w2=new World(4,w,NULL);
-	w=new World(10,NULL,w2);
+	w=new World(2,NULL,w2);
 	
 	currentWorld=w;
-	currentWorld->setRoot();
-	currentWorld->addLayer();
-	//currentWorld->addLayer();
+	currentWorld->addLayer(3);
 	//currentWorld->addLayer();
 	
 	// Save the world if necessary
@@ -213,6 +211,7 @@ void logic(){
 	if(player.left == true) {player.vel.x = -.002;}
 	if(player.right == false && player.left == false) {player.vel.x = 0;}
 
+	std::cout<<"\r("<<player.loc.x<<","<<player.loc.y<<")";
 
 	currentWorld->detect(&player.loc,player.width);
 	currentWorld->detect(&npc.loc,npc.height);

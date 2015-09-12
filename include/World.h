@@ -6,8 +6,6 @@
 #define goWorldLeft(w)  if(w->toLeft){w=w->toLeft;}
 #define goWorldRight(w) if(w->toRight){w=w->toRight;}
 
-#define LAYER_SCALE 2
-
 class World {
 private:
 	struct line_t {
@@ -15,7 +13,6 @@ private:
 		double start; // Where to change to dirt, going down (y)
 	} __attribute__ ((packed)) *line;
 	unsigned int lineCount;
-	bool root,drawn;
 public:
 	World *behind,*infront;
 	World *toLeft,*toRight;
@@ -26,8 +23,7 @@ public:
 	float getWidth(void);
 	void saveToFile(FILE *f,World *parent);
 	void loadFromFile(FILE *f,World *parent);
-	void addLayer(void);
-	void setRoot(void);
+	void addLayer(const float width);
 };
 
 #endif // WORLD_H
