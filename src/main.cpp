@@ -109,7 +109,6 @@ int main(int argc,char **argv){
 		fclose(f);
 	}*/
 	irand(time(NULL));
->>>>>>> Stashed changes
 	
 	float gw;
 	
