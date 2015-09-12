@@ -38,7 +38,7 @@ World::World(const float width,World *l,World *r){
 	line[0].start=(grand()%100)/100.0f-0.8f; // lazy
 	if(line[0].start>-0.5f)line[0].start=-0.7f;
 	for(i=10;i<lineCount;i+=10){ 
-		line[i].start=((double)(grand()%40+200))/1000.0f-1;
+		line[i].start=((double)((grand()%50)+400))/1000.0f-1;
 	}
 	for(i=0;i<lineCount;i++){
 		if(!(i%10)||!i){
