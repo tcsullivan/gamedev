@@ -16,8 +16,8 @@ static unsigned int tickCount   = 0,
 					currentTime = 0,
 					deltaTime   = 0;
 
-Entities *entPlay;	//The player base
-Entities *entnpc;	//The NPC base
+Entity *entPlay;	//The player base
+Entity *entnpc;	//The NPC base
 Player player;		//The actual player object
 NPC npc;
 UIClass ui;			//Yep
@@ -92,7 +92,7 @@ int main(int argc,char **argv){
 	entPlay->spawn(0, 0);
 	entnpc = &npc;
 	npc.type = -1;						 //this will make the NPC spawn the start of a village
-	entnpc->spawn( (grand()%20)-10 ,0); //this will spawn the start of a village
+	entnpc->spawn(.5,0);// (grand()%20)-10 ,0); //this will spawn the start of a village
 
 	// Generate the world
 	World *w=NULL,*w2=NULL;
@@ -101,6 +101,7 @@ int main(int argc,char **argv){
 	
 	currentWorld=w;
 	currentWorld->addLayer(3);
+	currentWorld->addEntity((void *)entnpc);
 	//currentWorld->addLayer();
 	
 	// Save the world if necessary
@@ -117,7 +118,7 @@ int main(int argc,char **argv){
 		fread(&fSave,sizeof(unsigned int),1,f);
 		fclose(f);
 	}*/
-	
+
 	float gw;
 	
 	while(gameRunning){
@@ -186,14 +187,14 @@ void render(){
 		glRectf(player.loc.x, player.loc.y, player.loc.x + player.width, player.loc.y + player.height);
 
 		///TEMP NPC RENDER!!!!!!
-		glColor3ub(98, 78, 44);							//render the NPC(s)
+		/*glColor3ub(98, 78, 44);							//render the NPC(s)
 		glRectf(npc.loc.x, npc.loc.y, npc.loc.x + .25, npc.loc.y + .25);
 		glColor3ub(83, 49, 24);
 		glBegin(GL_TRIANGLES);
 			glVertex2f(npc.loc.x, npc.loc.y + .25);
 			glVertex2f(npc.loc.x + .25, npc.loc.y + .25);
 			glVertex2f(npc.loc.x + .125, npc.loc.y + .35);
-		glEnd();
+		glEnd();*/
 		///BWAHHHHHHHHHHHH
 		
 		/**************************

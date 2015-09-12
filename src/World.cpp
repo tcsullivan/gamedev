@@ -3,7 +3,7 @@
 
 World::World(void){
 	line=NULL;
-	lineCount=0;
+	lineCount=entCount=0;
 	toLeft=toRight=behind=infront=NULL;
 }
 World::World(const float width,World *l,World *r){
@@ -17,6 +17,7 @@ World::World(const float width,World *l,World *r){
 	toLeft=l;
 	toRight=r;
 	behind=infront=NULL;
+	entCount=0;
 	if(toLeft){
 		if(toLeft->toRight){
 			std::cout<<"There's already a world to the left!"<<std::endl;
@@ -87,6 +88,9 @@ LOOP2:
 		goto LOOP2;
 	}else{
 		drawOffsetX=drawOffsetY=0;
+		for(i=0;i<entCount;i++){
+			((Entity **)entity)[i]->draw();
+		}
 	}
 }
 void World::detect(vec2 *v,const float width){
@@ -140,4 +144,7 @@ void World::addLayer(const float width){
 		behind=new World(width,NULL,NULL);
 		behind->infront=this;
 	}
+}
+void World::addEntity(void *e){
+	entity[entCount++]=e;
 }

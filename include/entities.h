@@ -3,7 +3,7 @@
 
 #include <common.h>
 
-class Entities{
+class Entity{
 public:
 	float width;
 	float height;
@@ -14,15 +14,16 @@ public:
 	bool right,left;
 
 	void spawn(float, float);
+	void draw(void);
 };
 
-class Player : public Entities{
+class Player : public Entity{
 public:
 	Player();
 	~Player();
 };
 
-class NPC : public Entities{
+class NPC : public Entity{
 public:
 	NPC();
 };
