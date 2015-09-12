@@ -93,6 +93,8 @@ int main(int argc,char **argv){
 	w=new World(2,NULL,w2);
 	
 	currentWorld=w;
+	currentWorld->addLayer();
+	currentWorld->setRoot();
 	
 	// Save the world if necessary
 	/*FILE *f=fopen("world.dat","r");

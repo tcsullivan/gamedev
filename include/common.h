@@ -16,7 +16,7 @@ typedef struct{float x; float y;}vec2;
 
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 800
-#define FULLSCREEN
+//#define FULLSCREEN
 
 #define HLINE (2.0f / (SCREEN_WIDTH / 4))
 

@@ -1,6 +1,7 @@
 #include <UIClass.h>
 
 extern Player player;
+extern World *currentWorld;
 
 void UIClass::handleEvents(){
 	SDL_Event e;
@@ -19,6 +20,12 @@ void UIClass::handleEvents(){
 				break;
 			case SDLK_a:					///A
 				player.velg.x = -10;
+				break;
+			case SDLK_i:
+				if(currentWorld->behind)currentWorld=currentWorld->behind;
+				break;
+			case SDLK_k:
+				if(currentWorld->infront)currentWorld=currentWorld->infront;
 				break;
 			default:
 				break;

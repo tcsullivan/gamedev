@@ -4,7 +4,8 @@
 World::World(void){
 	line=NULL;
 	lineCount=0;
-	toLeft=toRight=NULL;
+	toLeft=toRight=behind=infront=NULL;
+	root=false;
 }
 World::World(const float width,World *l,World *r){
 	unsigned int i;
@@ -16,6 +17,8 @@ World::World(const float width,World *l,World *r){
 	}
 	toLeft=l;
 	toRight=r;
+	behind=infront=NULL;
+	root=false;
 	if(toLeft){
 		if(toLeft->toRight){
 			std::cout<<"There's already a world to the left!"<<std::endl;
@@ -46,35 +49,45 @@ World::World(const float width,World *l,World *r){
 		}
 	}
 }
+static float hline=HLINE;
+static float back=0;
 void World::draw(void){
 	unsigned int i;
+	if(behind){
+		hline/=1.5;
+		back+=.2;
+		behind->draw();
+	}
+	if(root){
+		hline=HLINE;
+		back=0;
+	}
 	glBegin(GL_QUADS);
 		for(i=0;i<lineCount-10;i++){
 			glColor3ub(0,255,0);
-			glVertex2f((HLINE*i)-1      ,line[i].start);
-			glVertex2f((HLINE*i)-1+HLINE,line[i].start);
-			glVertex2f((HLINE*i)-1+HLINE,line[i].start-HLINE*2);
-			glVertex2f((HLINE*i)-1      ,line[i].start-HLINE*2);
+			glVertex2f((hline*i)-1      ,line[i].start+back);
+			glVertex2f((hline*i)-1+hline,line[i].start+back);
+			glVertex2f((hline*i)-1+hline,line[i].start-hline*2+back);
+			glVertex2f((hline*i)-1      ,line[i].start-hline*2+back);
 			glColor3ub(150,100,50);
-			glVertex2f((HLINE*i)-1      ,line[i].start-HLINE*2);
-			glVertex2f((HLINE*i)-1+HLINE,line[i].start-HLINE*2);
-			glVertex2f((HLINE*i)-1+HLINE,-1);
-			glVertex2f((HLINE*i)-1      ,-1);
+			glVertex2f((hline*i)-1      ,line[i].start-hline*2+back);
+			glVertex2f((hline*i)-1+hline,line[i].start-hline*2+back);
+			glVertex2f((hline*i)-1+hline,-1+back);
+			glVertex2f((hline*i)-1      ,-1+back);
 		}
 	glEnd();
 }
 void World::detect(vec2 *v,const float width){
 	unsigned int i;
+	// hey
 	for(i=0;i<lineCount-10;i++){
 		if(v->y<line[i].start){
 			if(v->x>(HLINE*i)-1&&v->x<(HLINE*i)-1+HLINE){
 				v->y=line[i].start;
 				return;
-				//v->x=(HLINE*i)-1+HLINE;
 			}else if(v->x+width>(HLINE*i)-1&&v->x+width<(HLINE*i)-1+HLINE){
 				v->y=line[i].start;
 				return;
-				//v->x=(HLINE*i)-1-width;
 			}
 		}else if(v->y>line[i].start+HLINE/4){
 			v->y-=HLINE/8;
@@ -107,4 +120,14 @@ void World::loadFromFile(FILE *f,World *parent){
 		toRight->loadFromFile(f,toRight);
 	}
 }
-
+void World::addLayer(void){
+	if(behind){
+		behind->addLayer();
+	}else{
+		behind=new World((lineCount-1)*HLINE+LAYER_SCALE,NULL,NULL);
+		behind->infront=this;
+	}
+}
+void World::setRoot(void){
+	root=true;
+}
