@@ -86,6 +86,7 @@ void World::draw(void){
 void World::detect(vec2 *v,const float width){
 	unsigned int i;
 	// hey
+	// oh hai
 	for(i=0;i<lineCount-10;i++){
 		if(v->y<line[i].start){
 			if(v->x>(HLINE*i)-1&&v->x<(HLINE*i)-1+HLINE){

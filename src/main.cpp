@@ -16,10 +16,12 @@ static unsigned int tickCount   = 0,
 					currentTime = 0,
 					deltaTime   = 0;
 
-Entities *entit1;
-Player player;
-UIClass ui;
-World *currentWorld;
+Entities *entPlay;	//The player base
+Entities *entnpc;	//The NPC base
+Player player;		//The actual player object
+NPC npc;
+UIClass ui;			//Yep
+World *currentWorld;//u-huh
 
 //static int randNext=1;
 
@@ -31,7 +33,7 @@ int grand(void){
 	return rand();
 }
 
-unsigned int logic(unsigned int interval,void *param);
+void logic();
 
 float interpolate(float goal, float current, float dt){
 	float difference = goal - current;
@@ -75,7 +77,7 @@ int main(int argc,char **argv){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 		return -1;
 	}
-	SDL_AddTimer(MSEC_PER_TICK,logic,NULL);
+
 	glClearColor(.3,.5,.8,0);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -84,13 +86,18 @@ int main(int argc,char **argv){
 	****     GAMELOOP      ****
 	**************************/
 
-	entit1 = &player;
-	entit1->spawn(0, 0);
+	irand(time(NULL));
+
+	entPlay = &player;
+	entPlay->spawn(0, 0);
+	entnpc = &npc;
+	npc.type = -1;						 //this will make the NPC spawn the start of a village
+	entnpc->spawn( (grand()%20)-10 ,0); //this will spawn the start of a village
 
 	// Generate the world
 	World *w=NULL,*w2=NULL;
 	w2=new World(4,w,NULL);
-	w=new World(2,NULL,w2);
+	w=new World(10,NULL,w2);
 	
 	currentWorld=w;
 	currentWorld->setRoot();
@@ -112,37 +119,39 @@ int main(int argc,char **argv){
 		fread(&fSave,sizeof(unsigned int),1,f);
 		fclose(f);
 	}*/
-	irand(time(NULL));
 	
 	float gw;
 	
 	while(gameRunning){
 		prevTime = currentTime;
-		currentTime = tickCount;
+		currentTime = SDL_GetTicks();
 		deltaTime = currentTime - prevTime;
 
+		if(prevTime + MSEC_PER_TICK >= SDL_GetTicks()){						//the logic loop to run at a dedicated time
+			logic();
+			prevTime = SDL_GetTicks();
+		}
+
+		player.loc.x += player.vel.x * (deltaTime / 2);						//update the player's x based on 
+
 		gw=currentWorld->getWidth();
-		if(player.loci.x+player.width>-1+gw){
+		if(player.loc.x+player.width>-1+gw){
 			if(currentWorld->toRight){
 				goWorldRight(currentWorld)
-				player.loci.x=-1+HLINE;
+				player.loc.x=-1+HLINE;
 			}else{
-				player.loci.x=gw-1-player.width-HLINE;
+				player.loc.x=gw-1-player.width-HLINE;
 			}
 		}
-		if(player.loci.x<-1){
+		if(player.loc.x<-1){
 			if(currentWorld->toLeft){
 				goWorldLeft(currentWorld);
-				player.loci.x=currentWorld->getWidth()-1-player.width-HLINE;
+				player.loc.x=currentWorld->getWidth()-1-player.width-HLINE;
 			}else{
-				player.loci.x=-1+HLINE;
+				player.loc.x=-1+HLINE;
 			}
 		}
 
-		player.vel.x = interpolate(player.velg.x, player.vel.x, deltaTime) * .005;
-		if(player.vel.x > .05) player.vel.x = .05;
-		if(player.vel.x < -.05) player.vel.x = -.05;
-		player.loci.x += player.vel.x;
 		render();
 	}
 	
@@ -163,7 +172,7 @@ void render(){
 		glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
 		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
-		glOrtho(-1 + player.loci.x, 1 + player.loci.x , -1, 1, -1,1); //set the the size of the screen
+		glOrtho(-1 + player.loc.x, 1 + player.loc.x , -1, 1, -1,1); //set the the size of the screen
 		glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
 		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
@@ -175,8 +184,19 @@ void render(){
 		**************************/
 		 
 		currentWorld->draw(); // layers dont scale x correctly...
-		glColor3ub(120,30,30);
-		glRectf(player.loci.x, player.loci.y, player.loci.x + player.width, player.loci.y + player.height);
+		glColor3ub(120,30,30);							//render the player
+		glRectf(player.loc.x, player.loc.y, player.loc.x + player.width, player.loc.y + player.height);
+
+		///TEMP NPC RENDER!!!!!!
+		glColor3ub(98, 78, 44);							//render the NPC(s)
+		glRectf(npc.loc.x, npc.loc.y, npc.loc.x + .25, npc.loc.y + .25);
+		glColor3ub(83, 49, 24);
+		glBegin(GL_TRIANGLES);
+			glVertex2f(npc.loc.x, npc.loc.y + .25);
+			glVertex2f(npc.loc.x + .25, npc.loc.y + .25);
+			glVertex2f(npc.loc.x + .125, npc.loc.y + .35);
+		glEnd();
+		///BWAHHHHHHHHHHHH
 		
 		/**************************
 		****  CLOSE THE LOOP   ****
@@ -186,16 +206,16 @@ void render(){
 		SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
 }
 
-unsigned int logic(unsigned int interval,void *param){
+void logic(){
 	ui.handleEvents();								// Handle events
 
-	player.vel.x=0;
-	currentWorld->detect(&player.loci,player.width);
+	if(player.right == true) {player.vel.x = .002;}
+	if(player.left == true) {player.vel.x = -.002;}
+	if(player.right == false && player.left == false) {player.vel.x = 0;}
 
-	//std::cout << player.vel.x << std::endl;
-	//std::cout << player.velg.y << std::endl;
-	//std::cout << "d:" << deltaTime << std::endl;
+
+	currentWorld->detect(&player.loc,player.width);
+	currentWorld->detect(&npc.loc,npc.height);
 
 	tickCount++;
-	return interval;
 }	
