@@ -17,6 +17,8 @@ void UIClass::handleEvents(){
 			if(e.key.keysym.sym == SDLK_d) player.right = true;
 			if(e.key.keysym.sym == SDLK_a) player.left = true;
 			if(e.key.keysym.sym == SDLK_SPACE) player.loc.y += 10;
+			if(e.key.keysym.sym == SDLK_i)if(currentWorld->behind) currentWorld=currentWorld->behind;
+			if(e.key.keysym.sym == SDLK_k)if(currentWorld->infront)currentWorld=currentWorld->infront;
 			break;
 		case SDL_KEYUP:
 			if(e.key.keysym.sym == SDLK_d) player.right = false;

@@ -132,7 +132,7 @@ int main(int argc,char **argv){
 			prevTime = SDL_GetTicks();
 		}
 
-		player.loc.x += player.vel.x * (deltaTime / 2);						//update the player's x based on 
+		player.loc.x += player.vel.x*deltaTime;						//update the player's x based on 
 
 		gw=currentWorld->getWidth();
 		if(player.loc.x+player.width>-1+gw){
