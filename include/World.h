@@ -6,7 +6,7 @@
 #define goWorldLeft(w)  if(w->toLeft){w=w->toLeft;}
 #define goWorldRight(w) if(w->toRight){w=w->toRight;}
 
-#define LAYER_SCALE 1
+#define LAYER_SCALE 2
 
 class World {
 private:
@@ -15,7 +15,7 @@ private:
 		double start; // Where to change to dirt, going down (y)
 	} __attribute__ ((packed)) *line;
 	unsigned int lineCount;
-	bool root;
+	bool root,drawn;
 public:
 	World *behind,*infront;
 	World *toLeft,*toRight;

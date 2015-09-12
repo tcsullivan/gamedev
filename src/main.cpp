@@ -93,8 +93,10 @@ int main(int argc,char **argv){
 	w=new World(2,NULL,w2);
 	
 	currentWorld=w;
-	currentWorld->addLayer();
 	currentWorld->setRoot();
+	currentWorld->addLayer();
+	//currentWorld->addLayer();
+	//currentWorld->addLayer();
 	
 	// Save the world if necessary
 	/*FILE *f=fopen("world.dat","r");
@@ -172,7 +174,7 @@ void render(){
 		**** RENDER STUFF HERE ****
 		**************************/
 		 
-		currentWorld->draw();
+		currentWorld->draw(); // layers dont scale x correctly...
 		glColor3ub(120,30,30);
 		glRectf(player.loci.x, player.loci.y, player.loci.x + player.width, player.loci.y + player.height);
 		

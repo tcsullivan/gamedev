@@ -54,13 +54,19 @@ static float back=0;
 void World::draw(void){
 	unsigned int i;
 	if(behind){
-		hline/=1.5;
+		hline*=.5;
 		back+=.2;
 		behind->draw();
+	}else{
+		hline*=.5;
+		back+=.2;
 	}
 	if(root){
 		hline=HLINE;
 		back=0;
+	}else{
+		hline*=2;
+		back-=.2;
 	}
 	glBegin(GL_QUADS);
 		for(i=0;i<lineCount-10;i++){
