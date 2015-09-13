@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <style>
+        body{
+          font-family:Consolas;
+          font-size:12px;
+        }
+        .branch{
+          border: solid 1px #000000;
+          font-family:Consolas;
+          font-size:12px;
+          margin:auto 20px;
+          padding:5px;
+        }
+        .collapse{
+          font-size: 31px;
+          display:block;
+        }
+        .collapse + input{
+          display:none;
+        }
+        .collapse + input + *{
+          display:none;
+        }
+        .collapse+ input:checked + *{
+          display:block;
+        }
+      </style>
+  </head>
+  <body>
+    <h1>Entity Types</h1>
+    <hr>
+    <h1 style="font-size:20px;">How it works: (Click the words)</h1>
+    <label class="collapse" for="_--1">ID (Name)</label>
+    <input id="_--1" type="checkbox">
+    <div class = "branch">
+      <label class="collapse" for="_--1_-1">-1 (Sub-Type)</label>
+      <input id="_--1_-1" type="checkbox">
+      <div class="branch"><p> - Subtypes with negative IDS have non-standard traits ie: infinite health, doors can be destroyed with a weapon, spawn points,  etc...</p></div>
+      <label class="collapse" for="_--1_1">&nbsp0 (Base)</label>
+      <input id="_--1_1" type="checkbox">
+      <div class="branch"><p> - Subtype 0 is always the base version of that entity, all other ID's are variations</p></div>
+      <label class="collapse" for="_--1_2">&nbsp1 (Sub-Type)</label>
+      <input id="_--1_2" type="checkbox">
+      <div class="branch"><p> - Since the subtype is not 0, this entity is a subversion (modified traits) of that version  </p></div>
+    </div>
+    <hr>
+
+    <label class="collapse" for="_-1">-1 (Structures)</label>
+    <input id="_-1" type="checkbox">
+    <div class = "branch">
+      <label class="collapse" for="_-1_1">1 (Village)</label>
+      <input id="_-1_1" type="checkbox">
+      <div class="branch"><p> - village spawns a center of the village which spawns a variety of buildings and NPCS</p></div>
+      <label class="collapse" for="_-1_2">2 (Castle)</label>
+      <input id="_-1_2" type="checkbox">
+      <div class="branch"><p> - Castle - Not yet emplemented</p></div>
+    </div>
+    <hr>
+
+    <label class="collapse" for="_0">&nbsp0 (Players)</label>
+    <input id="_0" type="checkbox">
+    <div class="branch"><p> - Player</p></div>
+    <hr>
+
+    <label class="collapse" for="_1">&nbsp1 (NPCs)</label>
+    <input id="_1" type="checkbox">
+    <div class="branch">
+      <label class="collapse" for="_1_0">0 (Base)</label>
+      <input id="_1_0" type="checkbox">
+      <div class="branch"><p> - Villagers are spawned with the village spawn point <br> - The base villagers and the role-assigned villagers with no task with just talk with the player</p></div>
+      <label class="collapse" for="_1_1">1 (The Merchant)</label>
+      <input id="_1_1" type="checkbox">
+      <div class="branch"><p> - The merchant will try to trade the player certain objects for either money or other items of similar worth</p></div>
+    </div>
+    <hr>
+    
+
+    
+  </body>
+</html>
