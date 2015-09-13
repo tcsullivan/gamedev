@@ -191,7 +191,7 @@ void logic(){
 	if(player.left == true) {player.vel.x = -.00075;}
 	if(player.right == false && player.left == false) {player.vel.x = 0;}
 
-	std::cout<<"\r("<<player.loc.x<<","<<player.loc.y<<")"<<std::endl;
+	std::cout<<"\r("<<player.loc.x<<","<<player.loc.y<<")";
 
 
 	currentWorld->detect(&player.loc,&player.vel,player.width);

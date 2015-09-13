@@ -4,6 +4,7 @@ extern Player player;
 extern World *currentWorld;
 
 void UIClass::handleEvents(){
+	static bool space=false;
 	float thing;
 	SDL_Event e;
 	while(SDL_PollEvent(&e)){
@@ -19,7 +20,8 @@ void UIClass::handleEvents(){
 			if(e.key.keysym.sym == SDLK_a) player.left = true;
 			if(e.key.keysym.sym == SDLK_LSHIFT) player.speed = 3;
 			if(e.key.keysym.sym == SDLK_SPACE){
-				if(player.vel.y<=0){
+				if(!space&&player.vel.y<=0){
+					space=true;
 					player.loc.y += HLINE*1.2;
 					player.vel.y += .004;
 				}
@@ -45,6 +47,8 @@ void UIClass::handleEvents(){
 			if(e.key.keysym.sym == SDLK_d) player.right = false;
 			if(e.key.keysym.sym == SDLK_a) player.left = false;
 			if(e.key.keysym.sym == SDLK_LSHIFT) player.speed = 1.0;
+			if(e.key.keysym.sym == SDLK_SPACE)
+				if(player.vel.y<=.001)space=false;
 		
 			if(e.key.keysym.sym == SDLK_ESCAPE) gameRunning = false;
 			break;
