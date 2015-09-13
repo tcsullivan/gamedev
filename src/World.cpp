@@ -59,7 +59,7 @@ LOOP:
 	if(cur->behind){
 		drawOffsetX+=(cur->getWidth()-cur->behind->getWidth())/2;
 		drawOffsetY+=.3;
-		hline/=2;
+		//hline/=2;
 		cur=cur->behind;
 		goto LOOP;
 		//behind->draw();
@@ -86,7 +86,7 @@ LOOP2:
 		cur=cur->infront;
 		drawOffsetX-=(cur->getWidth()-cur->behind->getWidth())/2;
 		drawOffsetY-=.3;
-		hline*=2;
+		//hline*=2;
 		goto LOOP2;
 	}else{
 		drawOffsetX=drawOffsetY=0;
