@@ -108,10 +108,10 @@ void World::detect(vec2 *v,vec2 *vel,const float width){
 	for(i=0;i<lineCount-10;i++){											// For every line in world
 		if(v->y<line[i].start){												// If we're inside the line
 			if(v->x>(HLINE*i)-1&&v->x<(HLINE*i)-1+HLINE){					// And we're inside it ;)
-				vel->y=0;v->y=line[i].start+HLINE;							// Correct
+				vel->y=0;v->y=line[i].start+HLINE/4;							// Correct
 				return; // :/
 			}else if(v->x+width>(HLINE*i)-1&&v->x+width<(HLINE*i)-1+HLINE){ // Same as above, but coming from right side instead of left
-				vel->y=0;v->y=line[i].start+HLINE;
+				vel->y=0;v->y=line[i].start+HLINE/4;
 				return; // ;)
 			}
 		}else if(v->y>line[i].start+HLINE){									// Trashy gravity handling
