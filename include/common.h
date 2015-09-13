@@ -20,6 +20,9 @@ typedef struct{float x; float y;}vec2;
 
 #define HLINE (2.0f / (SCREEN_WIDTH / 4))
 
+#define irand srand
+#define grand rand
+
 //SDL VARIABLES
 extern SDL_Window    *window;
 extern SDL_Surface   *renderSurface;
@@ -27,7 +30,5 @@ extern SDL_GLContext  mainGLContext;
 
 //WINDOW VARIABLES
 extern bool gameRunning;
-
-extern int grand(void);
 
 #endif // COMMON_H

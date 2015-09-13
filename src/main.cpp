@@ -16,34 +16,21 @@ static unsigned int tickCount   = 0,
 					currentTime = 0,
 					deltaTime   = 0;
 
-Entity *entPlay;	//The player base
-Entity *entnpc;	//The NPC base
-Player player;		//The actual player object
-NPC npc;
-UIClass ui;			//Yep
-World *currentWorld;//u-huh
-
-//static int randNext=1;
-
-void irand(unsigned int seed){
-	srand(seed);
-}
-
-int grand(void){
-	return rand();
-}
-
-void logic();
+Entity  *entPlay;	   //The player base
+Entity  *entnpc;	   //The NPC base
+Player  player;		   //The actual player object
+NPC     npc;		   // A test NPC
+UIClass ui;			   // Handles the user interface
+World   *currentWorld; // Points to the current 'world' the player is in
 
 float interpolate(float goal, float current, float dt){
-	float difference = goal - current;
-	if(difference > dt){
-		return current + dt;}
-	if(difference < dt){
-		return current - dt;}
+	float difference=goal-current;
+	if(difference>dt)return current+dt;
+	if(difference<dt)return current-dt;
 	return goal;
 }
 
+void logic();
 void render();
 
 int main(int argc,char **argv){
@@ -102,22 +89,6 @@ int main(int argc,char **argv){
 	currentWorld=w;
 	currentWorld->addLayer(3);
 	currentWorld->addEntity((void *)entnpc);
-	//currentWorld->addLayer();
-	
-	// Save the world if necessary
-	/*FILE *f=fopen("world.dat","r");
-	unsigned int fSave;
-	if(!f){
-		f=fopen("world.dat","w");
-		if(f){
-			fSave=time(NULL);
-			fwrite(&fSave,sizeof(unsigned int),1,f);
-			fclose(f);
-		}
-	}else{
-		fread(&fSave,sizeof(unsigned int),1,f);
-		fclose(f);
-	}*/
 
 	float gw;
 	

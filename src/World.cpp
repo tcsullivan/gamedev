@@ -52,13 +52,14 @@ static float drawOffsetX=0,
 			 drawOffsetY=0;
 void World::draw(void){
 	unsigned int i;
-	float x,y;
+	float x,y,hline=HLINE;
 	static World *root,*cur;
 	root=cur=this;
 LOOP:
 	if(cur->behind){
 		drawOffsetX+=(cur->getWidth()-cur->behind->getWidth())/2;
 		drawOffsetY+=.3;
+		hline/=2;
 		cur=cur->behind;
 		goto LOOP;
 		//behind->draw();
@@ -66,18 +67,18 @@ LOOP:
 LOOP2:
 	glBegin(GL_QUADS);
 		for(i=0;i<cur->lineCount-10;i++){
-			x=(HLINE*i)-1+drawOffsetX;
+			x=(hline*i)-1+drawOffsetX;
 			y=cur->line[i].start+drawOffsetY;
 			glColor3ub(0,200,0);
 			glVertex2f(x      ,y);
-			glVertex2f(x+HLINE,y);
-			y-=HLINE*2;
-			glVertex2f(x+HLINE,y);
+			glVertex2f(x+hline,y);
+			y-=hline*2;
+			glVertex2f(x+hline,y);
 			glVertex2f(x	  ,y);
 			glColor3ub(150,100,50);
 			glVertex2f(x	  ,y);
-			glVertex2f(x+HLINE,y);
-			glVertex2f(x+HLINE,-1);
+			glVertex2f(x+hline,y);
+			glVertex2f(x+hline,-1);
 			glVertex2f(x	  ,-1);
 		}
 	glEnd();
@@ -85,6 +86,7 @@ LOOP2:
 		cur=cur->infront;
 		drawOffsetX-=(cur->getWidth()-cur->behind->getWidth())/2;
 		drawOffsetY-=.3;
+		hline*=2;
 		goto LOOP2;
 	}else{
 		drawOffsetX=drawOffsetY=0;
