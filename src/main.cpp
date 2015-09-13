@@ -39,7 +39,7 @@ int main(int argc,char **argv){
 		//Turn on double Buffering
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         //create the window
-        window = SDL_CreateWindow("Independent Study v.0.1 alpha", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
+        window = SDL_CreateWindow("Independent Study v.0.2 alpha", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
                                   #ifdef FULLSCREEN
                                   | SDL_WINDOW_FULLSCREEN
                                   #endif // FULLSCREEN
