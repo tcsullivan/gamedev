@@ -24,16 +24,6 @@ Structures build;
 UIClass ui;			//Yep
 World *currentWorld;//u-huh
 
-//static int randNext=1;
-
-void irand(unsigned int seed){
-	srand(seed);
-}
-
-int grand(void){
-	return rand();
-}
-
 void logic();
 void render();
 
@@ -78,12 +68,10 @@ int main(int argc,char **argv){
 	**************************/
 
 	irand(time(NULL));
-
 	entPlay = &player;
 	entPlay->spawn(0, 0);
 
 	build.spawn(-1, (grand()%20)-10, 0);
-
 
 	// Generate the world
 	World *w=NULL,*w2=NULL;
@@ -95,6 +83,7 @@ int main(int argc,char **argv){
 	//currentWorld->addEntity((void *)entnpc);
 
 	float gw;
+	
 	
 	while(gameRunning){
 		prevTime = currentTime;
