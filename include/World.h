@@ -23,7 +23,7 @@ public:
 	World(void);
 	World(const float width,World *l,World *r);
 	void draw(void);
-	void detect(vec2 *v,const float width);
+	void detect(vec2 *v,vec2 *vel,const float width);
 	float getWidth(void);
 	void saveToFile(FILE *f,World *parent);
 	void loadFromFile(FILE *f,World *parent);

@@ -103,6 +103,9 @@ int main(int argc,char **argv){
 		}
 
 		player.loc.x += player.vel.x*deltaTime;						//update the player's x based on 
+		player.loc.y += player.vel.y*deltaTime;
+		
+		npc.loc.y += npc.vel.y*deltaTime;
 
 		gw=currentWorld->getWidth();
 		if(player.loc.x+player.width>-1+gw){
@@ -192,8 +195,8 @@ void logic(){
 
 	std::cout<<"\r("<<player.loc.x<<","<<player.loc.y<<")";
 
-	currentWorld->detect(&player.loc,player.width);
-	currentWorld->detect(&npc.loc,npc.height);
+	currentWorld->detect(&player.loc,&player.vel,player.width);
+	currentWorld->detect(&npc.loc,&player.vel,npc.height);
 
 	tickCount++;
 }	

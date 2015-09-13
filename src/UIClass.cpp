@@ -16,7 +16,10 @@ void UIClass::handleEvents(){
 		case SDL_KEYDOWN:
 			if(e.key.keysym.sym == SDLK_d) player.right = true;
 			if(e.key.keysym.sym == SDLK_a) player.left = true;
-			if(e.key.keysym.sym == SDLK_SPACE) player.loc.y += .5;
+			if(e.key.keysym.sym == SDLK_SPACE){
+				player.loc.y += HLINE*1.2;
+				player.vel.y += .004;
+			}
 			if(e.key.keysym.sym == SDLK_i)
 				if(currentWorld->behind){
 					player.loc.x-=(currentWorld->getWidth()-currentWorld->behind->getWidth())/2; // Match player's location to new area

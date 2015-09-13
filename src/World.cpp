@@ -104,21 +104,21 @@ LOOP2:
 		}
 	}
 }
-void World::detect(vec2 *v,const float width){
+void World::detect(vec2 *v,vec2 *vel,const float width){
 	unsigned int i;
 	// hey
 	// oh hai
 	for(i=0;i<lineCount-10;i++){
 		if(v->y<line[i].start){
 			if(v->x>(HLINE*i)-1&&v->x<(HLINE*i)-1+HLINE){
-				v->y=line[i].start;
+				if(v->y<line[i].start){vel->y=0;v->y=line[i].start+HLINE;}
 				return;
 			}else if(v->x+width>(HLINE*i)-1&&v->x+width<(HLINE*i)-1+HLINE){
-				v->y=line[i].start;
+				if(v->y<line[i].start){vel->y=0;v->y=line[i].start+HLINE;}
 				return;
 			}
-		}else if(v->y>line[i].start+HLINE/4){
-			v->y-=HLINE/32;
+		}else if(v->y>line[i].start+HLINE){
+			vel->y-=.00000001;
 		}
 	}
 }
