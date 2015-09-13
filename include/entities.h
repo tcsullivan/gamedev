@@ -8,7 +8,7 @@ public:
 	float width;
 	float height;
 	float speed;
-	int type;
+	int type, subtype;
 	vec2 loc;
 	vec2 vel;
 	bool right,left;
@@ -20,12 +20,20 @@ public:
 class Player : public Entity{
 public:
 	Player();
-	~Player();
 };
 
 class NPC : public Entity{
 public:
 	NPC();
+};
+
+extern Entity *entnpc[10];	//The NPC base
+extern NPC npc[10];
+
+class Structures : public Entity{
+public:
+	Structures();
+	void spawn(int, float, float);
 };
 
 #endif // ENTITIES_H

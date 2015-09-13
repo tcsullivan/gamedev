@@ -16,6 +16,7 @@ void UIClass::handleEvents(){
 		case SDL_KEYDOWN:
 			if(e.key.keysym.sym == SDLK_d) player.right = true;
 			if(e.key.keysym.sym == SDLK_a) player.left = true;
+			if(e.key.keysym.sym == SDLK_LSHIFT) player.speed = 3;
 			if(e.key.keysym.sym == SDLK_SPACE){
 				player.loc.y += HLINE*1.2;
 				player.vel.y += .004;
@@ -38,6 +39,8 @@ void UIClass::handleEvents(){
 		case SDL_KEYUP:
 			if(e.key.keysym.sym == SDLK_d) player.right = false;
 			if(e.key.keysym.sym == SDLK_a) player.left = false;
+			if(e.key.keysym.sym == SDLK_LSHIFT) player.speed = 1.0;
+		
 			if(e.key.keysym.sym == SDLK_ESCAPE) gameRunning = false;
 			break;
 		}	

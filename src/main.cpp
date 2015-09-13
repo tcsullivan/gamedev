@@ -16,18 +16,22 @@ static unsigned int tickCount   = 0,
 					currentTime = 0,
 					deltaTime   = 0;
 
-Entity  *entPlay;	   //The player base
-Entity  *entnpc;	   //The NPC base
-Player  player;		   //The actual player object
-NPC     npc;		   // A test NPC
-UIClass ui;			   // Handles the user interface
-World   *currentWorld; // Points to the current 'world' the player is in
+Entity *entPlay;	//The player base
+Entity *entnpc[10];	//The NPC base
+Player player;		//The actual player object
+NPC npc[10];
+Structures build;
+UIClass ui;			//Yep
+World *currentWorld;//u-huh
 
-float interpolate(float goal, float current, float dt){
-	float difference=goal-current;
-	if(difference>dt)return current+dt;
-	if(difference<dt)return current-dt;
-	return goal;
+//static int randNext=1;
+
+void irand(unsigned int seed){
+	srand(seed);
+}
+
+int grand(void){
+	return rand();
 }
 
 void logic();
@@ -77,9 +81,9 @@ int main(int argc,char **argv){
 
 	entPlay = &player;
 	entPlay->spawn(0, 0);
-	entnpc = &npc;
-	npc.type = -1;						 //this will make the NPC spawn the start of a village
-	entnpc->spawn(.5,0);// (grand()%20)-10 ,0); //this will spawn the start of a village
+
+	build.spawn(-1, (grand()%20)-10, 0);
+
 
 	// Generate the world
 	World *w=NULL,*w2=NULL;
@@ -88,7 +92,7 @@ int main(int argc,char **argv){
 	
 	currentWorld=w;
 	currentWorld->addLayer(3);
-	currentWorld->addEntity((void *)entnpc);
+	//currentWorld->addEntity((void *)entnpc);
 
 	float gw;
 	
@@ -102,10 +106,9 @@ int main(int argc,char **argv){
 			prevTime = SDL_GetTicks();
 		}
 
-		player.loc.x += player.vel.x*deltaTime;						//update the player's x based on 
-		player.loc.y += player.vel.y*deltaTime;
+		player.loc.x += (player.vel.x * player.speed) * deltaTime;						//update the player's x based on 
+		player.loc.y += player.vel.y * deltaTime;
 		
-		npc.loc.y += npc.vel.y*deltaTime;
 
 		gw=currentWorld->getWidth();
 		if(player.loc.x+player.width>-1+gw){
@@ -168,14 +171,15 @@ void render(){
 		glRectf(player.loc.x, player.loc.y, player.loc.x + player.width, player.loc.y + player.height);
 
 		///TEMP NPC RENDER!!!!!!
-		/*glColor3ub(98, 78, 44);							//render the NPC(s)
-		glRectf(npc.loc.x, npc.loc.y, npc.loc.x + .25, npc.loc.y + .25);
-		glColor3ub(83, 49, 24);
-		glBegin(GL_TRIANGLES);
-			glVertex2f(npc.loc.x, npc.loc.y + .25);
-			glVertex2f(npc.loc.x + .25, npc.loc.y + .25);
-			glVertex2f(npc.loc.x + .125, npc.loc.y + .35);
-		glEnd();*/
+		for(int i = 0; i < 10; i++){
+			npc[i].loc.y += npc[i].vel.y*deltaTime;
+
+			glColor3ub(98, 78, 44);							//render the NPC(s)
+			glRectf(npc[i].loc.x, npc[i].loc.y, npc[i].loc.x + npc[i].width, npc[i].loc.y + npc[i].height);
+			glEnd();
+	    }
+	    glColor3ub(255,0,0);
+		glRectf(build.loc.x, build.loc.y, build.loc.x + build.width, build.loc.y + build.height);
 		///BWAHHHHHHHHHHHH
 		
 		/**************************
@@ -189,14 +193,19 @@ void render(){
 void logic(){
 	ui.handleEvents();								// Handle events
 
-	if(player.right == true) {player.vel.x = .002;}
-	if(player.left == true) {player.vel.x = -.002;}
+	if(player.right == true) {player.vel.x = .00075;}
+	if(player.left == true) {player.vel.x = -.00075;}
 	if(player.right == false && player.left == false) {player.vel.x = 0;}
 
-	std::cout<<"\r("<<player.loc.x<<","<<player.loc.y<<")";
+	std::cout<<"\r("<<player.loc.x<<","<<player.loc.y<<")"<<std::endl;
+
 
 	currentWorld->detect(&player.loc,&player.vel,player.width);
-	currentWorld->detect(&npc.loc,&player.vel,npc.height);
+
+	currentWorld->detect(&build.loc,&build.vel,build.width);
+	for(int i = 0; i < 10; i++){
+		currentWorld->detect(&npc[i].loc,&npc[i].vel,npc[i].width);
+	}
 
 	tickCount++;
 }	
