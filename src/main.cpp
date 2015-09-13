@@ -76,7 +76,7 @@ int main(int argc,char **argv){
 	// Generate the world
 	World *w=NULL,*w2=NULL;
 	w2=new World(4,w,NULL);
-	w=new World(2,NULL,w2);
+	w=new World(10,NULL,w2);
 	
 	currentWorld=w;
 	currentWorld->addLayer(3);

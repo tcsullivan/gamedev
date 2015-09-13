@@ -4,6 +4,7 @@ extern Player player;
 extern World *currentWorld;
 
 void UIClass::handleEvents(){
+	float thing;
 	SDL_Event e;
 	while(SDL_PollEvent(&e)){
 		switch(e.type){
@@ -21,20 +22,22 @@ void UIClass::handleEvents(){
 				player.loc.y += HLINE*1.2;
 				player.vel.y += .004;
 			}
-			if(e.key.keysym.sym == SDLK_i)
+			if(e.key.keysym.sym == SDLK_i){
 				if(currentWorld->behind){
-					player.loc.x-=(currentWorld->getWidth()-currentWorld->behind->getWidth())/2; // Match player's location to new area
-					currentWorld=currentWorld->behind;											 // Go to new area
-					if(player.loc.x>-1+currentWorld->getWidth())								 // Don't let player fall out of world if previous area was bigger
-						player.loc.x=-1+currentWorld->getWidth()-player.width-HLINE;
+					thing=(currentWorld->getWidth()-currentWorld->behind->getWidth())/2;
+					if(player.loc.x>thing-1&&
+					   player.loc.x<thing-1+currentWorld->behind->getWidth()){
+						player.loc.x-=thing;
+						currentWorld=currentWorld->behind;
+					}
 				}
-			if(e.key.keysym.sym == SDLK_k)
+			}
+			if(e.key.keysym.sym == SDLK_k){
 				if(currentWorld->infront){
-					player.loc.x+=(currentWorld->infront->getWidth()-currentWorld->getWidth())/2; // Match player's location to new area
-					currentWorld=currentWorld->infront;											  // Go to new area
-					if(player.loc.x>-1+currentWorld->getWidth())								  // Don't let player fall out of world if previous area was bigger
-						player.loc.x=-1+currentWorld->getWidth()-player.width-HLINE;
+					player.loc.x+=(currentWorld->infront->getWidth()-currentWorld->getWidth())/2;
+					currentWorld=currentWorld->infront;
 				}
+			}
 			break;
 		case SDL_KEYUP:
 			if(e.key.keysym.sym == SDLK_d) player.right = false;
