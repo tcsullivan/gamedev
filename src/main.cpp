@@ -80,7 +80,12 @@ int main(int argc,char **argv){
 	
 	currentWorld=w;
 	currentWorld->addLayer(3);
-	//currentWorld->addEntity((void *)entnpc);
+	currentWorld->addLayer(4);
+	// shh
+	unsigned char jklasdf;
+	for(jklasdf=0;jklasdf<10;jklasdf++){
+		currentWorld->addEntity((void *)entnpc[jklasdf]);
+	}
 
 	float gw;
 	

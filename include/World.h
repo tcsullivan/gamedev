@@ -4,7 +4,7 @@
 #include <common.h>
 
 // Total amount of entities that can be bound to a layer
-#define MAX_ENTITIES 8
+#define MAX_ENTITIES 16
 
 // Easy shortcuts used in UIClass
 #define goWorldLeft(w)  if(w->toLeft){w=w->toLeft;}
