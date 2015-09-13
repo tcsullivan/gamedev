@@ -3,32 +3,33 @@
 
 #include <common.h>
 
+// Total amount of entities that can be bound to a layer
 #define MAX_ENTITIES 8
 
+// Easy shortcuts used in UIClass
 #define goWorldLeft(w)  if(w->toLeft){w=w->toLeft;}
 #define goWorldRight(w) if(w->toRight){w=w->toRight;}
 
 class World {
 private:
 	struct line_t {
-		// x = 2.0 (window width) / HLINES
-		double start; // Where to change to dirt, going down (y)
+		double start; 				  // Where land begins, going down (i.e. y)
 	} __attribute__ ((packed)) *line;
-	unsigned int lineCount;
-	unsigned int entCount;
+	unsigned int lineCount;			  // Size of line array, calculated in the constructor
+	unsigned int entCount;			  // Count of currently bound entities
 	void *entity[MAX_ENTITIES];
 public:
-	World *behind,*infront;
-	World *toLeft,*toRight;
-	World(void);
-	World(const float width,World *l,World *r);
-	void draw(void);
-	void detect(vec2 *v,vec2 *vel,const float width);
-	float getWidth(void);
-	void saveToFile(FILE *f,World *parent);
-	void loadFromFile(FILE *f,World *parent);
-	void addLayer(const float width);
-	void addEntity(void *e);
+	World *behind,*infront;							  // As in layers
+	World *toLeft,*toRight;							  // 'new' worlds (off screen)
+	World(void);									  // Creates an empty world
+	World(const float width,World *l,World *r);		  // Creates a legit world
+	void draw(void);								  // Draws the world as well as any bound entities
+	void detect(vec2 *v,vec2 *vel,const float width); // Object / gravity detection
+	float getWidth(void);							  // Get coordinate width of world
+	void saveToFile(FILE *f,World *parent);			  // WIP: Save the world (seed) to a file?
+	void loadFromFile(FILE *f,World *parent);		  // No
+	void addLayer(const float width);				  // Creates a layer of said width behind the current one
+	void addEntity(void *e);						  // Adds (binds) an entity to the world
 };
 
 #endif // WORLD_H
