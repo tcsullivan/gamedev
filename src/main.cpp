@@ -67,6 +67,9 @@ int main(int argc,char **argv){
 	****     GAMELOOP      ****
 	**************************/
 
+	ui.init("ttf/VCR_OSD_MONO_1.001.ttf");
+	ui.setFontSize(100);
+
 	irand(time(NULL));
 	entPlay = &player;
 	entPlay->spawn(0, 0);
@@ -175,6 +178,8 @@ void render(){
 	    glColor3ub(255,0,0);
 		glRectf(build.loc.x, build.loc.y, build.loc.x + build.width, build.loc.y + build.height);
 		///BWAHHHHHHHHHHHH
+		
+		ui.putText(0,0,"Hello");
 		
 		/**************************
 		****  CLOSE THE LOOP   ****

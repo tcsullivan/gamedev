@@ -1,7 +1,66 @@
 #include <UIClass.h>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 extern Player player;
 extern World *currentWorld;
+
+static FT_Library ftl;
+static FT_Face ftf;
+static GLuint ftex;
+
+void UIClass::init(const char *ttf){
+	if(FT_Init_FreeType(&ftl)){
+		std::cout<<"Error! Couldn't initialize freetype."<<std::endl;
+		abort();
+	}
+	if(FT_New_Face(ftl,ttf,0,&ftf)){
+		std::cout<<"Error! Couldn't open "<<ttf<<"."<<std::endl;
+		abort();
+	}
+	
+}
+void UIClass::setFontSize(unsigned int fs){
+	FT_Set_Pixel_Sizes(ftf,0,fs);
+}
+void UIClass::putText(float x,float y,const char *s){
+	unsigned int i=0,j;
+	float xo=x,yo=y,w,h;
+	char *buf;
+	do{
+		FT_Load_Char(ftf,s[i],FT_LOAD_RENDER);
+		glGenTextures(1,&ftex);
+		glBindTexture(GL_TEXTURE_2D,ftex);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		buf=(char *)malloc(ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows*4);
+		for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
+			buf[j*4]=255;
+			buf[j*4+1]=255;
+			buf[j*4+2]=255;
+			buf[j*4+3]=ftf->glyph->bitmap.buffer[j]?255:0;
+		}
+		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf);
+		w=ftf->glyph->bitmap.width*(2.0/SCREEN_WIDTH);
+		h=ftf->glyph->bitmap.rows *(2.0/SCREEN_HEIGHT); 
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D,ftex);
+		glBegin(GL_QUADS);
+			glColor3ub(255,255,255);
+			glTexCoord2f(0,1);glVertex2f(xo,yo);
+			glTexCoord2f(1,1);glVertex2f(xo+w,yo);
+			glTexCoord2f(1,0);glVertex2f(xo+w,yo+h);
+			glTexCoord2f(0,0);glVertex2f(xo,yo+h);
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
+		xo+=w+.01;
+		free(buf);
+	}while(s[i++]);
+}
 
 void UIClass::handleEvents(){
 	static bool space=false;
