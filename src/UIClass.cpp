@@ -19,8 +19,10 @@ void UIClass::handleEvents(){
 			if(e.key.keysym.sym == SDLK_a) player.left = true;
 			if(e.key.keysym.sym == SDLK_LSHIFT) player.speed = 3;
 			if(e.key.keysym.sym == SDLK_SPACE){
-				player.loc.y += HLINE*1.2;
-				player.vel.y += .004;
+				if(player.vel.y<=0){
+					player.loc.y += HLINE*1.2;
+					player.vel.y += .004;
+				}
 			}
 			if(e.key.keysym.sym == SDLK_i){
 				if(currentWorld->behind){

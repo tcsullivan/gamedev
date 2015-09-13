@@ -48,6 +48,7 @@ World::World(const float width,World *l,World *r){
 		}else{
 			line[i].start=line[i-1].start+f;
 		}
+		line[i].color=(grand()%2)*10+130;
 	}
 }
 // Set RGB color with potentially not 8-bit values
@@ -83,7 +84,7 @@ LOOP2:																// Should be in furthest back layer once this is first rea
 			y-=hline*2;												// 'optimization'
 			glVertex2f(x+hline,y);
 			glVertex2f(x	  ,y);
-			safeSetColor(150+shade,100+shade,50+shade);				// Set shaded brown for dirt
+			safeSetColor(line[i].color+shade,line[i].color-50+shade,line[i].color-100+shade);				// Set shaded brown for dirt
 			glVertex2f(x	  ,y);
 			glVertex2f(x+hline,y);
 			glVertex2f(x+hline,-1);
@@ -108,10 +109,10 @@ void World::detect(vec2 *v,vec2 *vel,const float width){
 	for(i=0;i<lineCount-10;i++){											// For every line in world
 		if(v->y<line[i].start){												// If we're inside the line
 			if(v->x>(HLINE*i)-1&&v->x<(HLINE*i)-1+HLINE){					// And we're inside it ;)
-				vel->y=0;v->y=line[i].start+HLINE/4;							// Correct
+				vel->y=0;v->y=line[i].start+HLINE/8;							// Correct
 				return; // :/
 			}else if(v->x+width>(HLINE*i)-1&&v->x+width<(HLINE*i)-1+HLINE){ // Same as above, but coming from right side instead of left
-				vel->y=0;v->y=line[i].start+HLINE/4;
+				vel->y=0;v->y=line[i].start+HLINE/8;
 				return; // ;)
 			}
 		}else if(v->y>line[i].start+HLINE){									// Trashy gravity handling

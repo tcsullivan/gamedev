@@ -14,6 +14,7 @@ class World {
 private:
 	struct line_t {
 		double start; 				  // Where land begins, going down (i.e. y)
+		unsigned char color;
 	} __attribute__ ((packed)) *line;
 	unsigned int lineCount;			  // Size of line array, calculated in the constructor
 	unsigned int entCount;			  // Count of currently bound entities
