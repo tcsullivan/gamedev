@@ -142,7 +142,14 @@ void render(){
 		glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
 		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
-		glOrtho(-1 + player.loc.x, 1 + player.loc.x , -1, 1, -1,1); //set the the size of the screen
+		//set the the size of the screen
+		if(player.loc.x-1<-1){
+			glOrtho(-1,1,-1,1,-1,1);
+		}else if(player.loc.x+1>-1+currentWorld->getWidth()){
+			glOrtho(-3+currentWorld->getWidth(),-1+currentWorld->getWidth(),-1,1,-1,1);
+		}else{
+			glOrtho(-1 + player.loc.x, 1 + player.loc.x , -1, 1, -1,1);
+		}
 		glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
 		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode

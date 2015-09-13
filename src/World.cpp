@@ -1,6 +1,9 @@
 #include <World.h>
 #include <cstdio>
 
+static float drawOffsetX=0,
+			 drawOffsetY=0;
+
 World::World(void){
 	line=NULL;
 	lineCount=entCount=0;
@@ -48,12 +51,17 @@ World::World(const float width,World *l,World *r){
 		}
 	}
 }
-static float drawOffsetX=0,
-			 drawOffsetY=0;
+void safeSetColor(int r,int g,int b){
+	if(r>255)r=255;else if(r<0)r=0;
+	if(g>255)g=255;else if(g<0)g=0;
+	if(b>255)b=255;else if(b<0)b=0;
+	glColor3ub(r,g,b);
+}
 void World::draw(void){
 	unsigned int i;
 	float x,y,hline=HLINE;
 	static World *root,*cur;
+	int shade;
 	root=cur=this;
 LOOP:
 	if(cur->behind){
@@ -65,17 +73,18 @@ LOOP:
 		//behind->draw();
 	}
 LOOP2:
+	shade=30*(drawOffsetY/.3);
 	glBegin(GL_QUADS);
 		for(i=0;i<cur->lineCount-10;i++){
 			x=(hline*i)-1+drawOffsetX;
 			y=cur->line[i].start+drawOffsetY;
-			glColor3ub(0,200,0);
+			safeSetColor(0,200+shade,0);
 			glVertex2f(x      ,y);
 			glVertex2f(x+hline,y);
 			y-=hline*2;
 			glVertex2f(x+hline,y);
 			glVertex2f(x	  ,y);
-			glColor3ub(150,100,50);
+			safeSetColor(150+shade,100+shade,50+shade);
 			glVertex2f(x	  ,y);
 			glVertex2f(x+hline,y);
 			glVertex2f(x+hline,-1);
@@ -109,7 +118,7 @@ void World::detect(vec2 *v,const float width){
 				return;
 			}
 		}else if(v->y>line[i].start+HLINE/4){
-			v->y-=HLINE/8;
+			v->y-=HLINE/32;
 		}
 	}
 }
