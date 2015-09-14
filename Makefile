@@ -1,5 +1,5 @@
 FLAGS_LINUX = -lGL                 -lSDL2_image -lfreetype
-FLAGS_WIN32 = -lopengl32 -lmingw32 -lSDL2_Image
+FLAGS_WIN32 = -lopengl32 -lmingw32 -lSDL2_Image -lfreetype
 FLAGS = -m32 -std=c++11 -Iinclude -Iinclude/freetype2 -Wall -Werror -lSDL2main -lSDL2
 
 all:
