@@ -1,6 +1,5 @@
 #include <common.h>
 #include <cstdio>
-#include <ctime>
 #include <chrono>
 
 #define TICKS_PER_SEC 20
@@ -29,17 +28,13 @@ World *currentWorld;//u-huh
 void logic();
 void render();
 
-static unsigned int initTime;
 unsigned int millis(void){
-	//return (float)(clock()-initTime)/(CLOCKS_PER_SEC/1000.0f);
 	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
-	std::chrono::nanoseconds m=now.time_since_epoch();
-	return std::chrono::duration_cast<std::chrono::milliseconds>(m).count();
+	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }
 
 int main(int argc,char **argv){
-	float gw;
-    //runs start-up procedures
+	//runs start-up procedures
     if(!SDL_Init(SDL_INIT_VIDEO)){
     	atexit(SDL_Quit);
     	if(!(IMG_Init(IMG_INIT_PNG|IMG_INIT_JPG)&(IMG_INIT_PNG|IMG_INIT_JPG))){
@@ -80,7 +75,6 @@ int main(int argc,char **argv){
 	**************************/
 
 	ui.init("ttf/VCR_OSD_MONO_1.001.ttf");
-	ui.setFontSize(100);
 
 	irand(time(NULL));
 	entPlay = &player;
@@ -104,8 +98,7 @@ int main(int argc,char **argv){
 		currentWorld->addEntity((void *)entnpc[jklasdf]);
 	}
 	
-	initTime=clock();
-	currentTime=initTime;
+	currentTime=millis();
 	
 	while(gameRunning){
 		prevTime = currentTime;
@@ -118,6 +111,7 @@ int main(int argc,char **argv){
 		}
 
 		player.loc.x += (player.vel.x * player.speed) * deltaTime;						//update the player's x based on 
+//		printf("%lf * %u\n",player.vel.y,deltaTime);
 		player.loc.y += player.vel.y * deltaTime;
 		for(int i = 0; i < eAmt(entnpc); i++){
 			if(npc[i].alive == true){
@@ -125,26 +119,7 @@ int main(int argc,char **argv){
 				npc[i].loc.x += npc[i].vel.x * deltaTime;
 			}
 	    }
-		
-
-		gw=currentWorld->getWidth();
-		if(player.loc.x+player.width>-1+gw){
-			if(currentWorld->toRight){
-				goWorldRight(currentWorld)
-				player.loc.x=-1+HLINE;
-			}else{
-				player.loc.x=gw-1-player.width-HLINE;
-			}
-		}
-		if(player.loc.x<-1){
-			if(currentWorld->toLeft){
-				goWorldLeft(currentWorld);
-				player.loc.x=currentWorld->getWidth()-1-player.width-HLINE;
-			}else{
-				player.loc.x=-1+HLINE;
-			}
-		}
-
+	    
 		render();
 	}
 	
@@ -192,7 +167,8 @@ void render(){
 		glRectf(build.loc.x, build.loc.y, build.loc.x + build.width, build.loc.y + build.height);
 		///BWAHHHHHHHHHHHH
 		
-		ui.putText(0,0,"Hello");
+		ui.setFontSize(16);
+		ui.putText(player.loc.x,player.loc.y-(HLINE*10),"(%+1.3f,%+1.3f)",player.loc.x,player.loc.y);
 		
 		/**************************
 		****  CLOSE THE LOOP   ****
@@ -203,17 +179,12 @@ void render(){
 }
 
 void logic(){
-	static unsigned int lastTime=0;
 	float gw;
 	ui.handleEvents();								// Handle events
 
-	if(player.right == true) {player.vel.x = .00075;}
-	if(player.left == true) {player.vel.x = -.00075;}
-	if(player.right == false && player.left == false) {player.vel.x = 0;}
-
-	//std::cout<<"\r("<<player.loc.x<<","<<player.loc.y<<")";
-	std::cout<<millis()-lastTime<<std::endl;
-	lastTime=millis();
+	if(player.right)player.vel.x=.00075;
+	else if(player.left)player.vel.x=-.00075;
+	else player.vel.x = 0;
 
 	currentWorld->detect(&player.loc,&player.vel,player.width);
 	gw=currentWorld->getWidth();

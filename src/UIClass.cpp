@@ -22,9 +22,10 @@ void UIClass::init(const char *ttf){
 	
 }
 void UIClass::setFontSize(unsigned int fs){
-	FT_Set_Pixel_Sizes(ftf,0,fs);
+	fontSize=fs;
+	FT_Set_Pixel_Sizes(ftf,0,fontSize);
 }
-void UIClass::putText(float x,float y,const char *s){
+void UIClass::putString(const float x,const float y,const char *s){
 	unsigned int i=0,j;
 	float xo=x,yo=y,w,h;
 	char *buf;
@@ -57,9 +58,19 @@ void UIClass::putText(float x,float y,const char *s){
 			glTexCoord2f(0,0);glVertex2f(xo,yo+h);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
-		xo+=w+.01;
+		xo+=w+(fontSize*.0001);
 		free(buf);
 	}while(s[i++]);
+}
+void UIClass::putText(const float x,const float y,const char *str,...){
+	va_list args;
+	char *buf;
+	buf=(char *)calloc(128,sizeof(char));
+	va_start(args,str);
+	vsnprintf(buf,128,str,args);
+	va_end(args);
+	putString(x,y,buf);
+	free(buf);
 }
 
 void UIClass::handleEvents(){
@@ -91,6 +102,7 @@ void UIClass::handleEvents(){
 					if(player.loc.x>thing-1&&
 					   player.loc.x<thing-1+currentWorld->behind->getWidth()){
 						player.loc.x-=thing;
+						memset(&player.vel,0,sizeof(vec2));
 						currentWorld=currentWorld->behind;
 					}
 				}
@@ -98,6 +110,7 @@ void UIClass::handleEvents(){
 			if(e.key.keysym.sym == SDLK_k){
 				if(currentWorld->infront){
 					player.loc.x+=(currentWorld->infront->getWidth()-currentWorld->getWidth())/2;
+					memset(&player.vel,0,sizeof(vec2));
 					currentWorld=currentWorld->infront;
 				}
 			}
