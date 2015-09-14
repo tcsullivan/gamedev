@@ -1,9 +1,10 @@
 #include <common.h>
 #include <cstdio>
 #include <ctime>
+#include <chrono>
 
 #define TICKS_PER_SEC 20
-#define MSEC_PER_TICK (1000/TICKS_PER_SEC)
+#define MSEC_PER_TICK 500//(1000/TICKS_PER_SEC)
 
 SDL_Window    *window = NULL;
 SDL_Surface   *renderSurface = NULL;
@@ -30,7 +31,10 @@ void render();
 
 static unsigned int initTime;
 unsigned int millis(void){
-	return ((float)(clock()-initTime)/(float)CLOCKS_PER_SEC)*2000;
+	//return (float)(clock()-initTime)/(CLOCKS_PER_SEC/1000.0f);
+	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
+	std::chrono::nanoseconds m=now.time_since_epoch();
+	return std::chrono::duration_cast<std::chrono::milliseconds>(m).count();
 }
 
 int main(int argc,char **argv){
