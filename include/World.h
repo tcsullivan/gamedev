@@ -27,8 +27,6 @@ public:
 	void draw(void);								  // Draws the world as well as any bound entities
 	void detect(vec2 *v,vec2 *vel,const float width); // Object / gravity detection
 	float getWidth(void);							  // Get coordinate width of world
-	void saveToFile(FILE *f,World *parent);			  // WIP: Save the world (seed) to a file?
-	void loadFromFile(FILE *f,World *parent);		  // No
 	void addLayer(const float width);				  // Creates a layer of said width behind the current one
 	void addEntity(void *e);						  // Adds (binds) an entity to the world
 };

@@ -110,10 +110,10 @@ void World::detect(vec2 *v,vec2 *vel,const float width){
 		if(v->y<line[i].start){												// If we're inside the line
 			if(v->x>(HLINE*i)-1&&v->x<(HLINE*i)-1+HLINE){					// And we're inside it ;)
 				vel->y=0;v->y=line[i].start+HLINE/8;							// Correct
-				return; // :/
+//				return; // :/
 			}else if(v->x+width>(HLINE*i)-1&&v->x+width<(HLINE*i)-1+HLINE){ // Same as above, but coming from right side instead of left
 				vel->y=0;v->y=line[i].start+HLINE/8;
-				return; // ;)
+//				return; // ;)
 			}
 		}else if(v->y>line[i].start+HLINE){									// Trashy gravity handling
 			vel->y-=.0000001;
@@ -123,31 +123,6 @@ void World::detect(vec2 *v,vec2 *vel,const float width){
 // Calculate the world's width in coordinates
 float World::getWidth(void){
 	return (lineCount-11)*HLINE;
-}
-// no
-void World::saveToFile(FILE *f,World *parent){
-	fwrite(&lineCount,sizeof(unsigned int) ,1        ,f);
-	fwrite(&line     ,sizeof(struct line_t),lineCount,f);
-	if(toLeft!=NULL&&toLeft!=parent->toLeft){
-		toLeft->saveToFile(f,toLeft);
-	}
-	if(toRight!=NULL&&toRight!=parent->toRight){
-		toRight->saveToFile(f,toRight);
-	}
-}
-// no
-void World::loadFromFile(FILE *f,World *parent){
-	fread(&lineCount,sizeof(unsigned int) ,1        ,f);
-	line=(struct line_t *)malloc(lineCount*sizeof(struct line_t *));
-	fread(&line     ,sizeof(struct line_t),lineCount,f);
-	if(toLeft!=NULL&&toLeft!=parent->toLeft){
-		toLeft->loadFromFile(f,toLeft);
-	}
-	std::cout<<toRight<<" "<<parent->toRight<<std::endl;
-	if(toRight!=NULL&&toRight!=parent->toRight){
-		puts("A");
-		toRight->loadFromFile(f,toRight);
-	}
 }
 void World::addLayer(const float width){
 	if(behind){									// If there's already a layer behind us

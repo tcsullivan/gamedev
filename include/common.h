@@ -16,10 +16,11 @@ typedef struct{float x; float y;}vec2;
 
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
-#define SCREEN_RATIO (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT
+#define SCREEN_RATIO  ((float)SCREEN_WIDTH/(float)SCREEN_HEIGHT)
 //#define FULLSCREEN
 
 #define HLINE (2.0f / (SCREEN_WIDTH / 4))
+//#define HLINE (SCREEN_RATIO)
 
 #define irand srand
 #define grand rand

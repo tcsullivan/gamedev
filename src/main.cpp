@@ -28,7 +28,13 @@ World *currentWorld;//u-huh
 void logic();
 void render();
 
+static unsigned int initTime;
+unsigned int millis(void){
+	return ((float)(clock()-initTime)/(float)CLOCKS_PER_SEC)*2000;
+}
+
 int main(int argc,char **argv){
+	float gw;
     //runs start-up procedures
     if(!SDL_Init(SDL_INIT_VIDEO)){
     	atexit(SDL_Quit);
@@ -93,23 +99,22 @@ int main(int argc,char **argv){
 	for(jklasdf=0;jklasdf<npcAmt;jklasdf++){
 		currentWorld->addEntity((void *)entnpc[jklasdf]);
 	}
-
-	float gw;
 	
+	initTime=clock();
+	currentTime=initTime;
 	
 	while(gameRunning){
 		prevTime = currentTime;
-		currentTime = SDL_GetTicks();
+		currentTime = millis();
 		deltaTime = currentTime - prevTime;
 
-		if(prevTime + MSEC_PER_TICK >= SDL_GetTicks()){						//the logic loop to run at a dedicated time
+		if(prevTime + MSEC_PER_TICK >= millis()){						//the logic loop to run at a dedicated time
 			logic();
-			prevTime = SDL_GetTicks();
+			prevTime = millis();
 		}
 
 		player.loc.x += (player.vel.x * player.speed) * deltaTime;						//update the player's x based on 
 		player.loc.y += player.vel.y * deltaTime;
-
 		for(int i = 0; i < eAmt(entnpc); i++){
 			if(npc[i].alive == true){
 				npc[i].loc.y += npc[i].vel.y * deltaTime;
@@ -194,6 +199,8 @@ void render(){
 }
 
 void logic(){
+	static unsigned int lastTime=0;
+	float gw;
 	ui.handleEvents();								// Handle events
 
 	if(player.right == true) {player.vel.x = .00075;}
@@ -201,10 +208,27 @@ void logic(){
 	if(player.right == false && player.left == false) {player.vel.x = 0;}
 
 	//std::cout<<"\r("<<player.loc.x<<","<<player.loc.y<<")";
-	//std::cout << tickCount << std::endl;
-
+	std::cout<<millis()-lastTime<<std::endl;
+	lastTime=millis();
 
 	currentWorld->detect(&player.loc,&player.vel,player.width);
+	gw=currentWorld->getWidth();
+	if(player.loc.x+player.width>-1+gw){
+		if(currentWorld->toRight){
+			goWorldRight(currentWorld)
+			player.loc.x=-1+HLINE;
+		}else{
+			player.loc.x=gw-1-player.width-HLINE;
+		}
+	}
+	if(player.loc.x<-1){
+		if(currentWorld->toLeft){
+			goWorldLeft(currentWorld);
+			player.loc.x=currentWorld->getWidth()-1-player.width-HLINE;
+		}else{
+			player.loc.x=-1+HLINE;
+		}
+	}
 
 	currentWorld->detect(&build.loc,&build.vel,build.width);
 	for(int i = 0; i < eAmt(entnpc); i++){
@@ -213,6 +237,5 @@ void logic(){
 			entnpc[i]->wander((grand()%91 + 1), &npc[i].vel);
 		}
 	}
-
 	tickCount++;
 }	
