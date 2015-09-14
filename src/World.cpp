@@ -116,7 +116,7 @@ void World::detect(vec2 *v,vec2 *vel,const float width){
 				return; // ;)
 			}
 		}else if(v->y>line[i].start+HLINE){									// Trashy gravity handling
-			vel->y-=.00000001;
+			vel->y-=.0000001;
 		}
 	}
 }

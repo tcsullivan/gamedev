@@ -3,6 +3,8 @@
 
 #include <common.h>
 
+extern int npcAmt;
+
 class Entity{
 public:
 	float width;
@@ -11,10 +13,14 @@ public:
 	int type, subtype;
 	vec2 loc;
 	vec2 vel;
-	bool right,left;
+	bool right,left, canMove;
+	bool alive;
 
 	void spawn(float, float);
 	void draw(void);
+	void wander(int, vec2*);
+private:
+	int ticksToUse;
 };
 
 class Player : public Entity{
@@ -27,8 +33,8 @@ public:
 	NPC();
 };
 
-extern Entity *entnpc[10];	//The NPC base
-extern NPC npc[10];
+extern Entity *entnpc[32];	//The NPC base
+extern NPC npc[32];
 
 class Structures : public Entity{
 public:

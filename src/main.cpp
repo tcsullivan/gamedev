@@ -16,10 +16,11 @@ static unsigned int tickCount   = 0,
 					currentTime = 0,
 					deltaTime   = 0;
 
+int npcAmt = 0;
 Entity *entPlay;	//The player base
-Entity *entnpc[10];	//The NPC base
+Entity *entnpc[32];	//The NPC base
 Player player;		//The actual player object
-NPC npc[10];
+NPC npc[32];
 Structures build;
 UIClass ui;			//Yep
 World *currentWorld;//u-huh
@@ -59,6 +60,7 @@ int main(int argc,char **argv){
 		return -1;
 	}
 
+	glViewport(0,0,SCREEN_WIDTH, SCREEN_HEIGHT);
 	glClearColor(.3,.5,.8,0);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -75,6 +77,8 @@ int main(int argc,char **argv){
 	entPlay->spawn(0, 0);
 
 	build.spawn(-1, (grand()%20)-10, 0);
+	//build.spawn(-1, 1.5, 0);
+
 
 	// Generate the world
 	World *w=NULL,*w2=NULL;
@@ -86,7 +90,7 @@ int main(int argc,char **argv){
 	currentWorld->addLayer(4);
 	// shh
 	unsigned char jklasdf;
-	for(jklasdf=0;jklasdf<10;jklasdf++){
+	for(jklasdf=0;jklasdf<npcAmt;jklasdf++){
 		currentWorld->addEntity((void *)entnpc[jklasdf]);
 	}
 
@@ -105,6 +109,13 @@ int main(int argc,char **argv){
 
 		player.loc.x += (player.vel.x * player.speed) * deltaTime;						//update the player's x based on 
 		player.loc.y += player.vel.y * deltaTime;
+
+		for(int i = 0; i < eAmt(entnpc); i++){
+			if(npc[i].alive == true){
+				npc[i].loc.y += npc[i].vel.y * deltaTime;
+				npc[i].loc.x += npc[i].vel.x * deltaTime;
+			}
+	    }
 		
 
 		gw=currentWorld->getWidth();
@@ -147,7 +158,7 @@ void render(){
 		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
 		//set the the size of the screen
 		if(player.loc.x-1<-1){
-			glOrtho(-1,1,-1,1,-1,1);
+			glOrtho(-1,1, -1,1, -1,1);
 		}else if(player.loc.x+1>-1+currentWorld->getWidth()){
 			glOrtho(-3+currentWorld->getWidth(),-1+currentWorld->getWidth(),-1,1,-1,1);
 		}else{
@@ -167,14 +178,7 @@ void render(){
 		glColor3ub(120,30,30);							//render the player
 		glRectf(player.loc.x, player.loc.y, player.loc.x + player.width, player.loc.y + player.height);
 
-		///TEMP NPC RENDER!!!!!!
-		for(int i = 0; i < 10; i++){
-			npc[i].loc.y += npc[i].vel.y*deltaTime;
-
-			glColor3ub(98, 78, 44);							//render the NPC(s)
-			glRectf(npc[i].loc.x, npc[i].loc.y, npc[i].loc.x + npc[i].width, npc[i].loc.y + npc[i].height);
-			glEnd();
-	    }
+		
 	    glColor3ub(255,0,0);
 		glRectf(build.loc.x, build.loc.y, build.loc.x + build.width, build.loc.y + build.height);
 		///BWAHHHHHHHHHHHH
@@ -196,14 +200,18 @@ void logic(){
 	if(player.left == true) {player.vel.x = -.00075;}
 	if(player.right == false && player.left == false) {player.vel.x = 0;}
 
-	std::cout<<"\r("<<player.loc.x<<","<<player.loc.y<<")";
+	//std::cout<<"\r("<<player.loc.x<<","<<player.loc.y<<")";
+	//std::cout << tickCount << std::endl;
 
 
 	currentWorld->detect(&player.loc,&player.vel,player.width);
 
 	currentWorld->detect(&build.loc,&build.vel,build.width);
-	for(int i = 0; i < 10; i++){
-		currentWorld->detect(&npc[i].loc,&npc[i].vel,npc[i].width);
+	for(int i = 0; i < eAmt(entnpc); i++){
+		if(npc[i].alive == true){
+			currentWorld->detect(&npc[i].loc,&npc[i].vel,npc[i].width);
+			entnpc[i]->wander((grand()%91 + 1), &npc[i].vel);
+		}
 	}
 
 	tickCount++;
