@@ -25,6 +25,8 @@ Structures build;
 UIClass ui;			//Yep
 World *currentWorld;//u-huh
 
+World *spawn;
+
 void logic();
 void render();
 
@@ -89,7 +91,7 @@ int main(int argc,char **argv){
 	w2=new World(4,w,NULL);
 	w=new World(10,NULL,w2);
 	
-	currentWorld=w;
+	spawn=currentWorld=w;
 	currentWorld->addLayer(3);
 	currentWorld->addLayer(4);
 	// shh

@@ -104,6 +104,7 @@ LOOP2:																// Should be in furthest back layer once this is first rea
 		}
 	}
 }
+extern World *spawn;
 void World::detect(vec2 *v,vec2 *vel,const float width){
 	unsigned int i;
 	for(i=0;i<lineCount-10;i++){											// For every line in world
@@ -117,7 +118,7 @@ void World::detect(vec2 *v,vec2 *vel,const float width){
 			}
 		}
 		if(v->y>line[i].start+HLINE){									// Trashy gravity handling
-			vel->y-=.0000001;
+			vel->y-=this==spawn?.0000001:.0000003;
 		}
 	}
 }
