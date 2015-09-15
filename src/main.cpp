@@ -171,10 +171,15 @@ void render(){
 		glRectf(build.loc.x, build.loc.y, build.loc.x + build.width, build.loc.y + build.height);
 		///BWAHHHHHHHHHHHH
 		
-		float d = deltaTime;
-		float fps = (1000 / d);
+		static float d,fps;
+		static unsigned int div=0;
 
 		ui.setFontSize(16);
+		if(++div==20){
+			div=0;
+			d=deltaTime;
+			fps=(1000/d);
+		}
 		ui.putText(-.98 + player.loc.x, .94, "FPS: %1.0f",fps);
 		ui.putText(-.98 + player.loc.x, .88, "DT: %1.0f",d);
 		ui.putText(player.loc.x,player.loc.y-(HLINE*10),"(%+1.3f,%+1.3f)",player.loc.x,player.loc.y);
@@ -196,8 +201,6 @@ void logic(){
 	if(player.right)player.vel.x=.00075;
 	else if(player.left)player.vel.x=-.00075;
 	else player.vel.x = 0;
-
-	std::cout << deltaTime << std::endl;
 
 	currentWorld->detect(&player.loc,&player.vel,player.width);
 	gw=currentWorld->getWidth();
