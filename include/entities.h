@@ -19,6 +19,7 @@ public:
 	void spawn(float, float);
 	void draw(void);
 	void wander(int, vec2*);
+	virtual void interact(){}
 private:
 	int ticksToUse;
 };
@@ -26,11 +27,13 @@ private:
 class Player : public Entity{
 public:
 	Player();
+	void interact();
 };
 
 class NPC : public Entity{
 public:
 	NPC();
+	void interact();
 };
 
 extern Entity *entnpc[32];	//The NPC base

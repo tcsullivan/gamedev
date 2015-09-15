@@ -14,6 +14,8 @@ public:
 	void putText(const float x,const float y,const char *s,...);
 	void putString(const float x,const float y,const char *s);
 	void handleEvents();
+
+	float mousex, mousey;
 };
 
 #endif // UICLASS_H

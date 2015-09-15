@@ -35,6 +35,10 @@ Player::Player(){
 	alive = true;
 }
 
+void Player::interact(){
+	
+}
+
 NPC::NPC(){	
 	width = HLINE * 8;
 	height = HLINE * 18;
@@ -43,6 +47,10 @@ NPC::NPC(){
 	subtype = 0;
 	alive = false;
 	canMove = true;
+}
+
+void NPC::interact(){
+
 }
 
 Structures::Structures(){

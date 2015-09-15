@@ -71,6 +71,7 @@ int main(int argc,char **argv){
 	glClearColor(.3,.5,.8,0);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	SDL_ShowCursor(SDL_DISABLE);
 	
 	/**************************
 	****     GAMELOOP      ****
@@ -113,7 +114,7 @@ int main(int argc,char **argv){
 		}
 
 		player.loc.x += (player.vel.x * player.speed) * deltaTime;						//update the player's x based on 
-//		printf("%lf * %u\n",player.vel.y,deltaTime);
+		//printf("%lf * %u\n",player.vel.y,deltaTime);
 		player.loc.y += player.vel.y * deltaTime;
 		for(int i = 0; i < eAmt(entnpc); i++){
 			if(npc[i].alive == true){
@@ -122,6 +123,8 @@ int main(int argc,char **argv){
 			}
 	    }
 	    
+	    SDL_GetMouseState((int*)(&ui.mousex), (int*)(&ui.mousey));
+	    ui.mousey = SCREEN_HEIGHT - ui.mousey;
 		render();
 	}
 	
@@ -159,7 +162,6 @@ void render(){
 		/**************************
 		**** RENDER STUFF HERE ****
 		**************************/
-		 
 		currentWorld->draw(); // layers dont scale x correctly...
 		glColor3ub(120,30,30);							//render the player
 		glRectf(player.loc.x, player.loc.y, player.loc.x + player.width, player.loc.y + player.height);
@@ -169,12 +171,19 @@ void render(){
 		glRectf(build.loc.x, build.loc.y, build.loc.x + build.width, build.loc.y + build.height);
 		///BWAHHHHHHHHHHHH
 		
+		float d = deltaTime;
+		float fps = (1000 / d);
+
 		ui.setFontSize(16);
+		ui.putText(-.98 + player.loc.x, .94, "FPS: %1.0f",fps);
+		ui.putText(-.98 + player.loc.x, .88, "DT: %1.0f",d);
 		ui.putText(player.loc.x,player.loc.y-(HLINE*10),"(%+1.3f,%+1.3f)",player.loc.x,player.loc.y);
 		
 		/**************************
 		****  CLOSE THE LOOP   ****
 		**************************/
+
+		//DRAW MOUSE HERE!!!!!W
 
 		glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
 		SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
@@ -187,6 +196,8 @@ void logic(){
 	if(player.right)player.vel.x=.00075;
 	else if(player.left)player.vel.x=-.00075;
 	else player.vel.x = 0;
+
+	std::cout << deltaTime << std::endl;
 
 	currentWorld->detect(&player.loc,&player.vel,player.width);
 	gw=currentWorld->getWidth();
@@ -211,7 +222,7 @@ void logic(){
 	for(int i = 0; i < eAmt(entnpc); i++){
 		if(npc[i].alive == true){
 			currentWorld->detect(&npc[i].loc,&npc[i].vel,npc[i].width);
-			entnpc[i]->wander((grand()%91 + 1), &npc[i].vel);
+			entnpc[i]->wander((grand()%181 + 1), &npc[i].vel);
 		}
 	}
 	tickCount++;
