@@ -197,8 +197,6 @@ void logic(){
 	else if(player.left)player.vel.x=-.00075;
 	else player.vel.x = 0;
 
-	std::cout << deltaTime << std::endl;
-
 	currentWorld->detect(&player.loc,&player.vel,player.width);
 	gw=currentWorld->getWidth();
 	if(player.loc.x+player.width>-1+gw){
