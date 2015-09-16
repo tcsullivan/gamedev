@@ -24,6 +24,7 @@ World::World(const float width,World *l,World *r){
 	toRight=r;
 	behind=infront=NULL;
 	entCount=0;
+	entity=(void **)calloc(MAX_ENTITIES,sizeof(void *));
 	if(toLeft){																	// Make sure linked worlds link back
 		if(toLeft->toRight){
 			std::cout<<"There's already a world to the left!"<<std::endl;
@@ -100,7 +101,8 @@ LOOP2:																// Should be in furthest back layer once this is first rea
 	}else{
 		drawOffsetX=drawOffsetY=0;									// Reset for next draw() call
 		for(i=0;i<entCount;i++){									// Draw any bound entities
-			((Entity **)entity)[i]->draw();
+			if(entity[i])
+				((Entity **)entity)[i]->draw();
 		}
 	}
 }
@@ -134,6 +136,6 @@ void World::addLayer(const float width){
 		behind->infront=this;
 	}
 }
-void World::addEntity(void *e){
-	entity[entCount++]=e;		// duh
+void World::addEntity(void *addr){
+	entity[entCount++]=addr;
 }

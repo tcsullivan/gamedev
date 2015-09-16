@@ -17,10 +17,11 @@ void Entity::draw(void){
 }
 
 void Entity::wander(int timeRun, vec2 *v){
+	static int hey;
 	if(ticksToUse == 0){
 		ticksToUse = timeRun;
 		v->x = .00010;
-		int hey = (grand() % 3 - 1);
+		hey = (grand() % 3 - 1);
 		v->x *= hey;
 	}
 	ticksToUse--;

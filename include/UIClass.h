@@ -5,17 +5,14 @@
 #include <cstdarg>
 #include <cstdio>
 
-class UIClass {
-private:
-	unsigned int fontSize;
-public:
+namespace ui {
+	extern int mousex,mousey;
 	void init(const char *ttf);
 	void setFontSize(unsigned int fs);
 	void putText(const float x,const float y,const char *s,...);
 	void putString(const float x,const float y,const char *s);
 	void msgBox(const char *str,...);
 	void handleEvents();
-	int mousex, mousey;
-};
+}
 
 #endif // UICLASS_H

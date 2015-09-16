@@ -18,7 +18,7 @@ private:
 	} __attribute__ ((packed)) *line;
 	unsigned int lineCount;			  // Size of line array, calculated in the constructor
 	unsigned int entCount;			  // Count of currently bound entities
-	void *entity[MAX_ENTITIES];
+	void **entity;
 public:
 	World *behind,*infront;							  // As in layers
 	World *toLeft,*toRight;							  // 'new' worlds (off screen)
