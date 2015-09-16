@@ -45,6 +45,9 @@ int main(/*int argc,char **argv*/){
 		atexit(IMG_Quit);
 		//Turn on double Buffering
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        //ANTIALIASING!!!
+        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); 
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
         //create the window
         window = SDL_CreateWindow("Independent Study v.0.2 alpha", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
                                   #ifdef FULLSCREEN
@@ -69,6 +72,7 @@ int main(/*int argc,char **argv*/){
 	glViewport(0,0,SCREEN_WIDTH, SCREEN_HEIGHT);
 	glClearColor(.3,.5,.8,0);
 	glEnable(GL_BLEND);
+	glEnable(GL_MULTISAMPLE);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	SDL_ShowCursor(SDL_DISABLE);
 	
@@ -189,7 +193,15 @@ void render(){
 	mx=(ui::mousex/(float)SCREEN_WIDTH)*2.0f-1.0f;
 	my=((SCREEN_HEIGHT-ui::mousey)/(float)SCREEN_HEIGHT)*2.0f-1.0f;
 	if(player.loc.x-1>-1)mx+=player.loc.x;
-	glRectf(mx,my,mx+HLINE*4,my+HLINE*4);
+
+	glBegin(GL_TRIANGLES);
+
+	glColor3ub(255,255,255);
+	glVertex2f(mx,my);
+	glVertex2f(mx + (HLINE*3.5),my - (HLINE*1));
+	glVertex2f(mx + (HLINE*1),my - (HLINE*6));
+
+	glEnd();
 
 	glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
 	SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
