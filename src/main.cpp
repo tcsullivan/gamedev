@@ -23,7 +23,6 @@ Entity *entnpc[32];	//The NPC base
 Player player;		//The actual player object
 NPC npc[32];
 Structures build;
-UIClass ui;			//Yep
 World *currentWorld;//u-huh
 
 World *spawn;
@@ -36,7 +35,7 @@ unsigned int millis(void){
 	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }
 
-int main(int argc,char **argv){
+int main(/*int argc,char **argv*/){
 	//runs start-up procedures
     if(!SDL_Init(SDL_INIT_VIDEO)){
     	atexit(SDL_Quit);
@@ -82,7 +81,7 @@ int main(int argc,char **argv){
 	****     GAMELOOP      ****
 	**************************/
 
-	ui.init("ttf/VCR_OSD_MONO_1.001.ttf");
+	ui::init("ttf/VCR_OSD_MONO_1.001.ttf");
 
 	irand(time(NULL));
 	entPlay = &player;
@@ -121,6 +120,7 @@ int main(int argc,char **argv){
 				npc[i].loc.x += npc[i].vel.x * deltaTime;
 			}
 	    }
+	    
 		render();
 		
 		if(prevTime + MSEC_PER_TICK >= millis()){						//the logic loop to run at a dedicated time
@@ -179,14 +179,14 @@ void render(){
 	glRectf(build.loc.x, build.loc.y, build.loc.x + build.width, build.loc.y + build.height);
 	///BWAHHHHHHHHHHHH
 
-	ui.setFontSize(16);
+	ui::setFontSize(16);
 	if(++div==20){
 		div=0;
 		d=deltaTime;
 		fps=(1000/d);
 	}
 	//ui.putText(-.98 + player.loc.x, .88, "DT: %1.0f",d);
-	ui.putText(player.loc.x,player.loc.y-(HLINE*10),"(%+1.3f,%+1.3f)",player.loc.x,player.loc.y);
+	ui::putText(player.loc.x,player.loc.y-(HLINE*10),"(%+1.3f,%+1.3f)",player.loc.x,player.loc.y);
 	
 	/**************************
 	****  CLOSE THE LOOP   ****
@@ -223,7 +223,8 @@ void render(){
 
 void logic(){
 	float gw;
-	ui.handleEvents();								// Handle events
+	
+	ui::handleEvents();								// Handle events
 
 	if(player.right)player.vel.x=.00075;
 	else if(player.left)player.vel.x=-.00075;
@@ -247,7 +248,7 @@ void logic(){
 			player.loc.x=-1+HLINE;
 		}
 	}
-
+	
 	currentWorld->detect(&build.loc,&build.vel,build.width);
 	for(int i = 0; i < eAmt(entnpc); i++){
 		if(npc[i].alive == true){
@@ -259,7 +260,16 @@ void logic(){
 					ui.putText(entnpc[i]->loc.x, entnpc[i]->loc.y - HLINE * 3, "HEY", NULL);
 				}
 			}
+
+	/*for(int i = 0; i < 32; i++){
+		if(entnpc[i]->alive){
+			currentWorld->detect(&entnpc[i]->loc,&entnpc[i]->vel,entnpc[i]->width);
+			std::cout<<(void *)entnpc[i]<<" "<<i<<" "<<entnpc<<" "<<eAmt(entnpc)<<std::endl;
+			entnpc[i]->wander(30, &entnpc[i]->vel);
+
 		}
 	}
+	*/
+	
 	tickCount++;
 }	
