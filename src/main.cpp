@@ -32,7 +32,7 @@ void render();
 
 unsigned int millis(void){
 	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
-	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+	return std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
 }
 
 int main(int argc,char **argv){
@@ -108,13 +108,7 @@ int main(int argc,char **argv){
 		currentTime = millis();
 		deltaTime = currentTime - prevTime;
 
-		if(prevTime + MSEC_PER_TICK >= millis()){						//the logic loop to run at a dedicated time
-			logic();
-			prevTime = millis();
-		}
-
 		player.loc.x += (player.vel.x * player.speed) * deltaTime;						//update the player's x based on 
-		//printf("%lf * %u\n",player.vel.y,deltaTime);
 		player.loc.y += player.vel.y * deltaTime;
 		for(int i = 0; i < eAmt(entnpc); i++){
 			if(npc[i].alive == true){
@@ -122,10 +116,12 @@ int main(int argc,char **argv){
 				npc[i].loc.x += npc[i].vel.x * deltaTime;
 			}
 	    }
-	    
-	    SDL_GetMouseState((int*)(&ui.mousex), (int*)(&ui.mousey));
-	    ui.mousey = SCREEN_HEIGHT - ui.mousey;
 		render();
+		
+		if(prevTime + MSEC_PER_TICK >= millis()){						//the logic loop to run at a dedicated time
+			logic();
+			prevTime = millis();
+		}
 	}
 	
 	/**************************
@@ -139,59 +135,64 @@ int main(int argc,char **argv){
 }
 
 void render(){
-														//a matrix is a blank canvas for the computer to draw on, the matrices are stored in a "stack"
-														//GL_PROJECTION has 2 matrices
-														//GL_MODELVIEW has 32 matrices
-		glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
-		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
-		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
-		//set the the size of the screen
-		if(player.loc.x-1<-1){
-			glOrtho(-1,1, -1,1, -1,1);
-		}else if(player.loc.x+1>-1+currentWorld->getWidth()){
-			glOrtho(-3+currentWorld->getWidth(),-1+currentWorld->getWidth(),-1,1,-1,1);
-		}else{
-			glOrtho(-1 + player.loc.x, 1 + player.loc.x , -1, 1, -1,1);
-		}
-		glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
-		glPushMatrix(); 								//push the  matrix to the top of the matrix stack
-		glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
-		glPushMatrix();									//basically here we put a blank canvas (new matrix) on the screen to draw on
-		glClear(GL_COLOR_BUFFER_BIT); 					//clear the matrix on the top of the stack
+	static float mx,my;
+	static float d,fps;
+	static unsigned int div=0;
+													//a matrix is a blank canvas for the computer to draw on, the matrices are stored in a "stack"
+													//GL_PROJECTION has 2 matrices
+													//GL_MODELVIEW has 32 matrices
+	glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
+	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
+	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
+	//set the the size of the screen
+	if(player.loc.x-1<-1){
+		glOrtho(-1,1, -1,1, -1,1);
+	}else if(player.loc.x+1>-1+currentWorld->getWidth()){
+		glOrtho(-3+currentWorld->getWidth(),-1+currentWorld->getWidth(),-1,1,-1,1);
+	}else{
+		glOrtho(-1 + player.loc.x, 1 + player.loc.x , -1, 1, -1,1);
+	}
+	glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
+	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
+	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
+	glPushMatrix();									//basically here we put a blank canvas (new matrix) on the screen to draw on
+	glClear(GL_COLOR_BUFFER_BIT); 					//clear the matrix on the top of the stack
 
-		/**************************
-		**** RENDER STUFF HERE ****
-		**************************/
-		currentWorld->draw(); // layers dont scale x correctly...
-		glColor3ub(120,30,30);							//render the player
-		glRectf(player.loc.x, player.loc.y, player.loc.x + player.width, player.loc.y + player.height);
+	/**************************
+	**** RENDER STUFF HERE ****
+	**************************/
+	currentWorld->draw(); // layers dont scale x correctly...
+	glColor3ub(120,30,30);							//render the player
+	glRectf(player.loc.x, player.loc.y, player.loc.x + player.width, player.loc.y + player.height);
 
-		
-	    glColor3ub(255,0,0);
-		glRectf(build.loc.x, build.loc.y, build.loc.x + build.width, build.loc.y + build.height);
-		///BWAHHHHHHHHHHHH
-		
-		static float d,fps;
-		static unsigned int div=0;
+	
+	glColor3ub(255,0,0);
+	glRectf(build.loc.x, build.loc.y, build.loc.x + build.width, build.loc.y + build.height);
+	///BWAHHHHHHHHHHHH
 
-		ui.setFontSize(16);
-		if(++div==20){
-			div=0;
-			d=deltaTime;
-			fps=(1000/d);
-		}
-		ui.putText(-.98 + player.loc.x, .94, "FPS: %1.0f",fps);
-		ui.putText(-.98 + player.loc.x, .88, "DT: %1.0f",d);
-		ui.putText(player.loc.x,player.loc.y-(HLINE*10),"(%+1.3f,%+1.3f)",player.loc.x,player.loc.y);
-		
-		/**************************
-		****  CLOSE THE LOOP   ****
-		**************************/
+	ui.setFontSize(16);
+	if(++div==20){
+		div=0;
+		d=deltaTime;
+		fps=(1000/d);
+	}
+	ui.putText(-.98 + player.loc.x, .94, "FPS: %1.0f\nDT: %1.0f",fps);
+	//ui.putText(-.98 + player.loc.x, .88, "DT: %1.0f",d);
+	ui.putText(player.loc.x,player.loc.y-(HLINE*10),"(%+1.3f,%+1.3f)",player.loc.x,player.loc.y);
+	
+	/**************************
+	****  CLOSE THE LOOP   ****
+	**************************/
 
-		//DRAW MOUSE HERE!!!!!W
+	//DRAW MOUSE HERE!!!!!W
+	glColor3ub(255,0,0);
+	mx=(ui.mousex/(float)SCREEN_WIDTH)*2.0f-1.0f;
+	my=((SCREEN_HEIGHT-ui.mousey)/(float)SCREEN_HEIGHT)*2.0f-1.0f;
+	if(player.loc.x-1>-1)mx+=player.loc.x;
+	glRectf(mx,my,mx+HLINE*4,my+HLINE*4);
 
-		glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
-		SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
+	glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
+	SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
 }
 
 void logic(){

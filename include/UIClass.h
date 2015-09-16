@@ -13,9 +13,9 @@ public:
 	void setFontSize(unsigned int fs);
 	void putText(const float x,const float y,const char *s,...);
 	void putString(const float x,const float y,const char *s);
+	void msgBox(const char *str,...);
 	void handleEvents();
-
-	float mousex, mousey;
+	int mousex, mousey;
 };
 
 #endif // UICLASS_H

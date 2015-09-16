@@ -30,36 +30,53 @@ void UIClass::putString(const float x,const float y,const char *s){
 	float xo=x,yo=y,w,h;
 	char *buf;
 	do{
-		FT_Load_Char(ftf,s[i],FT_LOAD_RENDER);
-		glGenTextures(1,&ftex);
-		glBindTexture(GL_TEXTURE_2D,ftex);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		buf=(char *)malloc(ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows*4);
-		for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
-			buf[j*4]=255;
-			buf[j*4+1]=255;
-			buf[j*4+2]=255;
-			buf[j*4+3]=ftf->glyph->bitmap.buffer[j]?255:0;
+		if(s[i]=='\n'){
+			xo=x;
+			yo-=fontSize*.0022;
+		}else{
+			FT_Load_Char(ftf,s[i],FT_LOAD_RENDER);
+			glGenTextures(1,&ftex);
+			glBindTexture(GL_TEXTURE_2D,ftex);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			buf=(char *)malloc(ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows*4);
+			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
+				buf[j*4]=255;
+				buf[j*4+1]=255;
+				buf[j*4+2]=255;
+				buf[j*4+3]=ftf->glyph->bitmap.buffer[j]?255:0;
+			}
+			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf);
+			w=ftf->glyph->bitmap.width*(2.0/SCREEN_WIDTH);
+			h=ftf->glyph->bitmap.rows *(2.0/SCREEN_HEIGHT); 
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D,ftex);
+			if(s[i]=='\''||
+			   s[i]=='\"'||
+			   s[i]=='-'||
+			   s[i]=='*'){
+				yo+=fontSize*.001;
+			}
+			glBegin(GL_QUADS);
+				glColor3ub(255,255,255);
+				glTexCoord2f(0,1);glVertex2f(xo,yo);
+				glTexCoord2f(1,1);glVertex2f(xo+w,yo);
+				glTexCoord2f(1,0);glVertex2f(xo+w,yo+h);
+				glTexCoord2f(0,0);glVertex2f(xo,yo+h);
+			glEnd();
+			if(s[i]=='\''||
+			   s[i]=='\"'||
+			   s[i]=='-'||
+			   s[i]=='*'){
+				yo-=fontSize*.001;
+			}
+			glDisable(GL_TEXTURE_2D);
+			xo+=w+(fontSize*.0002);
+			free(buf);
 		}
-		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf);
-		w=ftf->glyph->bitmap.width*(2.0/SCREEN_WIDTH);
-		h=ftf->glyph->bitmap.rows *(2.0/SCREEN_HEIGHT); 
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D,ftex);
-		glBegin(GL_QUADS);
-			glColor3ub(255,255,255);
-			glTexCoord2f(0,1);glVertex2f(xo,yo);
-			glTexCoord2f(1,1);glVertex2f(xo+w,yo);
-			glTexCoord2f(1,0);glVertex2f(xo+w,yo+h);
-			glTexCoord2f(0,0);glVertex2f(xo,yo+h);
-		glEnd();
-		glDisable(GL_TEXTURE_2D);
-		xo+=w+(fontSize*.0001);
-		free(buf);
 	}while(s[i++]);
 }
 void UIClass::putText(const float x,const float y,const char *str,...){
@@ -72,6 +89,15 @@ void UIClass::putText(const float x,const float y,const char *str,...){
 	putString(x,y,buf);
 	free(buf);
 }
+void UIClass::msgBox(const char *str,...){
+	va_list args;
+	va_start(args,str);
+	glColor3ub(0,0,0);
+	glRectf(-1,.6,1,1);
+	setFontSize(24);
+	putText(-1,1-24*.0022,str,args);
+	va_end(args);
+}
 
 void UIClass::handleEvents(){
 	static bool space=false;
@@ -79,6 +105,10 @@ void UIClass::handleEvents(){
 	SDL_Event e;
 	while(SDL_PollEvent(&e)){
 		switch(e.type){
+		case SDL_MOUSEMOTION:
+			mousex=e.motion.x;
+			mousey=e.motion.y;
+			break;
 		case SDL_WINDOWEVENT:
 			switch(e.window.event){
 				case SDL_WINDOWEVENT_CLOSE:
@@ -93,7 +123,7 @@ void UIClass::handleEvents(){
 				if(!space&&player.vel.y<=0){
 					space=true;
 					player.loc.y += HLINE*1.2;
-					player.vel.y += .004;
+					player.vel.y += .003;
 				}
 			}
 			if(e.key.keysym.sym == SDLK_i){
