@@ -1,5 +1,4 @@
 #include <UIClass.h>
-
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -42,7 +41,7 @@ namespace ui {
 					std::cout<<"Error! Invalid character."<<std::endl;
 					return;
 				}
-				glActiveTexture(GL_TEXTURE0);
+				//glActiveTexture(GL_TEXTURE0);
 				glGenTextures(1,&ftex);
 				glBindTexture(GL_TEXTURE_2D,ftex);
 				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -134,14 +133,6 @@ namespace ui {
 						player.vel.y += .003;
 					}
 				}
-				if(e.key.keysym.sym == SDLK_k){
-					if(currentWorld->infront){
-						player.loc.x+=(currentWorld->infront->getWidth()-currentWorld->getWidth())/2;
-						memset(&player.vel,0,sizeof(vec2));
-						currentWorld=currentWorld->infront;
-					}
-				}
-				break;
 				if(e.key.keysym.sym == SDLK_i){
 					if(currentWorld->behind){
 						thing=(currentWorld->getWidth()-currentWorld->behind->getWidth())/2;
@@ -153,7 +144,13 @@ namespace ui {
 						}
 					}
 				}
-			}
+				if(e.key.keysym.sym == SDLK_k){
+					if(currentWorld->infront){
+						player.loc.x+=(currentWorld->infront->getWidth()-currentWorld->getWidth())/2;
+						memset(&player.vel,0,sizeof(vec2));
+						currentWorld=currentWorld->infront;
+					}
+				}
 			if(e.key.keysym.sym == SDLK_F3){
 				debug = !debug;
 			}
@@ -164,11 +161,9 @@ namespace ui {
 				if(e.key.keysym.sym == SDLK_LSHIFT) player.speed = 1.0;
 				if(e.key.keysym.sym == SDLK_SPACE)
 					if(player.vel.y<=.001)space=false;
-			
 				if(e.key.keysym.sym == SDLK_ESCAPE) gameRunning = false;
 				break;
 			}	
 		}
-
 	}
 }

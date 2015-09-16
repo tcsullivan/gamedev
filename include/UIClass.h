@@ -7,6 +7,7 @@
 
 namespace ui {
 	extern int mousex,mousey;
+	extern bool debug;
 	void init(const char *ttf);
 	void setFontSize(unsigned int fs);
 	void putText(const float x,const float y,const char *s,...);

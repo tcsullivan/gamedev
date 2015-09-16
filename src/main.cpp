@@ -35,7 +35,7 @@ unsigned int millis(void){
 	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }
 
-int main(/*int argc,char **argv*/){
+int main(int argc, char *argv[]){
 	//runs start-up procedures
     if(!SDL_Init(SDL_INIT_VIDEO)){
     	atexit(SDL_Quit);
@@ -47,7 +47,7 @@ int main(/*int argc,char **argv*/){
 		//Turn on double Buffering
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         //ANTIALIASING!!!
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); 
+        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
         //create the window
         window = SDL_CreateWindow("Independent Study v.0.2 alpha", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
@@ -193,19 +193,19 @@ void render(){
 	**************************/
 
 	//DRAW MOUSE HERE!!!!!
-	mx=(ui.mousex/(float)SCREEN_WIDTH)*2.0f-1.0f;
-	my=((SCREEN_HEIGHT-ui.mousey)/(float)SCREEN_HEIGHT)*2.0f-1.0f;
+	mx=(ui::mousex/(float)SCREEN_WIDTH)*2.0f-1.0f;
+	my=((SCREEN_HEIGHT-ui::mousey)/(float)SCREEN_HEIGHT)*2.0f-1.0f;
 	if(player.loc.x-1>-1 && player.loc.x-1<-3+currentWorld->getWidth()){
-		if(ui.debug)
-			ui.putText(-.98 + player.loc.x, .94, "FPS: %1.0f\nDT: %1.0f",fps, d);
+		if(ui::debug)
+			ui::putText(-.98 + player.loc.x, .94, "FPS: %1.0f\nDT: %1.0f",fps, d);
 		mx+=player.loc.x;
 	}else if(player.loc.x-1>=-3+currentWorld->getWidth()){
-		if(ui.debug)
-			ui.putText(-.98 + -2+currentWorld->getWidth(), .94, "FPS: %1.0f\nDT: %1.0f",fps, d);
+		if(ui::debug)
+			ui::putText(-.98 + -2+currentWorld->getWidth(), .94, "FPS: %1.0f\nDT: %1.0f",fps, d);
 		mx =mx-1 + -1+currentWorld->getWidth();
 	}else{
-		if(ui.debug)
-			ui.putText(-.98, .94, "FPS: %1.0f\nDT: %1.0f",fps, d);
+		if(ui::debug)
+			ui::putText(-.98, .94, "FPS: %1.0f\nDT: %1.0f",fps, d);
 	}
 
 	glBegin(GL_TRIANGLES);
@@ -257,19 +257,11 @@ void logic(){
 			if((mx > entnpc[i]->loc.x && mx < entnpc[i]->loc.x + entnpc[i]->width) && (my > entnpc[i]->loc.y && my < entnpc[i]->loc.y + entnpc[i]->height)&&(SDL_GetMouseState(NULL,NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))){
 				if(pow((entnpc[i]->loc.x - player.loc.x),2) + pow((entnpc[i]->loc.y - player.loc.y),2) < pow(.2,2)){
 					entnpc[i]->interact();
-					ui.putText(entnpc[i]->loc.x, entnpc[i]->loc.y - HLINE * 3, "HEY", NULL);
+					ui::putText(entnpc[i]->loc.x, entnpc[i]->loc.y - HLINE * 3, "HEY", NULL);
 				}
 			}
-
-	/*for(int i = 0; i < 32; i++){
-		if(entnpc[i]->alive){
-			currentWorld->detect(&entnpc[i]->loc,&entnpc[i]->vel,entnpc[i]->width);
-			std::cout<<(void *)entnpc[i]<<" "<<i<<" "<<entnpc<<" "<<eAmt(entnpc)<<std::endl;
-			entnpc[i]->wander(30, &entnpc[i]->vel);
-
 		}
-	}
-	*/
 	
+	}
 	tickCount++;
 }	
