@@ -16,6 +16,8 @@ public:
 	bool right,left, canMove;
 	bool alive;
 
+	unsigned int texture[];
+
 	void spawn(float, float);
 	void draw(void);
 	void wander(int, vec2*);

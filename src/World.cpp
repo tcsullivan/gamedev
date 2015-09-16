@@ -24,6 +24,7 @@ World::World(const float width,World *l,World *r){
 	toRight=r;
 	behind=infront=NULL;
 	entCount=0;
+	entity=(void**)calloc(MAX_ENTITIES,sizeof(void**));
 	if(toLeft){																	// Make sure linked worlds link back
 		if(toLeft->toRight){
 			std::cout<<"There's already a world to the left!"<<std::endl;

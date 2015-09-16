@@ -7,6 +7,7 @@ typedef struct{float x; float y;}vec2;
 
 #include <iostream>
 #include <cstdlib>
+#include <math.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_opengl.h>

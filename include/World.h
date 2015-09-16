@@ -4,7 +4,7 @@
 #include <common.h>
 
 // Total amount of entities that can be bound to a layer
-#define MAX_ENTITIES 16
+#define MAX_ENTITIES 32
 
 // Easy shortcuts used in UIClass
 #define goWorldLeft(w)  if(w->toLeft){w=w->toLeft;}
@@ -18,7 +18,7 @@ private:
 	} __attribute__ ((packed)) *line;
 	unsigned int lineCount;			  // Size of line array, calculated in the constructor
 	unsigned int entCount;			  // Count of currently bound entities
-	void *entity[MAX_ENTITIES];
+	void **entity;
 public:
 	World *behind,*infront;							  // As in layers
 	World *toLeft,*toRight;							  // 'new' worlds (off screen)

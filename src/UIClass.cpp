@@ -144,6 +144,9 @@ void UIClass::handleEvents(){
 					currentWorld=currentWorld->infront;
 				}
 			}
+			if(e.key.keysym.sym == SDLK_F3){
+				debug = !debug;
+			}
 			break;
 		case SDL_KEYUP:
 			if(e.key.keysym.sym == SDLK_d) player.right = false;

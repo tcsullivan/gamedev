@@ -10,6 +10,7 @@ SDL_Surface   *renderSurface = NULL;
 SDL_GLContext  mainGLContext = NULL;
 
 bool gameRunning = true;
+static float mx,my;
 
 static unsigned int tickCount   = 0,
 					prevTime    = 0,
@@ -94,11 +95,11 @@ int main(int argc,char **argv){
 	// Generate the world
 	World *w=NULL,*w2=NULL;
 	w2=new World(4,w,NULL);
-	w=new World(10,NULL,w2);
+	w=new World(20,NULL,w2);
 	
 	spawn=currentWorld=w;
-	currentWorld->addLayer(3);
-	currentWorld->addLayer(4);
+	currentWorld->addLayer(15);
+	currentWorld->addLayer(10);
 	// shh
 	unsigned char jklasdf;
 	for(jklasdf=0;jklasdf<npcAmt;jklasdf++){
@@ -139,7 +140,6 @@ int main(int argc,char **argv){
 }
 
 void render(){
-	static float mx,my;
 	static float d,fps;
 	static unsigned int div=0;
 													//a matrix is a blank canvas for the computer to draw on, the matrices are stored in a "stack"
@@ -166,7 +166,12 @@ void render(){
 	**** RENDER STUFF HERE ****
 	**************************/
 	currentWorld->draw(); // layers dont scale x correctly...
-	glColor3ub(120,30,30);							//render the player
+
+	if((mx > player.loc.x && mx < player.loc.x + player.width) && (my > player.loc.y && my < player.loc.y + player.height)){
+		glColor3ub(255,0,0);
+	}else{
+		glColor3ub(120,30,30);							//render the player
+	}
 	glRectf(player.loc.x, player.loc.y, player.loc.x + player.width, player.loc.y + player.height);
 
 	
@@ -180,7 +185,6 @@ void render(){
 		d=deltaTime;
 		fps=(1000/d);
 	}
-	ui.putText(-.98 + player.loc.x, .94, "FPS: %1.0f\nDT: %1.0f",fps);
 	//ui.putText(-.98 + player.loc.x, .88, "DT: %1.0f",d);
 	ui.putText(player.loc.x,player.loc.y-(HLINE*10),"(%+1.3f,%+1.3f)",player.loc.x,player.loc.y);
 	
@@ -188,10 +192,21 @@ void render(){
 	****  CLOSE THE LOOP   ****
 	**************************/
 
-	//DRAW MOUSE HERE!!!!!W
+	//DRAW MOUSE HERE!!!!!
 	mx=(ui.mousex/(float)SCREEN_WIDTH)*2.0f-1.0f;
 	my=((SCREEN_HEIGHT-ui.mousey)/(float)SCREEN_HEIGHT)*2.0f-1.0f;
-	if(player.loc.x-1>-1)mx+=player.loc.x;
+	if(player.loc.x-1>-1 && player.loc.x-1<-3+currentWorld->getWidth()){
+		if(ui.debug)
+			ui.putText(-.98 + player.loc.x, .94, "FPS: %1.0f\nDT: %1.0f",fps, d);
+		mx+=player.loc.x;
+	}else if(player.loc.x-1>=-3+currentWorld->getWidth()){
+		if(ui.debug)
+			ui.putText(-.98 + -2+currentWorld->getWidth(), .94, "FPS: %1.0f\nDT: %1.0f",fps, d);
+		mx =mx-1 + -1+currentWorld->getWidth();
+	}else{
+		if(ui.debug)
+			ui.putText(-.98, .94, "FPS: %1.0f\nDT: %1.0f",fps, d);
+	}
 
 	glBegin(GL_TRIANGLES);
 
@@ -238,6 +253,12 @@ void logic(){
 		if(npc[i].alive == true){
 			currentWorld->detect(&npc[i].loc,&npc[i].vel,npc[i].width);
 			entnpc[i]->wander((grand()%181 + 1), &npc[i].vel);
+			if((mx > entnpc[i]->loc.x && mx < entnpc[i]->loc.x + entnpc[i]->width) && (my > entnpc[i]->loc.y && my < entnpc[i]->loc.y + entnpc[i]->height)&&(SDL_GetMouseState(NULL,NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))){
+				if(pow((entnpc[i]->loc.x - player.loc.x),2) + pow((entnpc[i]->loc.y - player.loc.y),2) < pow(.2,2)){
+					entnpc[i]->interact();
+					ui.putText(entnpc[i]->loc.x, entnpc[i]->loc.y - HLINE * 3, "HEY", NULL);
+				}
+			}
 		}
 	}
 	tickCount++;

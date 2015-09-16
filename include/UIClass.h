@@ -16,6 +16,7 @@ public:
 	void msgBox(const char *str,...);
 	void handleEvents();
 	int mousex, mousey;
+	bool debug = false;
 };
 
 #endif // UICLASS_H

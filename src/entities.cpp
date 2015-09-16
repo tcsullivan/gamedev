@@ -50,7 +50,8 @@ NPC::NPC(){
 }
 
 void NPC::interact(){
-
+	loc.y += .01;
+	
 }
 
 Structures::Structures(){
