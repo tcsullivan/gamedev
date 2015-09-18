@@ -61,13 +61,20 @@ void World::draw(vec2 *vec){
 
 void World::detect(vec2 *v,vec2 *vel,const float width){
 	unsigned int i;
+	// Vertical checks
 	i=(v->x+width/2-x_start)/HLINE;
 	if(v->y<=line[i].y){
 		vel->y=0;
 		v->y=line[i].y+HLINE/2;
-		return;
 	}else{
 		vel->y-=.05;
-		return;
+	}
+	// Horizontal checks
+	if(v->x<x_start){
+		vel->x=0;
+		v->x=x_start+HLINE/2;
+	}else if(v->x>x_start+getWidth()){
+		vel->x=0;
+		v->x=x_start+getWidth()-width-HLINE/2;
 	}
 }
