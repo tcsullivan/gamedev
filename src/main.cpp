@@ -71,6 +71,7 @@ int main(int argc, char *argv[]){
 	**************************/
 
 	World *test=new World(SCREEN_WIDTH/2);
+	test->addLayer(400);
 	currentWorld=test;
 	player=new Player();
 	player->spawn(0,100);

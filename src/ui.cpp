@@ -89,11 +89,12 @@ namespace ui {
 			case SDL_KEYDOWN:
 				if(SDL_KEY==SDLK_ESCAPE)gameRunning=false;
 				if(SDL_KEY==SDLK_a)player->vel.x=-2;
-				else if(SDL_KEY==SDLK_d)player->vel.x=2;
+				if(SDL_KEY==SDLK_d)player->vel.x=2;
+				if(SDL_KEY==SDLK_SPACE)player->vel.y=2;
 				break;
 			case SDL_KEYUP:
 				if(SDL_KEY==SDLK_a)player->vel.x=0;
-				else if(SDL_KEY==SDLK_d)player->vel.x=0;
+				if(SDL_KEY==SDLK_d)player->vel.x=0;
 				break;
 			default:
 				break;
