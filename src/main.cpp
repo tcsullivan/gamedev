@@ -1,4 +1,7 @@
 #include <common.h>
+#include <world.h>
+#include <ui.h>
+#include <entities.h>
 #include <cstdio>
 #include <chrono>
 
@@ -7,6 +10,9 @@ SDL_Surface   *renderSurface = NULL;
 SDL_GLContext  mainGLContext = NULL;
 
 bool gameRunning = true;
+
+World *currentWorld=NULL;
+Player *player;
 
 void logic();
 void render();
@@ -17,20 +23,21 @@ unsigned int millis(void){
 }
 
 int main(int argc, char *argv[]){
-	//runs start-up procedures
+	// Initialize SDL
     if(SDL_Init(SDL_INIT_VIDEO)){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 		return -1;
 	}
     atexit(SDL_Quit);
+    // Initialize SDL_image
     if(!(IMG_Init(IMG_INIT_PNG|IMG_INIT_JPG)&(IMG_INIT_PNG|IMG_INIT_JPG))){
 		std::cout<<"Could not init image libraries!\n"<<std::endl;
 		return -1;
 	}
 	atexit(IMG_Quit);
-	//Turn on double Buffering
+	// Turn on double buffering
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    //create the window
+    // Create the window
     window = SDL_CreateWindow("Independent Study v.0.2 alpha", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
                               #ifdef FULLSCREEN
                               | SDL_WINDOW_FULLSCREEN
@@ -48,6 +55,11 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
+	ui::initFonts();
+	ui::setFontFace("ttf/VCR_OSD_MONO_1.001.ttf");
+	ui::setFontSize(16);
+	initRand(millis()); // fix
+
 	glViewport(0,0,SCREEN_WIDTH, SCREEN_HEIGHT);
 	glClearColor(.3,.5,.8,0);
 	glEnable(GL_BLEND);
@@ -57,6 +69,11 @@ int main(int argc, char *argv[]){
 	/**************************
 	****     GAMELOOP      ****
 	**************************/
+
+	World *test=new World(SCREEN_WIDTH/2);
+	currentWorld=test;
+	player=new Player();
+	player->spawn(0,100);
 
 	while(gameRunning){
 		render();
@@ -80,7 +97,7 @@ void render(){
 	glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
-	glOrtho(0,SCREEN_WIDTH,0,SCREEN_HEIGHT,-1,1);
+	glOrtho(player->loc.x-SCREEN_WIDTH/2,player->loc.x+SCREEN_WIDTH/2,0,SCREEN_HEIGHT,-1,1);
 	glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
@@ -91,6 +108,10 @@ void render(){
 	**** RENDER STUFF HERE ****
 	**************************/
 
+	currentWorld->draw(&player->loc);
+	player->draw();
+	//ui::putString(0,0,"Hello");
+
 	/**************************
 	****  CLOSE THE LOOP   ****
 	**************************/
@@ -100,17 +121,9 @@ void render(){
 }
 
 void logic(){
-	SDL_Event e;
-	while(SDL_PollEvent(&e)){
-		switch(e.type){
-		case SDL_QUIT:
-			gameRunning=false;
-			break;
-		case SDL_KEYDOWN:
-			if(e.key.keysym.sym==SDLK_ESCAPE)gameRunning=false;
-			break;
-		default:
-			break;
-		}
-	}
+	ui::handleEvents();
+	currentWorld->detect(&player->loc,&player->vel,player->width);
+	player->loc.y+=player->vel.y;
+	player->loc.x+=player->vel.x;
+	std::cout<<"("<<player->loc.x<<","<<player->loc.y<<")"<<std::endl;
 }	
