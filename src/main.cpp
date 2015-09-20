@@ -5,11 +5,18 @@
 #include <cstdio>
 #include <chrono>
 
+#define TICKS_PER_SEC 20
+#define MSEC_PER_TICK (1000/TICKS_PER_SEC)
+
 SDL_Window    *window = NULL;
 SDL_Surface   *renderSurface = NULL;
 SDL_GLContext  mainGLContext = NULL;
 
 bool gameRunning = true;
+static unsigned int tickCount   = 0,
+					prevTime    = 0,
+					currentTime = 0,
+					deltaTime   = 0;
 
 World *currentWorld=NULL;
 Player *player;
@@ -76,9 +83,19 @@ int main(int argc, char *argv[]){
 	player=new Player();
 	player->spawn(0,100);
 
+	currentTime=millis();
+
 	while(gameRunning){
+		prevTime = currentTime;
+		currentTime = millis();
+		deltaTime = currentTime - prevTime;
+		
+		if(prevTime + MSEC_PER_TICK >= millis()){
+			logic();
+			prevTime = millis();
+		}
+
 		render();
-		logic();
 	}
 	
 	/**************************
@@ -111,7 +128,7 @@ void render(){
 
 	currentWorld->draw(&player->loc);
 	player->draw();
-	//ui::putString(0,0,"Hello");
+	ui::putString(0,0,"Hello");
 
 	/**************************
 	****  CLOSE THE LOOP   ****
@@ -124,7 +141,7 @@ void render(){
 void logic(){
 	ui::handleEvents();
 	currentWorld->detect(&player->loc,&player->vel,player->width);
-	player->loc.y+=player->vel.y;
-	player->loc.x+=player->vel.x;
+	player->loc.y+=player->vel.y*deltaTime;
+	player->loc.x+=player->vel.x*deltaTime;
 	std::cout<<"("<<player->loc.x<<","<<player->loc.y<<")"<<std::endl;
 }	

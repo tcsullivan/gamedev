@@ -89,7 +89,7 @@ void World::detect(vec2 *v,vec2 *vel,const float width){
 		vel->y=0;
 		v->y=line[i].y+HLINE/2;
 	}else{
-		vel->y-=.05;
+		vel->y-=.01;
 	}
 	// Horizontal checks
 	if(v->x<x_start){
