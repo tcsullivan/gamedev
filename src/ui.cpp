@@ -1,10 +1,12 @@
 #include <ui.h>
+#include <world.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 #define SDL_KEY e.key.keysym.sym
 
 extern Player *player;
+extern World  *currentWorld;
 
 static FT_Library   ftl;
 static FT_Face      ftf;
@@ -89,9 +91,17 @@ namespace ui {
 				break;
 			case SDL_KEYDOWN:
 				if(SDL_KEY==SDLK_ESCAPE)gameRunning=false;
-				if(SDL_KEY==SDLK_a)player->vel.x=-.15;
-				if(SDL_KEY==SDLK_d)player->vel.x=.15;
+				if(SDL_KEY==SDLK_a){
+					player->vel.x=-.15;
+					currentWorld=currentWorld->goWorldLeft(&player->loc,player->width);
+				}
+				if(SDL_KEY==SDLK_d){
+					player->vel.x=.15;
+					currentWorld=currentWorld->goWorldRight(&player->loc,player->width);
+				}
 				if(SDL_KEY==SDLK_SPACE)player->vel.y=.25;
+				if(SDL_KEY==SDLK_i)currentWorld=currentWorld->goWorldBack(&player->loc,player->width);
+				if(SDL_KEY==SDLK_k)currentWorld=currentWorld->goWorldFront(&player->loc,player->width);
 				break;
 			case SDL_KEYUP:
 				if(SDL_KEY==SDLK_a)player->vel.x=0;

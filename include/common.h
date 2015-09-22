@@ -17,7 +17,7 @@ typedef struct { float x; float y; } vec2;
 #define SCREEN_HEIGHT 720
 //#define FULLSCREEN
 
-#define HLINE 2
+#define HLINE 3
 
 #define initRand(s) srand(s)
 #define getRand()	rand()

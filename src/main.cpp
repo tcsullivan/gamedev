@@ -77,8 +77,12 @@ int main(int argc, char *argv[]){
 	****     GAMELOOP      ****
 	**************************/
 
-	World *test=new World(SCREEN_WIDTH/2);
+	World *test =new World(SCREEN_WIDTH/2),
+		  *test2=new World(SCREEN_WIDTH*2);
 	test->addLayer(400);
+	test->addLayer(100);
+	test->toLeft=test2;
+	test2->toRight=test;
 	currentWorld=test;
 	player=new Player();
 	player->spawn(0,100);
@@ -143,5 +147,4 @@ void logic(){
 	currentWorld->detect(&player->loc,&player->vel,player->width);
 	player->loc.y+=player->vel.y*deltaTime;
 	player->loc.x+=player->vel.x*deltaTime;
-	std::cout<<"("<<player->loc.x<<","<<player->loc.y<<")"<<std::endl;
 }	
