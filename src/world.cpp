@@ -1,13 +1,20 @@
 #include <world.h>
 
-#define getWidth(w) ((w->lineCount-GEN_INC)*HLINE)
+#define getWidth(w) ((w->lineCount-GEN_INC)*HLINE)	// Calculates the width of world 'w'
 
-#define GEN_INC 10
-#define GRASS_HEIGHT 4
+#define GEN_INC 10		// Defines at what interval y values should be calculated for the array 'line'.
+						// As explained in World(), the last few lines in the array 'line' are incorrectly calculated
+						// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
+						// and detect().
+#define GRASS_HEIGHT 4	// Defines how long the grass layer of a line should be in multiples of HLINE.
 
-void safeSetColor(int r,int g,int b){
-	if(r>255)r=255;
-	if(g>255)g=255;
+
+#define DRAW_Y_OFFSET 50	// Defines how many pixels each layer should be offset from each other on the y axis when drawn.
+#define DRAW_SHADE	  40	// Defines a shade increment for draw()
+
+void safeSetColor(int r,int g,int b){	// safeSetColor() is an alternative to directly using glColor3ub() to set
+	if(r>255)r=255;						// the color for OpenGL drawing. safeSetColor() checks for values that are
+	if(g>255)g=255;						// outside the range of an unsigned character and sets them to a safer value.
 	if(b>255)b=255;
 	if(r<0)r=0;
 	if(g<0)g=0;
@@ -15,96 +22,98 @@ void safeSetColor(int r,int g,int b){
 	glColor3ub(r,g,b);
 }
 
-World::World(unsigned int width){
-	unsigned int i;
-	float inc;
-	lineCount=width+GEN_INC;
-	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));	// allocate space for the array of lines
-	line[0].y=80;
-	for(i=GEN_INC;i<lineCount;i+=GEN_INC){
-		line[i].y=rand()%8-4+line[i-GEN_INC].y;
-		if(line[i].y<60)line[i].y=60;
-		if(line[i].y>110)line[i].y=110;
+World::World(unsigned int width){		// Generates the world and sets all variables contained in the World class.
+	unsigned int i;						// Used for 'for' loops 
+	float inc;							// See line 37
+	lineCount=width+GEN_INC;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
+	
+	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));	// Allocate memory for the array 'line'
+	
+	line[0].y=80;								// Sets a starting value for the world generation to be based off of
+	for(i=GEN_INC;i<lineCount;i+=GEN_INC){		// For every GEN_INCth line in the array 'line'
+		line[i].y=rand()%8-4+line[i-GEN_INC].y;	// Generate a y value for it, and correct it if it is too high or low.
+		if(line[i].y<60)line[i].y=60;	// y value minimum
+		if(line[i].y>110)line[i].y=110;	// y value maximum
 	}
-	for(i=0;i<lineCount-GEN_INC;i++){
-		if(!i||!(i%GEN_INC)){
-			inc=(line[i+GEN_INC].y-line[i].y)/(float)GEN_INC;
-		}else{
-			line[i].y=line[i-1].y+inc;
+	for(i=0;i<lineCount-GEN_INC;i++){							// Calculate the rest of the lines as well as set color values for them.
+		if(!i||!(i%GEN_INC)){									// If this is one of the GEN_INCth lines that are already calculated
+			inc=(line[i+GEN_INC].y-line[i].y)/(float)GEN_INC;	// Calculate the slope between this line and the line ahead of it, then
+																// divide it by the number of lines inbetween the two.
+		}else{							// If this line's y hasn't been set yet
+			line[i].y=line[i-1].y+inc;	// Set it by incrementing the previous line's y by 'inc'.
 		}
-		line[i].color=rand()%20+130;
+		line[i].color=rand()%20+130;	// Generate a color for the dirt area of this line. This value will be used
+										// in the form (where n represents the color) glColor3ub(n,n-50,n-100)
 	}
-	x_start=0-getWidth(this)/2+GEN_INC/2*HLINE;
-	behind=infront=NULL;
-	toLeft=toRight=NULL;
+	x_start=0-getWidth(this)/2+GEN_INC/2*HLINE;	// Calculate x_start (explained in world.h)
+	behind=infront=NULL;	// Set pointers to other worlds to NULL
+	toLeft=toRight=NULL;	// to avoid accidental calls to goWorld... functions
 }
 
 World::~World(void){
-	free(line);
+	free(line);	// Free (de-allocate) the array 'line'
 }
 
 void World::draw(vec2 *vec){
-	static float yoff=50;
+	static float yoff=DRAW_Y_OFFSET;	// Initialize stuff
 	static int shade=0;
-	static World *root,*current;
+	static World *current;
 	int i,ie,v_offset,cx_start;
 	struct line_t *cline;
-	root=current=this;
-LOOP1:
-	if(current->behind){
-		yoff+=50;
-		shade+=40;
+	current=this;	// yeah
+LOOP1:								// Check for worlds behind the current one and set 'current' to them if they exist
+	if(current->behind){			// so that once LOOP1 is exited 'current' contains the furthest back world.
+		yoff+=DRAW_Y_OFFSET;
+		shade+=DRAW_SHADE;
 		current=current->behind;
 		goto LOOP1;
 	}
-LOOP2:
-	v_offset=(vec->x-current->x_start)/HLINE;
-	i=v_offset-SCREEN_WIDTH/(yoff/25);
-	if(i<0)i=0;
-	ie=v_offset+SCREEN_WIDTH/(yoff/25);
-	if(ie>current->lineCount)ie=current->lineCount;
-	//std::cout<<v_offset<<" "<<i<<" "<<ie<<yoff<<std::endl;
-	cline=current->line;
+LOOP2:													// Draw each world
+	v_offset=(vec->x-current->x_start)/HLINE;			// Calculate the player's offset in the array 'line' using the player's location 'vec'
+	i=v_offset-SCREEN_WIDTH/(yoff/(DRAW_Y_OFFSET/2));	// Set 'i' to that somehow
+	if(i<0)i=0;											// If the player is past the start of that world 'i' should start at the beginning
+														// of the world
+	ie=v_offset+SCREEN_WIDTH/(yoff/(DRAW_Y_OFFSET/2));	// Set how many lines should be drawn (the drawing for loop loops from 'i' to 'ie')
+	if(ie>current->lineCount)ie=current->lineCount;		// If the player is past the end of that world 'ie' should contain the end of that world
+	cline=current->line;								// 'cline' and 'cx_start' only exist to make the for loop clear (and maybe make it faster)
 	cx_start=current->x_start;
 	glBegin(GL_QUADS);
-		for(i=i;i<ie-GEN_INC;i++){
-			cline[i].y+=(yoff-50);
-			safeSetColor(shade,200+shade,shade);
-			glVertex2i(cx_start+i*HLINE      ,cline[i].y);
+		for(i=i;i<ie;i++){								// For lines in array 'line' from 'i' to 'ie'
+			cline[i].y+=(yoff-DRAW_Y_OFFSET);			// 'yoff' is always one incrementation ahead of what it should be
+			safeSetColor(shade,200+shade,shade);		// Safely set the grass color
+			glVertex2i(cx_start+i*HLINE      ,cline[i].y);											// Draw the grass area of the line
 			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y);
 			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
 			glVertex2i(cx_start+i*HLINE		,cline[i].y-GRASS_HEIGHT);
-			safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);
-			glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
+			safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);	// Set the shaded dirt color (safely)
+			glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);								// Draw the dirt area of the line
 			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
 			glVertex2i(cx_start+i*HLINE+HLINE,0);
 			glVertex2i(cx_start+i*HLINE		 ,0);
-			cline[i].y-=(yoff-50);
+			cline[i].y-=(yoff-DRAW_Y_OFFSET); // Reset 'cline[i]'`s y to what it was
 		}
 	glEnd();
-	if(current->infront){
-		yoff-=50;
-		shade-=40;
+	if(current->infront){			// If there's a world in front of the one that was just drawn
+		yoff-=DRAW_Y_OFFSET;		// draw it as well.
+		shade-=DRAW_SHADE;
 		current=current->infront;
 		goto LOOP2;
-	}else{
-		yoff=50;
-		shade=40;
+	}else{							// Otherwise reset static values and return
+		yoff=DRAW_Y_OFFSET;
+		shade=0;
 	}
 }
 
 void World::detect(vec2 *v,vec2 *vel,const float width){
 	unsigned int i;
-	// Vertical checks
-	i=(v->x+width/2-x_start)/HLINE;
-	if(v->y<=line[i].y){
+	i=(v->x+width/2-x_start)/HLINE;	// Calculate what line the player is currently on
+	if(v->y<=line[i].y){			// Snap the player to the top of that line if the player is inside it
 		vel->y=0;
 		v->y=line[i].y+HLINE/2;
-	}else{
+	}else{							// If the player is above the ground do some gravity stuff
 		vel->y-=.01;
 	}
-	// Horizontal checks
-	if(v->x<x_start){
+	if(v->x<x_start){				// Keep the player inside world bounds (ui.cpp handles world jumping)
 		vel->x=0;
 		v->x=x_start+HLINE/2;
 	}else if(v->x+width+HLINE>x_start+getWidth(this)){
@@ -112,6 +121,10 @@ void World::detect(vec2 *v,vec2 *vel,const float width){
 		v->x=x_start+getWidth(this)-width-HLINE;
 	}
 }
+
+/*
+ *	The rest of these functions are explained well enough in world.h ;)
+*/
 
 void World::addLayer(unsigned int width){
 	if(behind){
