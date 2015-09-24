@@ -1,0 +1,17 @@
+9/22/2015:
+==========
+
+	- created Changelog
+	- fully documented world.h, world.cpp, entities.h and entities.cpp
+	- fixed interpolation
+	- made entities dynamically allocatable
+
+9/23/2015:
+==========
+
+	- fully documented ui.h and ui.cpp
+	- converted most world functions to only needing a Player pointer
+	- added entity-world binding, so that only a single world draw()/detect() needs to be called per loop in main.cpp
+	- added dialog boxes and a key binding to acknoledge them (make them disappear)
+	- added a togglable debug overlay thing (F3)
+	- added villages

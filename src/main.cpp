@@ -140,9 +140,21 @@ void render(){
 	**** RENDER STUFF HERE ****
 	**************************/
 
-	currentWorld->draw(&player->loc);
-	player->draw();
-	ui::putString(0,0,"Hello");
+	currentWorld->draw(&player->loc);	// Draw the world around the player
+	player->draw();						// Draw the player
+
+	if(ui::debug){
+		static unsigned int debugDiv=0;
+		static int fps,d;
+		if(++debugDiv==20){
+			fps=1000/deltaTime;
+			d=deltaTime;
+			debugDiv=0;
+		}
+		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d\nRes: %ux%u",fps,d,SCREEN_WIDTH,SCREEN_HEIGHT);
+	}
+
+	ui::draw();							// Draw any UI elements if they need to be
 
 	for(int i=0;i<=entity.size();i++){
 		entity[i]->draw();
@@ -160,12 +172,10 @@ void render(){
 
 void logic(){
 	ui::handleEvents();
-	currentWorld->detect(&player->loc,&player->vel,player->width);
+	currentWorld->detect(player);
 	for(int i=0;i<=entity.size();i++){
-		currentWorld->detect(&entity[i]->loc,&entity[i]->vel,entity[i]->width);
-		if(entity[i]->alive==true&&entity[i]->type == 1){
+		if(entity[i]->alive&&entity[i]->type == 1){
 			entity[i]->wander(90, &entity[i]->vel);
 		}
 	}
-
-}	
+}

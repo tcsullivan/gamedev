@@ -3,6 +3,8 @@
 
 #include <common.h> // For HLINE, vec2, OpenGL utilities, etc.
 
+//#define WORLD_ENTITY_MAX 64 // Maximum number of entities that can be bound to a world
+
 /*
  *	World - creates and handles an area of land
 */
@@ -27,6 +29,9 @@ private:
 	int x_start;			// Worlds are centered on the x axis (0,n), this contains
 							// where to start drawing the world to have it centered properly.
 	World *behind,*infront;	// Pointers to other areas of land that are behind or in front of this one, respectively.
+	//Entity **peeps;			// Stores pointers to entities that are bound to the world
+	//unsigned int peepCount; // Number of entities bound to the world
+	void singleDetect(Entity *e);
 public:
 	World *toLeft,*toRight;		// Pointers to areas to the left and right of this world. These are made public
 								// so that they can easily be set without a function.
@@ -39,20 +44,23 @@ public:
 														
 	void draw(vec2 *vec);								// Draws the world around the coordinates 'vec'
 	
-	void detect(vec2 *v,vec2 *vel,const float width);	// Insures objects/entities at location 'v' with a width of 'width' and a
-														// velocity of 'vel' stay outside of the ground (defined by array 'line'),
-														// and handles gravity for that object/entity by modifying it's velocity ('vel')
 	
-	World *goWorldLeft(vec2 *loc,const float width);	// Returns the world to the left of this one if it exists and the player at
+	void detect(Player *p);								// Insures objects/entities stored in an Entity class stay outside of the
+														// ground (defined by array 'line'), and handles gravity for the object/entity
+														// by modifying it's velocity
+	
+	World *goWorldLeft(Player *p);						// Returns the world to the left of this one if it exists and the player at
 														// location 'loc' with width 'width' is at the left edge of this world.
-	World *goWorldRight(vec2 *loc,const float width);	// Functions the same as goWorldLeft(), but checks/returns the world to the right
+	World *goWorldRight(Player *p);						// Functions the same as goWorldLeft(), but checks/returns the world to the right
 														// of the player.
 														
-	World *goWorldBack(vec2 *loc,const float width);	// Returns the address of the world behind this one if it exists and the player
+	World *goWorldBack(Player *p);						// Returns the address of the world behind this one if it exists and the player
 														// at location 'loc' with width 'width' is within the area of it (i.e., when this
 														// world is drawn the world has to appear directly behind the player)
-	World *goWorldFront(vec2 *loc,const float width);	// Functions the same as goWorldBack(), but checks/returns the world in front of
+	World *goWorldFront(Player *p);						// Functions the same as goWorldBack(), but checks/returns the world in front of
 														// this one.
+														
+	//void addEntity(Entity *e);							// Binds an entity to this world (this world will then handle its drawing and detection)
 };
 
 #endif // WORLD_H

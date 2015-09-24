@@ -12,6 +12,8 @@
 #define DRAW_Y_OFFSET 50	// Defines how many pixels each layer should be offset from each other on the y axis when drawn.
 #define DRAW_SHADE	  40	// Defines a shade increment for draw()
 
+extern std::vector<Entity *>entity;
+
 void safeSetColor(int r,int g,int b){	// safeSetColor() is an alternative to directly using glColor3ub() to set
 	if(r>255)r=255;						// the color for OpenGL drawing. safeSetColor() checks for values that are
 	if(g>255)g=255;						// outside the range of an unsigned character and sets them to a safer value.
@@ -24,7 +26,7 @@ void safeSetColor(int r,int g,int b){	// safeSetColor() is an alternative to dir
 
 World::World(unsigned int width){		// Generates the world and sets all variables contained in the World class.
 	unsigned int i;						// Used for 'for' loops 
-	float inc;							// See line 37
+	float inc;							// See line 40
 	lineCount=width+GEN_INC;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
 	
 	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));	// Allocate memory for the array 'line'
@@ -46,12 +48,15 @@ World::World(unsigned int width){		// Generates the world and sets all variables
 										// in the form (where n represents the color) glColor3ub(n,n-50,n-100)
 	}
 	x_start=0-getWidth(this)/2+GEN_INC/2*HLINE;	// Calculate x_start (explained in world.h)
-	behind=infront=NULL;	// Set pointers to other worlds to NULL
-	toLeft=toRight=NULL;	// to avoid accidental calls to goWorld... functions
+	behind=infront=NULL;						// Set pointers to other worlds to NULL
+	toLeft=toRight=NULL;						// to avoid accidental calls to goWorld... functions
+	//peeps=(Entity **)calloc(WORLD_ENTITY_MAX+1,sizeof(Entity *));	// peeps[0] is reserved for the player when detect() is called
+	//peepCount=0;
 }
 
 World::~World(void){
 	free(line);	// Free (de-allocate) the array 'line'
+	//free(peeps); // same for the entity array
 }
 
 void World::draw(vec2 *vec){
@@ -78,7 +83,7 @@ LOOP2:													// Draw each world
 	cline=current->line;								// 'cline' and 'cx_start' only exist to make the for loop clear (and maybe make it faster)
 	cx_start=current->x_start;
 	glBegin(GL_QUADS);
-		for(i=i;i<ie;i++){								// For lines in array 'line' from 'i' to 'ie'
+		for(i=i;i<ie-GEN_INC;i++){								// For lines in array 'line' from 'i' to 'ie'
 			cline[i].y+=(yoff-DRAW_Y_OFFSET);			// 'yoff' is always one incrementation ahead of what it should be
 			safeSetColor(shade,200+shade,shade);		// Safely set the grass color
 			glVertex2i(cx_start+i*HLINE      ,cline[i].y);											// Draw the grass area of the line
@@ -101,24 +106,38 @@ LOOP2:													// Draw each world
 	}else{							// Otherwise reset static values and return
 		yoff=DRAW_Y_OFFSET;
 		shade=0;
+		/*if(peepCount){
+			for(i=1;i<peepCount;i++){
+				peeps[i]->draw();
+			}
+		}*/
 	}
 }
 
-void World::detect(vec2 *v,vec2 *vel,const float width){
+void World::singleDetect(Entity *e){
 	unsigned int i;
-	i=(v->x+width/2-x_start)/HLINE;	// Calculate what line the player is currently on
-	if(v->y<=line[i].y){			// Snap the player to the top of that line if the player is inside it
-		vel->y=0;
-		v->y=line[i].y+HLINE/2;
-	}else{							// If the player is above the ground do some gravity stuff
-		vel->y-=.01;
+	if(e->alive){
+		i=(e->loc.x+e->width/2-x_start)/HLINE;	// Calculate what line the player is currently on
+		if(e->loc.y<=line[i].y){			// Snap the player to the top of that line if the player is inside it
+			e->vel.y=0;
+			e->loc.y=line[i].y+HLINE/2;
+		}else{							// If the player is above the ground do some gravity stuff
+			e->vel.y-=.01;
+		}
+		if(e->loc.x<x_start){				// Keep the player inside world bounds (ui.cpp handles world jumping)
+			e->vel.x=0;
+			e->loc.x=x_start+HLINE/2;
+		}else if(e->loc.x+e->width+HLINE>x_start+getWidth(this)){
+			e->vel.x=0;
+			e->loc.x=x_start+getWidth(this)-e->width-HLINE;
+		}
 	}
-	if(v->x<x_start){				// Keep the player inside world bounds (ui.cpp handles world jumping)
-		vel->x=0;
-		v->x=x_start+HLINE/2;
-	}else if(v->x+width+HLINE>x_start+getWidth(this)){
-		vel->x=0;
-		v->x=x_start+getWidth(this)-width-HLINE;
+}
+void World::detect(Player *p){
+	unsigned int i;
+	singleDetect(p);
+	for(i=0;i<=entity.size();i++){
+		singleDetect(entity[i]);
 	}
 }
 
@@ -135,34 +154,42 @@ void World::addLayer(unsigned int width){
 	behind->infront=this;
 }
 
-World *World::goWorldLeft(vec2 *loc,const float width){
-	if(toLeft&&loc->x<x_start+HLINE*10){
-		loc->x=toLeft->x_start+getWidth(toLeft)-HLINE*10;
-		loc->y=toLeft->line[0].y;
+World *World::goWorldLeft(Player *p){
+	if(toLeft&&p->loc.x<x_start+HLINE*10){
+		p->loc.x=toLeft->x_start+getWidth(toLeft)-HLINE*10;
+		p->loc.y=toLeft->line[0].y;
 		return toLeft;
 	}
 	return this;
 }
 
-World *World::goWorldRight(vec2 *loc,const float width){
-	if(toRight&&loc->x+width>x_start+getWidth(this)-HLINE*10){
-		loc->x=toRight->x_start+HLINE*10;
-		loc->y=toRight->line[toRight->lineCount-GEN_INC-1].y;
+World *World::goWorldRight(Player *p){
+	if(toRight&&p->loc.x+p->width>x_start+getWidth(this)-HLINE*10){
+		p->loc.x=toRight->x_start+HLINE*10;
+		p->loc.y=toRight->line[toRight->lineCount-GEN_INC-1].y;
 		return toRight;
 	}
 	return this;
 }
 
-World *World::goWorldBack(vec2 *loc,const float width){
-	if(behind&&loc->x>(int)(0-getWidth(behind)/2)&&loc->x<getWidth(behind)/2){
+World *World::goWorldBack(Player *p){
+	if(behind&&p->loc.x>(int)(0-getWidth(behind)/2)&&p->loc.x<getWidth(behind)/2){
 		return behind;
 	}
 	return this;
 }
 
-World *World::goWorldFront(vec2 *loc,const float width){
-	if(infront&&loc->x>(int)(0-getWidth(infront)/2)&&loc->x<getWidth(infront)/2){
+World *World::goWorldFront(Player *p){
+	if(infront&&p->loc.x>(int)(0-getWidth(infront)/2)&&p->loc.x<getWidth(infront)/2){
 		return infront;
 	}
 	return this;
 }
+
+/*void World::addEntity(Entity *e){
+	if(peepCount!=WORLD_ENTITY_MAX){
+		peeps[1+peepCount++]=e; // See peeps's allocation in World() for explanation of the 1+...
+	}else{
+		std::cout<<"Warning: can't add any more entities"<<std::endl;
+	}
+}*/
