@@ -21,6 +21,10 @@ static unsigned int tickCount   = 0,
 World *currentWorld=NULL;
 Player *player;
 
+std::vector<Entity*>entity;
+std::vector<NPC>npc;
+std::vector<Structures>build;
+
 void logic();
 void render();
 
@@ -87,8 +91,12 @@ int main(int argc, char *argv[]){
 	player=new Player();
 	player->spawn(0,100);
 
-	currentTime=millis();
+	entity.push_back(new Entity());//create the blank first element for the player; 
+	build.push_back(Structures());
+	entity[0]=&build[0];
+	build[0].spawn(-1,0,10);
 
+	currentTime=millis();
 	while(gameRunning){
 		prevTime = currentTime;
 		currentTime = millis();
@@ -99,6 +107,8 @@ int main(int argc, char *argv[]){
 			prevTime = millis();
 		}
 
+		player->loc.y+=player->vel.y*deltaTime;
+		player->loc.x+=player->vel.x*deltaTime;
 		render();
 	}
 	
@@ -134,6 +144,12 @@ void render(){
 	player->draw();
 	ui::putString(0,0,"Hello");
 
+	for(int i=0;i<=entity.size();i++){
+		entity[i]->draw();
+		entity[i]->loc.x += entity[i]->vel.x * deltaTime;
+		entity[i]->loc.y += entity[i]->vel.y * deltaTime;
+	}
+
 	/**************************
 	****  CLOSE THE LOOP   ****
 	**************************/
@@ -145,6 +161,11 @@ void render(){
 void logic(){
 	ui::handleEvents();
 	currentWorld->detect(&player->loc,&player->vel,player->width);
-	player->loc.y+=player->vel.y*deltaTime;
-	player->loc.x+=player->vel.x*deltaTime;
+	for(int i=0;i<=entity.size();i++){
+		currentWorld->detect(&entity[i]->loc,&entity[i]->vel,entity[i]->width);
+		if(entity[i]->alive==true&&entity[i]->type == 1){
+			entity[i]->wander(90, &entity[i]->vel);
+		}
+	}
+
 }	

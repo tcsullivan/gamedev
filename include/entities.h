@@ -3,8 +3,6 @@
 
 #include <common.h>
 
-extern int npcAmt;
-
 class Entity{
 public:
 	float width;
@@ -37,10 +35,6 @@ public:
 	NPC();
 	void interact();
 };
-
-extern Entity *entnpc[32];	//The NPC base
-extern NPC npc[32];
-
 class Structures : public Entity{
 public:
 	Structures();

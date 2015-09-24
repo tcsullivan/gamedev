@@ -4,6 +4,7 @@
 ///THIS FILE IS USED FOR VARIABLES THAT WILL BE ACCESED BY MULTIPLE CLASSES/FILES
 
 #include <iostream>
+#include <vector>
 #include <cstdlib>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>

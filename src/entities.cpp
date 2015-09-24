@@ -1,8 +1,8 @@
 #include <entities.h>
 
-int    npcAmt=0;
-Entity *entnpc[32];
-NPC    npc[32];
+extern std::vector<Entity*>entity;
+extern std::vector<NPC>npc;
+extern std::vector<Structures>build;
 
 void Entity::spawn(float x, float y){
 	loc.x = x;
@@ -21,12 +21,12 @@ void Entity::draw(void){
 }
 
 void Entity::wander(int timeRun, vec2 *v){
-	static int hey;
+	static int direction;
 	if(ticksToUse == 0){
 		ticksToUse = timeRun;
-		v->x = .00010;
-		hey = (getRand() % 3 - 1);
-		v->x *= hey;
+		v->x = .01*HLINE;
+		direction = (getRand() % 3 - 1);
+		v->x *= direction;
 	}
 	ticksToUse--;
 }
@@ -46,7 +46,7 @@ void Player::interact(){
 
 NPC::NPC(){	
 	width = HLINE * 8;
-	height = HLINE * 18;
+	height = HLINE * 12;
 	speed = 1;
 	type = 0;
 	subtype = 0;
@@ -74,14 +74,17 @@ void Structures::spawn(int t, float x, float y){
 		width =  4 * HLINE;
 		height = 4 * HLINE;
 
-		int tempN = (getRand() % 5 + 1);
-		npcAmt = tempN;
-
-		for(int i = 0;i<eAmt(entnpc);i++){
-			npc[i].alive = true;
-			entnpc[i] = &npc[i];
-			npc[i].type = -1;						 //this will make the NPC spawn the start of a village
-			entnpc[i]->spawn(loc.x + (float)(i - 5) / 8,0); //this will spawn the start of a village
+		//int tempN = (getRand() % 5 + 1);
+		int tempN = 2;
+		for(int i=0;i<tempN;i++){
+			entity.push_back(new Entity());
+			npc.push_back(NPC());
+			std::cout<<"NPC:"<<npc.size()<<std::endl;
+			std::cout<<"Entity:"<<entity.size()<<std::endl;
+			entity[entity.size()] = &npc[npc.size()-1];
+			entity[entity.size()]->alive=true;
+			entity[entity.size()]->type = 1;
+			entity[entity.size()]->spawn(loc.x + (float)(i - 5) / 8,0);
 		}
 	}
 }
