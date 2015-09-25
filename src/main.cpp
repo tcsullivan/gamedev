@@ -81,20 +81,41 @@ int main(int argc, char *argv[]){
 	****     GAMELOOP      ****
 	**************************/
 
-	World *test =new World(SCREEN_WIDTH/2),
-		  *test2=new World(SCREEN_WIDTH*2);
+	//************************************************************************//
+	//	WORLD GENERATION STUFF												  //
+	//************************************************************************//
+
+	// Make a world
+	World *test =new World(SCREEN_WIDTH/2);
 	test->addLayer(400);
-	test->addLayer(100);
-	test->toLeft=test2;
-	test2->toRight=test;
+	test->addLayer(100);	
 	currentWorld=test;
+	
+	// Make the player
 	player=new Player();
 	player->spawn(0,100);
-
-	entity.push_back(new Entity());//create the blank first element for the player; 
+	
+	// Make structures
+	entity.push_back(new Entity());
 	build.push_back(Structures());
 	entity[0]=&build[0];
+	
+	static unsigned int i;
 	build[0].spawn(-1,0,10);
+	for(i=0;i<entity.size()+1;i++){
+		entity[i]->inWorld=test;
+	}
+	for(i=0;i<entity.size();i++){
+		std::cout<<(unsigned)&*entity[i]<<std::endl;
+	}
+	std::cout<<std::endl;
+	for(i=0;i<npc.size();i++){
+		std::cout<<(unsigned)&npc[i]<<std::endl;
+	}
+	
+	//************************************************************************//
+	//	END WORLD GENERATION STUFF											  //
+	//************************************************************************//
 
 	currentTime=millis();
 	while(gameRunning){
@@ -157,7 +178,7 @@ void render(){
 	ui::draw();							// Draw any UI elements if they need to be
 
 	for(int i=0;i<=entity.size();i++){
-		entity[i]->draw();
+		//entity[i]->draw();
 		entity[i]->loc.x += entity[i]->vel.x * deltaTime;
 		entity[i]->loc.y += entity[i]->vel.y * deltaTime;
 	}

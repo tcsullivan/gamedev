@@ -3,8 +3,6 @@
 
 #include <common.h> // For HLINE, vec2, OpenGL utilities, etc.
 
-//#define WORLD_ENTITY_MAX 64 // Maximum number of entities that can be bound to a world
-
 /*
  *	World - creates and handles an area of land
 */
@@ -29,8 +27,6 @@ private:
 	int x_start;			// Worlds are centered on the x axis (0,n), this contains
 							// where to start drawing the world to have it centered properly.
 	World *behind,*infront;	// Pointers to other areas of land that are behind or in front of this one, respectively.
-	//Entity **peeps;			// Stores pointers to entities that are bound to the world
-	//unsigned int peepCount; // Number of entities bound to the world
 	void singleDetect(Entity *e);
 public:
 	World *toLeft,*toRight;		// Pointers to areas to the left and right of this world. These are made public
@@ -59,8 +55,7 @@ public:
 														// world is drawn the world has to appear directly behind the player)
 	World *goWorldFront(Player *p);						// Functions the same as goWorldBack(), but checks/returns the world in front of
 														// this one.
-														
-	//void addEntity(Entity *e);							// Binds an entity to this world (this world will then handle its drawing and detection)
+	
 };
 
 #endif // WORLD_H

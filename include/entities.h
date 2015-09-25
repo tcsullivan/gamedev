@@ -5,6 +5,7 @@
 
 class Entity{
 public:
+	void *inWorld;
 	float width;
 	float height;
 	float speed;
@@ -15,7 +16,7 @@ public:
 	bool alive;
 
 	unsigned int texture[];
-
+	
 	void spawn(float, float);
 	void draw(void);
 	void wander(int, vec2*);
@@ -38,7 +39,7 @@ public:
 class Structures : public Entity{
 public:
 	Structures();
-	void spawn(int, float, float);
+	unsigned int spawn(int, float, float);
 };
 
 #endif // ENTITIES_H

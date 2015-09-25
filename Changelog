@@ -15,3 +15,10 @@
 	- added dialog boxes and a key binding to acknoledge them (make them disappear)
 	- added a togglable debug overlay thing (F3)
 	- added villages
+
+9/24/2015:
+==========
+
+	- improved entity binding
+	- added structures, villagers, and a basic villager AI
+

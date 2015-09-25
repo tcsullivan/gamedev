@@ -50,13 +50,10 @@ World::World(unsigned int width){		// Generates the world and sets all variables
 	x_start=0-getWidth(this)/2+GEN_INC/2*HLINE;	// Calculate x_start (explained in world.h)
 	behind=infront=NULL;						// Set pointers to other worlds to NULL
 	toLeft=toRight=NULL;						// to avoid accidental calls to goWorld... functions
-	//peeps=(Entity **)calloc(WORLD_ENTITY_MAX+1,sizeof(Entity *));	// peeps[0] is reserved for the player when detect() is called
-	//peepCount=0;
 }
 
 World::~World(void){
 	free(line);	// Free (de-allocate) the array 'line'
-	//free(peeps); // same for the entity array
 }
 
 void World::draw(vec2 *vec){
@@ -106,11 +103,10 @@ LOOP2:													// Draw each world
 	}else{							// Otherwise reset static values and return
 		yoff=DRAW_Y_OFFSET;
 		shade=0;
-		/*if(peepCount){
-			for(i=1;i<peepCount;i++){
-				peeps[i]->draw();
-			}
-		}*/
+		for(i=0;i<entity.size()+1;i++){
+			if(entity[i]->inWorld==this)
+				entity[i]->draw();
+		}
 	}
 }
 
@@ -133,11 +129,14 @@ void World::singleDetect(Entity *e){
 		}
 	}
 }
+
+extern unsigned int newEntityCount;
 void World::detect(Player *p){
 	unsigned int i;
 	singleDetect(p);
-	for(i=0;i<=entity.size();i++){
-		singleDetect(entity[i]);
+	for(i=0;i<entity.size()+1;i++){
+		if(entity[i]->inWorld==this)
+			singleDetect(entity[i]);
 	}
 }
 
@@ -185,11 +184,3 @@ World *World::goWorldFront(Player *p){
 	}
 	return this;
 }
-
-/*void World::addEntity(Entity *e){
-	if(peepCount!=WORLD_ENTITY_MAX){
-		peeps[1+peepCount++]=e; // See peeps's allocation in World() for explanation of the 1+...
-	}else{
-		std::cout<<"Warning: can't add any more entities"<<std::endl;
-	}
-}*/

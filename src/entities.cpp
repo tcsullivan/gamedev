@@ -64,7 +64,7 @@ Structures::Structures(){
 	speed = 0;
 }
 
-void Structures::spawn(int t, float x, float y){
+unsigned int Structures::spawn(int t, float x, float y){
 	loc.x = x;
 	loc.y = y;
 	type = t;
@@ -86,5 +86,6 @@ void Structures::spawn(int t, float x, float y){
 			entity[entity.size()]->type = 1;
 			entity[entity.size()]->spawn(loc.x + (float)(i - 5) / 8,0);
 		}
+		return entity.size();
 	}
 }
