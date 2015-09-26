@@ -86,10 +86,17 @@ int main(int argc, char *argv[]){
 	//************************************************************************//
 
 	// Make a world
-	World *test =new World(SCREEN_WIDTH/2);
+	World *test=new World();
+	test->generate(SCREEN_WIDTH/2);
 	test->addLayer(400);
 	test->addLayer(100);	
 	currentWorld=test;
+	
+	IndoorWorld *iw=new IndoorWorld();
+	iw->generate(200);
+	
+	test->toRight=iw;
+	iw->toLeft=test;
 	
 	// Make the player
 	player=new Player();
@@ -104,13 +111,6 @@ int main(int argc, char *argv[]){
 	build[0].spawn(-1,0,10);
 	for(i=0;i<entity.size()+1;i++){
 		entity[i]->inWorld=test;
-	}
-	for(i=0;i<entity.size();i++){
-		std::cout<<(unsigned)&*entity[i]<<std::endl;
-	}
-	std::cout<<std::endl;
-	for(i=0;i<npc.size();i++){
-		std::cout<<(unsigned)&npc[i]<<std::endl;
 	}
 	
 	//************************************************************************//

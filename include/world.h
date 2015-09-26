@@ -7,7 +7,7 @@
  *	World - creates and handles an area of land
 */
 class World {
-private:
+protected:
 	/*
 	 *	struct line_t
 	 * 
@@ -32,13 +32,15 @@ public:
 	World *toLeft,*toRight;		// Pointers to areas to the left and right of this world. These are made public
 								// so that they can easily be set without a function.
 								
-	World(unsigned int width);	// Generates a world of width 'width'.
+	World(void);
 	~World(void);				// Frees the 'line' array.
+	
+	virtual void generate(unsigned int width);			// Generate the world
 	
 	void addLayer(unsigned int width);					// Generates a new world and makes 'behind' point to it. If 'behind'
 														// already points to a world, the new world will be set to be behind 'behind'.
 														
-	void draw(vec2 *vec);								// Draws the world around the coordinates 'vec'
+	virtual void draw(vec2 *vec);						// Draws the world around the coordinates 'vec'
 	
 	
 	void detect(Player *p);								// Insures objects/entities stored in an Entity class stay outside of the
@@ -56,6 +58,18 @@ public:
 	World *goWorldFront(Player *p);						// Functions the same as goWorldBack(), but checks/returns the world in front of
 														// this one.
 	
+};
+
+/*
+ *	IndoorWorld - Indoor settings stored in a World class ;)
+ */
+class IndoorWorld : public World {
+public:
+	IndoorWorld(void);
+	~IndoorWorld(void);
+	
+	void generate(unsigned int width);
+	void draw(vec2 *vec);
 };
 
 #endif // WORLD_H

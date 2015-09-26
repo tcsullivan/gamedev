@@ -12,6 +12,8 @@
 #define DRAW_Y_OFFSET 50	// Defines how many pixels each layer should be offset from each other on the y axis when drawn.
 #define DRAW_SHADE	  40	// Defines a shade increment for draw()
 
+#define INDOOR_FLOOR_HEIGHT 100 // Defines how high the base floor of an IndoorWorld should be
+
 extern std::vector<Entity *>entity;
 
 void safeSetColor(int r,int g,int b){	// safeSetColor() is an alternative to directly using glColor3ub() to set
@@ -24,7 +26,10 @@ void safeSetColor(int r,int g,int b){	// safeSetColor() is an alternative to dir
 	glColor3ub(r,g,b);
 }
 
-World::World(unsigned int width){		// Generates the world and sets all variables contained in the World class.
+World::World(void){
+}
+
+void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
 	unsigned int i;						// Used for 'for' loops 
 	float inc;							// See line 40
 	lineCount=width+GEN_INC;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
@@ -149,7 +154,8 @@ void World::addLayer(unsigned int width){
 		behind->addLayer(width);
 		return;
 	}
-	behind=new World(width);
+	behind=new World();
+	behind->generate(width);
 	behind->infront=this;
 }
 
@@ -183,4 +189,51 @@ World *World::goWorldFront(Player *p){
 		return infront;
 	}
 	return this;
+}
+
+
+
+
+IndoorWorld::IndoorWorld(void){
+}
+
+IndoorWorld::~IndoorWorld(void){
+	free(line);
+}
+
+void IndoorWorld::generate(unsigned int width){		// Generates a flat area of width 'width'
+	unsigned int i;						// Used for 'for' loops 
+	lineCount=width+GEN_INC;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
+	
+	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));	// Allocate memory for the array 'line'
+	
+	for(i=0;i<lineCount;i++){			// Indoor areas don't have to be directly on the ground (i.e. 0)...
+		line[i].y=INDOOR_FLOOR_HEIGHT;
+	}
+	behind=infront=NULL;						// Set pointers to other worlds to NULL
+	toLeft=toRight=NULL;						// to avoid accidental calls to goWorld... functions
+	x_start=0-getWidth(this)/2+GEN_INC/2*HLINE;	// Calculate x_start (explained in world.h)
+}
+
+void IndoorWorld::draw(vec2 *vec){
+	int i,ie,v_offset;
+	v_offset=(vec->x-x_start)/HLINE;					// Calculate the player's offset in the array 'line' using the player's location 'vec'
+	i=v_offset-SCREEN_WIDTH/2;							// um
+	if(i<0)i=0;											// If the player is past the start of that world 'i' should start at the beginning
+														// of the world
+	ie=v_offset+SCREEN_WIDTH/2;							// Set how many lines should be drawn (the drawing for loop loops from 'i' to 'ie')
+	if(ie>lineCount)ie=lineCount;						// If the player is past the end of that world 'ie' should contain the end of that world
+	glBegin(GL_QUADS);
+		for(i=i;i<ie-GEN_INC;i++){						// For lines in array 'line' from 'i' to 'ie'
+			safeSetColor(150,100,50);
+			glVertex2i(x_start+i*HLINE      ,line[i].y);	// Draw the base floor
+			glVertex2i(x_start+i*HLINE+HLINE,line[i].y);
+			glVertex2i(x_start+i*HLINE+HLINE,line[i].y-50);
+			glVertex2i(x_start+i*HLINE		,line[i].y-50);
+		}
+	glEnd();
+	for(i=0;i<entity.size()+1;i++){
+		if(entity[i]->inWorld==this)
+			entity[i]->draw();
+	}
 }
