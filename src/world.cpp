@@ -121,6 +121,7 @@ void World::singleDetect(Entity *e){
 		i=(e->loc.x+e->width/2-x_start)/HLINE;	// Calculate what line the player is currently on
 		if(e->loc.y<=line[i].y){			// Snap the player to the top of that line if the player is inside it
 			e->vel.y=0;
+			e->ground=true;
 			e->loc.y=line[i].y+HLINE/2;
 		}else{							// If the player is above the ground do some gravity stuff
 			e->vel.y-=.01;

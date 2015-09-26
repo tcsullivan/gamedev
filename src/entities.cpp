@@ -13,6 +13,7 @@ void Entity::spawn(float x, float y){
 	left = false;
 	ticksToUse = 0;
 	canMove = false;
+	ground = false;
 }
 
 void Entity::draw(void){
@@ -38,6 +39,7 @@ Player::Player(){
 	type = 0;
 	subtype = 5;
 	alive = true;
+	ground = false;
 }
 
 void Player::interact(){
@@ -55,8 +57,7 @@ NPC::NPC(){
 }
 
 void NPC::interact(){
-	loc.y += .01;
-	
+	//loc.y += .01;
 }
 
 Structures::Structures(){

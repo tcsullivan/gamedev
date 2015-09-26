@@ -68,8 +68,8 @@ public:
 	IndoorWorld(void);
 	~IndoorWorld(void);
 	
-	void generate(unsigned int width);
-	void draw(vec2 *vec);
+	void generate(unsigned int width);	// Generates a flat world of width 'width'
+	void draw(vec2 *vec);				// Draws the world (ignores layers)
 };
 
 #endif // WORLD_H

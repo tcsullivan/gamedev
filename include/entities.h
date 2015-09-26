@@ -14,6 +14,7 @@ public:
 	vec2 vel;
 	bool right,left, canMove;
 	bool alive;
+	bool ground;
 
 	unsigned int texture[];
 	

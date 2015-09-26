@@ -142,7 +142,12 @@ namespace ui {
 					player->vel.x=.15;
 					currentWorld=currentWorld->goWorldRight(player);
 				}
-				if(SDL_KEY==SDLK_SPACE)player->vel.y=.25;							// Jump
+				if(SDL_KEY==SDLK_SPACE){											// Jump
+					if(player->ground){
+						player->vel.y=.25;
+						player->ground=false;
+					}
+				}
 				if(SDL_KEY==SDLK_i)currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible
 				if(SDL_KEY==SDLK_k)currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
 				if(SDL_KEY==SDLK_F3)debug^=true;
