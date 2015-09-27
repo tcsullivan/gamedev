@@ -85,7 +85,7 @@ unsigned int Structures::spawn(int t, float x, float y){
 			entity[entity.size()] = &npc[npc.size()-1];
 			entity[entity.size()]->alive=true;
 			entity[entity.size()]->type = 1;
-			entity[entity.size()]->spawn(loc.x + (float)(i - 5) / 8,0);
+			entity[entity.size()]->spawn(loc.x + (float)(i - 5) / 8,100);
 		}
 		return entity.size();
 	}

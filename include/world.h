@@ -3,6 +3,10 @@
 
 #include <common.h> // For HLINE, vec2, OpenGL utilities, etc.
 
+typedef struct {
+	vec2 p1,p2;
+} __attribute__ ((packed)) Platform;
+
 /*
  *	World - creates and handles an area of land
 */
@@ -24,10 +28,11 @@ protected:
 		unsigned char color;
 	} __attribute__ ((packed)) *line;
 	unsigned int lineCount;	// Size of the array 'line' (aka the width of the world)
+	std::vector<Platform> platform;	// An array (vector thing) of platforms
 	int x_start;			// Worlds are centered on the x axis (0,n), this contains
 							// where to start drawing the world to have it centered properly.
 	World *behind,*infront;	// Pointers to other areas of land that are behind or in front of this one, respectively.
-	void singleDetect(Entity *e);
+	void singleDetect(Entity *e);	// Handles an individual entity (gravity n' stuff)
 public:
 	World *toLeft,*toRight;		// Pointers to areas to the left and right of this world. These are made public
 								// so that they can easily be set without a function.
@@ -57,7 +62,7 @@ public:
 														// world is drawn the world has to appear directly behind the player)
 	World *goWorldFront(Player *p);						// Functions the same as goWorldBack(), but checks/returns the world in front of
 														// this one.
-	
+	void addPlatform(float x,float y,float w,float h);	
 };
 
 /*

@@ -145,6 +145,7 @@ namespace ui {
 				if(SDL_KEY==SDLK_SPACE){											// Jump
 					if(player->ground){
 						player->vel.y=.25;
+						//player->loc.y+=HL
 						player->ground=false;
 					}
 				}

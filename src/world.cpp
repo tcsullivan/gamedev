@@ -1,4 +1,5 @@
 #include <world.h>
+#include <ui.h>
 
 #define getWidth(w) ((w->lineCount-GEN_INC)*HLINE)	// Calculates the width of world 'w'
 
@@ -100,6 +101,17 @@ LOOP2:													// Draw each world
 			cline[i].y-=(yoff-DRAW_Y_OFFSET); // Reset 'cline[i]'`s y to what it was
 		}
 	glEnd();
+	for(i=0;i<entity.size()+1;i++){
+		if(entity[i]->inWorld==current){
+			entity[i]->draw();
+			ui::putText(entity[i]->loc.x,entity[i]->loc.y,"%d",i);
+		}
+	}
+	glColor3ub(255,0,0);
+	for(i=0;i<current->platform.size();i++){
+		glRectf(current->platform[i].p1.x,current->platform[i].p1.y,
+				current->platform[i].p2.x,current->platform[i].p2.y);
+	}
 	if(current->infront){			// If there's a world in front of the one that was just drawn
 		yoff-=DRAW_Y_OFFSET;		// draw it as well.
 		shade-=DRAW_SHADE;
@@ -108,10 +120,6 @@ LOOP2:													// Draw each world
 	}else{							// Otherwise reset static values and return
 		yoff=DRAW_Y_OFFSET;
 		shade=0;
-		for(i=0;i<entity.size()+1;i++){
-			if(entity[i]->inWorld==this)
-				entity[i]->draw();
-		}
 	}
 }
 
@@ -124,6 +132,18 @@ void World::singleDetect(Entity *e){
 			e->ground=true;
 			e->loc.y=line[i].y+HLINE/2;
 		}else{							// If the player is above the ground do some gravity stuff
+			for(i=0;i<platform.size();i++){
+				if(((e->loc.x+e->width>platform[i].p1.x)&(e->loc.x+e->width<platform[i].p2.x))||
+				   ((e->loc.x<platform[i].p2.x)&(e->loc.x>platform[i].p1.x))){
+					if(e->loc.y>platform[i].p2.y-HLINE&&e->loc.y<platform[i].p2.y){
+						if(e->vel.y<0){
+							e->vel.y=0;
+							e->loc.y=platform[i].p2.y;
+							e->ground=true;
+						}
+					}
+				}
+			}
 			e->vel.y-=.01;
 		}
 		if(e->loc.x<x_start){				// Keep the player inside world bounds (ui.cpp handles world jumping)
@@ -192,6 +212,9 @@ World *World::goWorldFront(Player *p){
 	return this;
 }
 
+void World::addPlatform(float x,float y,float w,float h){
+	platform.push_back((Platform){{x,y},{x+w,y+h}});
+}
 
 
 
