@@ -10,7 +10,8 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_opengl.h>
 
-typedef struct { float x; float y; } vec2;
+typedef struct { float x; float y; } vec2; 
+enum _TYPE {STRUCTURET = -1, PLAYERT = 0, NPCT = 1};
 
 #include <entities.h>
 

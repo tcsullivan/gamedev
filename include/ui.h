@@ -7,6 +7,8 @@
 namespace ui {	// Functions are kept in a namespace simply
 				// for organization
 
+	extern vec2 mouse;
+
 	extern bool debug;
 	extern unsigned int fontSize;
 

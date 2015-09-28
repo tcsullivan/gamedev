@@ -16,6 +16,7 @@ static bool dialogBoxExists=false;
 static const char *dialogBoxText=NULL;
 
 namespace ui {
+	vec2 mouse;
 	bool debug=false;
 	unsigned int fontSize;
 	/*
@@ -132,6 +133,13 @@ namespace ui {
 			case SDL_QUIT:
 				gameRunning=false;
 				break;
+			case SDL_MOUSEMOTION:
+				mouse.x=e.motion.x;
+				mouse.y=e.motion.y;
+				break;
+			/*
+				KEYDOWN
+			*/
 			case SDL_KEYDOWN:
 				if(SDL_KEY==SDLK_ESCAPE)gameRunning=false;							// Exit the game with ESC
 				if(SDL_KEY==SDLK_a){												// Move left
@@ -166,6 +174,9 @@ namespace ui {
 				}
 				
 				break;
+			/*
+				KEYUP
+			*/	
 			case SDL_KEYUP:
 				if(SDL_KEY==SDLK_a)player->vel.x=0;	// Stop the player if movement keys are released
 				if(SDL_KEY==SDLK_d)player->vel.x=0;

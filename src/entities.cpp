@@ -36,7 +36,7 @@ Player::Player(){
 	width = HLINE * 8;
 	height = HLINE * 12;
 	speed = 1;
-	type = 0;
+	type = PLAYERT;
 	subtype = 5;
 	alive = true;
 	ground = false;
@@ -50,7 +50,7 @@ NPC::NPC(){
 	width = HLINE * 8;
 	height = HLINE * 12;
 	speed = 1;
-	type = 1;
+	type = NPCT;
 	subtype = 0;
 	alive = true;
 	canMove = true;
@@ -61,17 +61,17 @@ void NPC::interact(){
 }
 
 Structures::Structures(){
-	type = -1;
+	type = STRUCTURET;
 	speed = 0;
 }
 
-unsigned int Structures::spawn(int t, float x, float y){
+unsigned int Structures::spawn(_TYPE t, float x, float y){
 	loc.x = x;
 	loc.y = y;
 	type = t;
 
 	/*VILLAGE*/
-	if(type == -1){
+	if(type == STRUCTURET){
 		width =  4 * HLINE;
 		height = 4 * HLINE;
 

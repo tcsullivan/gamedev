@@ -109,8 +109,8 @@ int main(int argc, char *argv[]){
 	entity[0]=&build[0];
 	
 	static unsigned int i;
-	build[0].spawn(-1,0,10);
-	for(i=0;i<entity.size()+1;i++){
+	build[0].spawn(STRUCTURET,0,10);
+	for(i=0;i<=entity.size();i++){
 		entity[i]->inWorld=test;
 	}
 	
@@ -196,9 +196,9 @@ void logic(){
 	ui::handleEvents();
 	currentWorld->detect(player);
 	for(int i=0;i<=entity.size();i++){
-		if(entity[i]->alive&&entity[i]->type == 1){
+		if(entity[i]->alive&&entity[i]->type == NPCT){
 			entity[i]->wander(90, &entity[i]->vel);
-			std::cout<<"works"<<i<<std::endl;
+			//std::cout<<"works"<<i<<std::endl;
 		}
 	}
 }
