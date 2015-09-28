@@ -26,3 +26,13 @@
 ==========
 
 	- added a base for indoor areas
+
+9/28/2015:
+==========
+
+	- added dropping from platforms
+	- added structure entering/exiting
+	- improved world/entity handling
+	- fixed NPC generation
+	- added enumerators for entity types
+	- improved NPC wandering

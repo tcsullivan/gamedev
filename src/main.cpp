@@ -96,9 +96,6 @@ int main(int argc, char *argv[]){
 	IndoorWorld *iw=new IndoorWorld();
 	iw->generate(200);
 	
-	test->toRight=iw;
-	iw->toLeft=test;
-	
 	// Make the player
 	player=new Player();
 	player->spawn(0,100);
@@ -110,6 +107,7 @@ int main(int argc, char *argv[]){
 	
 	static unsigned int i;
 	build[0].spawn(-1,0,10);
+	build[0].inside=iw;
 	for(i=0;i<entity.size()+1;i++){
 		entity[i]->inWorld=test;
 	}
@@ -198,7 +196,7 @@ void logic(){
 	for(int i=0;i<=entity.size();i++){
 		if(entity[i]->alive&&entity[i]->type == 1){
 			entity[i]->wander(90, &entity[i]->vel);
-			std::cout<<"works"<<i<<std::endl;
+			//std::cout<<"works"<<i<<std::endl;
 		}
 	}
 }

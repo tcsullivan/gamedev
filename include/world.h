@@ -62,7 +62,10 @@ public:
 														// world is drawn the world has to appear directly behind the player)
 	World *goWorldFront(Player *p);						// Functions the same as goWorldBack(), but checks/returns the world in front of
 														// this one.
-	void addPlatform(float x,float y,float w,float h);	
+	World *goInsideStructure(Player *p);				// Returns the world contained in a structure if the player is requesting to enter
+														// it and is standing in front of it.
+	void addPlatform(float x,float y,float w,float h);	// Dynamically adds a platform to the platform array. These will be automatically
+														// drawn and handled by the world.
 };
 
 /*

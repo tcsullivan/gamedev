@@ -39,7 +39,7 @@ public:
 };
 class Structures : public Entity{
 public:
-	World *inside;
+	void *inside;
 	Structures();
 	unsigned int spawn(int, float, float);
 };

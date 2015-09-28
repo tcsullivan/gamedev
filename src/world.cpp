@@ -107,10 +107,10 @@ LOOP2:													// Draw each world
 			ui::putText(entity[i]->loc.x,entity[i]->loc.y,"%d",i);
 		}
 	}
-	glColor3ub(255,0,0);
+	safeSetColor(255+shade*2,0+shade,0+shade);
 	for(i=0;i<current->platform.size();i++){
-		glRectf(current->platform[i].p1.x,current->platform[i].p1.y,
-				current->platform[i].p2.x,current->platform[i].p2.y);
+		glRectf(current->platform[i].p1.x,current->platform[i].p1.y+yoff-DRAW_Y_OFFSET,
+				current->platform[i].p2.x,current->platform[i].p2.y+yoff-DRAW_Y_OFFSET);
 	}
 	if(current->infront){			// If there's a world in front of the one that was just drawn
 		yoff-=DRAW_Y_OFFSET;		// draw it as well.
@@ -215,6 +215,24 @@ World *World::goWorldFront(Player *p){
 
 void World::addPlatform(float x,float y,float w,float h){
 	platform.push_back((Platform){{x,y},{x+w,y+h}});
+}
+
+World *World::goInsideStructure(Player *p){
+	unsigned int i;
+	for(i=0;i<entity.size();i++){
+		if(entity[i]->type==-1){
+			if(entity[i]->inWorld==this){
+				if(p->loc.x>entity[i]->loc.x&&p->loc.x+p->width<entity[i]->loc.x+entity[i]->width){
+					return (World *)((Structures *)entity[i])->inside;
+				}
+			}else if(((Structures *)entity[i])->inside==this){
+				p->loc.x=entity[i]->loc.x+entity[i]->width/2-p->width/2;
+				p->loc.y=entity[i]->loc.y+HLINE;
+				return (World *)entity[i]->inWorld;
+			}
+		}
+	}
+	return this;
 }
 
 

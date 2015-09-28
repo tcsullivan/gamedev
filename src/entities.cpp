@@ -63,6 +63,7 @@ void NPC::interact(){
 Structures::Structures(){
 	type = -1;
 	speed = 0;
+	alive = true;
 }
 
 unsigned int Structures::spawn(int t, float x, float y){
@@ -72,20 +73,21 @@ unsigned int Structures::spawn(int t, float x, float y){
 
 	/*VILLAGE*/
 	if(type == -1){
-		width =  4 * HLINE;
-		height = 4 * HLINE;
+		loc.y=100;
+		width =  20 * HLINE;
+		height = 16 * HLINE;
 
 		//int tempN = (getRand() % 5 + 1);
 		int tempN = 2;
 		for(int i=0;i<tempN;i++){
 			entity.push_back(new NPC());
 			npc.push_back(NPC());
-			std::cout<<"NPC:"<<npc.size()<<std::endl;
-			std::cout<<"Entity:"<<entity.size()<<std::endl;
+			//std::cout<<"NPC:"<<npc.size()<<std::endl;
+			//std::cout<<"Entity:"<<entity.size()<<std::endl;
 			entity[entity.size()] = &npc[npc.size()-1];
 			entity[entity.size()-1]->spawn(loc.x + (float)(i - 5) / 8,100);
-			std::cout<<"Entity Type["<<entity.size()<<"]: "<<entity[entity.size()]->type<<std::endl;
-			std::cout<<"Entity Life["<<entity.size()<<"]: "<<entity[entity.size()]->alive<<std::endl;
+			//std::cout<<"Entity Type["<<entity.size()<<"]: "<<entity[entity.size()]->type<<std::endl;
+			//std::cout<<"Entity Life["<<entity.size()<<"]: "<<entity[entity.size()]->alive<<std::endl;
 		}
 		return entity.size();
 	}
