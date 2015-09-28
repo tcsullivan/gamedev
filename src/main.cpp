@@ -198,6 +198,7 @@ void logic(){
 	for(int i=0;i<=entity.size();i++){
 		if(entity[i]->alive&&entity[i]->type == 1){
 			entity[i]->wander(90, &entity[i]->vel);
+			std::cout<<"works"<<i<<std::endl;
 		}
 	}
 }

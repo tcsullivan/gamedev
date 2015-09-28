@@ -84,6 +84,9 @@ unsigned int Structures::spawn(int t, float x, float y){
 			std::cout<<"Entity:"<<entity.size()<<std::endl;
 			entity[entity.size()] = &npc[npc.size()-1];
 			entity[entity.size()]->spawn(loc.x + (float)(i - 5) / 8,100);
+			entity[entity.size()-1]->spawn(loc.x + (float)(i - 5) / 8,100);
+			std::cout<<"Entity Type["<<entity.size()<<"]: "<<entity[entity.size()]->type<<std::endl;
+			std::cout<<"Entity Life["<<entity.size()<<"]: "<<entity[entity.size()]->alive<<std::endl;
 		}
 		return entity.size();
 	}
