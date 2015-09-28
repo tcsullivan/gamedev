@@ -50,9 +50,9 @@ NPC::NPC(){
 	width = HLINE * 8;
 	height = HLINE * 12;
 	speed = 1;
-	type = 0;
+	type = 1;
 	subtype = 0;
-	alive = false;
+	alive = true;
 	canMove = true;
 }
 
@@ -78,14 +78,15 @@ unsigned int Structures::spawn(int t, float x, float y){
 		//int tempN = (getRand() % 5 + 1);
 		int tempN = 2;
 		for(int i=0;i<tempN;i++){
-			entity.push_back(new Entity());
+			entity.push_back(new NPC());
 			npc.push_back(NPC());
 			std::cout<<"NPC:"<<npc.size()<<std::endl;
 			std::cout<<"Entity:"<<entity.size()<<std::endl;
 			entity[entity.size()] = &npc[npc.size()-1];
-			entity[entity.size()]->alive=true;
-			entity[entity.size()]->type = 1;
-			entity[entity.size()]->spawn(loc.x + (float)(i - 5) / 8,100);
+			entity[entity.size()-1]->spawn(loc.x + (float)(i - 5) / 8,100);
+			std::cout<<"Entity Type["<<entity.size()<<"]: "<<entity[entity.size()]->type<<std::endl;
+			std::cout<<"Entity Life["<<entity.size()<<"]: "<<entity[entity.size()]->alive<<std::endl;
+
 		}
 		return entity.size();
 	}
