@@ -11,7 +11,7 @@
 #include <SDL2/SDL_opengl.h>
 
 typedef struct { float x; float y; } vec2; 
-enum _TYPE {STRUCTURET = -1, PLAYERT = 0, NPCT = 1};
+enum _TYPE {STRUCTURET = -1, PLAYERT = 0, NPCT = 1}; //these are the main types of entities
 
 #include <entities.h>
 
@@ -19,12 +19,12 @@ enum _TYPE {STRUCTURET = -1, PLAYERT = 0, NPCT = 1};
 #define SCREEN_HEIGHT 720
 //#define FULLSCREEN
 
-#define HLINE 3
+#define HLINE 3										//base unit of the world
 
 #define initRand(s) srand(s)
 #define getRand()	rand()
 
-template<typename T, size_t N>
+template<typename T, size_t N>						//this fuction returns the size of any array
 int eAmt(T (&)[N]){return N;}
 
 //SDL VARIABLES

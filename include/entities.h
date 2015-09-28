@@ -6,25 +6,31 @@
 class Entity{
 public:
 	void *inWorld;
-	float width;
+	float width;	//width and height of the player
 	float height;
-	float speed;
+	float speed;	//speed of the play
+	//type and subtype
 	int subtype;
 	_TYPE type;
-	vec2 loc;
+			//example:
+			//type 	1(NPC)
+			//		|(subtype)
+			//		|->  0 Base NPC
+			//		|->  1 Merchant
+	vec2 loc; //location and velocity of the entity
 	vec2 vel;
-	bool right,left, canMove;
-	bool alive;
-	unsigned char ground;
+	bool right,left, canMove; //movement variables
+	bool alive;				  //the flag for whether or not the entity is alive
+	unsigned char ground;	  //variable for testing what ground the entity is on to apply certain traits
 
-	unsigned int texture[];
+	unsigned int texture[];	  //TODO: ADD TEXTURES
 	
 	void spawn(float, float);
 	void draw(void);
 	void wander(int, vec2*);
 	virtual void interact(){}
 private:
-	int ticksToUse;
+	int ticksToUse;	//The variable for deciding how long an entity should do a certain task
 };
 
 class Player : public Entity{

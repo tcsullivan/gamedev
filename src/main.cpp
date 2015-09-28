@@ -161,17 +161,20 @@ void render(){
 	**************************/
 
 	currentWorld->draw(&player->loc);	// Draw the world around the player
+	glColor3ub(0,0,0);
 	player->draw();						// Draw the player
 
 	if(ui::debug){
 		static unsigned int debugDiv=0;
 		static int fps,d;
+		static float rndy; //variable to round the player y-coord so it is easier to read
 		if(++debugDiv==20){
 			fps=1000/deltaTime;
 			d=deltaTime;
 			debugDiv=0;
+			rndy = player->loc.y;
 		}
-		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d G:%d\nRes: %ux%u",fps,d,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT);
+		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d G:%d\nRes: %ux%u\nE: %d\nPOS: (x)%.2f\n     (y)%.2f",fps,d,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT,entity.size(),player->loc.x,rndy);
 	}
 
 	ui::draw();							// Draw any UI elements if they need to be
@@ -195,7 +198,7 @@ void logic(){
 	currentWorld->detect(player);
 	for(int i=0;i<=entity.size();i++){
 		if(entity[i]->alive&&entity[i]->type == NPCT){
-			entity[i]->wander(90, &entity[i]->vel);
+			entity[i]->wander((rand()%120 + 30), &entity[i]->vel);
 			//std::cout<<"works"<<i<<std::endl;
 		}
 	}
