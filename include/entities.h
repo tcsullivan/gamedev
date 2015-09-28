@@ -9,7 +9,8 @@ public:
 	float width;
 	float height;
 	float speed;
-	int type, subtype;
+	int subtype;
+	_TYPE type;
 	vec2 loc;
 	vec2 vel;
 	bool right,left, canMove;
@@ -41,7 +42,7 @@ class Structures : public Entity{
 public:
 	void *inside;
 	Structures();
-	unsigned int spawn(int, float, float);
+	unsigned int spawn(_TYPE, float, float);
 };
 
 #endif // ENTITIES_H
