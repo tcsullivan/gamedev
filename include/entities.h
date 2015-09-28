@@ -14,7 +14,7 @@ public:
 	vec2 vel;
 	bool right,left, canMove;
 	bool alive;
-	bool ground;
+	unsigned char ground;
 
 	unsigned int texture[];
 	
@@ -39,6 +39,7 @@ public:
 };
 class Structures : public Entity{
 public:
+	World *inside;
 	Structures();
 	unsigned int spawn(int, float, float);
 };

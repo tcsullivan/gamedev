@@ -173,7 +173,7 @@ void render(){
 			d=deltaTime;
 			debugDiv=0;
 		}
-		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d\nRes: %ux%u",fps,d,SCREEN_WIDTH,SCREEN_HEIGHT);
+		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d G:%d\nRes: %ux%u",fps,d,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT);
 	}
 
 	ui::draw();							// Draw any UI elements if they need to be

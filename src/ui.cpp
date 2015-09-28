@@ -142,6 +142,10 @@ namespace ui {
 					player->vel.x=.15;
 					currentWorld=currentWorld->goWorldRight(player);
 				}
+				if(SDL_KEY==SDLK_s && player->ground==2){
+					player->ground=false;
+					player->loc.y-=HLINE*1.5;
+				}
 				if(SDL_KEY==SDLK_SPACE){											// Jump
 					if(player->ground){
 						player->vel.y=.25;
