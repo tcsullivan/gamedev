@@ -90,6 +90,7 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 			entity[entity.size()] = &npc[npc.size()-1]; //set the new entity to have the same traits as an NPC
 			entity[entity.size()-1]->spawn(loc.x + (float)(i - 5),100); //sets the position of the villager around the village
 		}
+		entity.pop_back();
 		return entity.size();
 	}
 }

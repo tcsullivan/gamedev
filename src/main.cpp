@@ -13,10 +13,10 @@ SDL_Surface   *renderSurface = NULL;
 SDL_GLContext  mainGLContext = NULL;
 
 bool gameRunning = true;
-static unsigned int tickCount   = 0,
-					prevTime    = 0,
-					currentTime = 0,
-					deltaTime   = 0;
+unsigned int tickCount   = 0,
+			 prevTime    = 0,
+			 currentTime = 0,
+			 deltaTime   = 0;
 
 World *currentWorld=NULL;
 Player *player;

@@ -157,8 +157,8 @@ namespace ui {
 				if(SDL_KEY==SDLK_w)currentWorld=currentWorld->goInsideStructure(player);
 				if(SDL_KEY==SDLK_SPACE){											// Jump
 					if(player->ground){
-						player->vel.y=.25;
-						//player->loc.y+=HL
+						player->vel.y=.5;
+						player->loc.y+=HLINE*2;
 						player->ground=false;
 					}
 				}

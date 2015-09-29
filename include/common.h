@@ -11,7 +11,12 @@
 #include <SDL2/SDL_opengl.h>
 
 typedef struct { float x; float y; } vec2; 
-enum _TYPE {STRUCTURET = -1, PLAYERT = 0, NPCT = 1}; //these are the main types of entities
+
+enum _TYPE { //these are the main types of entities
+	STRUCTURET = -1,
+	PLAYERT    = 0,
+	NPCT       = 1
+};
 
 #include <entities.h>
 
@@ -27,11 +32,7 @@ enum _TYPE {STRUCTURET = -1, PLAYERT = 0, NPCT = 1}; //these are the main types 
 template<typename T, size_t N>						//this fuction returns the size of any array
 int eAmt(T (&)[N]){return N;}
 
-//SDL VARIABLES
-extern SDL_Window    *window;
-extern SDL_Surface   *renderSurface;
-extern SDL_GLContext  mainGLContext;
-
 extern bool gameRunning;
+extern unsigned int deltaTime;
 
 #endif // COMMON_H

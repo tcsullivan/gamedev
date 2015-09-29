@@ -131,7 +131,7 @@ void World::singleDetect(Entity *e){
 			for(i=0;i<platform.size();i++){
 				if(((e->loc.x+e->width>platform[i].p1.x)&(e->loc.x+e->width<platform[i].p2.x))||
 				   ((e->loc.x<platform[i].p2.x)&(e->loc.x>platform[i].p1.x))){
-					if(e->loc.y>platform[i].p2.y-HLINE&&e->loc.y<platform[i].p2.y){
+					if(e->loc.y>platform[i].p1.y&&e->loc.y<platform[i].p2.y){
 						if(e->vel.y<0){
 							e->vel.y=0;
 							e->loc.y=platform[i].p2.y;
@@ -141,7 +141,7 @@ void World::singleDetect(Entity *e){
 					}
 				}
 			}
-			e->vel.y-=.01;
+			e->vel.y-=.001*deltaTime;
 		}else{
 			e->vel.y=0;
 			e->ground=true;
