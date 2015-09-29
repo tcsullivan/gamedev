@@ -128,7 +128,7 @@ int main(int argc, char *argv[]){
 		}
 
 		player->loc.y+=player->vel.y*deltaTime;
-		player->loc.x+=player->vel.x*deltaTime;
+		player->loc.x+=(player->vel.x*player->speed)*deltaTime;
 		render();
 	}
 	
@@ -188,6 +188,11 @@ void render(){
 	/**************************
 	****  CLOSE THE LOOP   ****
 	**************************/
+	int mx = ui::mouse.x, my=ui::mouse.y;
+	my = 720 - my;
+	mx -= (SCREEN_WIDTH/2);
+	glRectf(mx + player->loc.x, my, mx + player->loc.x + HLINE * 1, my + HLINE * 1);
+
 
 	glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
 	SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
@@ -199,7 +204,6 @@ void logic(){
 	for(int i=0;i<=entity.size();i++){
 		if(entity[i]->alive&&entity[i]->type == NPCT){
 			entity[i]->wander((rand()%120 + 30), &entity[i]->vel);
-			//std::cout<<"works"<<i<<std::endl;
 		}
 	}
 }

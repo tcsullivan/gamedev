@@ -24,7 +24,7 @@ enum _TYPE { //these are the main types of entities
 #define SCREEN_HEIGHT 720
 //#define FULLSCREEN
 
-#define HLINE 3										//base unit of the world
+#define HLINE 3								//base unit of the world
 
 #define initRand(s) srand(s)
 #define getRand()	rand()
