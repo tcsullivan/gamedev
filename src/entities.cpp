@@ -61,7 +61,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 }
 
 void NPC::interact(){ //have the npc's interact back to the player
-	//loc.y += .01;
+	loc.y += 5;
 }
 
 Structures::Structures(){ //sets the structure type

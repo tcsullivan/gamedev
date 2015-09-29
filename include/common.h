@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <math.h>
 #include <cstdlib>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
