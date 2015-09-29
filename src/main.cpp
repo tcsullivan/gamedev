@@ -25,6 +25,8 @@ std::vector<Entity*>entity;
 std::vector<NPC>npc;
 std::vector<Structures>build;
 
+int mx, my;
+
 void logic();
 void render();
 
@@ -172,6 +174,7 @@ void render(){
 			fps=1000/deltaTime;
 			d=deltaTime;
 			debugDiv=0;
+		}else if(debugDiv%10==0){
 			rndy = player->loc.y;
 		}
 		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d G:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f",
@@ -189,12 +192,16 @@ void render(){
 	/**************************
 	****  CLOSE THE LOOP   ****
 	**************************/
-	int mx = ui::mouse.x, my=ui::mouse.y;
+	mx = ui::mouse.x + player->loc.x;
+	my = ui::mouse.y;
 	my = 720 - my;
 	mx -= (SCREEN_WIDTH/2);
-	glColor3ub(0,0,0);
-	glRectf(mx + player->loc.x, my, mx + player->loc.x + HLINE * 1, my + HLINE * 1);
-
+	glColor3ub(255,255,255);
+	glBegin(GL_TRIANGLES);
+		glVertex2i(mx,my);
+		glVertex2i(mx+HLINE*3.5,my);
+		glVertex2i(mx,my-HLINE*3.5);
+	glEnd();
 
 	glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
 	SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
@@ -206,6 +213,10 @@ void logic(){
 	for(int i=0;i<=entity.size();i++){
 		if(entity[i]->alive&&entity[i]->type == NPCT){
 			entity[i]->wander((rand()%120 + 30), &entity[i]->vel);
+			if( pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40,2)){
+				if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width)
+					entity[i]->interact();
+			}
 		}
 	}
 }
