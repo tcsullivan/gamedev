@@ -174,7 +174,8 @@ void render(){
 			debugDiv=0;
 			rndy = player->loc.y;
 		}
-		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d G:%d\nRes: %ux%u\nE: %d\nPOS: (x)%.2f\n     (y)%.2f",fps,d,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT,entity.size(),player->loc.x,rndy);
+		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d G:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f",
+					fps,d,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT,entity.size(),player->loc.x,rndy);
 	}
 
 	ui::draw();							// Draw any UI elements if they need to be
@@ -191,6 +192,7 @@ void render(){
 	int mx = ui::mouse.x, my=ui::mouse.y;
 	my = 720 - my;
 	mx -= (SCREEN_WIDTH/2);
+	glColor3ub(0,0,0);
 	glRectf(mx + player->loc.x, my, mx + player->loc.x + HLINE * 1, my + HLINE * 1);
 
 

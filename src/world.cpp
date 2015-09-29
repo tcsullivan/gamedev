@@ -101,12 +101,6 @@ LOOP2:													// Draw each world
 			cline[i].y-=(yoff-DRAW_Y_OFFSET); // Reset 'cline[i]'`s y to what it was
 		}
 	glEnd();
-	for(i=0;i<entity.size()+1;i++){
-		if(entity[i]->inWorld==this){
-			entity[i]->draw();
-			ui::putText(entity[i]->loc.x,entity[i]->loc.y,"%d",i);
-		}
-	}
 	safeSetColor(255+shade*2,0+shade,0+shade);
 	for(i=0;i<current->platform.size();i++){
 		glRectf(current->platform[i].p1.x,current->platform[i].p1.y+yoff-DRAW_Y_OFFSET,
@@ -120,6 +114,12 @@ LOOP2:													// Draw each world
 	}else{							// Otherwise reset static values and return
 		yoff=DRAW_Y_OFFSET;
 		shade=0;
+		for(i=0;i<entity.size()+1;i++){
+			if(entity[i]->inWorld==this){
+				entity[i]->draw();
+				ui::putText(entity[i]->loc.x,entity[i]->loc.y,"%d",i);
+			}
+		}
 	}
 }
 
@@ -162,8 +162,9 @@ void World::detect(Player *p){
 	unsigned int i;
 	singleDetect(p);
 	for(i=0;i<entity.size()+1;i++){
-		if(entity[i]->inWorld==this)
+		if(entity[i]->inWorld==this){
 			singleDetect(entity[i]);
+		}
 	}
 }
 

@@ -78,6 +78,7 @@ namespace ui {
 		h=ftf->glyph->bitmap.rows;
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D,ftex);
+		if(c=='-')y+=fontSize/3;
 		glBegin(GL_QUADS);
 			glColor3ub(255,255,255);
 			glTexCoord2f(0,1);glVertex2f(x,y);

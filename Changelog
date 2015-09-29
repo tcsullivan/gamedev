@@ -36,3 +36,11 @@
 	- fixed NPC generation
 	- added enumerators for entity types
 	- improved NPC wandering
+
+9/29/2015:
+==========
+
+	- made world handling work with interpolation
+	- successfully ran game 200 entities
+	- improved debug screen
+
