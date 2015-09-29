@@ -165,6 +165,7 @@ namespace ui {
 				if(SDL_KEY==SDLK_i)currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible
 				if(SDL_KEY==SDLK_k)currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
 				if(SDL_KEY==SDLK_F3)debug^=true;
+				if(SDL_KEY==SDLK_LSHIFT)player->speed = 3;
 				
 				// TEMPORARY UNTIL MOUSE
 				if(SDL_KEY==SDLK_t){
@@ -181,6 +182,8 @@ namespace ui {
 			case SDL_KEYUP:
 				if(SDL_KEY==SDLK_a)player->vel.x=0;	// Stop the player if movement keys are released
 				if(SDL_KEY==SDLK_d)player->vel.x=0;
+				if(SDL_KEY==SDLK_LSHIFT)player->speed = 1;
+
 				break;
 			default:
 				break;

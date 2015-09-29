@@ -19,7 +19,7 @@ enum _TYPE {STRUCTURET = -1, PLAYERT = 0, NPCT = 1}; //these are the main types 
 #define SCREEN_HEIGHT 720
 //#define FULLSCREEN
 
-#define HLINE 3										//base unit of the world
+#define HLINE 3								//base unit of the world
 
 #define initRand(s) srand(s)
 #define getRand()	rand()
