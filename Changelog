@@ -43,4 +43,4 @@
 	- made world handling work with interpolation
 	- successfully ran game 200 entities
 	- improved debug screen
-
+	- added mouse interaction w/ NPCs
