@@ -44,3 +44,9 @@
 	- successfully ran game 200 entities
 	- improved debug screen
 	- added mouse interaction w/ NPCs
+	
+9/30/2015:
+==========
+
+	- improved left/right movement
+	- added framework work NPC dialog n' stuff

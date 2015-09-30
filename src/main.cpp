@@ -33,6 +33,11 @@ FILE* names;
 void logic();
 void render();
 
+int entityInteractTest(NPC *speaker){
+	ui::dialogBox("NPC: Hello there!");
+	return 1;
+}
+
 unsigned int millis(void){
 	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
 	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
@@ -116,6 +121,8 @@ int main(int argc, char *argv[]){
 	for(i=0;i<entity.size()+1;i++){
 		entity[i]->inWorld=test;
 	}
+	
+	NPCp(entity[1])->addAIFunc(entityInteractTest);
 	
 	//************************************************************************//
 	//	END WORLD GENERATION STUFF											  //

@@ -128,6 +128,7 @@ namespace ui {
 		}
 	}
 	void handleEvents(void){
+		static bool left=false,right=false;
 		SDL_Event e;
 		while(SDL_PollEvent(&e)){
 			switch(e.type){
@@ -138,16 +139,24 @@ namespace ui {
 				mouse.x=e.motion.x;
 				mouse.y=e.motion.y;
 				break;
+			case SDL_MOUSEBUTTONDOWN:
+				if((e.button.button&SDL_BUTTON_RIGHT)&&dialogBoxExists){
+					dialogBoxExists=false;
+					dialogBoxText=NULL;
+				}
+				break;
 			/*
 				KEYDOWN
 			*/
 			case SDL_KEYDOWN:
 				if(SDL_KEY==SDLK_ESCAPE)gameRunning=false;							// Exit the game with ESC
 				if(SDL_KEY==SDLK_a){												// Move left
+					left=true;
 					player->vel.x=-.15;
 					currentWorld=currentWorld->goWorldLeft(player);
 				}
 				if(SDL_KEY==SDLK_d){												// Move right
+					right=true;
 					player->vel.x=.15;
 					currentWorld=currentWorld->goWorldRight(player);
 				}
@@ -167,22 +176,14 @@ namespace ui {
 				if(SDL_KEY==SDLK_k)currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
 				if(SDL_KEY==SDLK_F3)debug^=true;
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = 3;
-				
-				// TEMPORARY UNTIL MOUSE
-				if(SDL_KEY==SDLK_t){
-					if(dialogBoxExists){
-						dialogBoxExists=false;
-						dialogBoxText=NULL;
-					}else dialogBox("Hello");
-				}
-				
 				break;
 			/*
 				KEYUP
 			*/	
 			case SDL_KEYUP:
-				if(SDL_KEY==SDLK_a)player->vel.x=0;	// Stop the player if movement keys are released
-				if(SDL_KEY==SDLK_d)player->vel.x=0;
+				if(SDL_KEY==SDLK_a)left=false;	// Stop the player if movement keys are released
+				if(SDL_KEY==SDLK_d)right=false;
+				if(!left&&!right)player->vel.x=0;
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = 1;
 
 				break;
