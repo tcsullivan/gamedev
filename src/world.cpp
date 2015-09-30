@@ -117,7 +117,10 @@ LOOP2:													// Draw each world
 		for(i=0;i<entity.size()+1;i++){
 			if(entity[i]->inWorld==this){
 				entity[i]->draw();
-				ui::putText(entity[i]->loc.x,entity[i]->loc.y,"%d",i);
+				if(entity[i]->near){
+					ui::setFontSize(14);
+					ui::putText(entity[i]->loc.x,entity[i]->loc.y-ui::fontSize-HLINE/2,"%s",entity[i]->name);
+				}
 			}
 		}
 	}

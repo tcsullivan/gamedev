@@ -78,7 +78,25 @@ namespace ui {
 		h=ftf->glyph->bitmap.rows;
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D,ftex);
-		if(c=='-')y+=fontSize/3;
+		switch(c){
+		case '^':
+		case '*':
+		case '`':
+		case '\'':
+		case '\"':
+		case '-':y+=fontSize/3;break;
+		case '~':
+		case '<':
+		case '>':
+		case '+':
+		case '=':y+=fontSize/5;break;
+		case 'g':
+		case 'q':
+		case 'y':
+		case 'p':
+		case 'j':y-=fontSize/4;break;
+		default:break;
+		}
 		glBegin(GL_QUADS);
 			glColor3ub(255,255,255);
 			glTexCoord2f(0,1);glVertex2f(x,y);
@@ -97,7 +115,7 @@ namespace ui {
 		float xo=x,yo=y;
 		do{
 			if(s[i]=='\n'){
-				yo-=fontSize*1.15;
+				yo-=fontSize*1.05;
 				xo=x;
 			}else if(s[i]==' '){
 				xo+=fontSize/2;
@@ -125,6 +143,7 @@ namespace ui {
 		if(dialogBoxExists){
 			glColor3ub(0,0,0);
 			glRectf(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT,player->loc.x+SCREEN_WIDTH/2,SCREEN_HEIGHT-SCREEN_HEIGHT/4);
+			setFontSize(16);
 			putString(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-fontSize,dialogBoxText);
 		}
 	}

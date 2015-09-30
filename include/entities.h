@@ -23,6 +23,7 @@ public:
 			//		|->  1 Merchant
 	vec2 loc; //location and velocity of the entity
 	vec2 vel;
+	bool near;
 	bool right,left, canMove; //movement variables
 	bool alive;				  //the flag for whether or not the entity is alive
 	unsigned char ground;	  //variable for testing what ground the entity is on to apply certain traits

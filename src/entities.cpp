@@ -11,6 +11,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	vel.y = 0;
 	right = false;
 	left = false;
+	near = false;
 	ticksToUse = 0;
 	canMove = false;
 	ground = false;
@@ -62,8 +63,9 @@ void Entity::getName(){
 	if((fgets(bufs,16,(FILE*)names)) != NULL){
 		std::puts(bufs);
 		bufs[strlen(bufs)-1] = 0;
-		name = bufs;
+		strcpy(name,bufs);
 	}
+	free(bufs);
 	//delete(bufs);
 }
 
@@ -89,6 +91,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	subtype = 0;
 	alive = true;
 	canMove = true;
+	near = false;
 }
 
 void NPC::addAIFunc(int (*func)(NPC *)){
@@ -110,6 +113,7 @@ Structures::Structures(){ //sets the structure type
 	type = STRUCTURET;
 	speed = 0;
 	alive = true;
+	near = false;
 }
 
 unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure based off of type and coords

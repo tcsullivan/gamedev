@@ -76,8 +76,7 @@ int main(int argc, char *argv[]){
     }
 
 	ui::initFonts();
-	ui::setFontFace("ttf/VCR_OSD_MONO_1.001.ttf");
-	ui::setFontSize(16);
+	ui::setFontFace("ttf/Perfect DOS VGA 437.ttf");
 	initRand(millis()); // fix
 
 	glViewport(0,0,SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -187,8 +186,9 @@ void render(){
 		}else if(debugDiv%10==0){
 			rndy = player->loc.y;
 		}
-		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d G:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f",
-					fps,d,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT,entity.size(),player->loc.x,rndy);
+		ui::setFontSize(16);
+		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d G:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nQc: %u",
+					fps,d,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT,entity.size(),player->loc.x,rndy,player->qh.current.size());
 	}
 
 	ui::draw();							// Draw any UI elements if they need to be
@@ -213,8 +213,6 @@ void render(){
 		glVertex2i(mx,my-HLINE*3.5);
 	glEnd();
 
-	ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT/2,"Quest count: %d",player->qh.current.size());
-
 	glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
 	SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
 }
@@ -226,11 +224,13 @@ void logic(){
 		if(entity[i]->alive&&entity[i]->type == NPCT){
 			entity[i]->wander((rand()%120 + 30), &entity[i]->vel);
 			if( pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
-				if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width
-				 && (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))){
-					entity[i]->interact();
-					std::cout <<"["<<i<<"] -> "<< entity[i]->name << ", " << (std::string)(entity[i]->gender == MALE ? "Male" : "Female") << std::endl;
-				}
+				if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width){
+					entity[i]->near=true;
+					if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(SDL_BUTTON_RIGHT)){
+						entity[i]->interact();
+						std::cout <<"["<<i<<"] -> "<< entity[i]->name << ", " << (std::string)(entity[i]->gender == MALE ? "Male" : "Female") << std::endl;
+					}
+				}else entity[i]->near=false;
 			}
 		}
 	}
