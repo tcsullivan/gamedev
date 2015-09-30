@@ -27,6 +27,9 @@ std::vector<Structures>build;
 
 int mx, my;
 
+FILE* config;
+FILE* names;
+
 void logic();
 void render();
 
@@ -151,6 +154,7 @@ void render(){
 	glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
+typedef struct { char* first; char
 	glOrtho(player->loc.x-SCREEN_WIDTH/2,player->loc.x+SCREEN_WIDTH/2,0,SCREEN_HEIGHT,-1,1);
 	glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
@@ -214,7 +218,8 @@ void logic(){
 		if(entity[i]->alive&&entity[i]->type == NPCT){
 			entity[i]->wander((rand()%120 + 30), &entity[i]->vel);
 			if( pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(35*HLINE,2)){
-				if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width && (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)))
+				if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width
+				 && (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)))
 					entity[i]->interact();
 			}
 		}

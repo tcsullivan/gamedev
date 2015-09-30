@@ -11,7 +11,8 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_opengl.h>
 
-typedef struct { float x; float y; } vec2; 
+typedef struct { float x; float y; }vec2;
+typedef struct { char* first; char* last; }_name;
 
 enum _TYPE { //these are the main types of entities
 	STRUCTURET = -1,
