@@ -23,7 +23,7 @@ Player *player;
 
 std::vector<Entity*>entity;
 std::vector<NPC>npc;
-std::vector<Structures>build;
+std::vector<Structures *>build;
 
 int mx, my;
 FILE* names;
@@ -32,6 +32,7 @@ void logic();
 void render();
 
 int entityInteractTest(NPC *speaker){
+	ui::dialogBox("Here, have a quest!");
 	player->qh.assign("Test");
 	return 1;
 }
@@ -111,12 +112,12 @@ int main(int argc, char *argv[]){
 	
 	// Make structures
 	entity.push_back(new Entity());
-	build.push_back(Structures());
-	entity[0]=&build[0];
+	build.push_back(new Structures());
+	entity[0]=build[0];
 	
 	static unsigned int i;
-	build[0].spawn(STRUCTURET,0,10);
-	build[0].inside=iw;
+	build[0]->spawn(STRUCTURET,0,10);
+	build[0]->inside=iw;
 	for(i=0;i<entity.size()+1;i++){
 		entity[i]->inWorld=test;
 	}

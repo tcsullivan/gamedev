@@ -19,13 +19,14 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 }
 
 void Entity::draw(void){		//draws the entities
-	if(type==NPCT)
+	if(type==NPCT){
 		if(gender == MALE)
 			glColor3ub(0,0,100);
 		else if(gender == FEMALE)
 			glColor3ub(255,105,180);
-	else if(type==STRUCTURET)
+	}else if(type==STRUCTURET){
 		glColor3ub(100,0,100);
+	}
 	glRectf(loc.x,loc.y,loc.x+width,loc.y+height);
 }
 

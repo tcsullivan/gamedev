@@ -117,6 +117,7 @@ namespace ui {
 		free(buf);
 	}
 	void dialogBox(const char *text){
+		//while(dialogBoxExists);
 		dialogBoxExists=true;
 		dialogBoxText=text;
 	}
