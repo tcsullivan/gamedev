@@ -213,8 +213,8 @@ void logic(){
 	for(int i=0;i<=entity.size();i++){
 		if(entity[i]->alive&&entity[i]->type == NPCT){
 			entity[i]->wander((rand()%120 + 30), &entity[i]->vel);
-			if( pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(30*HLINE,2)){
-				if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width)
+			if( pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(35*HLINE,2)){
+				if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width && (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)))
 					entity[i]->interact();
 			}
 		}
