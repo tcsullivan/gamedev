@@ -154,7 +154,6 @@ void render(){
 	glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
-typedef struct { char* first; char
 	glOrtho(player->loc.x-SCREEN_WIDTH/2,player->loc.x+SCREEN_WIDTH/2,0,SCREEN_HEIGHT,-1,1);
 	glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
