@@ -14,11 +14,16 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	ticksToUse = 0;
 	canMove = false;
 	ground = false;
+	name = (char*)malloc(16);
+	getName();
 }
 
 void Entity::draw(void){		//draws the entities
 	if(type==NPCT)
-		glColor3ub(0,0,100);
+		if(gender == MALE)
+			glColor3ub(0,0,100);
+		else if(gender == FEMALE)
+			glColor3ub(255,105,180);
 	else if(type==STRUCTURET)
 		glColor3ub(100,0,100);
 	glRectf(loc.x,loc.y,loc.x+width,loc.y+height);
@@ -36,10 +41,29 @@ void Entity::wander(int timeRun, vec2 *v){ //this makes the entites wander about
 	ticksToUse--; //removes one off of the entities timer
 }
 
-char* Entity::getName(){
-	char* buf;
-
-	return buf;
+void Entity::getName(){
+	rewind(names);
+	char buf;
+	char* bufs = (char*)malloc(16);
+	int max = 0;
+	int tempNum = rand()%105;
+	for(int i=0;i<tempNum;i++){
+		fgets(bufs,16,(FILE*)names);
+	}
+	buf = fgetc(names);
+	if(buf == 'm'){
+		gender = MALE;
+		std::puts("Male");
+	}else if(buf == 'f'){
+		gender = FEMALE;
+		std::puts("Female");
+	}
+	if((fgets(bufs,16,(FILE*)names)) != NULL){
+		std::puts(bufs);
+		bufs[strlen(bufs)-1] = 0;
+		name = bufs;
+	}
+	//delete(bufs);
 }
 
 Player::Player(){ //sets all of the player specific traits on object creation
@@ -100,7 +124,7 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 		width =  20 * HLINE;
 		height = 16 * HLINE;
 
-		int tempN = 2;//(getRand() % 5 + 1); //amount of villagers that will spawn
+		int tempN = (getRand() % 5 + 1); //amount of villagers that will spawn
 		for(int i=0;i<tempN;i++){
 			entity.push_back(new NPC()); //create a new entity of NPC type
 			npc.push_back(NPC()); //create new NPC

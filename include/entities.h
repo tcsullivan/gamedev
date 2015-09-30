@@ -5,6 +5,8 @@
 
 #define NPCp(n) ((NPC *)n)
 
+extern FILE* names;
+
 class Entity{
 public:
 	void *inWorld;
@@ -25,13 +27,15 @@ public:
 	bool alive;				  //the flag for whether or not the entity is alive
 	unsigned char ground;	  //variable for testing what ground the entity is on to apply certain traits
 
+	char* name;
+	GENDER gender;
 	unsigned int texture[];	  //TODO: ADD TEXTURES
 
 	
 	void spawn(float, float);
 	void draw(void);
 	void wander(int, vec2*);
-	char* getName();
+	void getName();
 	virtual void interact(){}
 private:
 	int ticksToUse;	//The variable for deciding how long an entity should do a certain task

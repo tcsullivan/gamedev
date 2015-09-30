@@ -147,6 +147,7 @@ int main(int argc, char *argv[]){
 	**************************/
 	
     //closes the window and frees resources
+    //fclose(names);
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
     return 0;
@@ -225,8 +226,10 @@ void logic(){
 			entity[i]->wander((rand()%120 + 30), &entity[i]->vel);
 			if( pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
 				if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width
-				 && (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)))
+				 && (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))){
 					entity[i]->interact();
+					std::cout <<"["<<i<<"] -> "<< entity[i]->name << ", " << (std::string)(entity[i]->gender == MALE ? "Male" : "Female") << std::endl;
+				}
 			}
 		}
 	}
