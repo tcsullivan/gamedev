@@ -1,0 +1,9 @@
+Goals:
+
+End of October:
+===============
+
+	- have textures for the world and entities (png's and stuff)
+	- have basic quest handling/player can interact with NPCs to take quests
+	- have basic mobs/animals
+	- 
