@@ -36,6 +36,12 @@ void Entity::wander(int timeRun, vec2 *v){ //this makes the entites wander about
 	ticksToUse--; //removes one off of the entities timer
 }
 
+char* Entity::getName(){
+	char* buf;
+
+	return buf;
+}
+
 Player::Player(){ //sets all of the player specific traits on object creation
 	width = HLINE * 8;
 	height = HLINE * 12;

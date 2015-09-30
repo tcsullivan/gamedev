@@ -12,12 +12,17 @@
 #include <SDL2/SDL_opengl.h>
 
 typedef struct { float x; float y; }vec2;
-typedef struct { char* first; char* last; }_name;
 
 enum _TYPE { //these are the main types of entities
 	STRUCTURET = -1,
 	PLAYERT    = 0,
 	NPCT       = 1
+};
+
+enum GENDER{
+	MALE,
+	FEMALE,
+	NONE
 };
 
 #include <entities.h>
@@ -36,5 +41,8 @@ int eAmt(T (&)[N]){return N;}
 
 extern bool gameRunning;
 extern unsigned int deltaTime;
+
+extern FILE* config;
+extern FILE* names;
 
 #endif // COMMON_H

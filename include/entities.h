@@ -24,10 +24,12 @@ public:
 	unsigned char ground;	  //variable for testing what ground the entity is on to apply certain traits
 
 	unsigned int texture[];	  //TODO: ADD TEXTURES
+
 	
 	void spawn(float, float);
 	void draw(void);
 	void wander(int, vec2*);
+	char* getName();
 	virtual void interact(){}
 private:
 	int ticksToUse;	//The variable for deciding how long an entity should do a certain task
