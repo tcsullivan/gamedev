@@ -3,6 +3,8 @@
 
 #include <common.h>
 
+#define NPCp(n) ((NPC *)n)
+
 class Entity{
 public:
 	void *inWorld;
@@ -42,8 +44,11 @@ public:
 };
 
 class NPC : public Entity{
+private:
+	std::vector<int (*)(NPC *)>aiFunc;
 public:
 	NPC();
+	void addAIFunc(int (*func)(NPC *));
 	void interact();
 };
 class Structures : public Entity{

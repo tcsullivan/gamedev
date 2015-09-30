@@ -66,8 +66,19 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	canMove = true;
 }
 
+void NPC::addAIFunc(int (*func)(NPC *)){
+	aiFunc.push_back(func);
+}
+
 void NPC::interact(){ //have the npc's interact back to the player
+	int (*func)(NPC *);
 	loc.y += 5;
+	if(aiFunc.size()){
+		func=aiFunc.front();
+		if(!func(this)){
+			aiFunc.erase(aiFunc.begin());
+		}
+	}
 }
 
 Structures::Structures(){ //sets the structure type
