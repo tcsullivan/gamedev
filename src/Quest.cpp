@@ -4,58 +4,56 @@ const Quest QuestList[TOTAL_QUESTS]={
 	Quest("Test","A test quest",0)
 };
 
-Quest::Quest(const char *t,const char *d,unsigned int x){
+Quest::Quest(const char *t,const char *d,unsigned int r){
 	size_t len;
 	title=(char *)malloc((len=strlen(t)));
 	strncpy(title,t,len);
 	desc=(char *)malloc((len=strlen(d)));
 	strncpy(desc,d,len);
-	xp=x;
+	reward=r;
 }
+
 Quest::~Quest(){
 	free(title);
 	free(desc);
-	xp=0;
+	reward=0;
 }
 
-QuestHandler::QuestHandler(){
-	ccnt=0;
-}
 int QuestHandler::assign(const char *t){
-	unsigned int i=0;
-	if(ccnt==QUEST_LIMIT)
-		return -1;
-	for(;i<TOTAL_QUESTS;i++){
+	unsigned char i;
+	for(i=0;i<current.size();i++){
+		if(!strcmp(current[i]->title,t)){
+			return -2;
+		}
+	}
+	for(i=0;i<TOTAL_QUESTS;i++){
 		if(!strcmp(QuestList[i].title,t)){
-			current[ccnt++]=&QuestList[i];
-			return ccnt;
+			current.push_back(&QuestList[i]);
+			return current.size();
 		}
 	}
 	return -1;
 }
+
 int QuestHandler::drop(const char *t){
-	unsigned char i=0;
-	for(;i<ccnt;i++){
+	unsigned char i;
+	for(i=0;i<current.size();i++){
 		if(!strcmp(current[i]->title,t)){
-			for(i++;i<ccnt;i++){
-				current[i-1]=current[i];
-			}
-			return (--ccnt);
+			current.erase(current.begin()+i);
+			return current.size();
 		}
 	}
 	return -1;
 }
+
 int QuestHandler::finish(const char *t){
-	unsigned char i=0;
-	unsigned int j;
-	for(;i<ccnt;i++){
+	unsigned char i;
+	unsigned int r;
+	for(;i<current.size();i++){
 		if(!strcmp(current[i]->title,t)){
-			j=current[i]->xp;
-			for(i++;i<ccnt;i++){
-				current[i-1]=current[i];
-			}
-			ccnt--;
-			return j;
+			r=current[i]->reward;
+			current.erase(current.begin()+i);
+			return r;
 		}
 	}
 	return -1;

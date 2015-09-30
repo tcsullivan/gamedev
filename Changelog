@@ -50,3 +50,6 @@
 
 	- improved left/right movement
 	- added framework work NPC dialog n' stuff
+	- added quest stuff between NPCs and player
+	- began work on giving names to NPCs
+	- began working on config file

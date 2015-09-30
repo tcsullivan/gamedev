@@ -37,6 +37,7 @@ private:
 
 class Player : public Entity{
 public:
+	QuestHandler qh;
 	Player();
 	void interact();
 };

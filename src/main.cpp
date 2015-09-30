@@ -34,7 +34,7 @@ void logic();
 void render();
 
 int entityInteractTest(NPC *speaker){
-	ui::dialogBox("NPC: Hello there!");
+	player->qh.assign("Test");
 	return 1;
 }
 
@@ -212,6 +212,8 @@ void render(){
 		glVertex2i(mx+HLINE*3.5,my);
 		glVertex2i(mx,my-HLINE*3.5);
 	glEnd();
+
+	ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT/2,"Quest count: %d",player->qh.current.size());
 
 	glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
 	SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it

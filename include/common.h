@@ -20,6 +20,7 @@ enum _TYPE { //these are the main types of entities
 	NPCT       = 1
 };
 
+#include <Quest.h>
 #include <entities.h>
 
 #define SCREEN_WIDTH  1280

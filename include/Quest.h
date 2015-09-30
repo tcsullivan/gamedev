@@ -1,26 +1,23 @@
 #ifndef QUEST_H
 #define QUEST_H
 
-#include <common.h>
+#include <vector>
+#include <cstdlib>
 #include <cstring>
 
-#define QUEST_LIMIT 5
 #define TOTAL_QUESTS 1
 
 class Quest {
 public:
 	char *title,*desc;
-	unsigned int xp;
-	Quest(const char *t,const char *d,unsigned int x);
+	unsigned int reward;
+	Quest(const char *t,const char *d,unsigned int r);
 	~Quest();
 };
 
 class QuestHandler {
-private:
-	unsigned char ccnt;
-	const Quest *current[QUEST_LIMIT];
 public:
-	QuestHandler();
+	std::vector<const Quest *>current;
 	int assign(const char *t);
 	int drop(const char *t);
 	int finish(const char *t);
