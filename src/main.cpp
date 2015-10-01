@@ -28,6 +28,9 @@ std::vector<Structures *>build;
 int mx, my;
 FILE* names;
 
+Mix_Music *music;
+Mix_Chunk *horn;
+
 extern void initEverything(void);
 
 void logic();
@@ -40,7 +43,7 @@ unsigned int millis(void){
 
 int main(int argc, char *argv[]){
 	// Initialize SDL
-    if(SDL_Init(SDL_INIT_VIDEO)){
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 		return -1;
 	}
@@ -51,6 +54,23 @@ int main(int argc, char *argv[]){
 		return -1;
 	}
 	atexit(IMG_Quit);
+
+	 //Initialize SDL_mixer 
+	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ){
+		std::cout << "SDL_mixer could not initialize! SDL_mixer Error: " << Mix_GetError() << std::endl;
+	}
+	atexit(Mix_Quit);
+
+	//Load music
+	music = Mix_LoadMUS("assets/BennyHillTheme.wav");
+	horn = Mix_LoadWAV("assets/air-horn-club-sample_1.wav");
+	if( music == NULL ){
+		printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
+	}
+	Mix_PlayMusic( music, -1 );
+
+
+
 	// Turn on double buffering
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     // Create the window
@@ -196,6 +216,7 @@ void logic(){
 					if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(SDL_BUTTON_RIGHT)){
 						entity[i]->interact();
 						std::cout <<"["<<i<<"] -> "<< entity[i]->name << ", " << (std::string)(entity[i]->gender == MALE ? "Male" : "Female") << std::endl;
+						//Mix_PlayChannel( -1, horn, 0);
 					}
 				}else entity[i]->near=false;
 			}

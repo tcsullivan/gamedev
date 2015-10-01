@@ -47,4 +47,7 @@ extern unsigned int deltaTime;
 extern FILE* config;
 extern FILE* names;
 
+extern Mix_Music *music;
+extern Mix_Chunk *horn;
+
 #endif // COMMON_H
