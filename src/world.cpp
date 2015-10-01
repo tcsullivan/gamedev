@@ -117,10 +117,6 @@ LOOP2:													// Draw each world
 		for(i=0;i<entity.size()+1;i++){
 			if(entity[i]->inWorld==this){
 				entity[i]->draw();
-				if(entity[i]->near){
-					ui::setFontSize(14);
-					ui::putText(entity[i]->loc.x,entity[i]->loc.y-ui::fontSize-HLINE/2,"%s",entity[i]->name);
-				}
 			}
 		}
 	}
@@ -130,7 +126,7 @@ void World::singleDetect(Entity *e){
 	unsigned int i;
 	if(e->alive){
 		i=(e->loc.x+e->width/2-x_start)/HLINE;	// Calculate what line the player is currently on
-		if(e->loc.y>line[i].y){				// Snap the player to the top of that line if the player is inside it
+		if(e->loc.y>line[i].y-.002*deltaTime){	// Snap the player to the top of that line if the player is inside it
 			for(i=0;i<platform.size();i++){
 				if(((e->loc.x+e->width>platform[i].p1.x)&(e->loc.x+e->width<platform[i].p2.x))||
 				   ((e->loc.x<platform[i].p2.x)&(e->loc.x>platform[i].p1.x))){
@@ -145,10 +141,10 @@ void World::singleDetect(Entity *e){
 				}
 			}
 			e->vel.y-=.001*deltaTime;
-		}else{
+		}else if(e->loc.y<line[i].y){
 			e->vel.y=0;
 			e->ground=true;
-			e->loc.y=line[i].y+HLINE/2;	
+			e->loc.y=line[i].y-.001*deltaTime;	
 		}
 		if(e->loc.x<x_start){				// Keep the player inside world bounds (ui.cpp handles world jumping)
 			e->vel.x=0;

@@ -62,3 +62,5 @@
 ==========
 
 	- player can now complete assigned requests
+	- player's name is displayed
+	- improved gravity so entities don't shake on the ground
