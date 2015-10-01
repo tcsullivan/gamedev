@@ -71,27 +71,23 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
-	ui::initFonts();
+	ui::initFonts();									// Initialize text rendering with a font from ttf/
 	ui::setFontFace("ttf/Perfect DOS VGA 437.ttf");
-	initRand(millis()); // fix
+	initRand(millis());									// Initialize the random number generator with millis()
 
-	glViewport(0,0,SCREEN_WIDTH, SCREEN_HEIGHT);
-	glClearColor(.3,.5,.8,0);
-	glEnable(GL_BLEND);
+	glViewport(0,0,SCREEN_WIDTH, SCREEN_HEIGHT);		// Switch to pixel-based rendering, not coordinates (the -1 to 1 stuff)
+	glClearColor(.3,.5,.8,0);							// Sky blue
+	glEnable(GL_BLEND);									// Allow transparency
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	SDL_ShowCursor(SDL_DISABLE);
+	SDL_ShowCursor(SDL_DISABLE);						// Hide mouse cursor so we can draw our own
 
 	//************************************************************************//
 	//	WORLD GENERATION STUFF												  //
 	//************************************************************************//
 
-	names = fopen("assets/names_en-us", "r+");
+	names = fopen("assets/names_en-us", "r+");	// Open the names file
 	
-	initEverything();
-	
-	//************************************************************************//
-	//	END WORLD GENERATION STUFF											  //
-	//************************************************************************//
+	initEverything();							// Run world maker thing in src/gameplay.cpp
 	
 	/**************************
 	****     GAMELOOP      ****
@@ -118,7 +114,7 @@ int main(int argc, char *argv[]){
 	**************************/
 	
     //closes the window and frees resources
-    //fclose(names);
+    fclose(names);
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
     return 0;
@@ -149,7 +145,7 @@ void render(){
 	if(ui::debug){
 		static unsigned int debugDiv=0;
 		static int fps,d;
-		static float rndy; //variable to round the player y-coord so it is easier to read
+		static float rndy; // variable to round the player y-coord so it is easier to read
 		if(++debugDiv==20){
 			fps=1000/deltaTime;
 			d=deltaTime;

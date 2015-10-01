@@ -128,7 +128,7 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 		width =  20 * HLINE;
 		height = 16 * HLINE;
 
-		int tempN = (getRand() % 5 + 1); //amount of villagers that will spawn
+		int tempN = (getRand() % 5 + 2); //amount of villagers that will spawn
 		for(int i=0;i<tempN;i++){
 			entity.push_back(new NPC()); //create a new entity of NPC type
 			npc.push_back(NPC()); //create new NPC

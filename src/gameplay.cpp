@@ -10,18 +10,18 @@ extern std::vector<Structures *>build;
 extern Player *player;
 
 int giveTestQuest(NPC *speaker){
-	ui::dialogBox("Here, have a quest!");
+	ui::dialogBox(speaker->name,"Here, have a quest!");
 	player->qh.assign("Test");
 	return 0;
 }
 
 int compTestQuest(NPC *speaker){
 	if(player->qh.hasQuest("Test")){
-		ui::dialogBox("Ooo, that's a nice quest you got there. Lemme finish that for you ;).");
-		player->qh.finish("test");
+		ui::dialogBox(speaker->name,"Ooo, that's a nice quest you got there. Lemme finish that for you ;).");
+		player->qh.finish("Test");
 		return 0;
 	}else{
-		ui::dialogBox("You need to get a quest from entity[1] first.");
+		ui::dialogBox(speaker->name,"You need to get a quest from %s first.",entity[1]->name);
 		return 1;
 	}
 }

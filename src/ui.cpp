@@ -13,7 +13,7 @@ static FT_Face      ftf;
 static GLuint       ftex;
 
 static bool dialogBoxExists=false;
-static const char *dialogBoxText=NULL;
+static char *dialogBoxText;
 
 namespace ui {
 	vec2 mouse;
@@ -134,17 +134,31 @@ namespace ui {
 		putString(x,y,buf);
 		free(buf);
 	}
-	void dialogBox(const char *text){
-		//while(dialogBoxExists);
+	void dialogBox(const char *name,const char *text,...){
+		unsigned int name_len;
+		va_list dialogArgs;
+		va_start(dialogArgs,text);
 		dialogBoxExists=true;
-		dialogBoxText=text;
+		if(dialogBoxText){
+			free(dialogBoxText);
+			dialogBoxText=NULL;
+		}
+		dialogBoxText=(char *)calloc(512,sizeof(char));
+		name_len=strlen(name);
+		strcpy(dialogBoxText,name);
+		strcpy(dialogBoxText+strlen(name),": ");
+		vsnprintf(dialogBoxText+name_len+2,512-name_len-2,text,dialogArgs);
+		va_end(dialogArgs);
 	}
 	void draw(void){
+		float x,y;
 		if(dialogBoxExists){
 			glColor3ub(0,0,0);
-			glRectf(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT,player->loc.x+SCREEN_WIDTH/2,SCREEN_HEIGHT-SCREEN_HEIGHT/4);
+			x=player->loc.x-SCREEN_WIDTH/2+HLINE*8;
+			y=SCREEN_HEIGHT-HLINE*8;
+			glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
 			setFontSize(16);
-			putString(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-fontSize,dialogBoxText);
+			putString(x+HLINE,y-fontSize-HLINE,dialogBoxText);
 		}
 	}
 	void handleEvents(void){
