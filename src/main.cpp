@@ -140,6 +140,7 @@ void render(){
 
 	currentWorld->draw(&player->loc);	// Draw the world around the player
 	glColor3ub(0,0,0);
+	player->near=true;
 	player->draw();						// Draw the player
 
 	if(ui::debug){

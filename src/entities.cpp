@@ -1,4 +1,5 @@
 #include <entities.h>
+#include <ui.h>
 
 extern std::vector<Entity*>entity;
 extern std::vector<NPC>npc;
@@ -29,6 +30,10 @@ void Entity::draw(void){		//draws the entities
 		glColor3ub(100,0,100);
 	}
 	glRectf(loc.x,loc.y,loc.x+width,loc.y+height);
+	if(near){
+		ui::setFontSize(14);
+		ui::putText(loc.x,loc.y-ui::fontSize-HLINE/2,"%s",name);
+	}
 }
 
 void Entity::wander(int timeRun, vec2 *v){ //this makes the entites wander about
@@ -45,24 +50,31 @@ void Entity::wander(int timeRun, vec2 *v){ //this makes the entites wander about
 
 void Entity::getName(){
 	rewind(names);
-	char buf;
-	char* bufs = (char*)malloc(16);
-	int max = 0;
-	int tempNum = rand()%105;
+	char buf,*bufs = (char *)malloc(16);
+	int tempNum,max = 0;
+	for(;!feof(names);max++){
+		fgets(bufs,16,(FILE*)names);
+	}
+	tempNum = rand()%max;
+	rewind(names);
 	for(int i=0;i<tempNum;i++){
 		fgets(bufs,16,(FILE*)names);
 	}
-	buf = fgetc(names);
-	if(buf == 'm'){
+	switch(fgetc(names)){
+	case 'm':
 		gender = MALE;
 		std::puts("Male");
-	}else if(buf == 'f'){
+		break;
+	case 'f':
 		gender = FEMALE;
 		std::puts("Female");
+		break;
+	default:
+		break;
 	}
 	if((fgets(bufs,16,(FILE*)names)) != NULL){
 		std::puts(bufs);
-		bufs[strlen(bufs)-1] = 0;
+		bufs[strlen(bufs)-1] = '\0';
 		strcpy(name,bufs);
 	}
 	free(bufs);
@@ -76,6 +88,7 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	subtype = 5;
 	alive = true;
 	ground = false;
+	near = true;
 }
 
 void Player::interact(){ //the function that will cause the player to search for things to interact with
