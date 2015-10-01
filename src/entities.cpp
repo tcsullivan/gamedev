@@ -66,7 +66,6 @@ void Entity::getName(){
 		strcpy(name,bufs);
 	}
 	free(bufs);
-	//delete(bufs);
 }
 
 Player::Player(){ //sets all of the player specific traits on object creation

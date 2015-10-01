@@ -49,7 +49,7 @@ int QuestHandler::drop(const char *t){
 int QuestHandler::finish(const char *t){
 	unsigned char i;
 	unsigned int r;
-	for(;i<current.size();i++){
+	for(i=0;i<current.size();i++){
 		if(!strcmp(current[i]->title,t)){
 			r=current[i]->reward;
 			current.erase(current.begin()+i);
@@ -57,4 +57,14 @@ int QuestHandler::finish(const char *t){
 		}
 	}
 	return -1;
+}
+
+bool QuestHandler::hasQuest(const char *t){
+	unsigned int i;
+	for(i=0;i<current.size();i++){
+		if(!strcmp(current[i]->title,t)){
+			return true;
+		}
+	}
+	return false;
 }

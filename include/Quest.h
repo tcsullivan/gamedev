@@ -21,6 +21,7 @@ public:
 	int assign(const char *t);
 	int drop(const char *t);
 	int finish(const char *t);
+	bool hasQuest(const char *t);
 };
 
 #endif // QUEST_H

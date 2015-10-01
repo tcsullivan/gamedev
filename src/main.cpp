@@ -28,14 +28,10 @@ std::vector<Structures *>build;
 int mx, my;
 FILE* names;
 
+extern void initEverything(void);
+
 void logic();
 void render();
-
-int entityInteractTest(NPC *speaker){
-	ui::dialogBox("Here, have a quest!");
-	player->qh.assign("Test");
-	return 1;
-}
 
 unsigned int millis(void){
 	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
@@ -84,49 +80,23 @@ int main(int argc, char *argv[]){
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	SDL_ShowCursor(SDL_DISABLE);
-	
-	/**************************
-	****     GAMELOOP      ****
-	**************************/
 
 	//************************************************************************//
 	//	WORLD GENERATION STUFF												  //
 	//************************************************************************//
 
 	names = fopen("assets/names_en-us", "r+");
-	// Make a world
-	World *test=new World();
-	test->generate(SCREEN_WIDTH/2);
-	test->addLayer(400);
-	test->addLayer(100);
-	test->addPlatform(150,100,100,10);
-	test->addHole(100,150);
-	currentWorld=test;
 	
-	IndoorWorld *iw=new IndoorWorld();
-	iw->generate(200);
-	
-	// Make the player
-	player=new Player();
-	player->spawn(0,100);
-	
-	// Make structures
-	entity.push_back(new Entity());
-	build.push_back(new Structures());
-	entity[0]=build[0];
-	
-	static unsigned int i;
-	build[0]->spawn(STRUCTURET,0,10);
-	build[0]->inside=iw;
-	for(i=0;i<entity.size()+1;i++){
-		entity[i]->inWorld=test;
-	}
-	
-	NPCp(entity[1])->addAIFunc(entityInteractTest);
+	initEverything();
 	
 	//************************************************************************//
 	//	END WORLD GENERATION STUFF											  //
 	//************************************************************************//
+	
+	/**************************
+	****     GAMELOOP      ****
+	**************************/
+	
 	currentTime=millis();
 	while(gameRunning){
 		prevTime = currentTime;
