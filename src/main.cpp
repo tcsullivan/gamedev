@@ -100,6 +100,7 @@ int main(int argc, char *argv[]){
 	test->addLayer(400);
 	test->addLayer(100);
 	test->addPlatform(150,100,100,10);
+	test->addHole(100,150);
 	currentWorld=test;
 	
 	IndoorWorld *iw=new IndoorWorld();

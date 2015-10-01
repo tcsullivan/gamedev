@@ -66,6 +66,7 @@ public:
 														// it and is standing in front of it.
 	void addPlatform(float x,float y,float w,float h);	// Dynamically adds a platform to the platform array. These will be automatically
 														// drawn and handled by the world.
+	void addHole(unsigned int start,unsigned int end);	// Create a hole in the world
 };
 
 /*

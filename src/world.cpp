@@ -239,6 +239,13 @@ World *World::goInsideStructure(Player *p){
 	return this;
 }
 
+void World::addHole(unsigned int start,unsigned int end){
+	unsigned int i;
+	for(i=start;i<end;i++){
+		line[i].y=0;
+	}
+}
+
 
 
 IndoorWorld::IndoorWorld(void){
