@@ -2,18 +2,25 @@
 #define ENTITIES_H
 
 #include <common.h>
+#include <inventory.h>
 
 #define NPCp(n) ((NPC *)n)
+
+#define PLAYER_INV_SIZE	30	// The size of the player's inventory
+#define NPC_INV_SIZE	3	// Size of an NPC's inventory
 
 extern FILE* names;
 
 class Entity{
 public:
+	Inventory *inv;
+
 	void *inWorld;
+	
 	float width;	//width and height of the player
 	float height;
 	float speed;	//speed of the play
-	//type and subtype
+	
 	int subtype;
 	_TYPE type;
 			//example:
@@ -21,8 +28,10 @@ public:
 			//		|(subtype)
 			//		|->  0 Base NPC
 			//		|->  1 Merchant
+	
 	vec2 loc; //location and velocity of the entity
 	vec2 vel;
+	
 	bool near;
 	bool right,left, canMove; //movement variables
 	bool alive;				  //the flag for whether or not the entity is alive

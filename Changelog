@@ -64,3 +64,10 @@
 	- player can now complete assigned requests
 	- player's name is displayed
 	- improved gravity so entities don't shake on the ground
+
+10/2/2015:
+==========
+
+	- added a basic inventory
+	- quests can reward one type of item (but any quantity of that item)
+	- added texture loading, began working on player textures

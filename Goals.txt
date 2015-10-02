@@ -7,7 +7,29 @@ End of October:
 	- have basic quest handling/player can interact with NPCs to take quests
 	- have basic mobs/animals
 
-...
+End of November:
+================
+
+	- have a working player inventory
+	- receive items from things like quests and mobs
+	- weapons n stuff
+
+End of December:
+================
+
+	- have a basic world scripter thing to script worlds
+	- create world saving/loading functionality
+	  (maybe work on prettying up inventory/save-load/quest stuff)
+
+January - February:
+===================
+
+	- work on a story line
+	
+February - March:
+=================
+
+	- work on sound effects / background music
 
 End of March:
 =============
@@ -26,3 +48,4 @@ End of May:
 ===========
 
 	- Have game fully deployed with a way to receive feedback from the players
+	

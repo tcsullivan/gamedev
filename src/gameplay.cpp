@@ -18,7 +18,7 @@ int giveTestQuest(NPC *speaker){
 int compTestQuest(NPC *speaker){
 	if(player->qh.hasQuest("Test")){
 		ui::dialogBox(speaker->name,"Ooo, that's a nice quest you got there. Lemme finish that for you ;).");
-		player->qh.finish("Test");
+		player->qh.finish("Test",player);
 		return 0;
 	}else{
 		ui::dialogBox(speaker->name,"You need to get a quest from %s first.",entity[1]->name);
@@ -56,6 +56,7 @@ void initEverything(void){
 		switch(i){
 		case 1:
 			NPCp(entity[i])->addAIFunc(giveTestQuest);
+			entity[i]->inv->addItem(TEST_ITEM,3);
 			break;
 		case 2:
 			NPCp(entity[i])->addAIFunc(compTestQuest);

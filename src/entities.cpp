@@ -89,6 +89,7 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	alive = true;
 	ground = false;
 	near = true;
+	inv = new Inventory(PLAYER_INV_SIZE);
 }
 
 void Player::interact(){ //the function that will cause the player to search for things to interact with
@@ -104,6 +105,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	alive = true;
 	canMove = true;
 	near = false;
+	inv = new Inventory(NPC_INV_SIZE);
 }
 
 void NPC::addAIFunc(int (*func)(NPC *)){
