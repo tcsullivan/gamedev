@@ -187,11 +187,15 @@ namespace ui {
 				if(SDL_KEY==SDLK_a){												// Move left
 					left=true;
 					player->vel.x=-.15;
+					player->left = true;
+					player->right = false;
 					currentWorld=currentWorld->goWorldLeft(player);
 				}
 				if(SDL_KEY==SDLK_d){												// Move right
 					right=true;
 					player->vel.x=.15;
+					player->right = true;
+					player->left = false;
 					currentWorld=currentWorld->goWorldRight(player);
 				}
 				if(SDL_KEY==SDLK_s && player->ground==2){
@@ -215,8 +219,8 @@ namespace ui {
 				KEYUP
 			*/	
 			case SDL_KEYUP:
-				if(SDL_KEY==SDLK_a)left=false;	// Stop the player if movement keys are released
-				if(SDL_KEY==SDLK_d)right=false;
+				if(SDL_KEY==SDLK_a){left=false;}// Stop the player if movement keys are released
+				if(SDL_KEY==SDLK_d){right=false;}
 				if(!left&&!right)player->vel.x=0;
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = 1;
 

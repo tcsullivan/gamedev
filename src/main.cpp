@@ -152,6 +152,7 @@ void render(){
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
 	glPushMatrix();									//basically here we put a blank canvas (new matrix) on the screen to draw on
+	glPushAttrib( GL_DEPTH_BUFFER_BIT | GL_LIGHTING_BIT );
 	glClear(GL_COLOR_BUFFER_BIT); 					//clear the matrix on the top of the stack
 
 	/**************************
