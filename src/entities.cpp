@@ -126,6 +126,7 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	ground = false;
 	near = true;
 	texture = loadTexture("assets/player.png");
+	inv = new Inventory(PLAYER_INV_SIZE);
 }
 
 void Player::interact(){ //the function that will cause the player to search for things to interact with
@@ -142,6 +143,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	canMove = true;
 	near = false;
 	texture = loadTexture("assets/NPC.png");
+	inv = new Inventory(NPC_INV_SIZE);
 }
 
 void NPC::addAIFunc(int (*func)(NPC *)){

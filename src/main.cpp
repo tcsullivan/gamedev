@@ -163,6 +163,9 @@ void render(){
 	glColor3ub(0,0,0);
 	player->near=true;
 	player->draw();						// Draw the player
+	player->inv->draw();
+
+	ui::draw();							// Draw any UI elements if they need to be
 
 	if(ui::debug){
 		static unsigned int debugDiv=0;
@@ -179,8 +182,6 @@ void render(){
 		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d G:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nQc: %u",
 					fps,d,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT,entity.size(),player->loc.x,rndy,player->qh.current.size());
 	}
-
-	ui::draw();							// Draw any UI elements if they need to be
 
 	for(int i=0;i<=entity.size();i++){
 		//entity[i]->draw();
