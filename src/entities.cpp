@@ -22,6 +22,10 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 
 void Entity::draw(void){		//draws the entities
 	if(type==NPCT){
+		if(NPCp(this)->aiFunc.size()){
+			glColor3ub(255,255,0);
+			glRectf(loc.x,loc.y+height+HLINE,loc.x+width,loc.y+height+HLINE*5);
+		}
 		if(gender == MALE)
 			glColor3ub(0,0,100);
 		else if(gender == FEMALE)

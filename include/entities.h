@@ -59,9 +59,8 @@ public:
 };
 
 class NPC : public Entity{
-private:
-	std::vector<int (*)(NPC *)>aiFunc;
 public:
+	std::vector<int (*)(NPC *)>aiFunc;
 	NPC();
 	void addAIFunc(int (*func)(NPC *));
 	void interact();
