@@ -32,6 +32,8 @@ void Entity::draw(void){		//draws the entities
 			glColor3ub(255,255,0);
 			glRectf(loc.x+width/3,loc.y+height,loc.x+width*2/3,loc.y+height+width/3);
 		}
+	}if(type==STRUCTURET){
+		glColor3ub(255,255,255);
 	}
 	if(left){
 		glScalef(-1.0f,1.0f,1.0f);
@@ -150,6 +152,7 @@ Structures::Structures(){ //sets the structure type
 	speed = 0;
 	alive = true;
 	near = false;
+	texture = loadTexture("assets/house1.png");
 }
 
 unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure based off of type and coords
@@ -162,8 +165,8 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 	//spawns between 1 and 5 villagers around the village
 	if(type == STRUCTURET){
 		loc.y=100;
-		width =  20 * HLINE;
-		height = 20 * HLINE;
+		width =  30 * HLINE;
+		height = 30 * HLINE;
 
 		int tempN = (getRand() % 5 + 2); //amount of villagers that will spawn
 		for(int i=0;i<tempN;i++){
