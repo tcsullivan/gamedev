@@ -13,10 +13,6 @@ SDL_Surface   *renderSurface = NULL;
 SDL_GLContext  mainGLContext = NULL;
 
 bool gameRunning = true;
-unsigned int tickCount   = 0,
-			 prevTime    = 0,
-			 currentTime = 0,
-			 deltaTime   = 0;
 
 World *currentWorld=NULL;
 Player *player;
@@ -35,6 +31,7 @@ extern void initEverything(void);
 
 void logic();
 void render();
+void mainLoop(void);
 
 unsigned int millis(void){
 	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
@@ -113,20 +110,8 @@ int main(int argc, char *argv[]){
 	****     GAMELOOP      ****
 	**************************/
 	
-	currentTime=millis();
 	while(gameRunning){
-		prevTime = currentTime;
-		currentTime = millis();
-		deltaTime = currentTime - prevTime;
-		
-		if(prevTime + MSEC_PER_TICK >= millis()){
-			logic();
-			prevTime = millis();
-		}
-
-		player->loc.y+=player->vel.y*deltaTime;
-		player->loc.x+=(player->vel.x*player->speed)*deltaTime;
-		render();
+		mainLoop();
 	}
 	
 	/**************************
@@ -138,6 +123,49 @@ int main(int argc, char *argv[]){
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
     return 0;
+}
+
+static unsigned int fps=0;
+static float debugY=0;
+
+unsigned int deltaTime=0;
+
+void mainLoop(void){
+	static unsigned int debugDiv=0;
+	static unsigned int tickCount = 0,
+						prevTime    = 0,
+						currentTime = 0,
+						deltatime   = 0;
+	unsigned int i;
+	
+	if(!currentTime)currentTime=millis();
+	prevTime = currentTime;
+	currentTime = millis();
+	deltatime = currentTime - prevTime;
+	deltaTime = deltatime;
+	
+	if(prevTime + MSEC_PER_TICK >= millis()){
+		logic();
+		prevTime = millis();
+	}
+
+	player->loc.y+=player->vel.y*deltatime;
+	player->loc.x+=(player->vel.x*player->speed)*deltatime;
+	for(int i=0;i<=entity.size();i++){
+		entity[i]->loc.x += entity[i]->vel.x * deltatime;
+		entity[i]->loc.y += entity[i]->vel.y * deltatime;
+		if(entity[i]->vel.x<0)entity[i]->left=true;
+		if(entity[i]->vel.x>0)entity[i]->left=false;
+	}
+	
+	if(++debugDiv==20){
+		fps=1000/deltatime;
+		debugDiv=0;
+	}else if(!(debugDiv%10)){
+		debugY = player->loc.y;
+	}
+	
+	render();
 }
 
 void render(){
@@ -168,25 +196,9 @@ void render(){
 	ui::draw();							// Draw any UI elements if they need to be
 
 	if(ui::debug){
-		static unsigned int debugDiv=0;
-		static int fps,d;
-		static float rndy; // variable to round the player y-coord so it is easier to read
-		if(++debugDiv==20){
-			fps=1000/deltaTime;
-			d=deltaTime;
-			debugDiv=0;
-		}else if(debugDiv%10==0){
-			rndy = player->loc.y;
-		}
 		ui::setFontSize(16);
-		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nD: %d G:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nQc: %u",
-					fps,d,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT,entity.size(),player->loc.x,rndy,player->qh.current.size());
-	}
-
-	for(int i=0;i<=entity.size();i++){
-		//entity[i]->draw();
-		entity[i]->loc.x += entity[i]->vel.x * deltaTime;
-		entity[i]->loc.y += entity[i]->vel.y * deltaTime;
+		ui::putText(player->loc.x-SCREEN_WIDTH/2,SCREEN_HEIGHT-ui::fontSize,"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nQc: %u",
+					fps,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT,entity.size(),player->loc.x,debugY,player->qh.current.size());
 	}
 
 	/**************************

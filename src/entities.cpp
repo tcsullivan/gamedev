@@ -21,50 +21,35 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 }
 
 void Entity::draw(void){		//draws the entities
+	glPushMatrix();
+	if(type==NPCT){
+		if(gender == MALE){
+			glColor3ub(255,255,255);
+		}else if(gender == FEMALE){
+			glColor3ub(255,105,180);
+		}
+		if(NPCp(this)->aiFunc.size()){
+			glColor3ub(255,255,0);
+			glRectf(loc.x+width/3,loc.y+height,loc.x+width*2/3,loc.y+height+width/3);
+		}
+	}
+	if(left){
+		glScalef(-1.0f,1.0f,1.0f);
+		glTranslatef(0-width-loc.x*2,0,0);
+	}
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,texture);
 	glBegin(GL_QUADS);
-	if(type==NPCT){
-		if(gender == MALE){
-			glColor3ub(255,255,255);
-			glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
-			glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
-			glTexCoord2i(1,0);glVertex2i(loc.x + width, loc.y + height);
-			glTexCoord2i(0,0);glVertex2i(loc.x, loc.y + height);
-		}else if(gender == FEMALE){
-			glColor3ub(255,105,180);
-			glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
-			glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
-			glTexCoord2i(1,0);glVertex2i(loc.x + width, loc.y + height);
-			glTexCoord2i(0,0);glVertex2i(loc.x, loc.y + height);
-		}
-	}
-	if(type==PLAYERT){
-		if(right==true){
-			glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
-			glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
-			glTexCoord2i(1,0);glVertex2i(loc.x + width, loc.y + height);
-			glTexCoord2i(0,0);glVertex2i(loc.x, loc.y + height);
-		}if(left==true){
-			glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
-			glScalef(-1.0f,1.0f,1.0f);
-			glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
-			glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
-			glTexCoord2i(1,0);glVertex2i(loc.x + width, loc.y + height);
-			glTexCoord2i(0,-0);glVertex2i(loc.x, loc.y + height);
-		}
-
-	}else{
 		glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
 		glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
 		glTexCoord2i(1,0);glVertex2i(loc.x + width, loc.y + height);
 		glTexCoord2i(0,0);glVertex2i(loc.x, loc.y + height);
-	}
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
 	if(near){
 		ui::setFontSize(14);
 		ui::putText(loc.x,loc.y-ui::fontSize-HLINE/2,"%s",name);

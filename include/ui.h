@@ -10,6 +10,7 @@ namespace ui {	// Functions are kept in a namespace simply
 	extern vec2 mouse;
 
 	extern bool debug;
+	extern bool dialogBoxExists;
 	extern unsigned int fontSize;
 
 	void initFonts(void);	// Checks for and initializes the FreeType 2 library

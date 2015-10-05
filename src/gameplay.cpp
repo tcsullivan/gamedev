@@ -9,21 +9,26 @@ extern std::vector<NPC>npc;
 extern std::vector<Structures *>build;
 extern Player *player;
 
-int giveTestQuest(NPC *speaker){
-	ui::dialogBox(speaker->name,"Here, have a quest!");
-	player->qh.assign("Test");
+extern void mainLoop(void);
+
+int compTestQuest(NPC *speaker){
+	ui::dialogBox(speaker->name,"Ooo, that's a nice quest you got there. Lemme finish that for you ;).");
+	player->qh.finish("Test",player);
 	return 0;
 }
 
-int compTestQuest(NPC *speaker){
-	if(player->qh.hasQuest("Test")){
-		ui::dialogBox(speaker->name,"Ooo, that's a nice quest you got there. Lemme finish that for you ;).");
-		player->qh.finish("Test",player);
-		return 0;
-	}else{
-		ui::dialogBox(speaker->name,"You need to get a quest from %s first.",entity[1]->name);
-		return 1;
+int giveTestQuest(NPC *speaker){
+	static bool done=false;
+	if(!done){
+		ui::dialogBox(speaker->name,"Here, have a quest!");
+		player->qh.assign("Test");
+		done=true;
 	}
+	/*while(ui::dialogBoxExists){	
+		mainLoop();
+	}*/
+	NPCp(entity[2])->addAIFunc(compTestQuest);
+	return 0;
 }
 
 void initEverything(void){
@@ -51,18 +56,8 @@ void initEverything(void){
 	iw->generate(200);
 	build[0]->inside=iw;
 	
+	NPCp(entity[1])->addAIFunc(giveTestQuest);
 	for(i=0;i<entity.size()+1;i++){
 		entity[i]->inWorld=test;
-		switch(i){
-		case 1:
-			NPCp(entity[i])->addAIFunc(giveTestQuest);
-			entity[i]->inv->addItem(TEST_ITEM,3);
-			break;
-		case 2:
-			NPCp(entity[i])->addAIFunc(compTestQuest);
-			break;
-		default:
-			break;
-		}
 	}
 }

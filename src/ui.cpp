@@ -12,12 +12,12 @@ static FT_Library   ftl;		// Variables for the FreeType library and stuff
 static FT_Face      ftf;
 static GLuint       ftex;
 
-static bool dialogBoxExists=false;
 static char *dialogBoxText;
 
 namespace ui {
 	vec2 mouse;
 	bool debug=false;
+	bool dialogBoxExists=false;
 	unsigned int fontSize;
 	/*
 	 * initFonts(), setFontFace(), and setFontSize() are pretty self-explanatory
@@ -184,6 +184,7 @@ namespace ui {
 			*/
 			case SDL_KEYDOWN:
 				if(SDL_KEY==SDLK_ESCAPE)gameRunning=false;							// Exit the game with ESC
+			if(!dialogBoxExists){
 				if(SDL_KEY==SDLK_a){												// Move left
 					left=true;
 					player->vel.x=-.15;
@@ -212,8 +213,9 @@ namespace ui {
 				}
 				if(SDL_KEY==SDLK_i)currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible
 				if(SDL_KEY==SDLK_k)currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
+				if(SDL_KEY==SDLK_LSHIFT)player->speed = 3;							// Sprint
+			}
 				if(SDL_KEY==SDLK_F3)debug^=true;
-				if(SDL_KEY==SDLK_LSHIFT)player->speed = 3;
 				break;
 			/*
 				KEYUP
