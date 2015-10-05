@@ -8,11 +8,14 @@ SRCS = $(wildcard src/*.cpp)
 OUT = $(SRCS:.cpp=.o)
 
 .cpp.o:
-	g++ -o $@ -c $^ $(LIBS_LINUX) $(FLAGS)
+	@echo "  CXX " $^
+	@g++ -o $@ -c $^ $(LIBS_LINUX) $(FLAGS)
 
 all: $(OUT)
-	mv ./src/*.o ./out
-	g++ -o main main.cpp out/*.o $(LIBS_LINUX) $(FLAGS)
+	@echo "Relocating object files..."
+	@mv ./src/*.o ./out
+	@echo "  CXX main.cpp"
+	@g++ -o main main.cpp out/*.o $(LIBS_LINUX) $(FLAGS)
 
 clean:
 	-rm main
