@@ -39,7 +39,7 @@ public:
 
 	char* name;
 	GENDER gender;
-	unsigned int texture[];	  //TODO: ADD TEXTURES
+	unsigned int texture;	  //TODO: ADD TEXTURES
 
 	
 	void spawn(float, float);
