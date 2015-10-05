@@ -18,5 +18,7 @@ all: $(OUT)
 	@g++ -o main main.cpp out/*.o $(LIBS_LINUX) $(FLAGS)
 
 clean:
-	-rm main
-	-rm out/*.o
+	@echo "  RM main"
+	@-rm -f main
+	@echo "  RM out/*.o"
+	@-rm -f out/*.o

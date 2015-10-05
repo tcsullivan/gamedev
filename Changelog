@@ -71,3 +71,11 @@
 	- added a basic inventory
 	- quests can reward one type of item (but any quantity of that item)
 	- added texture loading, began working on player textures
+
+10/5/2015:
+==========
+
+	- added NPC/player/structure textures
+	- textures flip with direction
+	- made a beautiful Makefile
+	- moved main game loop into separate function
