@@ -40,7 +40,7 @@ unsigned int millis(void){
 
 int main(int argc, char *argv[]){
 	// Initialize SDL
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
+	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 		return -1;
 	}
@@ -58,20 +58,7 @@ int main(int argc, char *argv[]){
 	}
 	atexit(Mix_Quit);
 
-<<<<<<< HEAD
-	//Load music
-	music = Mix_LoadMUS("assets/BennyHillTheme.wav");
-	horn = Mix_LoadWAV("assets/air-horn-club-sample_1.wav");
-	if( music == NULL ){
-		printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
-	}
-	//Mix_PlayMusic( music, -1 );
-
-
-
-=======
->>>>>>> 1c0767766506407babdfefea9efe2b5627569244
-	// Turn on double buffering
+// Turn on double buffering
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     // Create the window
     window = SDL_CreateWindow("Independent Study v.0.2 alpha", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
