@@ -24,7 +24,7 @@ protected:
 	 * 
 	 */
 	struct line_t {
-		float y;
+		float y,gh;
 		unsigned char color;
 	} __attribute__ ((packed)) *line;
 	unsigned int lineCount;	// Size of the array 'line' (aka the width of the world)

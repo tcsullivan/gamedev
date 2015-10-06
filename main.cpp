@@ -58,6 +58,7 @@ int main(int argc, char *argv[]){
 	}
 	atexit(Mix_Quit);
 
+<<<<<<< HEAD
 	//Load music
 	music = Mix_LoadMUS("assets/BennyHillTheme.wav");
 	horn = Mix_LoadWAV("assets/air-horn-club-sample_1.wav");
@@ -68,6 +69,8 @@ int main(int argc, char *argv[]){
 
 
 
+=======
+>>>>>>> 1c0767766506407babdfefea9efe2b5627569244
 	// Turn on double buffering
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     // Create the window
@@ -93,7 +96,6 @@ int main(int argc, char *argv[]){
 	initRand(millis());									// Initialize the random number generator with millis()
 
 	glViewport(0,0,SCREEN_WIDTH, SCREEN_HEIGHT);		// Switch to pixel-based rendering, not coordinates (the -1 to 1 stuff)
-	glClearColor(.3,.5,.8,0);							// Sky blue
 	glEnable(GL_BLEND);									// Allow transparency
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	SDL_ShowCursor(SDL_DISABLE);						// Hide mouse cursor so we can draw our own
@@ -109,6 +111,14 @@ int main(int argc, char *argv[]){
 	/**************************
 	****     GAMELOOP      ****
 	**************************/
+	
+	//Load music
+	music = Mix_LoadMUS("assets/BennyHillTheme.wav");
+	horn = Mix_LoadWAV("assets/air-horn-club-sample_1.wav");
+	if( music == NULL ){
+		printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
+	}
+	Mix_PlayMusic( music, -1 );
 	
 	while(gameRunning){
 		mainLoop();

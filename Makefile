@@ -1,21 +1,11 @@
-LIBS_LINUX = -lGL -lSDL2_image -lSDL2_mixer
-LIBS_WIN32 = -lopengl32 -lmingw32 -lSDL2_Image
+LIBS = -lGL -lSDL2_image -lSDL2_mixer
 
 FLAGS = -m32 -std=c++11 -Iinclude -Iinclude/freetype2 -lSDL2main -lSDL2 -lfreetype
 
-SRCS = $(wildcard src/*.cpp)
-
-OUT = $(SRCS:.cpp=.o)
-
-.cpp.o:
-	@echo "  CXX " $^
-	@g++ -o $@ -c $^ $(LIBS_LINUX) $(FLAGS)
-
-all: $(OUT)
-	@echo "Relocating object files..."
-	@mv ./src/*.o ./out
+all:
+	@cd src; $(MAKE) $(MFLAGS)
 	@echo "  CXX main.cpp"
-	@g++ -o main main.cpp out/*.o $(LIBS_LINUX) $(FLAGS)
+	@g++ $(FLAGS) -o main main.cpp out/*.o $(LIBS)
 
 clean:
 	@echo "  RM main"

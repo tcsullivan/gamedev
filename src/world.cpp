@@ -11,7 +11,7 @@
 
 
 #define DRAW_Y_OFFSET 50	// Defines how many pixels each layer should be offset from each other on the y axis when drawn.
-#define DRAW_SHADE	  40	// Defines a shade increment for draw()
+#define DRAW_SHADE	  10	// Defines a shade increment for draw()
 
 #define INDOOR_FLOOR_HEIGHT 100 // Defines how high the base floor of an IndoorWorld should be
 
@@ -50,8 +50,9 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 		}else{							// If this line's y hasn't been set yet
 			line[i].y=line[i-1].y+inc;	// Set it by incrementing the previous line's y by 'inc'.
 		}
-		line[i].color=rand()%20+130;	// Generate a color for the dirt area of this line. This value will be used
-										// in the form (where n represents the color) glColor3ub(n,n-50,n-100)
+		line[i].color=rand()%20+90;		// Generate a color for the dirt area of this line. This value will be used
+											// in the form (where n represents the color) glColor3ub(n,n-50,n-100)
+		line[i].gh=(getRand()%20)/3;	// Create a random grass height so it looks cool
 	}
 	x_start=0-getWidth(this)/2+GEN_INC/2*HLINE;	// Calculate x_start (explained in world.h)
 	behind=infront=NULL;						// Set pointers to other worlds to NULL
@@ -69,6 +70,7 @@ void World::draw(vec2 *vec){
 	int i,ie,v_offset,cx_start;
 	struct line_t *cline;
 	current=this;	// yeah
+	glClearColor(.1,.3,.6,0);
 LOOP1:								// Check for worlds behind the current one and set 'current' to them if they exist
 	if(current->behind){			// so that once LOOP1 is exited 'current' contains the furthest back world.
 		yoff+=DRAW_Y_OFFSET;
@@ -85,22 +87,24 @@ LOOP2:													// Draw each world
 	if(ie>current->lineCount)ie=current->lineCount;		// If the player is past the end of that world 'ie' should contain the end of that world
 	cline=current->line;								// 'cline' and 'cx_start' only exist to make the for loop clear (and maybe make it faster)
 	cx_start=current->x_start;
+	shade*=-1;
 	glBegin(GL_QUADS);
 		for(i=i;i<ie-GEN_INC;i++){								// For lines in array 'line' from 'i' to 'ie'
-			cline[i].y+=(yoff-DRAW_Y_OFFSET);			// 'yoff' is always one incrementation ahead of what it should be
-			safeSetColor(shade,200+shade,shade);		// Safely set the grass color
+			cline[i].y+=(yoff-DRAW_Y_OFFSET);					// 'yoff' is always one incrementation ahead of what it should be
+			safeSetColor(shade,150+shade,shade);				// Safely set the grass color
 			glVertex2i(cx_start+i*HLINE      ,cline[i].y);											// Draw the grass area of the line
 			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y);
-			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
-			glVertex2i(cx_start+i*HLINE		,cline[i].y-GRASS_HEIGHT);
+			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT-cline[i].gh);
+			glVertex2i(cx_start+i*HLINE		,cline[i].y-GRASS_HEIGHT-cline[i].gh);
 			safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);	// Set the shaded dirt color (safely)
-			glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);								// Draw the dirt area of the line
-			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
+			glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT-cline[i].gh);					// Draw the dirt area of the line
+			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT-cline[i].gh);
 			glVertex2i(cx_start+i*HLINE+HLINE,0);
 			glVertex2i(cx_start+i*HLINE		 ,0);
 			cline[i].y-=(yoff-DRAW_Y_OFFSET); // Reset 'cline[i]'`s y to what it was
 		}
 	glEnd();
+	shade*=-1;
 	safeSetColor(255+shade*2,0+shade,0+shade);
 	for(i=0;i<current->platform.size();i++){
 		glRectf(current->platform[i].p1.x,current->platform[i].p1.y+yoff-DRAW_Y_OFFSET,
@@ -273,6 +277,7 @@ void IndoorWorld::draw(vec2 *vec){
 														// of the world
 	ie=v_offset+SCREEN_WIDTH/2;							// Set how many lines should be drawn (the drawing for loop loops from 'i' to 'ie')
 	if(ie>lineCount)ie=lineCount;						// If the player is past the end of that world 'ie' should contain the end of that world
+	glClearColor(.3,.1,0,0);
 	glBegin(GL_QUADS);
 		for(i=i;i<ie-GEN_INC;i++){						// For lines in array 'line' from 'i' to 'ie'
 			safeSetColor(150,100,50);

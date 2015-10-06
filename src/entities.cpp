@@ -85,17 +85,17 @@ void Entity::getName(){
 	switch(fgetc(names)){
 	case 'm':
 		gender = MALE;
-		std::puts("Male");
+		//std::puts("Male");
 		break;
 	case 'f':
 		gender = FEMALE;
-		std::puts("Female");
+		//std::puts("Female");
 		break;
 	default:
 		break;
 	}
 	if((fgets(bufs,16,(FILE*)names)) != NULL){
-		std::puts(bufs);
+		//std::puts(bufs);
 		bufs[strlen(bufs)-1] = '\0';
 		strcpy(name,bufs);
 	}
