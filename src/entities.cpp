@@ -103,8 +103,8 @@ void Entity::getName(){
 }
 
 Player::Player(){ //sets all of the player specific traits on object creation
-	width = HLINE * 8;
-	height = HLINE * 12;
+	width = HLINE * 10;
+	height = HLINE * 16;
 	speed = 1;
 	type = PLAYERT; //set type to player
 	subtype = 5;
@@ -120,8 +120,8 @@ void Player::interact(){ //the function that will cause the player to search for
 }
 
 NPC::NPC(){	//sets all of the NPC specific traits on object creation
-	width = HLINE * 8;
-	height = HLINE * 12;
+	width = HLINE * 10;
+	height = HLINE * 16;
 	speed = 1;
 	type = NPCT; //sets type to npc
 	subtype = 0;
@@ -165,8 +165,8 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 	//spawns between 1 and 5 villagers around the village
 	if(type == STRUCTURET){
 		loc.y=100;
-		width =  30 * HLINE;
-		height = 30 * HLINE;
+		width =  50 * HLINE;
+		height = 40 * HLINE;
 
 		int tempN = (getRand() % 5 + 2); //amount of villagers that will spawn
 		for(int i=0;i<tempN;i++){

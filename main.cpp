@@ -64,7 +64,7 @@ int main(int argc, char *argv[]){
 	if( music == NULL ){
 		printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
 	}
-	Mix_PlayMusic( music, -1 );
+	//Mix_PlayMusic( music, -1 );
 
 
 
@@ -188,7 +188,7 @@ void render(){
 	**************************/
 
 	currentWorld->draw(&player->loc);	// Draw the world around the player
-	glColor3ub(0,0,0);
+	glColor3ub(255,255,255);
 	player->near=true;
 	player->draw();						// Draw the player
 	player->inv->draw();
