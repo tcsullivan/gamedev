@@ -79,3 +79,10 @@
 	- textures flip with direction
 	- made a beautiful Makefile
 	- moved main game loop into separate function
+
+10/6/2015:
+==========
+
+	- Makefile only builds edited files now
+	- improved sprites
+	- improved world drawing
