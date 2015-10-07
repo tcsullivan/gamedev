@@ -41,7 +41,7 @@ unsigned int millis(void){
 
 int main(int argc, char *argv[]){
 	// Initialize SDL
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
+	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 		return -1;
 	}
@@ -235,5 +235,4 @@ void logic(){
 		}
 	}
 	loops++;
-	//std::cout << loops << std::endl;
 }

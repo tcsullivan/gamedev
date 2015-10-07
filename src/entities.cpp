@@ -53,9 +53,7 @@ void Entity::draw(void){		//draws the entities
 				texState-=1;
 				if(texState==0)up=true;
 			}
-		}
-		std::cout << texState << std::endl;
-		if(vel.x != 0){
+		}if(vel.x != 0){
 			switch(texState){
 				case 0:
 					glBindTexture(GL_TEXTURE_2D,texture[1]);
