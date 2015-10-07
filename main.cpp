@@ -27,6 +27,7 @@ FILE* names;
 
 Mix_Music *music;
 Mix_Chunk *horn;
+unsigned int loops = 0;
 
 extern void initEverything(void);
 
@@ -58,8 +59,7 @@ int main(int argc, char *argv[]){
 		std::cout << "SDL_mixer could not initialize! SDL_mixer Error: " << Mix_GetError() << std::endl;
 	}
 	atexit(Mix_Quit);
-
-// Turn on double buffering
+	// Turn on double buffering
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     // Create the window
     window = SDL_CreateWindow("Independent Study v.0.2 alpha", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
@@ -246,4 +246,5 @@ void logic(){
 			}
 		}
 	}
+	loops++;
 }

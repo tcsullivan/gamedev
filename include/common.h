@@ -45,6 +45,7 @@ GLuint loadTexture(const char *fileName);
 
 extern bool gameRunning;
 extern unsigned int deltaTime;
+extern unsigned int loops;
 
 extern FILE* config;
 extern FILE* names;
