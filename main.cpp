@@ -26,6 +26,7 @@ FILE* names;
 
 Mix_Music *music;
 Mix_Chunk *horn;
+unsigned int loops = 0;
 
 extern void initEverything(void);
 
@@ -57,20 +58,6 @@ int main(int argc, char *argv[]){
 		std::cout << "SDL_mixer could not initialize! SDL_mixer Error: " << Mix_GetError() << std::endl;
 	}
 	atexit(Mix_Quit);
-
-<<<<<<< HEAD
-	//Load music
-	music = Mix_LoadMUS("assets/BennyHillTheme.wav");
-	horn = Mix_LoadWAV("assets/air-horn-club-sample_1.wav");
-	if( music == NULL ){
-		printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
-	}
-	//Mix_PlayMusic( music, -1 );
-
-
-
-=======
->>>>>>> 1c0767766506407babdfefea9efe2b5627569244
 	// Turn on double buffering
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     // Create the window
@@ -247,4 +234,6 @@ void logic(){
 			}
 		}
 	}
+	loops++;
+	//std::cout << loops << std::endl;
 }

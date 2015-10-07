@@ -42,7 +42,35 @@ void Entity::draw(void){		//draws the entities
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,texture);
+	if(type == PLAYERT){
+		static int texState = 0;
+		static bool up = true;
+		if(loops % (int)((float)5 / (float)speed) == 0){
+			if(up){
+				texState+=1;
+				if(texState==2)up=false;
+			}else if(!up){
+				texState-=1;
+				if(texState==0)up=true;
+			}
+		}
+		std::cout << texState << std::endl;
+		if(vel.x != 0){
+			switch(texState){
+				case 0:
+					glBindTexture(GL_TEXTURE_2D,texture[1]);
+				break;
+				case 1:
+					glBindTexture(GL_TEXTURE_2D,texture[0]);
+				break;
+				case 2:
+					glBindTexture(GL_TEXTURE_2D,texture[2]);
+				break;
+			}
+		}else glBindTexture(GL_TEXTURE_2D,texture[0]);
+	}else{
+		glBindTexture(GL_TEXTURE_2D,texture[0]);
+	}
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
 		glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
@@ -111,7 +139,9 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	alive = true;
 	ground = false;
 	near = true;
-	texture = loadTexture("assets/player.png");
+	texture[0] = loadTexture("assets/player.png");
+	texture[1] = loadTexture("assets/player1.png");
+	texture[2] = loadTexture("assets/player2.png");
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
 
@@ -128,7 +158,9 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	alive = true;
 	canMove = true;
 	near = false;
-	texture = loadTexture("assets/NPC.png");
+	texture[0] = loadTexture("assets/NPC.png");
+	texture[1] = 0;
+	texture[2] = 0;
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
@@ -152,7 +184,9 @@ Structures::Structures(){ //sets the structure type
 	speed = 0;
 	alive = true;
 	near = false;
-	texture = loadTexture("assets/house1.png");
+	texture[0] = loadTexture("assets/house1.png");
+	texture[1] = 0;
+	texture[2] = 0;
 }
 
 unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure based off of type and coords

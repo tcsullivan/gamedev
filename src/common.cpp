@@ -19,7 +19,7 @@ GLuint loadTexture(const char *fileName){
   SDL_Surface *image = IMG_Load(fileName);
  
   //SDL_DisplayFormatAlpha(image);
- 
+
   unsigned object(0);
  
   glGenTextures(1, &object);
