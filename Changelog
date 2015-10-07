@@ -86,3 +86,12 @@
 	- Makefile only builds edited files now
 	- improved sprites
 	- improved world drawing
+
+10/8/2015:
+==========
+
+	- added background image
+	- added grass
+	- added running textures to player
+	- added crouching
+	- improved world draw, world now draws player as well

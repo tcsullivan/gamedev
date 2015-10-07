@@ -11,7 +11,7 @@
 
 
 #define DRAW_Y_OFFSET 50	// Defines how many pixels each layer should be offset from each other on the y axis when drawn.
-#define DRAW_SHADE	  10	// Defines a shade increment for draw()
+#define DRAW_SHADE	  30	// Defines a shade increment for draw()
 
 #define INDOOR_FLOOR_HEIGHT 100 // Defines how high the base floor of an IndoorWorld should be
 
@@ -50,9 +50,12 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 		}else{							// If this line's y hasn't been set yet
 			line[i].y=line[i-1].y+inc;	// Set it by incrementing the previous line's y by 'inc'.
 		}
-		line[i].color=rand()%20+90;		// Generate a color for the dirt area of this line. This value will be used
-											// in the form (where n represents the color) glColor3ub(n,n-50,n-100)
-		line[i].gh=(getRand()%20)/3;	// Create a random grass height so it looks cool
+		line[i].color=rand()%20+100;	// Generate a color for the dirt area of this line. This value will be used
+										// in the form (where n represents the color) glColor3ub(n,n-50,n-100)
+										
+		line[i].gh[0]=(getRand()%16)/3.5+2;	// Create a random grass height so it looks cool
+		line[i].gh[1]=(getRand()%16)/3.5+2;
+		line[i].gs=true;
 	}
 	x_start=0-getWidth(this)/2+GEN_INC/2*HLINE;	// Calculate x_start (explained in world.h)
 	behind=infront=NULL;						// Set pointers to other worlds to NULL
@@ -63,11 +66,11 @@ World::~World(void){
 	free(line);	// Free (de-allocate) the array 'line'
 }
 
-void World::draw(vec2 *vec){
+void World::draw(Player *p){
 	static float yoff=DRAW_Y_OFFSET;	// Initialize stuff
 	static int shade=0;
 	static World *current;
-	int i,ie,v_offset,cx_start;
+	int i,is,ie,v_offset,cx_start;
 	struct line_t *cline;
 	current=this;	// yeah
 	glClearColor(.1,.3,.6,0);
@@ -79,32 +82,62 @@ LOOP1:								// Check for worlds behind the current one and set 'current' to th
 		goto LOOP1;
 	}
 LOOP2:													// Draw each world
-	v_offset=(vec->x-current->x_start)/HLINE;			// Calculate the player's offset in the array 'line' using the player's location 'vec'
-	i=v_offset-SCREEN_WIDTH/(yoff/(DRAW_Y_OFFSET/2));	// Set 'i' to that somehow
-	if(i<0)i=0;											// If the player is past the start of that world 'i' should start at the beginning
+	v_offset=(p->loc.x-current->x_start)/HLINE;			// Calculate the player's offset in the array 'line' using the player's location 'vec'
+	is=v_offset-SCREEN_WIDTH/(yoff/(DRAW_Y_OFFSET/2));	// Set 'i' to that somehow
+	if(is<0)is=0;										// If the player is past the start of that world 'i' should start at the beginning
 														// of the world
 	ie=v_offset+SCREEN_WIDTH/(yoff/(DRAW_Y_OFFSET/2));	// Set how many lines should be drawn (the drawing for loop loops from 'i' to 'ie')
 	if(ie>current->lineCount)ie=current->lineCount;		// If the player is past the end of that world 'ie' should contain the end of that world
 	cline=current->line;								// 'cline' and 'cx_start' only exist to make the for loop clear (and maybe make it faster)
 	cx_start=current->x_start;
-	shade*=-1;
+	//shade*=-1;
 	glBegin(GL_QUADS);
-		for(i=i;i<ie-GEN_INC;i++){								// For lines in array 'line' from 'i' to 'ie'
+		for(i=is;i<ie-GEN_INC;i++){									// For lines in array 'line' from 'i' to 'ie'
 			cline[i].y+=(yoff-DRAW_Y_OFFSET);					// 'yoff' is always one incrementation ahead of what it should be
-			safeSetColor(shade,150+shade,shade);				// Safely set the grass color
-			glVertex2i(cx_start+i*HLINE      ,cline[i].y);											// Draw the grass area of the line
-			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y);
-			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT-cline[i].gh);
-			glVertex2i(cx_start+i*HLINE		,cline[i].y-GRASS_HEIGHT-cline[i].gh);
 			safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);	// Set the shaded dirt color (safely)
-			glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT-cline[i].gh);					// Draw the dirt area of the line
-			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT-cline[i].gh);
+			glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
+			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
 			glVertex2i(cx_start+i*HLINE+HLINE,0);
 			glVertex2i(cx_start+i*HLINE		 ,0);
 			cline[i].y-=(yoff-DRAW_Y_OFFSET); // Reset 'cline[i]'`s y to what it was
 		}
 	glEnd();
-	shade*=-1;
+	if(current==this){
+		int ph;
+		ph=(p->loc.x+p->width/2-x_start)/HLINE;	// Calculate what line the player is currently on
+		for(i=0;i<lineCount-GEN_INC;i++){
+			if(p->ground==1&&i<ph+6&&i>ph-6)cline[i].gs=false;
+			else cline[i].gs=true;
+		}
+		for(i=0;i<entity.size()+1;i++){
+			if(entity[i]->inWorld==this){
+				entity[i]->draw();
+			}
+		}
+		p->draw();
+	}
+	float cgh[2];
+	glBegin(GL_QUADS);
+		for(i=is;i<ie-GEN_INC;i++){
+			memcpy(cgh,cline[i].gh,2*sizeof(float));
+			if(!cline[i].gs){
+				cgh[0]/=4;
+				cgh[1]/=4;
+			}
+			cline[i].y+=(yoff-DRAW_Y_OFFSET);
+			safeSetColor(shade,150+shade,shade);
+			glVertex2i(cx_start+i*HLINE        ,cline[i].y+cgh[0]);
+			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y+cgh[0]);
+			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y-GRASS_HEIGHT);
+			glVertex2i(cx_start+i*HLINE		   ,cline[i].y-GRASS_HEIGHT);
+			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y+cgh[1]);
+			glVertex2i(cx_start+i*HLINE+HLINE  ,cline[i].y+cgh[1]);
+			glVertex2i(cx_start+i*HLINE+HLINE  ,cline[i].y-GRASS_HEIGHT);
+			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y-GRASS_HEIGHT);
+			cline[i].y-=(yoff-DRAW_Y_OFFSET);
+		}
+	glEnd();
+	//shade*=-1;
 	safeSetColor(255+shade*2,0+shade,0+shade);
 	for(i=0;i<current->platform.size();i++){
 		glRectf(current->platform[i].p1.x,current->platform[i].p1.y+yoff-DRAW_Y_OFFSET,
@@ -118,11 +151,6 @@ LOOP2:													// Draw each world
 	}else{							// Otherwise reset static values and return
 		yoff=DRAW_Y_OFFSET;
 		shade=0;
-		for(i=0;i<entity.size()+1;i++){
-			if(entity[i]->inWorld==this){
-				entity[i]->draw();
-			}
-		}
 	}
 }
 
@@ -269,9 +297,9 @@ void IndoorWorld::generate(unsigned int width){		// Generates a flat area of wid
 	x_start=0-getWidth(this)/2+GEN_INC/2*HLINE;	// Calculate x_start (explained in world.h)
 }
 
-void IndoorWorld::draw(vec2 *vec){
+void IndoorWorld::draw(Player *p){
 	int i,ie,v_offset;
-	v_offset=(vec->x-x_start)/HLINE;					// Calculate the player's offset in the array 'line' using the player's location 'vec'
+	v_offset=(p->loc.x-x_start)/HLINE;					// Calculate the player's offset in the array 'line' using the player's location 'vec'
 	i=v_offset-SCREEN_WIDTH/2;							// um
 	if(i<0)i=0;											// If the player is past the start of that world 'i' should start at the beginning
 														// of the world
@@ -291,4 +319,5 @@ void IndoorWorld::draw(vec2 *vec){
 		if(entity[i]->inWorld==this)
 			entity[i]->draw();
 	}
+	p->draw();
 }

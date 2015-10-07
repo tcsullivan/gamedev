@@ -24,7 +24,8 @@ protected:
 	 * 
 	 */
 	struct line_t {
-		float y,gh;
+		bool gs;
+		float y,gh[2];
 		unsigned char color;
 	} __attribute__ ((packed)) *line;
 	unsigned int lineCount;	// Size of the array 'line' (aka the width of the world)
@@ -45,7 +46,7 @@ public:
 	void addLayer(unsigned int width);					// Generates a new world and makes 'behind' point to it. If 'behind'
 														// already points to a world, the new world will be set to be behind 'behind'.
 														
-	virtual void draw(vec2 *vec);						// Draws the world around the coordinates 'vec'
+	virtual void draw(Player *p);						// Draws the world around the coordinates 'vec'
 	
 	
 	void detect(Player *p);								// Insures objects/entities stored in an Entity class stay outside of the
@@ -78,7 +79,7 @@ public:
 	~IndoorWorld(void);
 	
 	void generate(unsigned int width);	// Generates a flat world of width 'width'
-	void draw(vec2 *vec);				// Draws the world (ignores layers)
+	void draw(Player *p);				// Draws the world (ignores layers)
 };
 
 #endif // WORLD_H

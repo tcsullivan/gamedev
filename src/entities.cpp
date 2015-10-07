@@ -32,7 +32,7 @@ void Entity::draw(void){		//draws the entities
 			glColor3ub(255,255,0);
 			glRectf(loc.x+width/3,loc.y+height,loc.x+width*2/3,loc.y+height+width/3);
 		}
-	}if(type==STRUCTURET){
+	}else{
 		glColor3ub(255,255,255);
 	}
 	if(left){

@@ -11,6 +11,7 @@
 SDL_Window    *window = NULL;
 SDL_Surface   *renderSurface = NULL;
 SDL_GLContext  mainGLContext = NULL;
+static GLuint  bgImage;
 
 bool gameRunning = true;
 
@@ -107,6 +108,8 @@ int main(int argc, char *argv[]){
 	}
 	Mix_PlayMusic( music, -1 );
 	
+	bgImage=loadTexture("assets/bg.png");
+	
 	while(gameRunning){
 		mainLoop();
 	}
@@ -184,10 +187,19 @@ void render(){
 	**** RENDER STUFF HERE ****
 	**************************/
 
-	currentWorld->draw(&player->loc);	// Draw the world around the player
-	glColor3ub(255,255,255);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D,bgImage);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2,0);
+		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2,0);
+		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2,SCREEN_HEIGHT);
+		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2,SCREEN_HEIGHT);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+
 	player->near=true;
-	player->draw();						// Draw the player
+	currentWorld->draw(player);	// Draw the world & the player
+	glColor3ub(255,255,255);
 	player->inv->draw();
 
 	ui::draw();							// Draw any UI elements if they need to be

@@ -8,4 +8,4 @@ OUT = `echo "" $$(ls -c $(wildcard *.cpp)) | sed s/.cpp/.o/g | sed 's/ / ..\/out
 	@echo "  CXX " $(shell echo $@ | sed 's/..\/out\///g' | sed 's/\.o/\.cpp/')
 	@g++ $(FLAGS) -o $@ -c $(shell echo $@ | sed 's/..\/out\///g' | sed 's/\.o/\.cpp/') $(LIBS)
 
-all:  $(shell echo $(OUT))
+all: $(shell echo $(OUT))

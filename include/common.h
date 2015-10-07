@@ -30,7 +30,7 @@ enum GENDER{
 #include <entities.h>
 
 #define SCREEN_WIDTH  1280
-#define SCREEN_HEIGHT 720
+#define SCREEN_HEIGHT 740
 //#define FULLSCREEN
 
 #define HLINE 3								//base unit of the world
