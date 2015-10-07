@@ -53,7 +53,10 @@ void Entity::draw(void){		//draws the entities
 				texState-=1;
 				if(texState==0)up=true;
 			}
-		}if(vel.x != 0){
+		}if(ground == 0){
+			glBindTexture(GL_TEXTURE_2D, texture[1]);
+		}
+		else if(vel.x != 0){
 			switch(texState){
 				case 0:
 					glBindTexture(GL_TEXTURE_2D,texture[1]);
@@ -65,7 +68,9 @@ void Entity::draw(void){		//draws the entities
 					glBindTexture(GL_TEXTURE_2D,texture[2]);
 				break;
 			}
-		}else glBindTexture(GL_TEXTURE_2D,texture[0]);
+		}else{
+			glBindTexture(GL_TEXTURE_2D,texture[0]);
+		}
 	}else{
 		glBindTexture(GL_TEXTURE_2D,texture[0]);
 	}
