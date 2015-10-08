@@ -23,14 +23,13 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	if(type==NPCT){
-		if(gender == MALE){
-			glColor3ub(255,255,255);
-		}else if(gender == FEMALE){
-			glColor3ub(255,105,180);
-		}
 		if(NPCp(this)->aiFunc.size()){
 			glColor3ub(255,255,0);
 			glRectf(loc.x+width/3,loc.y+height,loc.x+width*2/3,loc.y+height+width/3);
+		}if(gender == MALE){
+			glColor3ub(255,255,255);
+		}else if(gender == FEMALE){
+			glColor3ub(255,105,180);
 		}
 	}else{
 		glColor3ub(255,255,255);
@@ -87,18 +86,6 @@ void Entity::draw(void){		//draws the entities
 		ui::setFontSize(14);
 		ui::putText(loc.x,loc.y-ui::fontSize-HLINE/2,"%s",name);
 	}
-}
-
-void Entity::wander(int timeRun, vec2 *v){ //this makes the entites wander about
-	static int direction;	//variable to decide what direction the entity moves
-	if(ticksToUse == 0){
-		ticksToUse = timeRun;
-		v->x = .008*HLINE;	//sets the inital velocity of the entity
-		direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
-											//this lets the entity move left, right, or stay still
-		v->x *= direction;	//changes the velocity based off of the direction
-	}
-	ticksToUse--; //removes one off of the entities timer
 }
 
 void Entity::getName(){
@@ -167,6 +154,19 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
+void NPC::wander(int timeRun, vec2 *v){ //this makes the entites wander about
+	static int direction;	//variable to decide what direction the entity moves
+	if(ticksToUse == 0){
+		ticksToUse = timeRun;
+		v->x = .008*HLINE;	//sets the inital velocity of the entity
+		direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
+											//this lets the entity move left, right, or stay still
+		v->x *= direction;	//changes the velocity based off of the direction
+	}
+	ticksToUse--; //removes one off of the entities timer
+}
+
+
 void NPC::addAIFunc(int (*func)(NPC *)){
 	aiFunc.push_back(func);
 }
@@ -213,5 +213,38 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 			entity[entity.size()-1]->spawn(loc.x + (float)(i - 5),100); //sets the position of the villager around the village
 		}
 		return entity.size();
+	}
+}
+Mob::Mob(){
+	width = HLINE * 10;
+	height = HLINE * 8;
+	speed = 1;
+	type = MOBT; //sets type to MOB
+	subtype = 1; //SKIRL
+	alive = true;
+	canMove = true;
+	near = false;
+	texture[0] = loadTexture("assets/NPC.png");
+	texture[1] = 0;
+	texture[2] = 0;
+	inv = new Inventory(NPC_INV_SIZE);
+}
+
+void Mob::wander(int timeRun, vec2* v){
+	if(subtype == 1){ //SKIRL
+		static int direction;	//variable to decide what direction the entity moves
+		if(ticksToUse == 0){
+			ticksToUse = timeRun;
+			if(ground && direction != 0){
+				v->y=.08;
+				loc.y+=HLINE*1;
+				ground=false;
+				v->x = .008*HLINE;	//sets the inital velocity of the entity
+			}
+			direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
+												//this lets the entity move left, right, or stay still
+			v->x *= direction;	//changes the velocity based off of the direction
+		}
+		ticksToUse--; //removes one off of the entities timer
 	}
 }
