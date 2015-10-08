@@ -218,7 +218,7 @@ void render(){
 	**************************/
 	mx = ui::mouse.x + player->loc.x;
 	my = ui::mouse.y;
-	my = 720 - my;
+	my = SCREEN_HEIGHT - my;
 	mx -= (SCREEN_WIDTH/2);
 	glColor3ub(255,255,255);
 	glBegin(GL_TRIANGLES);
@@ -243,7 +243,7 @@ void logic(){
 						entity[i]->near=true;
 						if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(SDL_BUTTON_RIGHT)){
 							entity[i]->interact();
-							std::cout <<"["<<i<<"] -> "<< entity[i]->name << ", " << (std::string)(entity[i]->gender == MALE ? "Male" : "Female") << std::endl;
+							//std::cout <<"["<<i<<"] -> "<< entity[i]->name << ", " << (std::string)(entity[i]->gender == MALE ? "Male" : "Female") << std::endl;
 							//Mix_PlayChannel( -1, horn, 0);
 						}
 					}else entity[i]->near=false;

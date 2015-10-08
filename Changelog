@@ -95,3 +95,11 @@
 	- added running textures to player
 	- added crouching
 	- improved world draw, world now draws player as well
+
+10/9/2015:
+==========
+
+	- improved player inventory
+	- improved quests
+	- added mobs
+	- added DEBUG flags and functions to inventory.cpp and ui.cpp

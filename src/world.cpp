@@ -163,7 +163,7 @@ void World::singleDetect(Entity *e){
 			e->ground=true;
 			e->loc.y=line[i].y-.001*deltaTime;	
 			if(e->type==STRUCTURET){
-				std::cout<<e->loc.x<<" "<<e->loc.y<<std::endl;
+				//std::cout<<e->loc.x<<" "<<e->loc.y<<std::endl;
 				return;
 			}
 		}else if(e->loc.y>line[i].y-.002*deltaTime){	// Snap the player to the top of that line if the player is inside it

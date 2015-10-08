@@ -30,8 +30,8 @@ enum GENDER{
 #include <Quest.h>
 #include <entities.h>
 
-#define SCREEN_WIDTH  1280
-#define SCREEN_HEIGHT 740
+#define SCREEN_WIDTH  640
+#define SCREEN_HEIGHT 480
 //#define FULLSCREEN
 
 #define HLINE 3								//base unit of the world

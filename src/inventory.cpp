@@ -30,6 +30,7 @@ unsigned int initInventorySprites(void){
 }
 
 Inventory::Inventory(unsigned int s){
+	sel=0;
 	size=s;
 	item=(struct item_t *)calloc(size,sizeof(struct item_t));
 }
@@ -37,19 +38,32 @@ Inventory::Inventory(unsigned int s){
 Inventory::~Inventory(void){
 	free(item);
 }
-	
+
+void Inventory::setSelection(unsigned int s){
+	sel=s;
+}
+
 int Inventory::addItem(ITEM_ID id,unsigned char count){
 	unsigned int i;
 	for(i=0;i<size;i++){
 		if(item[i].id==id){
 			item[i].count+=count;
+#ifdef DEBUG
+			DEBUG_printf("Gave player %u more %s(s).\n",count,itemName[i]);
+#endif // DEBUG
 			return 0;
 		}else if(!item[i].count){
 			item[i].id=id;
 			item[i].count=count;
+#ifdef DEBUG
+			DEBUG_printf("Gave player %u %s(s).\n",count,itemName[i]);
+#endif // DEBUG
 			return 0;
 		}
 	}
+#ifdef DEBUG
+	DEBUG_printf("Failed to add non-existant item with id %u.\n",id);
+#endif // DEBUG
 	return -1;
 }
 
@@ -78,6 +92,8 @@ void Inventory::draw(void){
 		xoff=ui::putText(player->loc.x-SCREEN_WIDTH/2,y,"%d x ",item[i].count);
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D,ITEM_TEX[item[i].id-1]);
+		if(sel==i)glColor3ub(255,0,255);
+		else      glColor3ub(255,255,255);
 		glBegin(GL_QUADS);
 			glTexCoord2i(0,1);glVertex2i(xoff		  ,y);
 			glTexCoord2i(1,1);glVertex2i(xoff+HLINE*10,y);
