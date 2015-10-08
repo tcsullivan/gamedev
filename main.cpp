@@ -21,6 +21,7 @@ Player *player;
 std::vector<Entity*>entity;
 std::vector<NPC>npc;
 std::vector<Structures *>build;
+std::vector<Mob>mob;
 
 int mx, my;
 FILE* names;
@@ -232,17 +233,21 @@ void logic(){
 	ui::handleEvents();
 	currentWorld->detect(player);
 	for(int i=0;i<=entity.size();i++){
-		if(entity[i]->alive&&entity[i]->type == NPCT){
-			entity[i]->wander((rand()%120 + 30), &entity[i]->vel);
-			if( pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
-				if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width){
-					entity[i]->near=true;
-					if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(SDL_BUTTON_RIGHT)){
-						entity[i]->interact();
-						std::cout <<"["<<i<<"] -> "<< entity[i]->name << ", " << (std::string)(entity[i]->gender == MALE ? "Male" : "Female") << std::endl;
-						//Mix_PlayChannel( -1, horn, 0);
-					}
-				}else entity[i]->near=false;
+		if(entity[i]->alive){
+			if(entity[i]->type == NPCT){
+				entity[i]->wander((rand()%120 + 30), &entity[i]->vel);
+				if( pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
+					if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width){
+						entity[i]->near=true;
+						if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(SDL_BUTTON_RIGHT)){
+							entity[i]->interact();
+							std::cout <<"["<<i<<"] -> "<< entity[i]->name << ", " << (std::string)(entity[i]->gender == MALE ? "Male" : "Female") << std::endl;
+							//Mix_PlayChannel( -1, horn, 0);
+						}
+					}else entity[i]->near=false;
+				}
+			}if(entity[i]->type == MOBT){
+				entity[i]->wander(90,&entity[i]->vel);
 			}
 		}
 	}

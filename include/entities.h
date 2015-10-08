@@ -44,11 +44,11 @@ public:
 	
 	void spawn(float, float);
 	void draw(void);
-	void wander(int, vec2*);
+	virtual void wander(int, vec2*){}
 	void getName();
 	virtual void interact(){}
-private:
 	int ticksToUse;	//The variable for deciding how long an entity should do a certain task
+private:
 };
 
 class Player : public Entity{
@@ -64,6 +64,7 @@ public:
 	NPC();
 	void addAIFunc(int (*func)(NPC *));
 	void interact();
+	void wander(int, vec2*);
 };
 class Structures : public Entity{
 public:
@@ -71,5 +72,37 @@ public:
 	Structures();
 	unsigned int spawn(_TYPE, float, float);
 };
+class Mob : public Entity{
+public:
+	Mob();
+	void wander(int, vec2*);
+};
 
 #endif // ENTITIES_H
+
+/**
+ENTITY TYPES
+-1 STRUCTURES
+|->1 Village
+|->2 Castle
+|
+0 PLAYERS
+|->Player
+|
+1 NPCS
+|->0 Base
+|->1 Merchant
+|
+2 MOBS
+|->1 Skirl
+
+
+
+
+
+
+
+
+
+
+**/

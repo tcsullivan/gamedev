@@ -8,6 +8,8 @@ extern std::vector<Entity*>entity;
 extern std::vector<NPC>npc;
 extern std::vector<Structures *>build;
 extern Player *player;
+extern std::vector<Mob>mob;
+
 
 extern void mainLoop(void);
 
@@ -50,11 +52,17 @@ void initEverything(void){
 	entity.push_back(new Entity());
 	build.push_back(new Structures());
 	entity[0]=build[0];
-	
-	build[0]->spawn(STRUCTURET,0,10);
+
+	build[0]->spawn(STRUCTURET,(rand()%120*HLINE),10);
 	IndoorWorld *iw=new IndoorWorld();
 	iw->generate(200);
 	build[0]->inside=iw;
+
+	entity.push_back(new Mob()); //create a new entity of NPC type
+	mob.push_back(Mob()); //create new NPC
+	entity[entity.size()] = &mob[mob.size()-1]; //set the new entity to have the same traits as an NPC
+	entity[entity.size()-1]->spawn(200,100); //sets the position of the villager around the village
+	entity.pop_back();
 	
 	NPCp(entity[1])->addAIFunc(giveTestQuest);
 	for(i=0;i<entity.size()+1;i++){

@@ -17,7 +17,8 @@ typedef struct { float x; float y; }vec2;
 enum _TYPE { //these are the main types of entities
 	STRUCTURET = -1,
 	PLAYERT    = 0,
-	NPCT       = 1
+	NPCT       = 1,
+	MOBT	   = 2
 };
 
 enum GENDER{
