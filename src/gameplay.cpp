@@ -34,7 +34,7 @@ int giveTestQuest(NPC *speaker){
 }
 
 int giveStuff(NPC *speaker){
-	ui::dialogBox(speaker->name,"Take my stuff you ugly whore");
+	ui::dialogBox(speaker->name,"Have a sword :D");
 	player->inv->addItem(SWORD_ITEM,1);
 	return 0;
 }
