@@ -158,7 +158,15 @@ void World::singleDetect(Entity *e){
 	unsigned int i;
 	if(e->alive){
 		i=(e->loc.x+e->width/2-x_start)/HLINE;	// Calculate what line the player is currently on
-		if(e->loc.y>line[i].y-.002*deltaTime){	// Snap the player to the top of that line if the player is inside it
+		if(e->type==STRUCTURET||e->loc.y<line[i].y){
+			e->vel.y=0;
+			e->ground=true;
+			e->loc.y=line[i].y-.001*deltaTime;	
+			if(e->type==STRUCTURET){
+				std::cout<<e->loc.x<<" "<<e->loc.y<<std::endl;
+				return;
+			}
+		}else if(e->loc.y>line[i].y-.002*deltaTime){	// Snap the player to the top of that line if the player is inside it
 			for(i=0;i<platform.size();i++){
 				if(((e->loc.x+e->width>platform[i].p1.x)&(e->loc.x+e->width<platform[i].p2.x))||
 				   ((e->loc.x<platform[i].p2.x)&(e->loc.x>platform[i].p1.x))){
@@ -173,10 +181,6 @@ void World::singleDetect(Entity *e){
 				}
 			}
 			e->vel.y-=.001*deltaTime;
-		}else if(e->loc.y<line[i].y){
-			e->vel.y=0;
-			e->ground=true;
-			e->loc.y=line[i].y-.001*deltaTime;	
 		}
 		if(e->loc.x<x_start){				// Keep the player inside world bounds (ui.cpp handles world jumping)
 			e->vel.x=0;

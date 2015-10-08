@@ -1,10 +1,33 @@
 #include <inventory.h>
 #include <ui.h>
 
+#define ITEM_COUNT 2	// Total number of items that actually exist
+
 const char *itemName[]={
 	"\0",
-	"Dank Maymay"
+	"Dank Maymay",
+	"Sword"
 };
+
+const char *ITEM_SPRITE[]={
+	"\0",							// Null
+	"assets/items/ITEM_TEST.png",	// Dank maymay
+	"assets/items/ITEM_SWORD.png"
+};
+
+GLuint *ITEM_TEX;
+
+unsigned int initInventorySprites(void){
+	unsigned int i,loadCount=0;
+	ITEM_TEX=(GLuint *)calloc(ITEM_COUNT,sizeof(GLuint));
+	for(i=0;i<ITEM_COUNT;i++){
+		if((ITEM_TEX[i]=loadTexture(ITEM_SPRITE[i+1])))loadCount++;
+	}
+#ifdef DEBUG
+	DEBUG_printf("Loaded %u/%u item texture(s).\n",loadCount,ITEM_COUNT);
+#endif // DEBUG
+	return loadCount;
+}
 
 Inventory::Inventory(unsigned int s){
 	size=s;
@@ -48,11 +71,22 @@ extern Player *player;
 
 void Inventory::draw(void){
 	unsigned int i=0;
-	float y=SCREEN_HEIGHT/2;
+	float y=SCREEN_HEIGHT/2,xoff;
 	ui::putText(player->loc.x-SCREEN_WIDTH/2,y,"Inventory:");
 	while(item[i].count){
+		y-=HLINE*12;
+		xoff=ui::putText(player->loc.x-SCREEN_WIDTH/2,y,"%d x ",item[i].count);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D,ITEM_TEX[item[i].id-1]);
+		glBegin(GL_QUADS);
+			glTexCoord2i(0,1);glVertex2i(xoff		  ,y);
+			glTexCoord2i(1,1);glVertex2i(xoff+HLINE*10,y);
+			glTexCoord2i(1,0);glVertex2i(xoff+HLINE*10,y+HLINE*10);
+			glTexCoord2i(0,0);glVertex2i(xoff		  ,y+HLINE*10);
+		glEnd();
 		y-=ui::fontSize*1.15;
-		ui::putText(player->loc.x-SCREEN_WIDTH/2,y,"%d x %s",item[i].count,itemName[(unsigned)item[i].id]);
+		ui::putText(player->loc.x-SCREEN_WIDTH/2,y,"%s",itemName[(unsigned)item[i].id]);
+		glDisable(GL_TEXTURE_2D);
 		i++;
 	}
 }

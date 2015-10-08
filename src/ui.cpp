@@ -28,12 +28,18 @@ namespace ui {
 			abort();
 		}
 		fontSize=12; // to be safe
+#ifdef DEBUG
+		DEBUG_printf("Initialized FreeType2.\n");
+#endif // DEBUG
 	}
 	void setFontFace(const char *ttf){
 		if(FT_New_Face(ftl,ttf,0,&ftf)){
 			std::cout<<"Error! Couldn't open "<<ttf<<"."<<std::endl;
 			abort();
-		}	
+		}
+#ifdef DEBUG
+		DEBUG_printf("Using font %s\n",ttf);
+#endif // DEBUG
 	}
 	void setFontSize(unsigned int size){
 		fontSize=size;
@@ -110,7 +116,7 @@ namespace ui {
 		glDeleteTextures(1,&ftex);
 		return w;
 	}
-	void putString(const float x,const float y,const char *s){
+	float putString(const float x,const float y,const char *s){
 		unsigned int i=0,j;
 		float xo=x,yo=y;
 		do{
@@ -123,16 +129,19 @@ namespace ui {
 				xo+=putChar(xo,yo,s[i])+fontSize*.1;
 			}
 		}while(s[i++]);
+		return xo;
 	}
-	void putText(const float x,const float y,const char *str,...){	// putText() simply runs 'str' and the extra arguments though
+	float putText(const float x,const float y,const char *str,...){	// putText() simply runs 'str' and the extra arguments though
 		va_list args;												// vsnprintf(), which'll store the complete string to a buffer
 		char *buf;													// that's then passed to putString()
+		float width;
 		buf=(char *)calloc(128,sizeof(char));
 		va_start(args,str);
 		vsnprintf(buf,128,str,args);
 		va_end(args);
-		putString(x,y,buf);
+		width=putString(x,y,buf);
 		free(buf);
+		return width;
 	}
 	void dialogBox(const char *name,const char *text,...){
 		unsigned int name_len;

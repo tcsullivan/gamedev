@@ -110,6 +110,8 @@ int main(int argc, char *argv[]){
 	
 	bgImage=loadTexture("assets/bg.png");
 	
+	initInventorySprites();
+	
 	while(gameRunning){
 		mainLoop();
 	}

@@ -3,8 +3,11 @@
 
 #include <cstdlib>
 
+#define DEBUG
+
 enum ITEM_ID {		// Contains item IDs for every item in the game, this is how items are stored. IDs are also used to lookup item strings
-	TEST_ITEM = 1	// A test item (duh)
+	TEST_ITEM = 1,	// A test item (duh)
+	SWORD_ITEM	
 };
 
 struct item_t {				// Used to define entries in an entity's inventory
@@ -25,5 +28,7 @@ public:
 	
 	void draw(void);	// Draws a text list of items in this inventory (should only be called for the player for now)
 };
+
+unsigned int initInventorySprites(void);	// Loads as many inventory textures as it can find, returns count
 
 #endif // INVENTORY_H

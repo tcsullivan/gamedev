@@ -41,8 +41,6 @@ enum GENDER{
 template<typename T, size_t N>						//this fuction returns the size of any array
 int eAmt(T (&)[N]){return N;}
 
-GLuint loadTexture(const char *fileName);
-
 extern bool gameRunning;
 extern unsigned int deltaTime;
 extern unsigned int loops;
@@ -52,5 +50,8 @@ extern FILE* names;
 
 extern Mix_Music *music;
 extern Mix_Chunk *horn;
+
+GLuint loadTexture(const char *fileName);
+void   DEBUG_printf(const char *s,...);
 
 #endif // COMMON_H

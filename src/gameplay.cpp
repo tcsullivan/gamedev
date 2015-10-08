@@ -31,6 +31,12 @@ int giveTestQuest(NPC *speaker){
 	return 0;
 }
 
+int giveStuff(NPC *speaker){
+	ui::dialogBox(speaker->name,"Take my stuff you ugly whore");
+	player->inv->addItem(SWORD_ITEM,1);
+	return 0;
+}
+
 void initEverything(void){
 	unsigned int i;
 	
@@ -59,5 +65,6 @@ void initEverything(void){
 	NPCp(entity[1])->addAIFunc(giveTestQuest);
 	for(i=0;i<entity.size()+1;i++){
 		entity[i]->inWorld=test;
+		if(entity[i]->type==NPCT&&i>1)NPCp(entity[i])->addAIFunc(giveStuff);
 	}
 }
