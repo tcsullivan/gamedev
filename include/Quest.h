@@ -7,6 +7,8 @@
 
 #include <inventory.h>
 
+#define DEBUG
+
 #define TOTAL_QUESTS 1
 
 class Quest {

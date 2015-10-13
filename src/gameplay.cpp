@@ -20,15 +20,8 @@ int compTestQuest(NPC *speaker){
 }
 
 int giveTestQuest(NPC *speaker){
-	static bool done=false;
-	if(!done){
-		ui::dialogBox(speaker->name,"Here, have a quest!");
-		player->qh.assign("Test");
-		done=true;
-	}
-	/*while(ui::dialogBoxExists){	
-		mainLoop();
-	}*/
+	ui::dialogBox(speaker->name,"Here, have a quest!");
+	player->qh.assign("Test");
 	NPCp(entity[2])->addAIFunc(compTestQuest);
 	return 0;
 }
@@ -70,9 +63,10 @@ void initEverything(void){
 	entity[entity.size()-1]->spawn(200,100); //sets the position of the villager around the village
 	entity.pop_back();
 	
+	
+	NPCp(entity[1])->addAIFunc(giveStuff);
 	NPCp(entity[1])->addAIFunc(giveTestQuest);
 	for(i=0;i<entity.size()+1;i++){
 		entity[i]->inWorld=test;
-		if(entity[i]->type==NPCT&&i>1)NPCp(entity[i])->addAIFunc(giveStuff);
 	}
 }
