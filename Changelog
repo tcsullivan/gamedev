@@ -103,3 +103,11 @@
 	- improved quests
 	- added mobs
 	- added DEBUG flags and functions to inventory.cpp and ui.cpp
+
+10/13/2015:
+===========
+
+	- cleaned up main.cpp
+	- added DEBUG flags to common.cpp and Quest.cpp
+	- added player health
+	- made textures for rabbit
