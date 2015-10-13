@@ -39,7 +39,9 @@ enum GENDER{
 #define initRand(s) srand(s)
 #define getRand()	rand()
 
-template<typename T, size_t N>						//this fuction returns the size of any array
+#define DEBUG_printf( message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__ )
+
+template<typename T, size_t N>				//this fuction returns the size of any array
 int eAmt(T (&)[N]){return N;}
 
 extern bool gameRunning;
@@ -54,7 +56,5 @@ extern Mix_Chunk *horn;
 
 GLuint loadTexture(const char *fileName);
 void DEBUG_prints(const char* file, int line, const char *s,...);
-
-#define DEBUG_printf( message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__) //IF THERE IS NO VA_ARGS AT THE END OF A CALL, SUBSTITUTE IT WITH [ NULL ]
 
 #endif // COMMON_H
