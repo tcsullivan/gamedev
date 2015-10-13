@@ -20,6 +20,61 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	getName();
 }
 
+Player::Player(){ //sets all of the player specific traits on object creation
+	width = HLINE * 10;
+	height = HLINE * 16;
+	speed = 1;
+	type = PLAYERT; //set type to player
+	subtype = 5;
+	alive = true;
+	ground = false;
+	near = true;
+	texture[0] = loadTexture("assets/player.png");
+	texture[1] = loadTexture("assets/player1.png");
+	texture[2] = loadTexture("assets/player2.png");
+	inv = new Inventory(PLAYER_INV_SIZE);
+}
+
+NPC::NPC(){	//sets all of the NPC specific traits on object creation
+	width = HLINE * 10;
+	height = HLINE * 16;
+	speed = 1;
+	type = NPCT; //sets type to npc
+	subtype = 0;
+	alive = true;
+	canMove = true;
+	near = false;
+	texture[0] = loadTexture("assets/NPC.png");
+	texture[1] = 0;
+	texture[2] = 0;
+	inv = new Inventory(NPC_INV_SIZE);
+}
+
+Structures::Structures(){ //sets the structure type
+	type = STRUCTURET;
+	speed = 0;
+	alive = true;
+	near = false;
+	texture[0] = loadTexture("assets/house1.png");
+	texture[1] = 0;
+	texture[2] = 0;
+}
+
+Mob::Mob(){
+	width = HLINE * 10;
+	height = HLINE * 8;
+	speed = 1;
+	type = MOBT; //sets type to MOB
+	subtype = 1; //SKIRL
+	alive = true;
+	canMove = true;
+	near = false;
+	texture[0] = loadTexture("assets/NPC.png");
+	texture[1] = 0;
+	texture[2] = 0;
+	inv = new Inventory(NPC_INV_SIZE);
+}
+
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	if(type==NPCT){
@@ -120,38 +175,8 @@ void Entity::getName(){
 	free(bufs);
 }
 
-Player::Player(){ //sets all of the player specific traits on object creation
-	width = HLINE * 10;
-	height = HLINE * 16;
-	speed = 1;
-	type = PLAYERT; //set type to player
-	subtype = 5;
-	alive = true;
-	ground = false;
-	near = true;
-	texture[0] = loadTexture("assets/player.png");
-	texture[1] = loadTexture("assets/player1.png");
-	texture[2] = loadTexture("assets/player2.png");
-	inv = new Inventory(PLAYER_INV_SIZE);
-}
-
 void Player::interact(){ //the function that will cause the player to search for things to interact with
 	
-}
-
-NPC::NPC(){	//sets all of the NPC specific traits on object creation
-	width = HLINE * 10;
-	height = HLINE * 16;
-	speed = 1;
-	type = NPCT; //sets type to npc
-	subtype = 0;
-	alive = true;
-	canMove = true;
-	near = false;
-	texture[0] = loadTexture("assets/NPC.png");
-	texture[1] = 0;
-	texture[2] = 0;
-	inv = new Inventory(NPC_INV_SIZE);
 }
 
 void NPC::wander(int timeRun, vec2 *v){ //this makes the entites wander about
@@ -161,6 +186,7 @@ void NPC::wander(int timeRun, vec2 *v){ //this makes the entites wander about
 		v->x = .008*HLINE;	//sets the inital velocity of the entity
 		direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
 											//this lets the entity move left, right, or stay still
+		if(direction==0)ticksToUse*=2;
 		v->x *= direction;	//changes the velocity based off of the direction
 	}
 	ticksToUse--; //removes one off of the entities timer
@@ -180,16 +206,6 @@ void NPC::interact(){ //have the npc's interact back to the player
 			aiFunc.erase(aiFunc.begin());
 		}
 	}
-}
-
-Structures::Structures(){ //sets the structure type
-	type = STRUCTURET;
-	speed = 0;
-	alive = true;
-	near = false;
-	texture[0] = loadTexture("assets/house1.png");
-	texture[1] = 0;
-	texture[2] = 0;
 }
 
 unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure based off of type and coords
@@ -215,35 +231,22 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 		return entity.size();
 	}
 }
-Mob::Mob(){
-	width = HLINE * 10;
-	height = HLINE * 8;
-	speed = 1;
-	type = MOBT; //sets type to MOB
-	subtype = 1; //SKIRL
-	alive = true;
-	canMove = true;
-	near = false;
-	texture[0] = loadTexture("assets/NPC.png");
-	texture[1] = 0;
-	texture[2] = 0;
-	inv = new Inventory(NPC_INV_SIZE);
-}
 
 void Mob::wander(int timeRun, vec2* v){
 	if(subtype == 1){ //SKIRL
 		static int direction;	//variable to decide what direction the entity moves
 		if(ticksToUse == 0){
 			ticksToUse = timeRun;
-			if(ground && direction != 0){
-				v->y=.08;
-				loc.y+=HLINE*1;
-				ground=false;
-				v->x = .008*HLINE;	//sets the inital velocity of the entity
-			}
 			direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
 												//this lets the entity move left, right, or stay still
+			if(direction==0)ticksToUse/=2;
 			v->x *= direction;	//changes the velocity based off of the direction
+		}
+		if(ground && direction != 0){
+			v->y=.15;
+			loc.y+=HLINE*.25;
+			ground=false;
+			v->x = (.07*HLINE)*direction;	//sets the inital velocity of the entity
 		}
 		ticksToUse--; //removes one off of the entities timer
 	}

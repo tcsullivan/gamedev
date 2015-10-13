@@ -107,6 +107,7 @@ int main(int argc, char *argv[]){
 	if( music == NULL ){
 		printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
 	}
+	Mix_VolumeMusic(15);
 	Mix_PlayMusic( music, -1 );
 	
 	bgImage=loadTexture("assets/bg.png");
@@ -234,22 +235,26 @@ void render(){
 void logic(){
 	ui::handleEvents();
 	currentWorld->detect(player);
+	 //loops through whole entity stack
 	for(int i=0;i<=entity.size();i++){
+		 //only loops through entities that are alive
 		if(entity[i]->alive){
+			 //only loops through entities with type NPCT
 			if(entity[i]->type == NPCT){
-				entity[i]->wander((rand()%120 + 30), &entity[i]->vel);
+				entity[i]->wander((rand()%120 + 30), &entity[i]->vel); //makes the villager wander
+				//makes sure the entity is close to the player, and the mouse cursor is over the NPC
 				if( pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
 					if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width && my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width){
-						entity[i]->near=true;
+						entity[i]->near=true; //sets near to true so we can toggle names later
 						if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(SDL_BUTTON_RIGHT)){
-							entity[i]->interact();
+							entity[i]->interact(); //interacts with the NPCS
 							//std::cout <<"["<<i<<"] -> "<< entity[i]->name << ", " << (std::string)(entity[i]->gender == MALE ? "Male" : "Female") << std::endl;
 							//Mix_PlayChannel( -1, horn, 0);
 						}
 					}else entity[i]->near=false;
 				}
 			}if(entity[i]->type == MOBT){
-				entity[i]->wander(90,&entity[i]->vel);
+				entity[i]->wander((rand()%240 + 15),&entity[i]->vel);
 			}
 		}
 	}

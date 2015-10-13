@@ -95,14 +95,4 @@ ENTITY TYPES
 |
 2 MOBS
 |->1 Skirl
-
-
-
-
-
-
-
-
-
-
 **/

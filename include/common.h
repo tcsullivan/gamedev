@@ -24,14 +24,14 @@ enum _TYPE { //these are the main types of entities
 enum GENDER{
 	MALE,
 	FEMALE,
-	NONE
+	NONE 
 };
 
 #include <Quest.h>
 #include <entities.h>
 
-#define SCREEN_WIDTH  640
-#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH  1280
+#define SCREEN_HEIGHT 720
 //#define FULLSCREEN
 
 #define HLINE 3								//base unit of the world
@@ -53,6 +53,8 @@ extern Mix_Music *music;
 extern Mix_Chunk *horn;
 
 GLuint loadTexture(const char *fileName);
-void   DEBUG_printf(const char *s,...);
+void DEBUG_prints(const char* file, int line, const char *s,...);
+
+#define DEBUG_printf( message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__) //IF THERE IS NO VA_ARGS AT THE END OF A CALL, SUBSTITUTE IT WITH [ NULL ]
 
 #endif // COMMON_H

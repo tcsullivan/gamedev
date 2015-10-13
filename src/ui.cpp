@@ -29,7 +29,7 @@ namespace ui {
 		}
 		fontSize=12; // to be safe
 #ifdef DEBUG
-		DEBUG_printf("Initialized FreeType2.\n");
+		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
 	}
 	void setFontFace(const char *ttf){
