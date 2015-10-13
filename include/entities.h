@@ -54,7 +54,7 @@ public:
 private:
 };
 
-class Player : public Entity{
+class Player : public Entity {
 public:
 	QuestHandler qh;
 	Player();
@@ -97,5 +97,10 @@ ENTITY TYPES
 |->1 Merchant
 |
 2 MOBS
+<<<<<<< HEAD
 |->1 Rabbit
 **/
+=======
+|->1 Skirl
+**/
+>>>>>>> 58716d5e4f20eb5a30025c88fe5119a0e40c4187

@@ -134,9 +134,9 @@ static float debugY=0;
 
 void mainLoop(void){
 	static unsigned int debugDiv=0;
-	static unsigned int i,
-				 prevTime    = 0,
-				 currentTime = 0;
+	unsigned int i;
+	static unsigned int prevTime    = 0,
+						currentTime = 0;
 	
 	if(!currentTime)currentTime=millis();
 	prevTime = currentTime;
