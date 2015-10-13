@@ -20,6 +20,9 @@ public:
 	float width;	//width and height of the player
 	float height;
 	float speed;	//speed of the play
+
+	int health;
+	int maxHealth;
 	
 	int subtype;
 	_TYPE type;
@@ -94,5 +97,5 @@ ENTITY TYPES
 |->1 Merchant
 |
 2 MOBS
-|->1 Skirl
+|->1 Rabbit
 **/

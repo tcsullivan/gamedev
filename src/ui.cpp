@@ -236,6 +236,7 @@ namespace ui {
 				if(!left&&!right)player->vel.x=0;
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = 1;
 				if(SDL_KEY==SDLK_LCTRL)player->speed = 1;
+				if(SDL_KEY==SDLK_h)player->health-=5;
 				break;
 			default:
 				break;

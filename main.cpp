@@ -134,7 +134,7 @@ static float debugY=0;
 
 void mainLoop(void){
 	static unsigned int debugDiv=0;
-	unsigned int i,
+	static unsigned int i,
 				 prevTime    = 0,
 				 currentTime = 0;
 	
@@ -201,7 +201,6 @@ void render(){
 
 	player->near=true;			// Ensure the player's name is always drawn
 	currentWorld->draw(player);	// Draw the world & the player
-	glColor3ub(255,255,255);	// Draw the player's inventory
 	player->inv->draw();		//
 
 	ui::draw();					// Draw any UI elements if they need to be

@@ -25,7 +25,9 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	height = HLINE * 16;
 	speed = 1;
 	type = PLAYERT; //set type to player
-	subtype = 5;
+	subtype = 0;
+	maxHealth = 100;
+	health = maxHealth;
 	alive = true;
 	ground = false;
 	near = true;
@@ -69,8 +71,8 @@ Mob::Mob(){
 	alive = true;
 	canMove = true;
 	near = false;
-	texture[0] = loadTexture("assets/NPC.png");
-	texture[1] = 0;
+	texture[0] = loadTexture("assets/rabbit.png");
+	texture[1] = loadTexture("assets/rabbit1.png");
 	texture[2] = 0;
 	inv = new Inventory(NPC_INV_SIZE);
 }
@@ -125,9 +127,22 @@ void Entity::draw(void){		//draws the entities
 		}else{
 			glBindTexture(GL_TEXTURE_2D,texture[0]);
 		}
+	}else if(type == MOBT){
+		switch(subtype){
+			case 1: //RABBIT
+				if(ground == 0){
+					glBindTexture(GL_TEXTURE_2D, texture[1]);
+				}else if(ground == 1){
+					glBindTexture(GL_TEXTURE_2D, texture[0]);					
+				}
+				break;
+			default:
+			break;
+		}
 	}else{
 		glBindTexture(GL_TEXTURE_2D,texture[0]);
 	}
+	glColor3ub(255,255,255);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
 		glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
@@ -137,6 +152,12 @@ void Entity::draw(void){		//draws the entities
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
+	if(type == PLAYERT){
+		ui::setFontSize(16);
+		ui::putText(((SCREEN_WIDTH / 2 ) + loc.x) - 125, SCREEN_HEIGHT - ui::fontSize, "Health: %d/%d",health,maxHealth);
+		glColor3ub(255,0,0);
+		glRectf((SCREEN_WIDTH / 2 + loc.x) - 125, SCREEN_HEIGHT - 32, ((SCREEN_WIDTH / 2 + loc.x) - 125) + (int)((int)(health / maxHealth) * 100), SCREEN_HEIGHT - 32 + 12);
+	}
 	if(near){
 		ui::setFontSize(14);
 		ui::putText(loc.x,loc.y-ui::fontSize-HLINE/2,"%s",name);
