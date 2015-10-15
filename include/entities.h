@@ -100,5 +100,5 @@ ENTITY TYPES
 |->1 Merchant
 |
 2 MOBS
-|->1 Skirl
+|->1 Rabbit
 **/

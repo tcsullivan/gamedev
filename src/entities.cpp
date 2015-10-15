@@ -113,7 +113,9 @@ void Entity::draw(void){		//draws the entities
 		if(ground == 0){
 			glBindTexture(GL_TEXTURE_2D, texture[1]);
 		}
-		else if(vel.x != 0){
+		if(ground == 0){
+			glBindTexture(GL_TEXTURE_2D, texture[1]);
+		}else if(vel.x != 0){
 			switch(texState){
 				case 0:
 					glBindTexture(GL_TEXTURE_2D,texture[1]);
@@ -158,7 +160,7 @@ void Entity::draw(void){		//draws the entities
 		ui::setFontSize(16);
 		ui::putText(((SCREEN_WIDTH / 2 ) + loc.x) - 125, SCREEN_HEIGHT - ui::fontSize, "Health: %d/%d",health,maxHealth);
 		glColor3ub(255,0,0);
-		glRectf((SCREEN_WIDTH / 2 + loc.x) - 125, SCREEN_HEIGHT - 32, ((SCREEN_WIDTH / 2 + loc.x) - 125) + (int)((int)(health / maxHealth) * 100), SCREEN_HEIGHT - 32 + 12);
+		glRectf((SCREEN_WIDTH / 2 + loc.x) - 125, SCREEN_HEIGHT - 32, ((SCREEN_WIDTH / 2 + loc.x) - 125) + (((float)health / (float)maxHealth) * 100), SCREEN_HEIGHT - 32 + 12);
 	}
 	if(near){
 		ui::setFontSize(14);
