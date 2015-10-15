@@ -1,0 +1,1 @@
+TITLE "Test" DESC "A test quest" REWARD 1 x TEST_ITEM END

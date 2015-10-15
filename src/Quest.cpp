@@ -1,17 +1,22 @@
 #include <common.h>
-//#include <Quest.h>
-//#include <entities.h>
+
+#define TITLE	Quest(
+#define DESC	,
+#define REWARD	,(struct item_t){
+#define x		,
+#define END		}),
 
 const Quest QuestList[TOTAL_QUESTS]={
-	Quest("Test","A test quest",(struct item_t){1,TEST_ITEM})
+//	Quest("Test","A test quest",(struct item_t){1,TEST_ITEM}),
+
+// Get quest list
+#include "../config/quest_list.txt"
+
 };
 
 Quest::Quest(const char *t,const char *d,struct item_t r){
-	size_t len;
-	title=(char *)malloc((len=strlen(t)));
-	strncpy(title,t,len);
-	desc=(char *)malloc((len=strlen(d)));
-	strncpy(desc,d,len);
+	strcpy((title=(char *)malloc(strlen(t))),t);
+	strcpy((desc =(char *)malloc(strlen(d))),d);
 	memcpy(&reward,&r,sizeof(struct item_t));
 }
 
@@ -39,6 +44,9 @@ int QuestHandler::assign(const char *t){
 #endif // DEBUG
 			return current.size();
 		}
+#ifdef DEBUG
+		DEBUG_printf("Finding quest: %s != %s\n",t,QuestList[i].title);
+#endif // DEBUG
 	}
 #ifdef DEBUG
 	DEBUG_printf("Quest %s does not exist.\n",t);

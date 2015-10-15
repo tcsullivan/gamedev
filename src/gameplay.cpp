@@ -22,13 +22,7 @@ int compTestQuest(NPC *speaker){
 int giveTestQuest(NPC *speaker){
 	ui::dialogBox(speaker->name,"Here, have a quest!");
 	player->qh.assign("Test");
-	NPCp(entity[2])->addAIFunc(compTestQuest);
-	return 0;
-}
-
-int giveStuff(NPC *speaker){
-	ui::dialogBox(speaker->name,"Have a sword :D");
-	player->inv->addItem(SWORD_ITEM,1);
+	NPCp(entity[2])->addAIFunc(compTestQuest,true);
 	return 0;
 }
 
@@ -64,8 +58,7 @@ void initEverything(void){
 	entity.pop_back();
 	
 	
-	NPCp(entity[1])->addAIFunc(giveStuff);
-	NPCp(entity[1])->addAIFunc(giveTestQuest);
+	NPCp(entity[1])->addAIFunc(giveTestQuest,false);
 	for(i=0;i<entity.size()+1;i++){
 		entity[i]->inWorld=test;
 	}

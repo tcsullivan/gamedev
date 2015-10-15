@@ -111,3 +111,9 @@
 	- added DEBUG flags to common.cpp and Quest.cpp
 	- added player health
 	- made textures for rabbit
+
+10/15/2015:
+===========
+
+	- fixed quest assignment/completion
+	- entities can't move when interacting now

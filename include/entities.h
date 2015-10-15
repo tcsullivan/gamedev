@@ -4,6 +4,8 @@
 #include <common.h>
 #include <inventory.h>
 
+#define DEBUG
+
 #define NPCp(n) ((NPC *)n)
 
 #define PLAYER_INV_SIZE	30	// The size of the player's inventory
@@ -16,14 +18,14 @@ public:
 	Inventory *inv;
 
 	void *inWorld;
-	
+
 	float width;	//width and height of the player
 	float height;
 	float speed;	//speed of the play
 
 	int health;
 	int maxHealth;
-	
+
 	int subtype;
 	_TYPE type;
 			//example:
@@ -31,10 +33,10 @@ public:
 			//		|(subtype)
 			//		|->  0 Base NPC
 			//		|->  1 Merchant
-	
+
 	vec2 loc; //location and velocity of the entity
 	vec2 vel;
-	
+
 	bool near;
 	bool right,left, canMove; //movement variables
 	bool alive;				  //the flag for whether or not the entity is alive
@@ -44,7 +46,7 @@ public:
 	GENDER gender;
 	GLuint texture[3];	  //TODO: ADD TEXTURES
 
-	
+
 	void spawn(float, float);
 	void draw(void);
 	virtual void wander(int, vec2*){}
@@ -65,7 +67,8 @@ class NPC : public Entity{
 public:
 	std::vector<int (*)(NPC *)>aiFunc;
 	NPC();
-	void addAIFunc(int (*func)(NPC *));
+	void addAIFunc(int (*func)(NPC *),bool preload);
+	void flushAIFunc(void);
 	void interact();
 	void wander(int, vec2*);
 };
@@ -97,10 +100,5 @@ ENTITY TYPES
 |->1 Merchant
 |
 2 MOBS
-<<<<<<< HEAD
-|->1 Rabbit
-**/
-=======
 |->1 Skirl
 **/
->>>>>>> 58716d5e4f20eb5a30025c88fe5119a0e40c4187

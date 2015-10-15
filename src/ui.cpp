@@ -8,6 +8,8 @@
 extern Player *player;			// 'player' should be (must be) defined in main.cpp
 extern World  *currentWorld;	// should/must also be defined in main.cpp
 
+extern std::vector<NPC>npc;
+
 static FT_Library   ftl;		// Variables for the FreeType library and stuff
 static FT_Face      ftf;
 static GLuint       ftex;
@@ -84,7 +86,7 @@ namespace ui {
 		h=ftf->glyph->bitmap.rows;
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D,ftex);
-		switch(c){
+		switch(c){	// Some characters are not properly spaced, make them so here
 		case '^':
 		case '*':
 		case '`':
@@ -242,5 +244,13 @@ namespace ui {
 				break;
 			}
 		}
+		static bool once=false;
+		unsigned int i;
+		if(!dialogBoxExists&&!once){
+			for(i=0;i<npc.size();i++){
+				npc[i].flushAIFunc();
+			}
+			once=true;
+		}else once=false;
 	}
 }

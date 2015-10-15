@@ -14,7 +14,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	left = false;
 	near = false;
 	ticksToUse = 0;
-	canMove = false;
+	canMove = true;
 	ground = false;
 	name = (char*)malloc(16);
 	getName();
@@ -109,7 +109,8 @@ void Entity::draw(void){		//draws the entities
 				texState-=1;
 				if(texState==0)up=true;
 			}
-		}if(ground == 0){
+		}
+		if(ground == 0){
 			glBindTexture(GL_TEXTURE_2D, texture[1]);
 		}
 		else if(vel.x != 0){
@@ -124,7 +125,8 @@ void Entity::draw(void){		//draws the entities
 					glBindTexture(GL_TEXTURE_2D,texture[2]);
 				break;
 			}
-		}else{
+		}
+		else{
 			glBindTexture(GL_TEXTURE_2D,texture[0]);
 		}
 	}else if(type == MOBT){
@@ -213,9 +215,29 @@ void NPC::wander(int timeRun, vec2 *v){ //this makes the entites wander about
 	ticksToUse--; //removes one off of the entities timer
 }
 
+static int (*AIpreload)(NPC *);
 
-void NPC::addAIFunc(int (*func)(NPC *)){
-	aiFunc.push_back(func);
+void NPC::addAIFunc(int (*func)(NPC *),bool preload){
+	if(preload)
+#ifdef DEBUG
+	{
+		DEBUG_printf("Preloading an AI %x.\n",func);
+#endif // DEBUG
+		AIpreload=func;
+#ifdef DEBUG
+	}
+#endif // DEBUG
+	else aiFunc.push_back(func);
+}
+
+void NPC::flushAIFunc(void){
+	if(AIpreload){
+#ifdef DEBUG
+		DEBUG_printf("Unloading preloaded AI function %x.\n",AIpreload);
+#endif // DEBUG
+		aiFunc.push_back(AIpreload);
+		AIpreload=NULL;
+	}
 }
 
 void NPC::interact(){ //have the npc's interact back to the player
@@ -223,9 +245,11 @@ void NPC::interact(){ //have the npc's interact back to the player
 	loc.y += 5;
 	if(aiFunc.size()){
 		func=aiFunc.front();
+		canMove=false;
 		if(!func(this)){
 			aiFunc.erase(aiFunc.begin());
 		}
+		canMove=true;
 	}
 }
 

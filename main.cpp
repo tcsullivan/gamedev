@@ -235,7 +235,7 @@ void logic(){
 			switch(entity[i]->type){
 			case NPCT:	// Handle NPCs
 			
-				entity[i]->wander((rand()%120 + 30), &entity[i]->vel); // Make the NPC wander
+				if(entity[i]->canMove)entity[i]->wander((rand()%120 + 30), &entity[i]->vel); // Make the NPC wander
 				
 				// Check if the NPC is near the player and handle potential interaction
 				if(pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){

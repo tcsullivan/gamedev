@@ -49,14 +49,14 @@ int Inventory::addItem(ITEM_ID id,unsigned char count){
 		if(item[i].id==id){
 			item[i].count+=count;
 #ifdef DEBUG
-			DEBUG_printf("Gave player %u more %s(s).\n",count,itemName[i]);
+			DEBUG_printf("Gave player %u more %s(s).\n",count,itemName[item[i].id]);
 #endif // DEBUG
 			return 0;
 		}else if(!item[i].count){
 			item[i].id=id;
 			item[i].count=count;
 #ifdef DEBUG
-			DEBUG_printf("Gave player %u %s(s).\n",count,itemName[i]);
+			DEBUG_printf("Gave player %u %s(s).\n",count,itemName[item[i].id]);
 #endif // DEBUG
 			return 0;
 		}
