@@ -100,7 +100,3 @@ ENTITY TYPES
 <<<<<<< HEAD
 |->1 Rabbit
 **/
-=======
-|->1 Skirl
-**/
->>>>>>> 58716d5e4f20eb5a30025c88fe5119a0e40c4187

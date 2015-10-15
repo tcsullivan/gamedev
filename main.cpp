@@ -48,6 +48,10 @@ unsigned int millis(void){
 
 int main(int argc, char *argv[]){
 	// Initialize SDL
+	if(glewInit() < 0){
+		std::cout << "GLEW was not able to initialize! Error: " << std::endl;
+		return -1;
+	}
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 		return -1;
@@ -92,6 +96,31 @@ int main(int argc, char *argv[]){
 	glEnable(GL_BLEND);									// Allow transparency
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	SDL_ShowCursor(SDL_DISABLE);						// Hide mouse cursor so we can draw our own
+
+	/**
+	*		SHADERS
+	**/
+
+	/*GLuint fragShader;
+	GLuint shaderProgram;
+
+	const GLchar *shaderSource = "shader.frag";
+	GLint bufferln = GL_FALSE;
+
+	shaderProgram = glCreateProgram();
+	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragShader, 1, &shaderSource, NULL);
+	glCompileShader(fragShader);
+	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
+	if (bufferln == GL_TRUE){
+		std::cout << "Error compiling shader" << std::endl;
+	}
+	glAttachShader(shaderProgram, fragShader);
+	glLinkProgram(shaderProgram);
+	glValidateProgram(shaderProgram);
+
+	//glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_MULTISAMPLE);*/
 
 	names = fopen("assets/names_en-us", "r+");	// Open the names file
 	

@@ -55,7 +55,7 @@ namespace ui {
 			abort();
 		}
 		// Load the bitmap with OpenGL
-		glActiveTexture(GL_TEXTURE0);
+		//glActiveTexture(GL_TEXTURE0);
 		glGenTextures(1,&ftex);
 		glBindTexture(GL_TEXTURE_2D,ftex);
 		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
