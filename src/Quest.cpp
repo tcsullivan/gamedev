@@ -14,9 +14,21 @@ const Quest QuestList[TOTAL_QUESTS]={
 
 };
 
+// Trust nobody
+#define STRLEN_MIN 16
+
+unsigned int safe_strlen(const char *s){
+	unsigned int size=0;
+	while(s[size])size++;
+	if(size<STRLEN_MIN)return STRLEN_MIN;
+	else return size;
+}
+
 Quest::Quest(const char *t,const char *d,struct item_t r){
-	strcpy((title=(char *)malloc(strlen(t))),t);
-	strcpy((desc =(char *)malloc(strlen(d))),d);
+	title=(char *)calloc(safe_strlen(t),sizeof(char));
+	desc=(char *)calloc(safe_strlen(d),sizeof(char));
+	strcpy(title,t);
+	strcpy(desc,d);
 	memcpy(&reward,&r,sizeof(struct item_t));
 }
 
