@@ -117,3 +117,18 @@
 
 	- fixed quest assignment/completion
 	- entities can't move when interacting now
+	- added GLEW libraries
+	- worked on delaying quest assignments until dialog is closed
+
+10/16/2015:
+===========
+
+	- fixed delaying quest assignments until dialog is closed
+	- checked and secured errors in malloc/calloc calls
+	
+10/19/2015:
+===========
+
+	- fixed malloc/strlen bug that crashes the game on some linux systems
+	- broke andy's linux system on his laptop, allowing for test game build on Windows
+	- began extensive documentation in main.cpp

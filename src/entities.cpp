@@ -16,6 +16,8 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	ticksToUse = 0;
 	canMove = true;
 	ground = false;
+	alive = true;
+	if(!maxHealth)health = maxHealth = 50;
 	name = (char*)malloc(16);
 	getName();
 }
@@ -156,12 +158,6 @@ void Entity::draw(void){		//draws the entities
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	if(type == PLAYERT){
-		ui::setFontSize(16);
-		ui::putText(((SCREEN_WIDTH / 2 ) + loc.x) - 125, SCREEN_HEIGHT - ui::fontSize, "Health: %d/%d",health,maxHealth);
-		glColor3ub(255,0,0);
-		glRectf((SCREEN_WIDTH / 2 + loc.x) - 125, SCREEN_HEIGHT - 32, ((SCREEN_WIDTH / 2 + loc.x) - 125) + (((float)health / (float)maxHealth) * 100), SCREEN_HEIGHT - 32 + 12);
-	}
 	if(near){
 		ui::setFontSize(14);
 		ui::putText(loc.x,loc.y-ui::fontSize-HLINE/2,"%s",name);
@@ -217,29 +213,18 @@ void NPC::wander(int timeRun, vec2 *v){ //this makes the entites wander about
 	ticksToUse--; //removes one off of the entities timer
 }
 
-static int (*AIpreload)(NPC *);
+std::vector<int (*)(NPC *)> AIpreload;	// A dynamic array of AI functions that are being preloaded
+std::vector<void *> AIpreaddr;			// A dynamic array of pointers to the NPC's that are being assigned the preloads
 
 void NPC::addAIFunc(int (*func)(NPC *),bool preload){
-	if(preload)
-#ifdef DEBUG
-	{
+	if(preload){										// Preload AI functions so that they're given after 
+#ifdef DEBUG											// the current dialog box is closed
 		DEBUG_printf("Preloading an AI %x.\n",func);
 #endif // DEBUG
-		AIpreload=func;
-#ifdef DEBUG
+		AIpreload.push_back(func);
+		AIpreaddr.push_back(this);
 	}
-#endif // DEBUG
 	else aiFunc.push_back(func);
-}
-
-void NPC::flushAIFunc(void){
-	if(AIpreload){
-#ifdef DEBUG
-		DEBUG_printf("Unloading preloaded AI function %x.\n",AIpreload);
-#endif // DEBUG
-		aiFunc.push_back(AIpreload);
-		AIpreload=NULL;
-	}
 }
 
 void NPC::interact(){ //have the npc's interact back to the player
@@ -259,6 +244,7 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 	loc.x = x;
 	loc.y = y;
 	type = t;
+	alive = true;
 
 	/*VILLAGE*/
 	//spawns a village

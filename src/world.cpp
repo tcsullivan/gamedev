@@ -34,6 +34,7 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	unsigned int i;						// Used for 'for' loops 
 	float inc;							// See line 40
 	lineCount=width+GEN_INC;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
+	if(lineCount<=0)abort();
 	
 	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));	// Allocate memory for the array 'line'
 	
@@ -156,7 +157,9 @@ LOOP2:													// Draw each world
 
 void World::singleDetect(Entity *e){
 	unsigned int i;
-	if(e->alive){
+	if(e->health<=0){
+		e->alive=false;
+	}else if(e->alive){
 		i=(e->loc.x+e->width/2-x_start)/HLINE;	// Calculate what line the player is currently on
 		if(e->type==STRUCTURET||e->loc.y<line[i].y){
 			e->vel.y=0;
@@ -166,7 +169,7 @@ void World::singleDetect(Entity *e){
 				//std::cout<<e->loc.x<<" "<<e->loc.y<<std::endl;
 				return;
 			}
-		}else if(e->loc.y>line[i].y-.002*deltaTime){	// Snap the player to the top of that line if the player is inside it
+		}else if(e->loc.y>line[i].y-.002*deltaTime){
 			for(i=0;i<platform.size();i++){
 				if(((e->loc.x+e->width>platform[i].p1.x)&(e->loc.x+e->width<platform[i].p2.x))||
 				   ((e->loc.x<platform[i].p2.x)&(e->loc.x>platform[i].p1.x))){
@@ -290,6 +293,7 @@ IndoorWorld::~IndoorWorld(void){
 void IndoorWorld::generate(unsigned int width){		// Generates a flat area of width 'width'
 	unsigned int i;						// Used for 'for' loops 
 	lineCount=width+GEN_INC;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
+	if(lineCount<=0)abort();
 	
 	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));	// Allocate memory for the array 'line'
 	

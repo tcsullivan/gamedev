@@ -23,8 +23,8 @@ public:
 	float height;
 	float speed;	//speed of the play
 
-	int health;
-	int maxHealth;
+	float health;
+	float maxHealth;
 
 	int subtype;
 	_TYPE type;
@@ -68,7 +68,6 @@ public:
 	std::vector<int (*)(NPC *)>aiFunc;
 	NPC();
 	void addAIFunc(int (*func)(NPC *),bool preload);
-	void flushAIFunc(void);
 	void interact();
 	void wander(int, vec2*);
 };

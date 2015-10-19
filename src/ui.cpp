@@ -8,7 +8,8 @@
 extern Player *player;			// 'player' should be (must be) defined in main.cpp
 extern World  *currentWorld;	// should/must also be defined in main.cpp
 
-extern std::vector<NPC>npc;
+extern std::vector<int (*)(NPC *)> AIpreload;	// see entities.cpp
+extern std::vector<void *> AIpreaddr;			//
 
 static FT_Library   ftl;		// Variables for the FreeType library and stuff
 static FT_Face      ftf;
@@ -171,18 +172,31 @@ namespace ui {
 			setFontSize(16);
 			putString(x+HLINE,y-fontSize-HLINE,dialogBoxText);
 		}
+		setFontSize(16);
+		putText(((SCREEN_WIDTH/2)+player->loc.x)-125,SCREEN_HEIGHT-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
+																							(unsigned)player->maxHealth);
+		if(player->alive){
+			glColor3ub(255,0,0);
+			glRectf((SCREEN_WIDTH/2+player->loc.x)-125,
+					SCREEN_HEIGHT-32,
+					((SCREEN_WIDTH/2+player->loc.x)-125)+((player->health/player->maxHealth)*100),
+					SCREEN_HEIGHT-32+12);
+		}
 	}
 	void handleEvents(void){
 		static bool left=false,right=false;
+		static vec2 premouse={0,0};
 		SDL_Event e;
+		mouse.x=premouse.x+player->loc.x-(SCREEN_WIDTH/2);
+		mouse.y=SCREEN_HEIGHT-premouse.y;
 		while(SDL_PollEvent(&e)){
 			switch(e.type){
 			case SDL_QUIT:
 				gameRunning=false;
 				break;
 			case SDL_MOUSEMOTION:
-				mouse.x=e.motion.x;
-				mouse.y=e.motion.y;
+				premouse.x=e.motion.x;
+				premouse.y=e.motion.y;
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if((e.button.button&SDL_BUTTON_RIGHT)&&dialogBoxExists){
@@ -244,13 +258,14 @@ namespace ui {
 				break;
 			}
 		}
-		static bool once=false;
+		
 		unsigned int i;
-		if(!dialogBoxExists&&!once){
-			for(i=0;i<npc.size();i++){
-				npc[i].flushAIFunc();
+		if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary
+			for(i=0;i<AIpreaddr.size();i++){
+				NPCp(AIpreaddr.front())->addAIFunc(AIpreload.front(),false);
+				AIpreaddr.erase(AIpreaddr.begin());
+				AIpreload.erase(AIpreload.begin());
 			}
-			once=true;
-		}else once=false;
+		}
 	}
 }

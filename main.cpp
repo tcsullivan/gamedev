@@ -6,32 +6,142 @@
 #include <ui.h>
 #include <entities.h>
 
-#define TICKS_PER_SEC 20					// The amount of game ticks that should occur in one second
-#define MSEC_PER_TICK (1000/TICKS_PER_SEC)	// The amount of milliseconds there should be between ticks
+/*
+ *	TICKS_PER_SEC & MSEC_PER_TICK
+ * 
+ *	The game's main loop mainly takes care of two things: drawing to the
+ *	screen and handling game logic, from user input to world gravity stuff.
+ *	The call for rendering is made every time the main loop loops, and then
+ *	uses interpolation for smooth drawing to the screen. However, the call
+ *	for logic would be preferred to be run every set amount of time.
+ * 
+ *	The logic loop is currently implemented to run at a certain interval
+ *	that we call a 'tick'. As one may now guess, TICKS_PER_SEC defines the
+ *	amount of ticks that should be made every second. MSEC_PER_TICK then
+ *	does a simple calculation of how many milliseconds elapse per each
+ * 	'tick'. Simple math is then done in the main loop using MSEC_PER_TICK
+ *	to call the logic handler when necessary.
+ * 
+*/
 
-SDL_Window    *window = NULL;			// The game's window
+#define TICKS_PER_SEC 20
+#define MSEC_PER_TICK (1000/TICKS_PER_SEC)
+
+/*
+ *	window & mainGLContext
+ * 
+ *	In order to draw using SDL and its openGL facilities SDL requires
+ *	an SDL_Window object, which spawns a window for the program to draw
+ *	to. Once the SDL_Window is initialized, an SDL_GLContext is made so
+ *	that openGL calls can be made to SDL. The game requires both of these
+ *	variables to initialize.
+ * 
+*/
+
+SDL_Window    *window = NULL;
 SDL_GLContext  mainGLContext = NULL;
+
+/*
+ *	bgImage contains the GLuint returned when creating a texture for the
+ *	background image. Currently there is only one background image for the
+ *	main world; this will be changed and bgImage likely removed once better
+ *	backgrounds are implemented.
+ * 
+*/
+
 static GLuint  bgImage;
 
-bool gameRunning = true;	// The game will exit if this is false
+/*
+ *	gameRunning
+ * 
+ *	This is one of the most important variables in the program. The main
+ *	loop of the game is set to break once this variable is set to false.
+ *	The only call to modify this variable is made in src/ui.cpp, where it
+ *	is set to false if either an SDL_QUIT message is received (the user
+ *	closes the window through their window manager) or if escape is pressed.
+ * 
+*/
 
-World  *currentWorld=NULL;	// A pointer to the world that the player is currently in
-Player *player;				// The player
+bool gameRunning = true;
 
-std::vector<Entity*>entity;		// An array of all entities in existance
-std::vector<NPC>npc;			// An array of all NPCs in existance 		(entries in `entity` point to these)
-std::vector<Structures *>build;	// An array of all Structures in existance	(entries in `entity` point to these)
-std::vector<Mob>mob;			// An array of all Mobs in existance 		(entries in `entity` point to these)
+/*
+ *	currentWorld -	This is a pointer to the current world that the player
+ * 					is in. Most drawing/entity handling is done through this
+ * 					variable. This should only be changed when layer switch
+ * 					buttons are pressed (see src/ui.cpp), or when the player
+ * 					enters a Structure/Indoor World (see src/ui.cpp again).
+ * 
+ *	player		 -	This points to a Player object, containing everything for
+ * 					the player. Most calls made with currentWorld require a
+ * 					Player object as an argument, and glOrtho is set based
+ * 					off of the player's coordinates. This is probably the one
+ * 					Entity-derived object that is not pointed to in the entity
+ * 					array.
+ * 
+ *	entity		 -	Contains pointers to 'all' entities that have been created in
+ * 					the game, including NPCs, Structures, and Mobs. World draws
+ * 					and entity handling done by the world cycle through entities
+ * 					using this array. Entities made that aren't added to this
+ * 					array probably won't be noticable by the game.
+ * 
+ *	npc			 -	An array of all NPCs in the game. It's not exactly clear how
+ * 					NPC initing is done, their constructed in this array, then set
+ * 					to be pointed to by entity, then maybe spawned with Entity->spawn().
+ * 					See src/entities.cpp for more.
+ * 					This variable might be referenced as an extern in other files.
+ * 
+ *	build		 -	An array of all Structures in the game. Entries in entity point to
+ * 					these, allowing worlds to handle the drawing and stuff of these.
+ * 					See src/entities.cpp for more.
+ * 
+ *	mob			 -	An array of all Mobs in the game, entity entries should point to these
+ * 					so the world can take care of them. See src/entities.cpp for more.
+ * 
+*/
 
-unsigned int tickCount   = 0,	// The amount of generated ticks since the game entered the main loop
-			 deltaTime   = 0;	// Used for frame regulation / smooth animation n' stuff
+World  						*currentWorld=NULL;
+Player 						*player;
+std::vector<Entity *	>	 entity;
+std::vector<NPC			>	 npc;
+std::vector<Structures *>	 build;
+std::vector<Mob			>	 mob;
 
-int mx, my;		// The mouse's coordinates in the window
+/*
+ *	tickCount contains the number of ticks generated since main loop entrance.
+ *	This variable might be used anywhere.
+ * 
+ *	deltaTime is used for interpolation stuff.
+ * 
+ *	Pretty sure these variables are considered static as they might be externally
+ *	referenced somewhere.
+*/
 
-FILE *names;	// A pointer to the file containing possible NPC names
+unsigned int tickCount = 0;
+unsigned int deltaTime = 0;
+
+/*
+ *	names is used to open a file containing all possible NPC names. It is externally
+ *	referenced in src/entities.cpp for getting random names.
+ *
+*/
+
+FILE *names;
+
+/*
+ *	These variables are used by SDL_mixer to create sound.
+ *	horn is not currently used, although it may be set.
+ * 
+*/
 
 Mix_Music *music;
 Mix_Chunk *horn;
+
+/*
+ *	loops is used for texture animation. It is believed to be passed to entity
+ *	draw functions, although it may be externally referenced instead.
+ * 
+*/
+
 unsigned int loops = 0;	// Used for texture animation
 
 extern void initEverything(void);	// Sets up the worlds and NPCs, see gameplay.cpp
@@ -193,8 +303,8 @@ void mainLoop(void){
 		debugY = player->loc.y;
 	}
 	
-	mx = (ui::mouse.x+player->loc.x) - (SCREEN_WIDTH/2);
-	my = SCREEN_HEIGHT - ui::mouse.y;
+	//mx = (ui::mouse.x+player->loc.x) - (SCREEN_WIDTH/2);
+	//my = SCREEN_HEIGHT - ui::mouse.y;
 	
 	render();
 }
@@ -240,12 +350,12 @@ void render(){
 					fps,player->ground,SCREEN_WIDTH,SCREEN_HEIGHT,entity.size(),player->loc.x,debugY,player->qh.current.size());
 	}
 	
-	glColor3ub(255,255,255);			// Draw the mouse
-	glBegin(GL_TRIANGLES);				//
-		glVertex2i(mx,my);				//
-		glVertex2i(mx+HLINE*3.5,my);	//
-		glVertex2i(mx,my-HLINE*3.5);	//
-	glEnd();							//
+	glColor3ub(255,255,255);							// Draw the mouse
+	glBegin(GL_TRIANGLES);								//
+		glVertex2i(ui::mouse.x,ui::mouse.y);			//
+		glVertex2i(ui::mouse.x+HLINE*3.5,ui::mouse.y);	//
+		glVertex2i(ui::mouse.x,ui::mouse.y-HLINE*3.5);	//
+	glEnd();											//
 
 	/**************************
 	****  END RENDERING   ****
@@ -255,7 +365,7 @@ void render(){
 	SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
 }
 
-void logic(){
+void logic(){	
 	ui::handleEvents();				// Handle keyboard / mouse input
 	currentWorld->detect(player);	// Handle gravity and world bounds
 	
@@ -267,13 +377,13 @@ void logic(){
 				if(entity[i]->canMove)entity[i]->wander((rand()%120 + 30), &entity[i]->vel); // Make the NPC wander
 				
 				// Check if the NPC is near the player and handle potential interaction
-				if(pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
-					if(mx >= entity[i]->loc.x && mx <= entity[i]->loc.x + entity[i]->width &&
-					   my >= entity[i]->loc.y && my <= entity[i]->loc.y + entity[i]->width){
+				if(pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){	// NPC in range
+					if(ui::mouse.x >= entity[i]->loc.x && ui::mouse.x <= entity[i]->loc.x + entity[i]->width &&	// Mouse is hovering over NPC
+					   ui::mouse.y >= entity[i]->loc.y && ui::mouse.y <= entity[i]->loc.y + entity[i]->width){
 						entity[i]->near=true; // Allows the NPC's name to be drawn
-						if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(SDL_BUTTON_RIGHT)){
-							entity[i]->interact(); // Interact with the player
-							//Mix_PlayChannel( -1, horn, 0);
+						if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(SDL_BUTTON_RIGHT)){	// If right click
+							entity[i]->interact();				// Interact with the player
+							//Mix_PlayChannel( -1, horn, 0);	// Audio feedback
 						}
 					}else entity[i]->near=false;
 				}
