@@ -132,3 +132,10 @@
 	- fixed malloc/strlen bug that crashes the game on some linux systems
 	- broke andy's linux system on his laptop, allowing for test game build on Windows
 	- began extensive documentation in main.cpp
+	
+10/20/2015:
+===========
+
+	- andy's laptop 'can' boot
+	- added 200+ lines of documentation to main.cpp
+	

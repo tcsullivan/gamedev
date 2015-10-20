@@ -31,8 +31,10 @@ enum GENDER{
 #include <Quest.h>
 #include <entities.h>
 
-#define SCREEN_WIDTH  1280
-#define SCREEN_HEIGHT 720
+#define GAME_NAME		"Independent Study v.0.2 alpha"
+
+#define SCREEN_WIDTH	1280
+#define SCREEN_HEIGHT	720
 //#define FULLSCREEN
 
 #define HLINE 3								//base unit of the world
