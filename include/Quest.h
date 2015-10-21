@@ -1,10 +1,9 @@
 #ifndef QUEST_H
 #define QUEST_H
 
-#include <vector>
-#include <cstdlib>
 #include <cstring>
 
+#include <common.h>
 #include <inventory.h>
 
 #define DEBUG
@@ -27,5 +26,7 @@ public:
 	int finish(const char *t,void *completer);
 	bool hasQuest(const char *t);
 };
+
+#include <entities.h>
 
 #endif // QUEST_H

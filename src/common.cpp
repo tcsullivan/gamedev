@@ -1,11 +1,13 @@
 #include <common.h>
 
+#define DEBUG
+
 GLuint loadTexture(const char *fileName){
 	SDL_Surface *image = IMG_Load(fileName);
 
 	if(!image)return 0;
 #ifdef DEBUG
-		DEBUG_printf("Loaded image file: %s\n", fileName);
+	DEBUG_printf("Loaded image file: %s\n", fileName);
 #endif // DEBUG
 	unsigned object = 0; //creates a new unsigned variable for the texture
 

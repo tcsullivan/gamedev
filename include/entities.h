@@ -2,6 +2,7 @@
 #define ENTITIES_H
 
 #include <common.h>
+#include <Quest.h>
 #include <inventory.h>
 
 #define DEBUG
@@ -11,7 +12,18 @@
 #define PLAYER_INV_SIZE	30	// The size of the player's inventory
 #define NPC_INV_SIZE	3	// Size of an NPC's inventory
 
-extern FILE* names;
+enum _TYPE { //these are the main types of entities
+	STRUCTURET = -1,
+	PLAYERT    = 0,
+	NPCT       = 1,
+	MOBT	   = 2
+};
+
+enum GENDER{
+	MALE,
+	FEMALE,
+	NONE 
+};
 
 class Entity{
 public:

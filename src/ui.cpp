@@ -1,7 +1,4 @@
 #include <ui.h>
-#include <world.h> // World-switching stuff
-#include <ft2build.h> // FreeType stuff
-#include FT_FREETYPE_H
 
 #define SDL_KEY e.key.keysym.sym	// Keeps the code neater :)
 
@@ -10,6 +7,8 @@ extern World  *currentWorld;	// should/must also be defined in main.cpp
 
 extern std::vector<int (*)(NPC *)> AIpreload;	// see entities.cpp
 extern std::vector<void *> AIpreaddr;			//
+
+extern bool gameRunning;
 
 static FT_Library   ftl;		// Variables for the FreeType library and stuff
 static FT_Face      ftf;

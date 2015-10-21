@@ -2,6 +2,7 @@
 #define WORLD_H
 
 #include <common.h> // For HLINE, vec2, OpenGL utilities, etc.
+#include <entities.h>
 
 typedef struct {
 	vec2 p1,p2;

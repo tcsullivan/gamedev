@@ -1,7 +1,10 @@
 #include <inventory.h>
+#include <entities.h>
 #include <ui.h>
 
 #define ITEM_COUNT 2	// Total number of items that actually exist
+
+extern Player *player;
 
 const char *itemName[]={
 	"\0",
@@ -79,9 +82,6 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 	}
 	return -1;
 }
-
-#include <entities.h>
-extern Player *player;
 
 void Inventory::draw(void){
 	unsigned int i=0;

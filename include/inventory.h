@@ -1,7 +1,7 @@
 #ifndef INVENTORY_H
 #define INVENTORY_H
 
-#include <cstdlib>
+#include <common.h>
 
 #define DEBUG
 

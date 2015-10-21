@@ -4,6 +4,10 @@
 #include <common.h>
 #include <cstdarg> // For putText()
 
+#include <world.h> // World-switching stuff
+#include <ft2build.h> // FreeType stuff
+#include FT_FREETYPE_H
+
 #define DEBUG
 
 namespace ui {	// Functions are kept in a namespace simply

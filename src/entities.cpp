@@ -5,6 +5,9 @@ extern std::vector<Entity*>entity;
 extern std::vector<NPC>npc;
 extern std::vector<Structures>build;
 
+extern FILE* names;
+extern unsigned int loops;
+
 void Entity::spawn(float x, float y){	//spawns the entity you pass to it based off of coords and global entity settings
 	loc.x = x;
 	loc.y = y;
@@ -245,6 +248,7 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 	loc.y = y;
 	type = t;
 	alive = true;
+	health = maxHealth = 1;
 
 	/*VILLAGE*/
 	//spawns a village

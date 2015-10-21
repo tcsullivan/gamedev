@@ -1,4 +1,4 @@
-#include <common.h>
+#include <Quest.h>
 
 #define TITLE	Quest(
 #define DESC	,

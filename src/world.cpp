@@ -1,5 +1,4 @@
 #include <world.h>
-#include <ui.h>
 
 #define getWidth(w) ((w->lineCount-GEN_INC)*HLINE)	// Calculates the width of world 'w'
 
@@ -33,38 +32,110 @@ World::World(void){
 void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
 	unsigned int i;						// Used for 'for' loops 
 	float inc;							// See line 40
-	lineCount=width+GEN_INC;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
-	if(lineCount<=0)abort();
 	
-	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));	// Allocate memory for the array 'line'
+	/*
+	 *	Calculate the world's real width. The current form of generation fails to generate
+	 *	the last GEN_INC lines, so we offset those making the real real width what was passed
+	 *	to this function.
+	 * 
+	 *	Abort if the width is invalid.
+	 * 
+	*/
 	
-	line[0].y=80;								// Sets a starting value for the world generation to be based off of
-	for(i=GEN_INC;i<lineCount;i+=GEN_INC){		// For every GEN_INCth line in the array 'line'
-		line[i].y=rand()%8-4+line[i-GEN_INC].y;	// Generate a y value for it, and correct it if it is too high or low.
-		if(line[i].y<60)line[i].y=60;	// y value minimum
-		if(line[i].y>110)line[i].y=110;	// y value maximum
+	if((lineCount = width + GEN_INC) <= 0)
+		abort();
+	
+	/*
+	 *	Allocate enough memory for the world to be stored.
+	*/
+	
+	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));
+	
+	/*
+	 *	Set an initial y to base generation off of, as generation references previous lines.
+	*/
+	
+	line[0].y=80;
+	
+	/*
+	 *	Populate every GEN_INCth line structure. The remaining lines will be based off of these.
+	*/
+	
+	for(i=GEN_INC;i<lineCount;i+=GEN_INC){
+		
+		/*
+		 *	Generate a y value, ensuring it stays within a reasonable range.
+		*/
+		
+		line[i].y=rand() % 8 - 4 + line[i-GEN_INC].y;	// Add +/- 4 to the previous line
+			 if(line[i].y <  60)line[i].y =  60;		// Minimum bound
+		else if(line[i].y > 110)line[i].y = 110;		// Maximum bound
+		
 	}
-	for(i=0;i<lineCount-GEN_INC;i++){							// Calculate the rest of the lines as well as set color values for them.
-		if(!i||!(i%GEN_INC)){									// If this is one of the GEN_INCth lines that are already calculated
-			inc=(line[i+GEN_INC].y-line[i].y)/(float)GEN_INC;	// Calculate the slope between this line and the line ahead of it, then
-																// divide it by the number of lines inbetween the two.
-		}else{							// If this line's y hasn't been set yet
-			line[i].y=line[i-1].y+inc;	// Set it by incrementing the previous line's y by 'inc'.
+	
+	/*
+	 *	Generate values for the remaining lines here.
+	*/
+	
+	for(i=0;i<lineCount-GEN_INC;i++){
+		
+		/*
+		 *	Every GEN_INCth line calculate the slope between the current line and the one
+		 *	GEN_INC lines before it. This value is then divided into an increment that is
+		 *	added to lines between these two points resulting in a smooth slope.
+		 * 
+		*/
+		
+		if(!i||!(i%GEN_INC)){
+			
+			inc=(line[i + GEN_INC].y - line[i].y) / (float)GEN_INC;
+			
+		}else{
+			
+			/*
+			 *	Add the increment to create the smooth slope.
+			*/
+			
+			line[i].y=line[i - 1].y + inc;
+			
 		}
-		line[i].color=rand()%20+100;	// Generate a color for the dirt area of this line. This value will be used
-										// in the form (where n represents the color) glColor3ub(n,n-50,n-100)
-										
-		line[i].gh[0]=(getRand()%16)/3.5+2;	// Create a random grass height so it looks cool
-		line[i].gh[1]=(getRand()%16)/3.5+2;
-		line[i].gs=true;
+		
+		/*
+		 *	Generate a color value for the line. This will be referenced in World->draw(),
+		 *	by setting an RGB value of color (red), color - 50 (green), color - 100 (blue).
+		*/
+		
+		line[i].color=rand() % 20 + 100; // 100 to 120
+
+		/*
+		 *	Each line has two 'blades' of grass, here we generate random heights for them.
+		*/
+		
+		line[i].gh[0]=(getRand() % 16) / 3.5 + 2;	// Not sure what the range resolves to here...
+		line[i].gh[1]=(getRand() % 16) / 3.5 + 2;	//
+		
+		line[i].gs=true;							// Show the blades of grass (modified by the player)
+		
 	}
-	x_start=0-getWidth(this)/2+GEN_INC/2*HLINE;	// Calculate x_start (explained in world.h)
-	behind=infront=NULL;						// Set pointers to other worlds to NULL
-	toLeft=toRight=NULL;						// to avoid accidental calls to goWorld... functions
+	
+	/*
+	 *	Calculate the x coordinate to start drawing this world from so that it is centered at (0,0).
+	*/
+	
+	x_start=0 - getWidth(this) / 2 + GEN_INC / 2 * HLINE;
+	
+	/*
+	 *	Nullify pointers to other worlds.
+	*/
+	
+	behind	=
+	infront	=
+	toLeft	=
+	toRight	= NULL;
 }
 
 World::~World(void){
-	free(line);	// Free (de-allocate) the array 'line'
+	free(line);
 }
 
 void World::draw(Player *p){
@@ -161,14 +232,10 @@ void World::singleDetect(Entity *e){
 		e->alive=false;
 	}else if(e->alive){
 		i=(e->loc.x+e->width/2-x_start)/HLINE;	// Calculate what line the player is currently on
-		if(e->type==STRUCTURET||e->loc.y<line[i].y){
+		if(e->loc.y<line[i].y){
 			e->vel.y=0;
 			e->ground=true;
 			e->loc.y=line[i].y-.001*deltaTime;	
-			if(e->type==STRUCTURET){
-				//std::cout<<e->loc.x<<" "<<e->loc.y<<std::endl;
-				return;
-			}
 		}else if(e->loc.y>line[i].y-.002*deltaTime){
 			for(i=0;i<platform.size();i++){
 				if(((e->loc.x+e->width>platform[i].p1.x)&(e->loc.x+e->width<platform[i].p2.x))||

@@ -139,3 +139,11 @@
 	- andy's laptop 'can' boot
 	- added 200+ lines of documentation to main.cpp
 	
+10/21/2015:
+===========
+
+	- andy's laptop works :)
+	- finished documenting main.cpp, bringing it to 759 lines
+	- began documenting entities.h/.cpp and world.h/.cpp
+	- fixed structure physics
+	- improved include locations
