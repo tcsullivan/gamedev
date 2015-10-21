@@ -556,22 +556,27 @@ void render(){
 					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nQc: %u",
 					fps,
 					player->ground,
-					SCREEN_WIDTH,
-					SCREEN_HEIGHT,
-					entity.size(),
-					player->loc.x,
-					debugY,			// The player's y coordinate
-					player->qh.current.size()
+					SCREEN_WIDTH,				// Window dimensions
+					SCREEN_HEIGHT,				//
+					entity.size(),				// Size of entity array
+					player->loc.x,				// The player's x coordinate
+					debugY,						// The player's y coordinate
+					player->qh.current.size()	// Active quest count
 					);
 					
 	}
 	
-	glColor3ub(255,255,255);							// Draw the mouse
-	glBegin(GL_TRIANGLES);								//
-		glVertex2i(ui::mouse.x,ui::mouse.y);			//
-		glVertex2i(ui::mouse.x+HLINE*3.5,ui::mouse.y);	//
-		glVertex2i(ui::mouse.x,ui::mouse.y-HLINE*3.5);	//
-	glEnd();											//
+	/*
+	 *	Draw a white triangle as a replacement for the mouse's cursor.
+	*/
+	
+	glColor3ub(255,255,255);
+	
+	glBegin(GL_TRIANGLES);
+		glVertex2i(ui::mouse.x			,ui::mouse.y		  );
+		glVertex2i(ui::mouse.x+HLINE*3.5,ui::mouse.y		  );
+		glVertex2i(ui::mouse.x			,ui::mouse.y-HLINE*3.5);
+	glEnd();
 
 	/**************************
 	****  END RENDERING   ****
@@ -581,36 +586,120 @@ void render(){
 	SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
 }
 
-void logic(){	
-	ui::handleEvents();				// Handle keyboard / mouse input
-	currentWorld->detect(player);	// Handle gravity and world bounds
+void logic(){
+	/*
+	 *	Handle user input (keyboard & mouse).
+	*/
 	
-	for(int i=0;i<=entity.size();i++){	// Loop through the whole entity stack
-		if(entity[i]->alive){			// If the entity is alive
+	ui::handleEvents();
+	
+	/*
+	 *	Run the world's detect function. This handles the physics of the player and any entities
+	 *	that exist in this world.
+	*/
+	
+	currentWorld->detect(player);
+	
+	/*
+	 *	Entity logic: This loop finds every entity that is alive and in the current world. It then
+	 *	basically runs their AI functions depending on what type of entity they are. For NPCs,
+	 *	click detection is done as well for NPC/player interaction.
+	 * 
+	*/
+	
+	for(int i=0;i<=entity.size();i++){
+		
+		/*
+		 *	Check if the entity is in this world and is alive.
+		*/
+		
+		if(entity[i]->inWorld==currentWorld&&entity[i]->alive){
+			
+			/*
+			 *	Switch on the entity's type and handle them accordingly.
+			*/
+			
 			switch(entity[i]->type){
+				
 			case NPCT:	// Handle NPCs
 			
-				if(entity[i]->canMove)entity[i]->wander((rand()%120 + 30), &entity[i]->vel); // Make the NPC wander
+				/*
+				 *	Make the NPC 'wander' about the world if they're allowed to do so.
+				 *	Entity->canMove is modified when a player interacts with an NPC so
+				 *	that the NPC doesn't move when it talks to the player.
+				 * 
+				*/
+			
+				if(entity[i]->canMove)
+					entity[i]->wander((rand() % 120 + 30), &entity[i]->vel);
 				
-				// Check if the NPC is near the player and handle potential interaction
-				if(pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){	// NPC in range
-					if(ui::mouse.x >= entity[i]->loc.x && ui::mouse.x <= entity[i]->loc.x + entity[i]->width &&	// Mouse is hovering over NPC
-					   ui::mouse.y >= entity[i]->loc.y && ui::mouse.y <= entity[i]->loc.y + entity[i]->width){
-						entity[i]->near=true; // Allows the NPC's name to be drawn
-						if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(SDL_BUTTON_RIGHT)){	// If right click
-							entity[i]->interact();				// Interact with the player
+				/*
+				 *	Check if the NPC is under the mouse.
+				*/
+				
+				if(ui::mouse.x >= entity[i]->loc.x 						&&
+				   ui::mouse.x <= entity[i]->loc.x + entity[i]->width 	&&
+				   ui::mouse.y >= entity[i]->loc.y						&&
+				   ui::mouse.y <= entity[i]->loc.y + entity[i]->width	){
+					   
+					/*
+					 *	Check of the NPC is close enough to the player for interaction to be
+					 *	considered legal. In other words, require the player to be close to
+					 *	the NPC in order to interact with it. 
+					 * 
+					 *	This uses the Pythagorean theorem to check for NPCs within a certain
+					 *	radius (40 HLINEs) of the player's coordinates.
+					 * 
+					*/   
+					
+					if(pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
+						
+						/*
+						 *	Set Entity->near so that this NPC's name is drawn under them.
+						*/
+						
+						entity[i]->near=true;
+						
+						/*
+						 *	Check for a right click, and allow the NPC to interact with the
+						 *	player if one was made.
+						*/
+						
+						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+							
+							entity[i]->interact();
 							//Mix_PlayChannel( -1, horn, 0);	// Audio feedback
+							
 						}
-					}else entity[i]->near=false;
-				}
-				break;
-			case MOBT:	// Handle mobs
+					}
+					
+				/*
+				 *	Hide the NPC's name if the mouse isn't on the NPC.
+				*/
+				
+				}else entity[i]->near=false;
+				
+				break;	// End case NPCT
+				
+			case MOBT:	// Handle Mobs
+			
+				/*
+				 *	Run the Mob's AI function.
+				*/
+				
 				entity[i]->wander((rand()%240 + 15),&entity[i]->vel);	// Make the mob wander
-				break;
-			default:
-				break;
+				
+				break;	// End case MOBT
+				
+			default:break;
+			
 			}
 		}
 	}
+	
+	/*
+	 *	Increment a loop counter used for animating sprites.
+	*/
+	
 	loops++;
 }
