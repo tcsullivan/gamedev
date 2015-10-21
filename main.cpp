@@ -490,11 +490,42 @@ void mainLoop(void){
 
 void render(){
 	/*
-	 *	TODO fix this dense garbage ANDY :D lol hahahaha XDSSDSDDDDD
+	 *	These functions run everyloop to update the current stacks presets
+	 *
+	 *	Matrix 	----	A matrix is a blank "canvas" for the renderer to draw on,
+	 *					this canvas can be rotated, scales, skewed, etc..
+	 *
+	 *	Stack 	----	A stack is exactly what it sounds like, it is a stack.. A
+	 *					stack is a "stack" of matrices for the renderer to draw on.
+	 *					Each stack can be made up of varying amounts of matricies.
+	 *
+	 *	glMatrixMode	This changes our current stacks mode so the drawings below
+	 *					it can take on certain traits.
+	 *	
+	 *	GL_PROJECTION	This is the matrix mode that sets the cameras position,
+	 *					GL_PROJECTION is made up of a stack with two matrices which
+	 *					means we can make up to 2 seperate changes to the camera.
+	 *
+	 *	GL_MODELVIEW	This matrix mode is set to have the dimensions defined above
+	 *					by GL_PROJECTION so the renderer can draw only what the camera
+	 *					is looking at. GL_MODELVIEW has a total of 32 matrices on it's
+	 *					stack, so this way we can make up to 32 matrix changes like,
+	 *					scaling, rotating, translating, or flipping.
+	 *
+	 *	glOrtho			glOrtho sets our ortho, or our cameras resolution. This can also
+	 *					be used to set the position of the camera on the x and y axis
+	 *					like we have done. The glOrtho must be set while the stack is in
+	 *					GL_PROJECTION mode, as this is the mode that gives the
+	 *					camera properties.
+	 *
+	 *	glPushMatrix	This creates a "new" matrix. What it really does is pull a matrix
+	 *					off the bottom of the stack and puts it on the top so the renderer
+	 *					can draw on it.
+	 *
+	 *	glLoadIdentity	This scales the current matrix back to the origin so the
+	 *					translations are seen normally on a stack.
 	*/
-													//a matrix is a blank canvas for the computer to draw on, the matrices are stored in a "stack"
-													//GL_PROJECTION has 2 matrices
-													//GL_MODELVIEW has 32 matrices
+
 	glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
@@ -503,8 +534,20 @@ void render(){
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
 	glPushMatrix();									//basically here we put a blank canvas (new matrix) on the screen to draw on
+	
+	/*
+	 * glPushAttrib		This passes attributes to the renderer so it knows what it can
+	 *					render. In our case, GL_DEPTH_BUFFER_BIT allows the renderer to
+	 *					draw multiple objects on top of one another without blending the
+	 *					objects together; GL_LIGHING_BIT allows the renderer to use shaders
+	 *					and other lighting effects to affect the scene.
+	 *
+	 * glClear 			This clears the new matrices using the type passed. In our case:
+	 *					GL_COLOR_BUFFER_BIT allows the matrices to have color on them
+	*/
+	
 	glPushAttrib( GL_DEPTH_BUFFER_BIT | GL_LIGHTING_BIT );
-	glClear(GL_COLOR_BUFFER_BIT); 					//clear the matrix on the top of the stack
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	/**************************
 	**** RENDER STUFF HERE ****
@@ -582,8 +625,19 @@ void render(){
 	****  END RENDERING   ****
 	**************************/
 
-	glPopMatrix(); 									//take the matrix(s) off the stack to pass them to the renderer
-	SDL_GL_SwapWindow(window); 						//give the stack to SDL to render it
+	/*
+	 * These next two function finish the rendering\
+	 *
+	 *	glPopMatrix			This anchors all of the matrices and blends them to a single
+	 *						matrix so the renderer can draw this to the screen, since screens
+	 *						are only 2 dimensions, we have to combine the matrixes to be 2d.
+	 *
+	 *  SDL_GL_SwapWindow	Since SDL has control over our renderer, we need to now give our
+	 *						new matrix to SDL so it can pass it to the window.
+	*/
+
+	glPopMatrix();
+	SDL_GL_SwapWindow(window);
 }
 
 void logic(){
