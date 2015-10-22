@@ -58,7 +58,7 @@ public:
 
 	char* name;
 	GENDER gender;
-	GLuint texture[3];	  //TODO: ADD TEXTURES
+	//GLuint texture[3];	  //TODO: ADD TEXTURES
 	Texturec* tex;
 
 

@@ -49,10 +49,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	alive = true;
 	canMove = true;
 	near = false;
-	texture[0] = Texture::loadTexture("assets/NPC.png");
-	texture[1] = 0;
-	texture[2] = 0;
-	//tex = new Texturec("assets/NPC.png");
+	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
@@ -61,9 +58,7 @@ Structures::Structures(){ //sets the structure type
 	speed = 0;
 	alive = true;
 	near = false;
-	texture[0] = Texture::loadTexture("assets/house1.png");
-	texture[1] = 0;
-	texture[2] = 0;
+	tex = new Texturec(1,"assets/house1.png");
 }
 
 Mob::Mob(){
@@ -75,9 +70,7 @@ Mob::Mob(){
 	alive = true;
 	canMove = true;
 	near = false;
-	texture[0] = Texture::loadTexture("assets/rabbit.png");
-	texture[1] = Texture::loadTexture("assets/rabbit1.png");
-	texture[2] = 0;
+	tex = new Texturec(2, "assets/rabbit.png", "assets/rabbit.png1");
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
@@ -136,18 +129,16 @@ void Entity::draw(void){		//draws the entities
 		switch(subtype){
 			case 1: //RABBIT
 				if(ground == 0){
-					glBindTexture(GL_TEXTURE_2D, texture[1]);
+					glBindTexture(GL_TEXTURE_2D, tex->image[1]);
 				}else if(ground == 1){
-					glBindTexture(GL_TEXTURE_2D, texture[0]);					
+					glBindTexture(GL_TEXTURE_2D, tex->image[0]);					
 				}
 				break;
 			default:
 			break;
 		}
-	}/*else if(type == NPCT){
-		glBindTexture(GL_TEXTURE_2D, tex->image);
-	}*/else{
-		glBindTexture(GL_TEXTURE_2D,texture[0]);
+	}else{
+		glBindTexture(GL_TEXTURE_2D,tex->image[0]);
 	}
 	glColor3ub(255,255,255);
 	glBegin(GL_QUADS);

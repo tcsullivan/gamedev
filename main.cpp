@@ -659,7 +659,7 @@ void logic(){
 	 *	click detection is done as well for NPC/player interaction.
 	 * 
 	*/
-	 std::cout << "Game Loop: "<< loops << std::endl;
+	 //std::cout << "Game Loop: "<< loops << std::endl;
 	
 	for(int i=0;i<=entity.size();i++){
 		
