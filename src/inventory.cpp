@@ -24,7 +24,7 @@ unsigned int initInventorySprites(void){
 	unsigned int i,loadCount=0;
 	ITEM_TEX=(GLuint *)calloc(ITEM_COUNT,sizeof(GLuint));
 	for(i=0;i<ITEM_COUNT;i++){
-		if((ITEM_TEX[i]=loadTexture(ITEM_SPRITE[i+1])))loadCount++;
+		if((ITEM_TEX[i]=Texture::loadTexture(ITEM_SPRITE[i+1])))loadCount++;
 	}
 #ifdef DEBUG
 	DEBUG_printf("Loaded %u/%u item texture(s).\n",loadCount,ITEM_COUNT);

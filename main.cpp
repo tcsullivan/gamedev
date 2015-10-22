@@ -381,7 +381,7 @@ int main(int argc, char *argv[]){
 	 *	Load a temporary background image.
 	*/
 	
-	bgImage=loadTexture("assets/bg.png");
+	bgImage=Texture::loadTexture("assets/bg.png");
 	
 	/*
 	 *	Load sprites used in the inventory menu. See src/inventory.cpp
@@ -625,7 +625,7 @@ void render(){
 	**************************/
 
 	/*
-	 * These next two function finish the rendering\
+	 * These next two function finish the rendering
 	 *
 	 *	glPopMatrix			This anchors all of the matrices and blends them to a single
 	 *						matrix so the renderer can draw this to the screen, since screens
@@ -659,6 +659,7 @@ void logic(){
 	 *	click detection is done as well for NPC/player interaction.
 	 * 
 	*/
+	 std::cout << "Game Loop: "<< loops << std::endl;
 	
 	for(int i=0;i<=entity.size();i++){
 		

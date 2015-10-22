@@ -22,6 +22,11 @@
 #include <SDL2/SDL_mixer.h>
 
 /*
+ *	Include file headers
+*/
+#include <Texture.h>
+
+/*
  *	Create a basic 2-point structure for coordinate saving
 */
 
@@ -88,7 +93,7 @@ extern unsigned int deltaTime;
  * 
 */
 
-GLuint loadTexture(const char *fileName);
+//GLuint loadTexture(const char *fileName);
 
 /*
  *	Prints a formatted debug message to the console, along with the callee's file and line
