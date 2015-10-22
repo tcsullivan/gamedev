@@ -2,7 +2,7 @@
 #include <ui.h>
 
 extern std::vector<Entity*>entity;
-extern std::vector<NPC>npc;
+//extern std::vector<NPC>npc;
 extern std::vector<Structures>build;
 
 extern FILE* names;
@@ -13,14 +13,14 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	loc.y = y;
 	vel.x = 0;
 	vel.y = 0;
-	right = false;
-	left = false;
-	near = false;
-	ticksToUse = 0;
-	canMove = true;
-	ground = false;
 	alive = true;
-	if(!maxHealth)health = maxHealth = 50;
+	right = true;
+	left  = false;
+	near  = false;
+	canMove = true;
+	ground  = false;
+	ticksToUse = 0;
+	if(!maxHealth)health = maxHealth = 1;
 	name = (char*)malloc(16);
 	getName();
 }
@@ -33,9 +33,6 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	subtype = 0;
 	maxHealth = 100;
 	health = maxHealth;
-	alive = true;
-	ground = false;
-	near = true;
 	texture[0] = loadTexture("assets/player.png");
 	texture[1] = loadTexture("assets/player1.png");
 	texture[2] = loadTexture("assets/player2.png");
@@ -48,9 +45,6 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	speed = 1;
 	type = NPCT; //sets type to npc
 	subtype = 0;
-	alive = true;
-	canMove = true;
-	near = false;
 	texture[0] = loadTexture("assets/NPC.png");
 	texture[1] = 0;
 	texture[2] = 0;
@@ -60,8 +54,6 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 Structures::Structures(){ //sets the structure type
 	type = STRUCTURET;
 	speed = 0;
-	alive = true;
-	near = false;
 	texture[0] = loadTexture("assets/house1.png");
 	texture[1] = 0;
 	texture[2] = 0;
@@ -73,9 +65,6 @@ Mob::Mob(){
 	speed = 1;
 	type = MOBT; //sets type to MOB
 	subtype = 1; //SKIRL
-	alive = true;
-	canMove = true;
-	near = false;
 	texture[0] = loadTexture("assets/rabbit.png");
 	texture[1] = loadTexture("assets/rabbit1.png");
 	texture[2] = 0;
@@ -261,9 +250,7 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 		int tempN = (getRand() % 5 + 2); //amount of villagers that will spawn
 		for(int i=0;i<tempN;i++){
 			entity.push_back(new NPC()); //create a new entity of NPC type
-			npc.push_back(NPC()); //create new NPC
-			entity[entity.size()] = &npc[npc.size()-1]; //set the new entity to have the same traits as an NPC
-			entity[entity.size()-1]->spawn(loc.x + (float)(i - 5),100); //sets the position of the villager around the village
+			NPCp(entity[entity.size()-1])->spawn(loc.x + (float)(i - 5),100); //sets the position of the villager around the village
 		}
 		return entity.size();
 	}

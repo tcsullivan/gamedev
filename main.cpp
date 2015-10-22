@@ -65,44 +65,43 @@ static GLuint  bgImage;
 bool gameRunning = true;
 
 /*
- *	currentWorld -	This is a pointer to the current world that the player
- * 					is in. Most drawing/entity handling is done through this
- * 					variable. This should only be changed when layer switch
- * 					buttons are pressed (see src/ui.cpp), or when the player
- * 					enters a Structure/Indoor World (see src/ui.cpp again).
+ *	currentWorld 	-	This is a pointer to the current world that the player
+ * 				is in. Most drawing/entity handling is done through this
+ * 				variable. This should only be changed when layer switch
+ * 				buttons are pressed (see src/ui.cpp), or when the player
+ * 				enters a Structure/Indoor World (see src/ui.cpp again).
  * 
- *	player		 -	This points to a Player object, containing everything for
- * 					the player. Most calls made with currentWorld require a
- * 					Player object as an argument, and glOrtho is set based
- * 					off of the player's coordinates. This is probably the one
- * 					Entity-derived object that is not pointed to in the entity
- * 					array.
+ *	player		-	This points to a Player object, containing everything for
+ * 				the player. Most calls made with currentWorld require a
+ * 				Player object as an argument, and glOrtho is set based
+ * 				off of the player's coordinates. This is probably the one
+ * 				Entity-derived object that is not pointed to in the entity
+ * 				array.
  * 
  *	entity		 -	Contains pointers to 'all' entities that have been created in
- * 					the game, including NPCs, Structures, and Mobs. World draws
- * 					and entity handling done by the world cycle through entities
- * 					using this array. Entities made that aren't added to this
- * 					array probably won't be noticable by the game.
+ * 				the game, including NPCs, Structures, and Mobs. World draws
+ * 				and entity handling done by the world cycle through entities
+ * 				using this array. Entities made that aren't added to this
+ * 				array probably won't be noticable by the game.
  * 
- *	npc			 -	An array of all NPCs in the game. It's not exactly clear how
- * 					NPC initing is done, their constructed in this array, then set
- * 					to be pointed to by entity, then maybe spawned with Entity->spawn().
- * 					See src/entities.cpp for more.
- * 					This variable might be referenced as an extern in other files.
+ *	npc		 -	An array of all NPCs in the game. It's not exactly clear how
+ * 				NPC initing is done, their constructed in this array, then set
+ * 				to be pointed to by entity, then maybe spawned with Entity->spawn().
+ * 				See src/entities.cpp for more.
+ * 				This variable might be referenced as an extern in other files.
  * 
  *	build		 -	An array of all Structures in the game. Entries in entity point to
- * 					these, allowing worlds to handle the drawing and stuff of these.
- * 					See src/entities.cpp for more.
+ *				these, allowing worlds to handle the drawing and stuff of these.
+ * 				See src/entities.cpp for more.
  * 
- *	mob			 -	An array of all Mobs in the game, entity entries should point to these
- * 					so the world can take care of them. See src/entities.cpp for more.
+ *	mob		 -	An array of all Mobs in the game, entity entries should point to these
+ * 				so the world can take care of them. See src/entities.cpp for more.
  * 
 */
 
 World  						*currentWorld=NULL;
 Player 						*player;
 std::vector<Entity *	>	 entity;
-std::vector<NPC			>	 npc;
 std::vector<Structures *>	 build;
 std::vector<Mob			>	 mob;
 

@@ -3,10 +3,11 @@
 #define getWidth(w) ((w->lineCount-GEN_INC)*HLINE)	// Calculates the width of world 'w'
 
 #define GEN_INC 10		// Defines at what interval y values should be calculated for the array 'line'.
-						// As explained in World(), the last few lines in the array 'line' are incorrectly calculated
-						// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
-						// and detect().
-#define GRASS_HEIGHT 4	// Defines how long the grass layer of a line should be in multiples of HLINE.
+				// As explained in World(), the last few lines in the array 'line' are incorrectly calculated
+				// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
+				// and detect().
+
+#define GRASS_HEIGHT 4		// Defines how long the grass layer of a line should be in multiples of HLINE.
 
 
 #define DRAW_Y_OFFSET 50	// Defines how many pixels each layer should be offset from each other on the y axis when drawn.
@@ -30,8 +31,8 @@ World::World(void){
 }
 
 void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
-	unsigned int i;						// Used for 'for' loops 
-	float inc;							// See line 40
+	unsigned int i;				// Used for 'for' loops 
+	float inc;				// See line 40
 	
 	/*
 	 *	Calculate the world's real width. The current form of generation fails to generate
@@ -228,47 +229,121 @@ LOOP2:													// Draw each world
 
 void World::singleDetect(Entity *e){
 	unsigned int i;
+	
+	/*
+	 *	Kill any dead entities.
+	*/
+	
 	if(e->health<=0){
+	  
 		e->alive=false;
-	}else if(e->alive){
-		i=(e->loc.x+e->width/2-x_start)/HLINE;	// Calculate what line the player is currently on
-		if(e->loc.y<line[i].y){
-			e->vel.y=0;
+		
+	}
+	
+	/*
+	 *	Handle only living entities.
+	*/
+	
+	if(e->alive){
+	  
+		/*
+		 *	Calculate the line that this entity is currently standing on.
+		*/
+		
+		i=(e->loc.x + e->width / 2 - x_start) / HLINE;
+		
+		/*
+		 *	If the entity is under the world/line, pop it back to the surface.
+		*/
+		
+		if(e->loc.y < line[i].y){
+		  
 			e->ground=true;
-			e->loc.y=line[i].y-.001*deltaTime;	
-		}else if(e->loc.y>line[i].y-.002*deltaTime){
+			
+			e->vel.y=0;
+			e->loc.y=line[i].y - .001 * deltaTime;
+		
+		/*
+		 *	Otherwise, if the entity is above the line... 
+		*/
+		
+		}else if(e->loc.y > line[i].y - .002 * deltaTime){
+		  
+			/*
+			 *	Check for any potential platform collision (i.e. landing on a platform) 
+			*/
+		  
 			for(i=0;i<platform.size();i++){
-				if(((e->loc.x+e->width>platform[i].p1.x)&(e->loc.x+e->width<platform[i].p2.x))||
-				   ((e->loc.x<platform[i].p2.x)&(e->loc.x>platform[i].p1.x))){
-					if(e->loc.y>platform[i].p1.y&&e->loc.y<platform[i].p2.y){
-						if(e->vel.y<0){
+			  
+				if(((e->loc.x + e->width > platform[i].p1.x) & (e->loc.x + e->width < platform[i].p2.x)) ||	// Check X left bounds
+				   ((e->loc.x < platform[i].p2.x) & (e->loc.x>platform[i].p1.x))){							// Check X right bounds
+					if(e->loc.y > platform[i].p1.y && e->loc.y < platform[i].p2.y){							// Check Y bounds
+					  
+						/*
+						 *	Check if the entity is falling onto the platform so
+						 *	that it doesn't snap to it when attempting to jump
+						 *	through it.
+						 * 
+						*/
+					  
+						if(e->vel.y<=0){
+						  
+							e->ground=2;
+						  
 							e->vel.y=0;
 							e->loc.y=platform[i].p2.y;
-							e->ground=2;
-							return;
+							
+							//return;	// May not be necessary
 						}
 					}
 				}
 			}
-			e->vel.y-=.001*deltaTime;
+			
+			/*
+			 *	Handle gravity.
+			*/
+			
+			e->vel.y-=.001 * deltaTime;
+			
 		}
-		if(e->loc.x<x_start){				// Keep the player inside world bounds (ui.cpp handles world jumping)
+		
+		/*
+		 *	Insure that the entity doesn't fall off either edge of the world.
+		*/
+		
+		if(e->loc.x<x_start){												// Left bound
+			
 			e->vel.x=0;
-			e->loc.x=x_start+HLINE/2;
-		}else if(e->loc.x+e->width+HLINE>x_start+getWidth(this)){
+			e->loc.x=x_start + HLINE / 2;
+			
+		}else if(e->loc.x + e->width + HLINE > x_start + getWidth(this)){	// Right bound
+			
 			e->vel.x=0;
-			e->loc.x=x_start+getWidth(this)-e->width-HLINE;
+			e->loc.x=x_start + getWidth(this) - e->width - HLINE;
+			
 		}
 	}
 }
 
-extern unsigned int newEntityCount;
 void World::detect(Player *p){
 	unsigned int i;
+	
+	/*
+	 *	Handle the player. 
+	*/
+	
 	singleDetect(p);
-	for(i=0;i<entity.size()+1;i++){
+	
+	/*
+	 *	Handle all remaining entities in this world. 
+	*/
+	
+	for(i=0;i<entity.size();i++){
+		
 		if(entity[i]->inWorld==this){
+			
 			singleDetect(entity[i]);
+			
 		}
 	}
 }

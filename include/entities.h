@@ -7,7 +7,9 @@
 
 #define DEBUG
 
-#define NPCp(n) ((NPC *)n)
+#define NPCp(n)			((NPC *)n)
+#define Structurep(n)	((Structures *)n)
+#define Mobp(n)			((Mob *)n)
 
 #define PLAYER_INV_SIZE	30	// The size of the player's inventory
 #define NPC_INV_SIZE	3	// Size of an NPC's inventory

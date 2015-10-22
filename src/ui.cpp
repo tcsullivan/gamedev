@@ -21,9 +21,11 @@ namespace ui {
 	bool debug=false;
 	bool dialogBoxExists=false;
 	unsigned int fontSize;
+
 	/*
 	 * initFonts(), setFontFace(), and setFontSize() are pretty self-explanatory
 	*/
+
 	void initFonts(void){
 		if(FT_Init_FreeType(&ftl)){
 			std::cout<<"Error! Couldn't initialize freetype."<<std::endl;

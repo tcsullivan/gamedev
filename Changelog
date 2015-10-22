@@ -147,3 +147,14 @@
 	- began documenting entities.h/.cpp and world.h/.cpp
 	- fixed structure physics
 	- improved include locations
+
+10/22/2015:
+===========
+
+	- 1 month Changelog anniversary :)
+	- successfully built and ran game on 64-bit linux
+	- successfully build game on 32-bit Windows (game crashes on execution)
+	- removed npc array; NPCs are now created in the entity array
+	- created a basic texture handling library
+	
+	
