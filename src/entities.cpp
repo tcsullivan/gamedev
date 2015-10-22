@@ -36,10 +36,11 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	alive = true;
 	ground = false;
 	near = true;
-	texture[0] = loadTexture("assets/player.png");
-	texture[1] = loadTexture("assets/player1.png");
-	texture[2] = loadTexture("assets/player2.png");
+	texture[0] = 0;
+	texture[1] = 0;
+	texture[2] = 0;
 	inv = new Inventory(PLAYER_INV_SIZE);
+	tex = new Texturec(3, "assets/player.png", "assets/player1.png", "assets/player2.png");
 }
 
 NPC::NPC(){	//sets all of the NPC specific traits on object creation
@@ -51,9 +52,10 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	alive = true;
 	canMove = true;
 	near = false;
-	texture[0] = loadTexture("assets/NPC.png");
+	texture[0] = Texture::loadTexture("assets/NPC.png");
 	texture[1] = 0;
 	texture[2] = 0;
+	//tex = new Texturec("assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
@@ -62,7 +64,7 @@ Structures::Structures(){ //sets the structure type
 	speed = 0;
 	alive = true;
 	near = false;
-	texture[0] = loadTexture("assets/house1.png");
+	texture[0] = Texture::loadTexture("assets/house1.png");
 	texture[1] = 0;
 	texture[2] = 0;
 }
@@ -76,8 +78,8 @@ Mob::Mob(){
 	alive = true;
 	canMove = true;
 	near = false;
-	texture[0] = loadTexture("assets/rabbit.png");
-	texture[1] = loadTexture("assets/rabbit1.png");
+	texture[0] = Texture::loadTexture("assets/rabbit.png");
+	texture[1] = Texture::loadTexture("assets/rabbit1.png");
 	texture[2] = 0;
 	inv = new Inventory(NPC_INV_SIZE);
 }
@@ -116,25 +118,22 @@ void Entity::draw(void){		//draws the entities
 			}
 		}
 		if(ground == 0){
-			glBindTexture(GL_TEXTURE_2D, texture[1]);
-		}
-		if(ground == 0){
-			glBindTexture(GL_TEXTURE_2D, texture[1]);
+			glBindTexture(GL_TEXTURE_2D, tex->image[0]);
 		}else if(vel.x != 0){
 			switch(texState){
 				case 0:
-					glBindTexture(GL_TEXTURE_2D,texture[1]);
+					glBindTexture(GL_TEXTURE_2D,tex->image[1]);
 				break;
 				case 1:
-					glBindTexture(GL_TEXTURE_2D,texture[0]);
+					glBindTexture(GL_TEXTURE_2D,tex->image[0]);
 				break;
 				case 2:
-					glBindTexture(GL_TEXTURE_2D,texture[2]);
+					glBindTexture(GL_TEXTURE_2D,tex->image[2]);
 				break;
 			}
 		}
 		else{
-			glBindTexture(GL_TEXTURE_2D,texture[0]);
+			glBindTexture(GL_TEXTURE_2D,tex->image[0]);
 		}
 	}else if(type == MOBT){
 		switch(subtype){
@@ -148,7 +147,9 @@ void Entity::draw(void){		//draws the entities
 			default:
 			break;
 		}
-	}else{
+	}/*else if(type == NPCT){
+		glBindTexture(GL_TEXTURE_2D, tex->image);
+	}*/else{
 		glBindTexture(GL_TEXTURE_2D,texture[0]);
 	}
 	glColor3ub(255,255,255);
@@ -203,8 +204,29 @@ void Player::interact(){ //the function that will cause the player to search for
 	
 }
 
+/*
+ *	NPC::wander, this makes the npcs wander around the near area
+ *
+ *	timeRun					This variable is the amount of gameloop ticks the entity will wander for
+ *
+ *	*v 						This is a pointer to whatever vec2 value is passed to it, usually the value
+ *							passed is the entities vec2 for coordinates. Since the value is a pointer
+ *							the memory address passed to it is directly modified.
+*/
+
 void NPC::wander(int timeRun, vec2 *v){ //this makes the entites wander about
+	/*
+	 *	Direction is the variable that decides what direction the entity will travel in
+	 *	the value is either -1, 0, or 1. -1 being left, 0 means that the npc will stay still
+	 *	and a value of 1 makes the entity move to the right
+	*/
 	static int direction;	//variable to decide what direction the entity moves
+	/*
+	 *	Ticks to use is a variable in the entity class that counts the total ticks that need to be used
+	 *
+	 *	This loop only runs when ticksToUse is 0, this means that the speed, direction, etc... Will be
+	 *	calculated only after the npc has finished his current walking state
+	*/
 	if(ticksToUse == 0){
 		ticksToUse = timeRun;
 		v->x = .008*HLINE;	//sets the inital velocity of the entity
@@ -243,6 +265,16 @@ void NPC::interact(){ //have the npc's interact back to the player
 	}
 }
 
+/*
+ *	This spawns the structures
+ *
+ * Structures::spawn		This allows us to spawn buildings and large amounts of entities with it.
+ *							Passed are the type and x and y coordinates. These set the x and y coords
+ *							of the structure being spawned, the type pass just determines what rules to follow
+ *							when spawing the structure and entities. In theory this function can also spawn
+ *							void spawn points for large amounts of entities. This would allow for the spawn
+ *							point to have non-normal traits so it could be invisible or invincible...
+*/
 unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure based off of type and coords
 	loc.x = x;
 	loc.y = y;
@@ -251,17 +283,38 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 	health = maxHealth = 1;
 
 	/*VILLAGE*/
-	//spawns a village
-	//spawns between 1 and 5 villagers around the village
 	if(type == STRUCTURET){
 		loc.y=100;
 		width =  50 * HLINE;
 		height = 40 * HLINE;
 
+		/*
+		 *	tempN is the amount of entities that will be spawned in the village. As of 10/21/2015 the village
+		 *	can spawn bewteen 2 and 7 villagers for the starting hut.
+		*/
 		int tempN = (getRand() % 5 + 2); //amount of villagers that will spawn
 		for(int i=0;i<tempN;i++){
+			/*
+			 *				This is where the entities actually spawn.
+			 *		A new entity is created with type NPC so polymorphism can be used
+			*/
 			entity.push_back(new NPC()); //create a new entity of NPC type
+
+			//A new npc is created right here so the new entity can control it
 			npc.push_back(NPC()); //create new NPC
+
+			/*
+			 *	This is where the spawning gets sketchy...
+			 *
+			 *	We want to take the newest entity we spawned and set it equal to the new NPC
+			 *	This seg faults, so for some odd reason we have to use the element of size
+			 *	which shouldn't exist since we haven't created it. This entity is then set to the
+			 *	same traits as the newest NPC, which we can access the last element in.
+			 *
+			 *	Then somehow we can set the same entity with size()-1 to spawn. But it works, so we're
+			 *	not complaining. Although fixing would be nice. Now that it is mentioned...
+			 *	TODO: FIX THIS BORK.
+			*/
 			entity[entity.size()] = &npc[npc.size()-1]; //set the new entity to have the same traits as an NPC
 			entity[entity.size()-1]->spawn(loc.x + (float)(i - 5),100); //sets the position of the villager around the village
 		}
@@ -269,22 +322,30 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 	}
 }
 
+/*
+ * 	Mob::wander this is the function that makes the mobs wander around
+ *
+ *	See NPC::wander for the explaination of the arguments variables
+*/
 void Mob::wander(int timeRun, vec2* v){
-	if(subtype == 1){ //SKIRL
-		static int direction;	//variable to decide what direction the entity moves
-		if(ticksToUse == 0){
-			ticksToUse = timeRun;
-			direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
-												//this lets the entity move left, right, or stay still
-			if(direction==0)ticksToUse/=2;
-			v->x *= direction;	//changes the velocity based off of the direction
-		}
-		if(ground && direction != 0){
-			v->y=.15;
-			loc.y+=HLINE*.25;
-			ground=false;
-			v->x = (.07*HLINE)*direction;	//sets the inital velocity of the entity
-		}
-		ticksToUse--; //removes one off of the entities timer
+	switch(subtype){ //SKIRL
+		case 1:
+			static int direction;	//variable to decide what direction the entity moves
+			if(ticksToUse == 0){
+				ticksToUse = timeRun;
+				direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
+													//this lets the entity move left, right, or stay still
+				if(direction==0)ticksToUse/=2;
+				v->x *= direction;	//changes the velocity based off of the direction
+			}
+			if(ground && direction != 0){
+				v->y=.15;
+				loc.y+=HLINE*.25;
+				ground=false;
+				v->x = (.07*HLINE)*direction;	//sets the inital velocity of the entity
+			}
+			ticksToUse--; //removes one off of the entities timer
+		break;
+		default:break;
 	}
 }
