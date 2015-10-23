@@ -94,7 +94,7 @@ public:
 };
 class Mob : public Entity{
 public:
-	Mob();
+	Mob(int);
 	void wander(int, vec2*);
 };
 

@@ -37,7 +37,7 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	ground = false;
 	near = true;
 	inv = new Inventory(PLAYER_INV_SIZE);
-	tex = new Texturec(3, "assets/player.png", "assets/player1.png", "assets/player2.png");
+	tex = new Texturec(3, "assets/player1.png", "assets/player.png", "assets/player2.png");
 }
 
 NPC::NPC(){	//sets all of the NPC specific traits on object creation
@@ -61,16 +61,20 @@ Structures::Structures(){ //sets the structure type
 	tex = new Texturec(1,"assets/house1.png");
 }
 
-Mob::Mob(){
+Mob::Mob(int sub){
 	width = HLINE * 10;
 	height = HLINE * 8;
 	speed = 1;
 	type = MOBT; //sets type to MOB
-	subtype = 1; //SKIRL
+	subtype = sub; //SKIRL
 	alive = true;
 	canMove = true;
 	near = false;
-	tex = new Texturec(2, "assets/rabbit.png", "assets/rabbit.png1");
+	if(subtype == 1){//RABBIT
+		tex = new Texturec(2, "assets/rabbit.png", "assets/rabbit1.png");
+	}else if(subtype == 2){//BIRD
+		//add bird textures and bird things
+	}
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
@@ -102,43 +106,45 @@ void Entity::draw(void){		//draws the entities
 			if(up){
 				texState+=1;
 				if(texState==2)up=false;
+				tex->bindNext();
 			}else if(!up){
 				texState-=1;
 				if(texState==0)up=true;
+				tex->bindPrev();
 			}
 		}
 		if(ground == 0){
-			glBindTexture(GL_TEXTURE_2D, tex->image[0]);
+			tex->bind(0);
 		}else if(vel.x != 0){
 			switch(texState){
 				case 0:
-					glBindTexture(GL_TEXTURE_2D,tex->image[1]);
+					tex->bind(0);
 				break;
 				case 1:
-					glBindTexture(GL_TEXTURE_2D,tex->image[0]);
+					tex->bind(1);
 				break;
 				case 2:
-					glBindTexture(GL_TEXTURE_2D,tex->image[2]);
+					tex->bind(2);
 				break;
 			}
 		}
 		else{
-			glBindTexture(GL_TEXTURE_2D,tex->image[0]);
+			tex->bind(1);
 		}
 	}else if(type == MOBT){
 		switch(subtype){
 			case 1: //RABBIT
 				if(ground == 0){
-					glBindTexture(GL_TEXTURE_2D, tex->image[1]);
+					tex->bind(1);
 				}else if(ground == 1){
-					glBindTexture(GL_TEXTURE_2D, tex->image[0]);					
+					tex->bind(0);
 				}
 				break;
 			default:
 			break;
 		}
 	}else{
-		glBindTexture(GL_TEXTURE_2D,tex->image[0]);
+		tex->bind(0);
 	}
 	glColor3ub(255,255,255);
 	glBegin(GL_QUADS);

@@ -51,8 +51,8 @@ void initEverything(void){
 	iw->generate(200);
 	build[0]->inside=iw;
 
-	entity.push_back(new Mob()); //create a new entity of NPC type
-	mob.push_back(Mob()); //create new NPC
+	entity.push_back(new Mob(1)); //create a new entity of NPC type
+	mob.push_back(Mob(1)); //create new NPC
 	entity[entity.size()] = &mob[mob.size()-1]; //set the new entity to have the same traits as an NPC
 	entity[entity.size()-1]->spawn(200,100); //sets the position of the villager around the village
 	entity.pop_back();

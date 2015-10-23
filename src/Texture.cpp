@@ -35,6 +35,15 @@ Texturec::Texturec(uint amt, ...){
 	va_end(fNames);
 }
 
+void Texturec::bind(int bn){
+	texState = bn;
+	glBindTexture(GL_TEXTURE_2D, image[texState]);
+}
+
 void Texturec::bindNext(){
-	//glBindTexture(GL_TEXTURE_2D);
+	bind(++texState);
+}
+
+void Texturec::bindPrev(){
+	bind(--texState);
 }

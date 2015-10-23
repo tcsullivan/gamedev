@@ -12,10 +12,11 @@ public:
 	Texturec(uint amt, ...);
 	void bindNext();
 	void bindPrev();
+	void bind(int);
 
 	GLuint *image;
-private:
 	int texState;
+private:
 
 };
 
