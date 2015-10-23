@@ -3,12 +3,12 @@
 #include <ui.h>
 #include <entities.h>
 
-extern World *currentWorld;
-extern std::vector<Entity*>entity;
-extern std::vector<NPC>npc;
-extern std::vector<Structures *>build;
-extern Player *player;
-extern std::vector<Mob>mob;
+extern World	*currentWorld;
+extern Player	*player;
+extern std::vector<Entity		*>	entity;
+extern std::vector<Structures	*>	build;
+extern std::vector<Mob			*>	mob;
+extern std::vector<NPC			*>	npc;
 
 
 extern void mainLoop(void);
@@ -29,37 +29,67 @@ int giveTestQuest(NPC *speaker){
 void initEverything(void){
 	unsigned int i;
 	
+	/*
+	 *	Generate a new world. 
+	*/
+	
 	World *test=new World();
 	test->generate(SCREEN_WIDTH/2);
+	
+	/*
+	 *	Add two layers, a platform, and a hole to the world. 
+	*/
+	
 	test->addLayer(400);
 	test->addLayer(100);
+	
 	test->addPlatform(150,100,100,10);
+
 	test->addHole(100,150);
+	
+	/*
+	 *	Setup the current world, making the player initially spawn in `test`.
+	*/
+	
 	currentWorld=test;
 	
-	// Make the player
+	/*
+	 *	Create the player.
+	*/
+	
 	player=new Player();
 	player->spawn(0,100);
 	
-	// Make structures
-	entity.push_back(new Entity());
+	/*
+	 *	Create a structure (this will create villagers when spawned).
+	*/
+	
 	build.push_back(new Structures());
-	entity[0]=build[0];
-
-	build[0]->spawn(STRUCTURET,(rand()%120*HLINE),10);
+	entity.push_back(build.back());
+	build.back()->spawn(STRUCTURET,(rand()%120*HLINE),10);
+	
+	/*
+	 *	Generate an indoor world and link the structure to it. 
+	*/
+	
 	IndoorWorld *iw=new IndoorWorld();
 	iw->generate(200);
-	build[0]->inside=iw;
+	build.back()->inside=iw;
 
-	entity.push_back(new Mob()); //create a new entity of NPC type
-	mob.push_back(Mob()); //create new NPC
-	entity[entity.size()] = &mob[mob.size()-1]; //set the new entity to have the same traits as an NPC
-	entity[entity.size()-1]->spawn(200,100); //sets the position of the villager around the village
-	entity.pop_back();
+	/*
+	 *	Spawn a mob. 
+	*/
 	
+	mob.push_back(new Mob());
+	entity.push_back(mob.back());
+	mob.back()->spawn(200,100);
 	
+	/*
+	 *	Link all the entities that were just created to the initial world, and setup a test AI function. 
+	*/
 	NPCp(entity[1])->addAIFunc(giveTestQuest,false);
-	for(i=0;i<entity.size()+1;i++){
-		entity[i]->inWorld=test;
+	
+	for(i=0;i<entity.size();i++){
+		entity[i]->inWorld=currentWorld;
 	}
 }
