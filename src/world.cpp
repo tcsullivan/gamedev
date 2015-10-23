@@ -182,7 +182,7 @@ LOOP2:													// Draw each world
 			if(p->ground==1&&i<ph+6&&i>ph-6)cline[i].gs=false;
 			else cline[i].gs=true;
 		}
-		for(i=0;i<entity.size()+1;i++){
+		for(i=0;i<entity.size();i++){
 			if(entity[i]->inWorld==this){
 				entity[i]->draw();
 			}

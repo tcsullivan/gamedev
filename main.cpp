@@ -66,44 +66,29 @@ bool gameRunning = true;
 
 /*
  *	currentWorld 	-	This is a pointer to the current world that the player
- * 				is in. Most drawing/entity handling is done through this
- * 				variable. This should only be changed when layer switch
- * 				buttons are pressed (see src/ui.cpp), or when the player
- * 				enters a Structure/Indoor World (see src/ui.cpp again).
+ * 						is in. Most drawing/entity handling is done through this
+ * 						variable. This should only be changed when layer switch
+ * 						buttons are pressed (see src/ui.cpp), or when the player
+ * 						enters a Structure/Indoor World (see src/ui.cpp again).
  * 
- *	player		-	This points to a Player object, containing everything for
- * 				the player. Most calls made with currentWorld require a
- * 				Player object as an argument, and glOrtho is set based
- * 				off of the player's coordinates. This is probably the one
- * 				Entity-derived object that is not pointed to in the entity
- * 				array.
+ *	player			-	This points to a Player object, containing everything for
+ * 						the player. Most calls made with currentWorld require a
+ * 						Player object as an argument, and glOrtho is set based
+ * 						off of the player's coordinates. This is probably the one
+ * 						Entity-derived object that is not pointed to in the entity
+ * 						array.
  * 
- *	entity		 -	Contains pointers to 'all' entities that have been created in
- * 				the game, including NPCs, Structures, and Mobs. World draws
- * 				and entity handling done by the world cycle through entities
- * 				using this array. Entities made that aren't added to this
- * 				array probably won't be noticable by the game.
- * 
- *	npc		 -	An array of all NPCs in the game. It's not exactly clear how
- * 				NPC initing is done, their constructed in this array, then set
- * 				to be pointed to by entity, then maybe spawned with Entity->spawn().
- * 				See src/entities.cpp for more.
- * 				This variable might be referenced as an extern in other files.
- * 
- *	build		 -	An array of all Structures in the game. Entries in entity point to
- *				these, allowing worlds to handle the drawing and stuff of these.
- * 				See src/entities.cpp for more.
- * 
- *	mob		 -	An array of all Mobs in the game, entity entries should point to these
- * 				so the world can take care of them. See src/entities.cpp for more.
+ *	entity			 -	Contains pointers to 'all' entities that have been created in
+ * 						the game, including NPCs, Structures, and Mobs. World draws
+ * 						and entity handling done by the world cycle through entities
+ * 						using this array. Entities made that aren't added to this
+ * 						array probably won't be noticable by the game.
  * 
 */
 
-World  						*currentWorld=NULL;
-Player 						*player;
-std::vector<Entity *	>	 entity;
-std::vector<Structures *>	 build;
-std::vector<Mob			>	 mob;
+World  							*currentWorld=NULL;
+Player 							*player;
+extern std::vector<Entity *	>	 entity;
 
 /*
  *	tickCount contains the number of ticks generated since main loop entrance.
@@ -442,7 +427,7 @@ void mainLoop(void){
 	prevTime	= currentTime;
 	currentTime = millis();
 	deltaTime	= currentTime - prevTime;
-
+	
 	/*
 	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
 	*/
@@ -451,7 +436,7 @@ void mainLoop(void){
 		logic();
 		prevPrevTime = currentTime;
 	}
-
+	
 	/*
 	 *	Update player and entity coordinates.
 	*/
@@ -459,13 +444,16 @@ void mainLoop(void){
 	player->loc.y+= player->vel.y				*deltaTime;
 	player->loc.x+=(player->vel.x*player->speed)*deltaTime;
 	
-	for(int i=0;i<=entity.size();i++){
+	for(int i=0;i<entity.size();i++){
 		
-		entity[i]->loc.x += entity[i]->vel.x * deltaTime;
-		entity[i]->loc.y += entity[i]->vel.y * deltaTime;
+		if(entity[i]->type == NPCT ||
+		   entity[i]->type == MOBT ){
+			entity[i]->loc.x += entity[i]->vel.x * deltaTime;
+			entity[i]->loc.y += entity[i]->vel.y * deltaTime;
 		
-			 if(entity[i]->vel.x<0)entity[i]->left=true;
-		else if(entity[i]->vel.x>0)entity[i]->left=false;
+				 if(entity[i]->vel.x < 0)entity[i]->left = true;
+			else if(entity[i]->vel.x > 0)entity[i]->left = false;
+		}
 	}
 	
 	/*
@@ -659,13 +647,14 @@ void logic(){
 	*/
 	 //std::cout << "Game Loop: "<< loops << std::endl;
 	
-	for(int i=0;i<=entity.size();i++){
+	for(unsigned int i=0;i<entity.size();i++){
 		
 		/*
 		 *	Check if the entity is in this world and is alive.
 		*/
 		
-		if(entity[i]->inWorld==currentWorld&&entity[i]->alive){
+		if(entity[i]->inWorld == currentWorld &&
+		   entity[i]->alive){
 			
 			/*
 			 *	Switch on the entity's type and handle them accordingly.
@@ -683,7 +672,7 @@ void logic(){
 				*/
 			
 				if(entity[i]->canMove)
-					entity[i]->wander((rand() % 120 + 30), &entity[i]->vel);
+					NPCp(entity[i])->wander((rand() % 120 + 30), &entity[i]->vel);
 				
 				/*
 				 *	Check if the NPC is under the mouse.
@@ -719,7 +708,7 @@ void logic(){
 						
 						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 							
-							entity[i]->interact();
+							NPCp(entity[i])->interact();
 							//Mix_PlayChannel( -1, horn, 0);	// Audio feedback
 							
 						}
@@ -739,7 +728,7 @@ void logic(){
 				 *	Run the Mob's AI function.
 				*/
 				
-				entity[i]->wander((rand()%240 + 15),&entity[i]->vel);	// Make the mob wander
+				Mobp(entity[i])->wander((rand()%240 + 15),&entity[i]->vel);	// Make the mob wander
 				
 				break;	// End case MOBT
 				

@@ -1,9 +1,10 @@
 #include <entities.h>
 #include <ui.h>
 
-extern std::vector<Entity*>entity;
-//extern std::vector<NPC>npc;
-extern std::vector<Structures>build;
+std::vector<Entity		*>	entity;
+std::vector<NPC			*>	npc;
+std::vector<Structures	*>	build;
+std::vector<Mob			*>	mob;
 
 extern FILE* names;
 extern unsigned int loops;
@@ -13,14 +14,18 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	loc.y = y;
 	vel.x = 0;
 	vel.y = 0;
-	alive = true;
-	right = true;
-	left  = false;
-	near  = false;
-	canMove = true;
-	ground  = false;
+	
+	alive	= true;
+	right	= true;
+	left	= false;
+	near	= false;
+	canMove	= true;
+	ground	= false;
+	
 	ticksToUse = 0;
+	
 	if(!maxHealth)health = maxHealth = 1;
+	
 	name = (char*)malloc(16);
 	getName();
 }
@@ -28,48 +33,40 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 Player::Player(){ //sets all of the player specific traits on object creation
 	width = HLINE * 10;
 	height = HLINE * 16;
-	speed = 1;
+	
 	type = PLAYERT; //set type to player
-	subtype = 0;
-	maxHealth = 100;
-	health = maxHealth;
-	alive = true;
-	ground = false;
-	near = true;
-	inv = new Inventory(PLAYER_INV_SIZE);
+	subtype = 0;	
+	health = maxHealth = 100;
+	speed = 1;
 	tex = new Texturec(3, "assets/player1.png", "assets/player.png", "assets/player2.png");
+	inv = new Inventory(PLAYER_INV_SIZE);
 }
 
 NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	width = HLINE * 10;
 	height = HLINE * 16;
-	speed = 1;
-	type = NPCT; //sets type to npc
+	
+	type	= NPCT; //sets type to npc
 	subtype = 0;
-	alive = true;
-	canMove = true;
-	near = false;
+	
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
 Structures::Structures(){ //sets the structure type
-	type = STRUCTURET;
-	speed = 0;
-	alive = true;
-	near = false;
+	health = maxHealth = 1;
+	
+	alive = false;
+	near  = false;
+	
 	tex = new Texturec(1,"assets/house1.png");
 }
 
 Mob::Mob(int sub){
 	width = HLINE * 10;
 	height = HLINE * 8;
-	speed = 1;
 	type = MOBT; //sets type to MOB
 	subtype = sub; //SKIRL
-	alive = true;
-	canMove = true;
-	near = false;
 	if(subtype == 1){//RABBIT
 		tex = new Texturec(2, "assets/rabbit.png", "assets/rabbit1.png");
 	}else if(subtype == 2){//BIRD
@@ -233,13 +230,11 @@ void NPC::wander(int timeRun, vec2 *v){ //this makes the entites wander about
 }
 
 std::vector<int (*)(NPC *)> AIpreload;	// A dynamic array of AI functions that are being preloaded
-std::vector<void *> AIpreaddr;			// A dynamic array of pointers to the NPC's that are being assigned the preloads
+std::vector<NPC *> AIpreaddr;			// A dynamic array of pointers to the NPC's that are being assigned the preloads
 
 void NPC::addAIFunc(int (*func)(NPC *),bool preload){
 	if(preload){										// Preload AI functions so that they're given after 
-#ifdef DEBUG											// the current dialog box is closed
-		DEBUG_printf("Preloading an AI %x.\n",func);
-#endif // DEBUG
+														// the current dialog box is closed
 		AIpreload.push_back(func);
 		AIpreaddr.push_back(this);
 	}
@@ -273,30 +268,38 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 	loc.x = x;
 	loc.y = y;
 	type = t;
+	
 	alive = true;
-	health = maxHealth = 1;
 
 	/*VILLAGE*/
-	if(type == STRUCTURET){
-		loc.y=100;
+	switch(type){
+	case STRUCTURET:
 		width =  50 * HLINE;
 		height = 40 * HLINE;
 
 		/*
-		 *	tempN is the amount of entities that will be spawned in the village. As of 10/21/2015 the village
-		 *	can spawn bewteen 2 and 7 villagers for the starting hut.
+		 *	tempN is the amount of entities that will be spawned in the village. Currently the village
+		 *	will spawn bewteen 2 and 7 villagers for the starting hut.
 		*/
-		int tempN = (getRand() % 5 + 2); //amount of villagers that will spawn
+		
+		unsigned int tempN = (getRand() % 5 + 2);
+		
 		for(int i=0;i<tempN;i++){
+			
 			/*
 			 *				This is where the entities actually spawn.
 			 *		A new entity is created with type NPC so polymorphism can be used
 			*/
-			entity.push_back(new NPC()); //create a new entity of NPC type
-			NPCp(entity[entity.size()-1])->spawn(loc.x + (float)(i - 5),100); //sets the position of the villager around the village
+			
+			npc.push_back(new NPC());
+			npc.back()->spawn(loc.x+(i-5),100);
+			
+			entity.push_back(npc.back());
+			
 		}
-		return entity.size();
+		break;
 	}
+	return 0;
 }
 
 /*
@@ -305,8 +308,8 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
  *	See NPC::wander for the explaination of the arguments variables
 */
 void Mob::wander(int timeRun, vec2* v){
-	switch(subtype){ //SKIRL
-		case 1:
+	switch(subtype){
+		case 1: //SKIRL
 			static int direction;	//variable to decide what direction the entity moves
 			if(ticksToUse == 0){
 				ticksToUse = timeRun;

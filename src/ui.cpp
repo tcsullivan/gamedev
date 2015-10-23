@@ -6,7 +6,7 @@ extern Player *player;			// 'player' should be (must be) defined in main.cpp
 extern World  *currentWorld;	// should/must also be defined in main.cpp
 
 extern std::vector<int (*)(NPC *)> AIpreload;	// see entities.cpp
-extern std::vector<void *> AIpreaddr;			//
+extern std::vector<NPC *> AIpreaddr;			//
 
 extern bool gameRunning;
 
@@ -261,12 +261,12 @@ namespace ui {
 		}
 		
 		unsigned int i;
-		if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary
-			for(i=0;i<AIpreaddr.size();i++){
-				NPCp(AIpreaddr.front())->addAIFunc(AIpreload.front(),false);
-				AIpreaddr.erase(AIpreaddr.begin());
-				AIpreload.erase(AIpreload.begin());
-			}
-		}
+		//if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary
+			//for(i=0;i<AIpreaddr.size();i++){
+				//AIpreaddr.front()->addAIFunc(AIpreload.front(),false);
+				//AIpreaddr.erase(AIpreaddr.begin());
+				//AIpreload.erase(AIpreload.begin());
+			//}
+		//}
 	}
 }
