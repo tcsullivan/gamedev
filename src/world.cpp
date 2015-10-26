@@ -3,11 +3,11 @@
 #define getWidth(w) ((w->lineCount-GEN_INC)*HLINE)	// Calculates the width of world 'w'
 
 #define GEN_INC 10		// Defines at what interval y values should be calculated for the array 'line'.
-				// As explained in World(), the last few lines in the array 'line' are incorrectly calculated
-				// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
-				// and detect().
+						// As explained in World(), the last few lines in the array 'line' are incorrectly calculated
+						// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
+						// and detect().
 
-#define GRASS_HEIGHT 4		// Defines how long the grass layer of a line should be in multiples of HLINE.
+#define GRASS_HEIGHT 4	// Defines how long the grass layer of a line should be in multiples of HLINE.
 
 
 #define DRAW_Y_OFFSET 50	// Defines how many pixels each layer should be offset from each other on the y axis when drawn.
@@ -31,8 +31,8 @@ World::World(void){
 }
 
 void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
-	unsigned int i;				// Used for 'for' loops 
-	float inc;				// See line 40
+	unsigned int i;
+	float inc;
 	
 	/*
 	 *	Calculate the world's real width. The current form of generation fails to generate
@@ -69,8 +69,8 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 		*/
 		
 		line[i].y=rand() % 8 - 4 + line[i-GEN_INC].y;	// Add +/- 4 to the previous line
-			 if(line[i].y <  60)line[i].y =  60;		// Minimum bound
-		else if(line[i].y > 110)line[i].y = 110;		// Maximum bound
+			 if(line[i].y < 60)line[i].y =  60;			// Minimum bound
+		else if(line[i].y > 90)line[i].y =  90;			// Maximum bound
 		
 	}
 	
@@ -145,47 +145,105 @@ void World::draw(Player *p){
 	static World *current;
 	int i,is,ie,v_offset,cx_start;
 	struct line_t *cline;
-	current=this;	// yeah
 	glClearColor(.1,.3,.6,0);
-LOOP1:								// Check for worlds behind the current one and set 'current' to them if they exist
-	if(current->behind){			// so that once LOOP1 is exited 'current' contains the furthest back world.
+	
+	/*
+	 *	World drawing is done recursively, meaning that this function jumps
+	 *	back as many 'layers' as it can and then draws, eventually coming
+	 *	back to the initial or 'root' layer. LOOP1 does the recursion back
+	 *	to the furthest behind layer, modifying shade and y offsets as it
+	 *	does.
+	 * 
+	*/
+	
+	current=this;
+	
+LOOP1:
+
+	if(current->behind){
+		
+		/*
+		 *	Add to the y offset and shade values (explained further below)
+		 *	and recurse.
+		 * 
+		*/
+		
 		yoff+=DRAW_Y_OFFSET;
 		shade+=DRAW_SHADE;
 		current=current->behind;
 		goto LOOP1;
 	}
-LOOP2:													// Draw each world
-	v_offset=(p->loc.x-current->x_start)/HLINE;			// Calculate the player's offset in the array 'line' using the player's location 'vec'
-	is=v_offset-SCREEN_WIDTH/(yoff/(DRAW_Y_OFFSET/2));	// Set 'i' to that somehow
-	if(is<0)is=0;										// If the player is past the start of that world 'i' should start at the beginning
-														// of the world
-	ie=v_offset+SCREEN_WIDTH/(yoff/(DRAW_Y_OFFSET/2));	// Set how many lines should be drawn (the drawing for loop loops from 'i' to 'ie')
-	if(ie>current->lineCount)ie=current->lineCount;		// If the player is past the end of that world 'ie' should contain the end of that world
-	cline=current->line;								// 'cline' and 'cx_start' only exist to make the for loop clear (and maybe make it faster)
+	
+	/*
+	 *	Here is where the actual world drawing begins. A goto is made to
+	 *	LOOP2 once the current layer is drawn and the function shifts to
+	 *	draw the next closest layer.
+	*/
+	
+LOOP2:
+
+	/*
+	 *	Calculate the offset in the line array that the player is (or would)
+	 *	currently be on. This function then calculates reasonable values for
+	 *	the 'for' loop below that draws the layer.
+	*/
+
+	v_offset=(p->loc.x - current->x_start) / HLINE;
+	
+	// is -> i start
+	
+	is=v_offset - SCREEN_WIDTH / (yoff / (DRAW_Y_OFFSET / 2));
+	if(is<0)is=0;												// Minimum bound
+
+	ie=v_offset + SCREEN_WIDTH / (yoff / (DRAW_Y_OFFSET / 2));
+	if(ie>current->lineCount)ie=current->lineCount;				// Maximum bound
+	
+	/*
+	 *	Make more direct variables for quicker referencing.
+	*/
+	
+	cline	=current->line;
 	cx_start=current->x_start;
+	
+	/*
+	 *	Invert shading if desired.
+	*/
+	
 	//shade*=-1;
+	
+	/*
+	 *	Draw entities in the current layer if we're on the one we started at.
+	*/
+	
+	if(current==this){
+		for(i=0;i<entity.size();i++){
+			if(entity[i]->inWorld==this)
+				entity[i]->draw();
+		}
+	}
+	
+	/*
+	 *	Draw the layer up until the grass portion, which is done later.
+	*/
+	
 	glBegin(GL_QUADS);
-		for(i=is;i<ie-GEN_INC;i++){									// For lines in array 'line' from 'i' to 'ie'
-			cline[i].y+=(yoff-DRAW_Y_OFFSET);					// 'yoff' is always one incrementation ahead of what it should be
-			safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);	// Set the shaded dirt color (safely)
+		for(i=is;i<ie-GEN_INC;i++){
+			cline[i].y+=(yoff-DRAW_Y_OFFSET);														// Add the y offset
+			safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);	// Set the shaded dirt color
 			glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
 			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
 			glVertex2i(cx_start+i*HLINE+HLINE,0);
 			glVertex2i(cx_start+i*HLINE		 ,0);
-			cline[i].y-=(yoff-DRAW_Y_OFFSET); // Reset 'cline[i]'`s y to what it was
+			cline[i].y-=(yoff-DRAW_Y_OFFSET);														// Restore the line's y value
 		}
 	glEnd();
+	
 	if(current==this){
 		int ph;
 		ph=(p->loc.x+p->width/2-x_start)/HLINE;	// Calculate what line the player is currently on
 		for(i=0;i<lineCount-GEN_INC;i++){
 			if(p->ground==1&&i<ph+6&&i>ph-6)cline[i].gs=false;
 			else cline[i].gs=true;
-		}
-		for(i=0;i<entity.size();i++){
-			if(entity[i]->inWorld==this){
-				entity[i]->draw();
-			}
 		}
 		p->draw();
 	}
@@ -234,9 +292,11 @@ void World::singleDetect(Entity *e){
 	 *	Kill any dead entities.
 	*/
 	
-	if(e->health<=0){
+	if(e->alive&&e->health<=0){
 	  
 		e->alive=false;
+		std::cout<<"Killing entity..."<<std::endl;
+		return;
 		
 	}
 	

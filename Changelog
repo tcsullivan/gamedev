@@ -163,3 +163,14 @@
 	- fixed entity initialization
 	- added multiple mobs
 	- improved texture handling
+	
+10/26/2015:
+===========
+
+	- removed windows build commands
+	- fixed bug with spawning 'dead' NPCs
+	- entities are now drawn behind the current world as well as the grass
+	- player can now only highlight one NPC at a time
+	- fixed GLEW shader initialization segfault
+	- began working on bird mob
+	- improved world scenery

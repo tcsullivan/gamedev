@@ -16,15 +16,20 @@
 
 enum _TYPE { //these are the main types of entities
 	STRUCTURET = -1,
-	PLAYERT    = 0,
-	NPCT       = 1,
-	MOBT	   = 2
+	PLAYERT,
+	NPCT,
+	MOBT
 };
 
 enum GENDER{
 	MALE,
 	FEMALE,
 	NONE 
+};
+
+enum MOB_SUB {
+	MS_RABBIT = 1,
+	MS_BIRD
 };
 
 class Entity{
@@ -94,8 +99,9 @@ public:
 };
 class Mob : public Entity{
 public:
+	float init_y;
 	Mob(int);
-	void wander(int, vec2*);
+	void wander(int);
 };
 
 #endif // ENTITIES_H
