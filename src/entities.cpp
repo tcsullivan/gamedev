@@ -48,6 +48,8 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	
 	type	= NPCT; //sets type to npc
 	subtype = 0;
+
+	health = maxHealth = 100;
 	
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
@@ -63,14 +65,17 @@ Structures::Structures(){ //sets the structure type
 }
 
 Mob::Mob(int sub){
-	width = HLINE * 10;
-	height = HLINE * 8;
 	type = MOBT; //sets type to MOB
 	subtype = sub; //SKIRL
-	if(subtype == 1){//RABBIT
+	if(sub == 1){//RABBIT
+		width = HLINE * 10;
+		height = HLINE * 8;
 		tex = new Texturec(2, "assets/rabbit.png", "assets/rabbit1.png");
-	}else if(subtype == 2){//BIRD
+	}else if(sub == 2){//BIRD
 		//add bird textures and bird things
+		width = HLINE * 8;
+		height = HLINE * 8;
+		tex = new Texturec(1, "assets/robin.png");
 	}
 	inv = new Inventory(NPC_INV_SIZE);
 }
@@ -133,6 +138,13 @@ void Entity::draw(void){		//draws the entities
 			case 1: //RABBIT
 				if(ground == 0){
 					tex->bind(1);
+				}else if(ground == 1){
+					tex->bind(0);
+				}
+				break;
+			case 2: //RABBIT
+				if(ground == 0){
+					tex->bind(0);
 				}else if(ground == 1){
 					tex->bind(0);
 				}

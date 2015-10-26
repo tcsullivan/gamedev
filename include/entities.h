@@ -115,4 +115,5 @@ ENTITY TYPES
 |
 2 MOBS
 |->1 Rabbit
+|->2 Bird
 **/

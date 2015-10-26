@@ -13,10 +13,12 @@ public:
 	void bindNext();
 	void bindPrev();
 	void bind(int);
+	void walk();
 
 	GLuint *image;
 	int texState;
 private:
+
 
 };
 
