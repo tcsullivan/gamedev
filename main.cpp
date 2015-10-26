@@ -305,18 +305,19 @@ int main(int argc, char *argv[]){
 	/*
 	 *	TODO - Initialize shaders n' stuff
 	*/
-	
+
 	/*
+	
 	GLuint fragShader;
-	GLuint shaderProgram;6da
+	GLuint shaderProgram;
 
 	const GLchar *shaderSource = "shader.frag";
 	GLint bufferln = GL_FALSE;
 
 	shaderProgram = glCreateProgram();
 	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-		
-	glShaderSource(fragShader, 1, shaderSource, NULL);
+	
+	glShaderSource(fragShader, 1, &shaderSource, NULL);
 	glCompileShader(fragShader);
 	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
 	
@@ -327,9 +328,11 @@ int main(int argc, char *argv[]){
 	glAttachShader(shaderProgram, fragShader);
 	glLinkProgram(shaderProgram);
 	glValidateProgram(shaderProgram);
-	*/
+
 	//glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_MULTISAMPLE);
+	
+	*/
 
 	/*
 	 *	Open the names file containing potential names for NPCs and store it in the names file
@@ -417,7 +420,7 @@ void mainLoop(void){
 	if(!currentTime){						// Initialize currentTime if it hasn't been
 		currentTime=millis();
 		prevPrevTime=currentTime;
-	}
+	}	
 	
 	/*
 	 *	Update timing values. This is crucial to calling logic and updating the window (basically
@@ -580,7 +583,7 @@ void render(){
 		
 		ui::putText(player->loc.x-SCREEN_WIDTH/2,
 					SCREEN_HEIGHT-ui::fontSize,
-					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nQc: %u\nTS:%d\n",
+					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nQc: %u",
 					fps,
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
@@ -588,8 +591,7 @@ void render(){
 					entity.size(),				// Size of entity array
 					player->loc.x,				// The player's x coordinate
 					debugY,						// The player's y coordinate
-					player->qh.current.size(),	// Active quest count
-					player->tex->texState
+					player->qh.current.size()	// Active quest count
 					);
 					
 	}

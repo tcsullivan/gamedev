@@ -157,4 +157,9 @@
 	- removed npc array; NPCs are now created in the entity array
 	- created a basic texture handling library
 	
-	
+10/23/2015:
+===========
+
+	- fixed entity initialization
+	- added multiple mobs
+	- improved texture handling
