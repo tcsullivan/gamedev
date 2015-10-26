@@ -51,6 +51,8 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	
 	type	= NPCT; //sets type to npc
 	subtype = 0;
+
+	health = maxHealth = 100;
 	
 	maxHealth = health = 100;
 	
@@ -68,17 +70,20 @@ Structures::Structures(){ //sets the structure type
 }
 
 Mob::Mob(int sub){
-	width  = HLINE * 10;
-	height = HLINE * 8;
 	type   = MOBT;
 	
 	maxHealth = health = 50;
 	
 	switch((subtype = sub)){
 	case MS_RABBIT:
+		width  = HLINE * 10;
+		height = HLINE * 8;
 		tex = new Texturec(2, "assets/rabbit.png", "assets/rabbit1.png");
 		break;
 	case MS_BIRD:
+		width = HLINE * 8;
+		height = HLINE * 8;
+		tex = new Texturec(1, "assets/robin.png");
 		break;
 	}
 	
@@ -143,6 +148,13 @@ void Entity::draw(void){		//draws the entities
 			case 1: //RABBIT
 				if(ground == 0){
 					tex->bind(1);
+				}else if(ground == 1){
+					tex->bind(0);
+				}
+				break;
+			case 2: //RABBIT
+				if(ground == 0){
+					tex->bind(0);
 				}else if(ground == 1){
 					tex->bind(0);
 				}

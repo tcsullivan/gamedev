@@ -47,3 +47,7 @@ void Texturec::bindNext(){
 void Texturec::bindPrev(){
 	bind(--texState);
 }
+
+void Texturec::walk(){
+	
+}
