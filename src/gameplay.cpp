@@ -78,8 +78,9 @@ void initEverything(void){
 
 	/*
 	 *	Spawn a mob. 
-	*/	
-	mob.push_back(new Mob(1));
+	*/
+	
+	mob.push_back(new Mob(MS_RABBIT));
 	entity.push_back(mob.back());
 	mob.back()->spawn(200,100);
 

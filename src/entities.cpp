@@ -26,6 +26,9 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	
 	if(!maxHealth)health = maxHealth = 1;
 	
+	if(type==MOBT)
+		Mobp(this)->init_y=loc.y;
+	
 	name = (char*)malloc(16);
 	getName();
 }
@@ -51,6 +54,8 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 
 	health = maxHealth = 100;
 	
+	maxHealth = health = 100;
+	
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 }
@@ -65,18 +70,23 @@ Structures::Structures(){ //sets the structure type
 }
 
 Mob::Mob(int sub){
-	type = MOBT; //sets type to MOB
-	subtype = sub; //SKIRL
-	if(sub == 1){//RABBIT
-		width = HLINE * 10;
+	type   = MOBT;
+	
+	maxHealth = health = 50;
+	
+	switch((subtype = sub)){
+	case MS_RABBIT:
+		width  = HLINE * 10;
 		height = HLINE * 8;
 		tex = new Texturec(2, "assets/rabbit.png", "assets/rabbit1.png");
-	}else if(sub == 2){//BIRD
-		//add bird textures and bird things
+		break;
+	case MS_BIRD:
 		width = HLINE * 8;
 		height = HLINE * 8;
 		tex = new Texturec(1, "assets/robin.png");
+		break;
 	}
+	
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
@@ -299,8 +309,8 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 		for(int i=0;i<tempN;i++){
 			
 			/*
-			 *				This is where the entities actually spawn.
-			 *		A new entity is created with type NPC so polymorphism can be used
+			 *	This is where the entities actually spawn. A new entity is created
+			 *	with type NPC by using polymorphism.
 			*/
 			
 			npc.push_back(new NPC());
@@ -317,27 +327,32 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 /*
  * 	Mob::wander this is the function that makes the mobs wander around
  *
- *	See NPC::wander for the explaination of the arguments variables
+ *	See NPC::wander for the explaination of the argument's variable
 */
-void Mob::wander(int timeRun, vec2* v){
+
+void Mob::wander(int timeRun){
+	static int direction;	//variable to decide what direction the entity moves
 	switch(subtype){
-		case 1: //SKIRL
-			static int direction;	//variable to decide what direction the entity moves
-			if(ticksToUse == 0){
-				ticksToUse = timeRun;
-				direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
-													//this lets the entity move left, right, or stay still
-				if(direction==0)ticksToUse/=2;
-				v->x *= direction;	//changes the velocity based off of the direction
-			}
-			if(ground && direction != 0){
-				v->y=.15;
-				loc.y+=HLINE*.25;
-				ground=false;
-				v->x = (.07*HLINE)*direction;	//sets the inital velocity of the entity
-			}
-			ticksToUse--; //removes one off of the entities timer
+	case MS_RABBIT:
+		if(!ticksToUse){
+			ticksToUse = timeRun;
+			direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
+												//this lets the entity move left, right, or stay still
+			if(direction==0)ticksToUse/=2;
+			vel.x *= direction;	//changes the velocity based off of the direction
+		}
+		if(ground && direction){
+			vel.y=.15;
+			loc.y+=HLINE*.25;
+			ground=false;
+			vel.x = (.07*HLINE)*direction;	//sets the inital velocity of the entity
+		}
+		ticksToUse--; //removes one off of the entities timer
 		break;
-		default:break;
+	case MS_BIRD:
+		if(loc.y<=init_y-.2)vel.y+=.005*deltaTime;	// TODO handle direction
+		break;
+	default:
+		break;
 	}
 }

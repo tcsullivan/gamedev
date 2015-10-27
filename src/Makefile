@@ -1,6 +1,6 @@
-LIBS = -lGL -lSDL2_image -lSDL2_mixer
+LIBS = -lGL -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
 
-FLAGS = -std=c++11 -I../include -I../include/freetype2 -lSDL2main -lSDL2 -lfreetype
+FLAGS = -m32 -std=c++11 -I../include -I../include/freetype2
 
 OUT = `echo "" $$(ls -c $(wildcard *.cpp)) | sed s/.cpp/.o/g | sed 's/ / ..\/out\//g'`
 

@@ -173,16 +173,6 @@ unsigned int millis(void){
  * MAIN ************************************************************************
  *******************************************************************************/
 int main(int argc, char *argv[]){
-	/*
-	 *	Initialize GLEW libraries, and exit if there was an error.
-	 *	Not sure what they're for yet.
-	 * 
-	*/
-	
-	if(glewInit() < 0){
-		std::cout << "GLEW was not able to initialize! Error: " << std::endl;
-		return -1;
-	}
 	
 	/*
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
@@ -268,6 +258,19 @@ int main(int argc, char *argv[]){
     }
 	
 	/*
+	 *	Initialize GLEW libraries, and exit if there was an error.
+	 *	Not sure what they're for yet.
+	 * 
+	*/
+	
+	GLenum err;
+	glewExperimental = GL_TRUE;
+	if((err=glewInit()) != GLEW_OK){
+		std::cout << "GLEW was not able to initialize! Error: " << glewGetErrorString(err) << std::endl;
+		return -1;
+	}
+	
+	/*
 	 *	Initialize the FreeType libraries and select what font to use using functions from the ui
 	 *	namespace, defined in include/ui.h and src/ui.cpp. These functions should abort with errors
 	 *	if they have error.
@@ -303,22 +306,21 @@ int main(int argc, char *argv[]){
 	SDL_ShowCursor(SDL_DISABLE);
 
 	/*
-	 *	TODO - Initialize shaders n' stuff
+	 *	Initializes our shaders so that the game has shadows.
 	*/
 
-	/*
-	
-	GLuint fragShader;
+	/*GLuint fragShader;
 	GLuint shaderProgram;
 
 	const GLchar *shaderSource = "shader.frag";
-	GLint bufferln = GL_FALSE;
+	GLint bufferln = GL_FALSE;	
 
-	shaderProgram = glCreateProgram();
 	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-	
 	glShaderSource(fragShader, 1, &shaderSource, NULL);
 	glCompileShader(fragShader);
+
+	shaderProgram = glCreateProgram();
+	
 	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
 	
 	if(bufferln == GL_TRUE){
@@ -329,10 +331,8 @@ int main(int argc, char *argv[]){
 	glLinkProgram(shaderProgram);
 	glValidateProgram(shaderProgram);
 
-	//glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_MULTISAMPLE);
-	
-	*/
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE);*/
 
 	/*
 	 *	Open the names file containing potential names for NPCs and store it in the names file
@@ -637,6 +637,14 @@ void render(){
 }
 
 void logic(){
+	
+	/*
+	 *	NPCSelected is used to insure that only one NPC is made interactable with the mouse
+	 *	if, for example, multiple entities are occupying one space.
+	*/
+	
+	static bool NPCSelected = false;
+	
 	/*
 	 *	Handle user input (keyboard & mouse).
 	*/
@@ -656,9 +664,10 @@ void logic(){
 	 *	click detection is done as well for NPC/player interaction.
 	 * 
 	*/
-	 //std::cout << "Game Loop: "<< loops << std::endl;
 	
 	for(unsigned int i=0;i<entity.size();i++){
+		
+		if(!entity[i]->alive)std::cout<<"Entity "<<i<<" is not alive!"<<std::endl;
 		
 		/*
 		 *	Check if the entity is in this world and is alive.
@@ -686,6 +695,15 @@ void logic(){
 					NPCp(entity[i])->wander((rand() % 120 + 30), &entity[i]->vel);
 				
 				/*
+				 *	Don't bother handling the NPC if another has already been handled.
+				*/
+				
+				if(NPCSelected){
+					entity[i]->near=false;
+					break;
+				}
+				
+				/*
 				 *	Check if the NPC is under the mouse.
 				*/
 				
@@ -707,10 +725,12 @@ void logic(){
 					if(pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
 						
 						/*
-						 *	Set Entity->near so that this NPC's name is drawn under them.
+						 *	Set Entity->near so that this NPC's name is drawn under them, and toggle NPCSelected
+						 *	so this NPC is the only one that's clickable.
 						*/
 						
 						entity[i]->near=true;
+						NPCSelected=true;
 						
 						/*
 						 *	Check for a right click, and allow the NPC to interact with the
@@ -738,8 +758,13 @@ void logic(){
 				/*
 				 *	Run the Mob's AI function.
 				*/
-				
-				Mobp(entity[i])->wander((rand()%240 + 15),&entity[i]->vel);	// Make the mob wander
+			
+				switch(entity[i]->subtype){
+				case MS_RABBIT:
+				case MS_BIRD:
+					Mobp(entity[i])->wander((rand()%240 + 15));	// Make the mob wander
+					break;
+				}
 				
 				break;	// End case MOBT
 				
@@ -754,4 +779,5 @@ void logic(){
 	*/
 	
 	loops++;
+	NPCSelected=false;
 }
