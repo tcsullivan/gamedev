@@ -34,7 +34,7 @@ void initEverything(void){
 	*/
 	
 	World *test=new World();
-	test->generate(SCREEN_WIDTH/2);
+	test->generate(SCREEN_WIDTH);
 	
 	/*
 	 *	Add two layers, a platform, and a hole to the world. 

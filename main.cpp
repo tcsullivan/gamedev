@@ -556,12 +556,12 @@ void render(){
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_2D, bgTreesFirst);
-	glColor4ub(255,255,255,200);
+	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(0   	+player->loc.x*.25,	100);
-		glTexCoord2i(1,1);glVertex2i(7680	+player->loc.x*.25,	100);
-		glTexCoord2i(1,0);glVertex2i(7680	+player->loc.x*.25,	2260);
-		glTexCoord2i(0,0);glVertex2i(0   	+player->loc.x*.25,	2260);
+		glTexCoord2i(0,1);glVertex2i(-960   	+player->loc.x*.25,	50);
+		glTexCoord2i(1,1);glVertex2i(960	+player->loc.x*.25,	50);
+		glTexCoord2i(1,0);glVertex2i(960	+player->loc.x*.25,	1130);
+		glTexCoord2i(0,0);glVertex2i(-960   	+player->loc.x*.25,	1130);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	
