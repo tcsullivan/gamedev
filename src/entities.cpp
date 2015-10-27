@@ -332,6 +332,7 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 
 void Mob::wander(int timeRun){
 	static int direction;	//variable to decide what direction the entity moves
+	static unsigned int hey=0,hi=0;
 	switch(subtype){
 	case MS_RABBIT:
 		if(!ticksToUse){
@@ -350,7 +351,10 @@ void Mob::wander(int timeRun){
 		ticksToUse--; //removes one off of the entities timer
 		break;
 	case MS_BIRD:
-		if(loc.y<=init_y-.2)vel.y+=.005*deltaTime;	// TODO handle direction
+		if(loc.y<=init_y-.2)vel.y=.02*deltaTime;	// TODO handle direction
+		vel.x=.02*deltaTime;
+		if(++hey==200){hey=0;hi^=1;}
+		if(hi)vel.x*=-1;
 		break;
 	default:
 		break;

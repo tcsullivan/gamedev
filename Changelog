@@ -174,3 +174,11 @@
 	- fixed GLEW shader initialization segfault
 	- began working on bird mob
 	- improved world scenery
+
+10/27/2015:
+===========
+
+	- added a parallax background layer
+	- gained knowledge on sprite creation
+	- created tree and mountain sprites
+	- created a decent bird AI

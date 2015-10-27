@@ -84,9 +84,9 @@ void initEverything(void){
 	entity.push_back(mob.back());
 	mob.back()->spawn(200,100);
 
-	mob.push_back(new Mob(2));
+	mob.push_back(new Mob(MS_BIRD));
 	entity.push_back(mob.back());
-	mob.back()->spawn(200,100);
+	mob.back()->spawn(-500,500);
 	
 	/*
 	 *	Link all the entities that were just created to the initial world, and setup a test AI function. 
