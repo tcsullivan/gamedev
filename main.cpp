@@ -188,10 +188,10 @@ int main(int argc, char *argv[]){
 	// Run SDL_Quit when main returns
     atexit(SDL_Quit);
     
-    /*
+    /*Untitled
      *	(Attempt to) Initialize SDL_image libraries with IMG_INIT_PNG so that we can load PNG
      *	textures for the entities and stuff.
-     * 
+     * Untitled
     */
     
     if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)){
@@ -454,8 +454,8 @@ void mainLoop(void){
 	
 	for(auto &e : entity){
 		
-		if(e->type == NPCT ||
-		   e->type == MOBT ){
+		if( e->type == NPCT ||
+		    e->type == MOBT ){
 			e->loc.x += e->vel.x * deltaTime;
 			e->loc.y += e->vel.y * deltaTime;
 		
@@ -561,6 +561,41 @@ void render(){
 	int base = 50 - (int)worldGetYBase(currentWorld);
 
 	glBindTexture(GL_TEXTURE_2D, bgTreesFirst);
+
+	glPushMatrix();
+	glColor4ub(100,100,100,220);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,1);glVertex2i(-1920+player->loc.x*.6,base);
+		glTexCoord2i(1,1);glVertex2i( 	   player->loc.x*.6,base);
+		glTexCoord2i(1,0);glVertex2i(      player->loc.x*.6,base+1080);
+		glTexCoord2i(0,0);glVertex2i(-1920+player->loc.x*.6,base+1080);
+	glEnd();
+
+	glColor4ub(100,100,100,220);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,1);glVertex2i(	  player->loc.x*.6,base);
+		glTexCoord2i(1,1);glVertex2i(1920+player->loc.x*.6,base);
+		glTexCoord2i(1,0);glVertex2i(1920+player->loc.x*.6,base+1080);
+		glTexCoord2i(0,0);glVertex2i(     player->loc.x*.6,base+1080);
+	glEnd();
+	glPopMatrix();
+
+	glColor4ub(150,150,150,240);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,1);glVertex2i(-1920+player->loc.x*.4,base);
+		glTexCoord2i(1,1);glVertex2i( 	   player->loc.x*.4,base);
+		glTexCoord2i(1,0);glVertex2i(      player->loc.x*.4,base+1080);
+		glTexCoord2i(0,0);glVertex2i(-1920+player->loc.x*.4,base+1080);
+	glEnd();
+
+	glColor4ub(150,150,150,240);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,1);glVertex2i(	  player->loc.x*.4,base);
+		glTexCoord2i(1,1);glVertex2i(1920+player->loc.x*.4,base);
+		glTexCoord2i(1,0);glVertex2i(1920+player->loc.x*.4,base+1080);
+		glTexCoord2i(0,0);glVertex2i(     player->loc.x*.4,base+1080);
+	glEnd();
+
 	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2i(-960+player->loc.x*.25,base);
@@ -670,22 +705,21 @@ void logic(){
 	 * 
 	*/
 	
-	for(auto &e : entity){
-		
-		if(!e->alive)std::cout<<"Entity "<<e<<" is not alive!"<<std::endl;
+	for(int i = 0 ; i < entity.size(); i++){
+		if(!entity[i]->alive)std::cout<<"Entity "<<i<<" is not alive!"<<std::endl;
 		
 		/*
 		 *	Check if the entity is in this world and is alive.
 		*/
 		
-		if(e->inWorld == currentWorld &&
-		   e->alive){
+		if(entity[i]->inWorld == currentWorld &&
+		   entity[i]->alive){
 			
 			/*
-			 *	Switch on the entity's type and handle them accordingly.
+			 *	Switch on the entity's type and handle them accordingly
 			*/
 			
-			switch(e->type){
+			switch(entity[i]->type){
 				
 			case NPCT:	// Handle NPCs
 			
@@ -696,15 +730,15 @@ void logic(){
 				 * 
 				*/
 			
-				if(e->canMove)
-					NPCp(e)->wander((rand() % 120 + 30), &e->vel);
+				if(entity[i]->canMove)
+					NPCp(entity[i])->wander((rand() % 120 + 30), &entity[i]->vel);
 				
 				/*
 				 *	Don't bother handling the NPC if another has already been handled.
 				*/
 				
 				if(NPCSelected){
-					e->near=false;
+					entity[i]->near=false;
 					break;
 				}
 				
@@ -712,10 +746,10 @@ void logic(){
 				 *	Check if the NPC is under the mouse.
 				*/
 				
-				if(ui::mouse.x >= e->loc.x 						&&
-				   ui::mouse.x <= e->loc.x + e->width 	&&
-				   ui::mouse.y >= e->loc.y						&&
-				   ui::mouse.y <= e->loc.y + e->width	){
+				if(ui::mouse.x >= entity[i]->loc.x 						&&
+				   ui::mouse.x <= entity[i]->loc.x + entity[i]->width 	&&
+				   ui::mouse.y >= entity[i]->loc.y						&&
+				   ui::mouse.y <= entity[i]->loc.y + entity[i]->width	){
 					   
 					/*
 					 *	Check of the NPC is close enough to the player for interaction to be
@@ -727,14 +761,14 @@ void logic(){
 					 * 
 					*/   
 					
-					if(pow((e->loc.x - player->loc.x),2) + pow((e->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
+					if(pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
 						
 						/*
 						 *	Set Entity->near so that this NPC's name is drawn under them, and toggle NPCSelected
 						 *	so this NPC is the only one that's clickable.
 						*/
 						
-						e->near=true;
+						entity[i]->near=true;
 						NPCSelected=true;
 						
 						/*
@@ -744,7 +778,7 @@ void logic(){
 						
 						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 							
-							NPCp(e)->interact();
+							NPCp(entity[i])->interact();
 							//Mix_PlayChannel( -1, horn, 0);	// Audio feedback
 							
 						}
@@ -754,7 +788,7 @@ void logic(){
 				 *	Hide the NPC's name if the mouse isn't on the NPC.
 				*/
 				
-				}else e->near=false;
+				}else entity[i]->near=false;
 				
 				break;	// End case NPCT
 				
@@ -764,10 +798,10 @@ void logic(){
 				 *	Run the Mob's AI function.
 				*/
 			
-				switch(e->subtype){
+				switch(entity[i]->subtype){
 				case MS_RABBIT:
 				case MS_BIRD:
-					Mobp(e)->wander((rand()%240 + 15));	// Make the mob wander
+					Mobp(entity[i])->wander((rand()%240 + 15));	// Make the mob wander
 					break;
 				}
 				

@@ -41,7 +41,7 @@ void initEverything(void){
 	*/
 	
 	test->addLayer(400);
-	test->addLayer(100);
+	//test->addLayer(100);
 	
 	test->addPlatform(150,100,100,10);
 
