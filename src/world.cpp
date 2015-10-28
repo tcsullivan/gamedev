@@ -42,6 +42,7 @@ World::World(void){
 }
 
 void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
+	worldWidth = width;
 	unsigned int i;
 	float inc;
 	
@@ -199,7 +200,7 @@ LOOP2:
 	 *	the 'for' loop below that draws the layer.
 	*/
 
-	v_offset=(p->loc.x + p->width / 2 - current->x_start) / HLINE;
+	v_offset=(offset.x + p->width / 2 - current->x_start) / HLINE;
 	
 	// is -> i start
 	
@@ -208,7 +209,7 @@ LOOP2:
 	
 	// ie -> i end
 	
-	ie=v_offset + (SCREEN_WIDTH / 2 / HLINE) + GEN_INC; 
+	ie=v_offset + (SCREEN_WIDTH / 2 / HLINE) + GEN_INC + HLINE; 
 	if(ie>current->lineCount)ie=current->lineCount;				// Maximum bound
 	
 	/*

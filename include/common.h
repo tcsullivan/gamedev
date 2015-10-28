@@ -49,8 +49,9 @@ typedef struct {
 
 #define GAME_NAME		"Independent Study v.0.2 alpha"
 
-#define SCREEN_WIDTH	1280
-#define SCREEN_HEIGHT	720
+#define SCREEN_WIDTH	1920
+#define SCREEN_HEIGHT	1080
+#define FULLSCREEN
 
 //#define FULLSCREEN
 
@@ -92,6 +93,11 @@ typedef struct {
 */
 
 extern unsigned int deltaTime;
+
+/*
+ *	References the variable in main.cpp, used for drawing with the player
+*/
+extern vec2 offset;
 
 /*
  *	Loads an image from the given file path and attempts to make a texture out of it. The

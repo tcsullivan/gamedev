@@ -86,10 +86,10 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 void Inventory::draw(void){
 	unsigned int i=0;
 	float y=SCREEN_HEIGHT/2,xoff;
-	ui::putText(player->loc.x-SCREEN_WIDTH/2,y,"Inventory:");
+	ui::putText(offset.x-SCREEN_WIDTH/2,y,"Inventory:");
 	while(item[i].count){
 		y-=HLINE*12;
-		xoff=ui::putText(player->loc.x-SCREEN_WIDTH/2,y,"%d x ",item[i].count);
+		xoff=ui::putText(offset.x-SCREEN_WIDTH/2,y,"%d x ",item[i].count);
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D,ITEM_TEX[item[i].id-1]);
 		if(sel==i)glColor3ub(255,0,255);
@@ -101,7 +101,7 @@ void Inventory::draw(void){
 			glTexCoord2i(0,0);glVertex2i(xoff		  ,y+HLINE*10);
 		glEnd();
 		y-=ui::fontSize*1.15;
-		ui::putText(player->loc.x-SCREEN_WIDTH/2,y,"%s",itemName[(unsigned)item[i].id]);
+		ui::putText(offset.x-SCREEN_WIDTH/2,y,"%s",itemName[(unsigned)item[i].id]);
 		glDisable(GL_TEXTURE_2D);
 		i++;
 	}

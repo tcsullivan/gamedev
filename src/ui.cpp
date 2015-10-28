@@ -174,13 +174,13 @@ namespace ui {
 			putString(x+HLINE,y-fontSize-HLINE,dialogBoxText);
 		}
 		setFontSize(16);
-		putText(((SCREEN_WIDTH/2)+player->loc.x)-125,SCREEN_HEIGHT-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
+		putText(((SCREEN_WIDTH/2)+offset.x)-125,SCREEN_HEIGHT-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
 																							(unsigned)player->maxHealth);
 		if(player->alive){
 			glColor3ub(255,0,0);
-			glRectf((SCREEN_WIDTH/2+player->loc.x)-125,
+			glRectf((SCREEN_WIDTH/2+offset.x)-125,
 					SCREEN_HEIGHT-32,
-					((SCREEN_WIDTH/2+player->loc.x)-125)+((player->health/player->maxHealth)*100),
+					((SCREEN_WIDTH/2+offset.x)-125)+((player->health/player->maxHealth)*100),
 					SCREEN_HEIGHT-32+12);
 		}
 	}
@@ -188,7 +188,7 @@ namespace ui {
 		static bool left=false,right=false;
 		static vec2 premouse={0,0};
 		SDL_Event e;
-		mouse.x=premouse.x+player->loc.x-(SCREEN_WIDTH/2);
+		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
 		mouse.y=SCREEN_HEIGHT-premouse.y;
 		while(SDL_PollEvent(&e)){
 			switch(e.type){

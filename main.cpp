@@ -49,7 +49,7 @@ SDL_GLContext  mainGLContext = NULL;
  * 
 */
 
-static GLuint  bgImage, bgTreesFirst;
+static GLuint  bgImage, bgMtn, bgTreesFirst;
 
 /*
  *	gameRunning
@@ -142,6 +142,9 @@ extern void initEverything(void);
 
 /*
  *	mainLoop is in fact the main loop, which runs 'infinitely' (as long as gameRunning
+
+
+
  *	is set). Each loop updates timing values (tickCount and deltaTime), runs logic()
  *	if MSEC_PER_TICK milliseconds have passed, and then runs render().
  * 
@@ -154,6 +157,12 @@ extern void initEverything(void);
 void logic(void);
 void render(void);
 void mainLoop(void);
+
+/* 
+ *	This offset is used as the player offset in the world drawing so
+ *	everything can be moved according to the player
+*/
+vec2 offset;
 
 /*
  *	millis
@@ -371,7 +380,8 @@ int main(int argc, char *argv[]){
 	 *	Load a temporary background image.
 	*/
 	
-	bgImage=Texture::loadTexture("assets/bg.png");
+	bgImage=		Texture::loadTexture("assets/bg.png");
+	bgMtn=			Texture::loadTexture("assets/bgFarMountain.png");
 	bgTreesFirst =	Texture::loadTexture("assets/antree.png");
 	
 	/*
@@ -519,10 +529,24 @@ void render(){
 	 *	glLoadIdentity	This scales the current matrix back to the origin so the
 	 *					translations are seen normally on a stack.
 	*/
+
+	 /*
+	  *	This offset variable is what we use to move the camera and locked
+	  *	objects on the screen so they always appear to be in the same relative area
+	 */
+	offset = player->loc;
+	offset.x += player->width/2;
+
+	/*
+	 *	If the camera will go off of the left  or right of the screen we want to lock it so we can't
+	 *  see past the world render
+	*/
+	if(player->loc.x - SCREEN_WIDTH/2 < SCREEN_WIDTH*-1.5)offset.x = ((SCREEN_WIDTH*-1.5) + SCREEN_WIDTH/2) + player->width/2;
+	if(player->loc.x + SCREEN_WIDTH/2 > SCREEN_WIDTH*1.5)offset.x = ((SCREEN_WIDTH*1.5) - SCREEN_WIDTH/2) + player->width/2;
 	glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
-	glOrtho(player->loc.x-SCREEN_WIDTH/2,player->loc.x+SCREEN_WIDTH/2,0,SCREEN_HEIGHT,-1,1);
+	glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),0,SCREEN_HEIGHT,-1,1);
 	glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
@@ -562,48 +586,65 @@ void render(){
 
 	int base = 40 - (int)worldGetYBase(currentWorld);
 
+	glBindTexture(GL_TEXTURE_2D, bgMtn);
+
+	glColor4ub(150,150,150,220);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,1);glVertex2i(-1920+offset.x*.85,base);
+		glTexCoord2i(1,1);glVertex2i( 	   offset.x*.85,base);
+		glTexCoord2i(1,0);glVertex2i(      offset.x*.85,base+1080);
+		glTexCoord2i(0,0);glVertex2i(-1920+offset.x*.85,base+1080);
+	glEnd();
+	glColor4ub(150,150,150,220);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,1);glVertex2i(	  offset.x*.85,base);
+		glTexCoord2i(1,1);glVertex2i(1920+offset.x*.85,base);
+		glTexCoord2i(1,0);glVertex2i(1920+offset.x*.85,base+1080);
+		glTexCoord2i(0,0);glVertex2i(     offset.x*.85,base+1080);
+	glEnd();
+
 	glBindTexture(GL_TEXTURE_2D, bgTreesFirst);
 
 	glPushMatrix();
-	glColor4ub(100,100,100,220);
+	glColor4ub(100,100,100,240);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-1920+player->loc.x*.6,base);
-		glTexCoord2i(1,1);glVertex2i( 	   player->loc.x*.6,base);
-		glTexCoord2i(1,0);glVertex2i(      player->loc.x*.6,base+1080);
-		glTexCoord2i(0,0);glVertex2i(-1920+player->loc.x*.6,base+1080);
+		glTexCoord2i(0,1);glVertex2i(-1920+offset.x*.6,base);
+		glTexCoord2i(1,1);glVertex2i( 	   offset.x*.6,base);
+		glTexCoord2i(1,0);glVertex2i(      offset.x*.6,base+1080);
+		glTexCoord2i(0,0);glVertex2i(-1920+offset.x*.6,base+1080);
 	glEnd();
 
-	glColor4ub(100,100,100,220);
+	glColor4ub(100,100,100,240);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(	  player->loc.x*.6,base);
-		glTexCoord2i(1,1);glVertex2i(1920+player->loc.x*.6,base);
-		glTexCoord2i(1,0);glVertex2i(1920+player->loc.x*.6,base+1080);
-		glTexCoord2i(0,0);glVertex2i(     player->loc.x*.6,base+1080);
+		glTexCoord2i(0,1);glVertex2i(	  offset.x*.6,base);
+		glTexCoord2i(1,1);glVertex2i(1920+offset.x*.6,base);
+		glTexCoord2i(1,0);glVertex2i(1920+offset.x*.6,base+1080);
+		glTexCoord2i(0,0);glVertex2i(     offset.x*.6,base+1080);
 	glEnd();
 	glPopMatrix();
 
-	glColor4ub(150,150,150,240);
+	glColor4ub(150,150,150,250);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-1920+player->loc.x*.4,base);
-		glTexCoord2i(1,1);glVertex2i( 	   player->loc.x*.4,base);
-		glTexCoord2i(1,0);glVertex2i(      player->loc.x*.4,base+1080);
-		glTexCoord2i(0,0);glVertex2i(-1920+player->loc.x*.4,base+1080);
+		glTexCoord2i(0,1);glVertex2i(-1920+offset.x*.4,base);
+		glTexCoord2i(1,1);glVertex2i( 	   offset.x*.4,base);
+		glTexCoord2i(1,0);glVertex2i(      offset.x*.4,base+1080);
+		glTexCoord2i(0,0);glVertex2i(-1920+offset.x*.4,base+1080);
 	glEnd();
 
-	glColor4ub(150,150,150,240);
+	glColor4ub(150,150,150,250);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(	  player->loc.x*.4,base);
-		glTexCoord2i(1,1);glVertex2i(1920+player->loc.x*.4,base);
-		glTexCoord2i(1,0);glVertex2i(1920+player->loc.x*.4,base+1080);
-		glTexCoord2i(0,0);glVertex2i(     player->loc.x*.4,base+1080);
+		glTexCoord2i(0,1);glVertex2i(	  offset.x*.4,base);
+		glTexCoord2i(1,1);glVertex2i(1920+offset.x*.4,base);
+		glTexCoord2i(1,0);glVertex2i(1920+offset.x*.4,base+1080);
+		glTexCoord2i(0,0);glVertex2i(     offset.x*.4,base+1080);
 	glEnd();
 
 	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-960+player->loc.x*.25,base);
-		glTexCoord2i(1,1);glVertex2i( 960+player->loc.x*.25,base);
-		glTexCoord2i(1,0);glVertex2i( 960+player->loc.x*.25,base+1080);
-		glTexCoord2i(0,0);glVertex2i(-960+player->loc.x*.25,base+1080);
+		glTexCoord2i(0,1);glVertex2i(-960+offset.x*.25,base);
+		glTexCoord2i(1,1);glVertex2i( 960+offset.x*.25,base);
+		glTexCoord2i(1,0);glVertex2i( 960+offset.x*.25,base+1080);
+		glTexCoord2i(0,0);glVertex2i(-960+offset.x*.25,base+1080);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	
@@ -632,7 +673,7 @@ void render(){
 		
 		ui::setFontSize(16);
 		
-		ui::putText(player->loc.x-SCREEN_WIDTH/2,
+		ui::putText(offset.x-SCREEN_WIDTH/2,
 					SCREEN_HEIGHT-ui::fontSize,
 					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nQc: %u",
 					fps,
@@ -654,9 +695,9 @@ void render(){
 	glColor3ub(255,255,255);
 	
 	glBegin(GL_TRIANGLES);
-		glVertex2i(ui::mouse.x			,ui::mouse.y		  );
+		glVertex2i(ui::mouse.x			 ,ui::mouse.y		  );
 		glVertex2i(ui::mouse.x+HLINE*3.5,ui::mouse.y		  );
-		glVertex2i(ui::mouse.x			,ui::mouse.y-HLINE*3.5);
+		glVertex2i(ui::mouse.x			 ,ui::mouse.y-HLINE*3.5);
 	glEnd();
 
 	/**************************
