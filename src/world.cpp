@@ -27,6 +27,16 @@ void safeSetColor(int r,int g,int b){	// safeSetColor() is an alternative to dir
 	glColor3ub(r,g,b);
 }
 
+float worldGetYBase(World *w){
+	float base = 0;
+	World *ptr = w;
+	while(ptr->infront){
+		base+=DRAW_Y_OFFSET;
+		ptr=ptr->infront;
+	}
+	return base;
+}
+
 World::World(void){
 }
 

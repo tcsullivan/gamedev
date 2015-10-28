@@ -32,12 +32,13 @@ protected:
 	std::vector<Platform> platform;	// An array (vector thing) of platforms
 	int x_start;			// Worlds are centered on the x axis (0,n), this contains
 							// where to start drawing the world to have it centered properly.
-	World *behind,*infront;	// Pointers to other areas of land that are behind or in front of this one, respectively.
+	World *behind;			// Pointers to other areas of land that are behind or in front of this one, respectively.
 	void singleDetect(Entity *e);	// Handles an individual entity (gravity n' stuff)
 public:
 	unsigned int lineCount;		// Size of the array 'line' (aka the width of the world)
 	World *toLeft,*toRight;		// Pointers to areas to the left and right of this world. These are made public
 								// so that they can easily be set without a function.
+	World *infront;
 								
 	World(void);
 	~World(void);				// Frees the 'line' array.
@@ -70,6 +71,8 @@ public:
 														// drawn and handled by the world.
 	void addHole(unsigned int start,unsigned int end);	// Create a hole in the world
 };
+
+float worldGetYBase(World *w);
 
 /*
  *	IndoorWorld - Indoor settings stored in a World class ;)
