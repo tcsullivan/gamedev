@@ -309,30 +309,34 @@ int main(int argc, char *argv[]){
 	 *	Initializes our shaders so that the game has shadows.
 	*/
 
-	/*GLuint fragShader;
-	GLuint shaderProgram;
+	#ifdef SHADERS
+		std::cout << "Initializing shaders!" << std::endl;
 
-	const GLchar *shaderSource = "shader.frag";
-	GLint bufferln = GL_FALSE;	
+		GLuint fragShader;
+		GLuint shaderProgram;
 
-	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragShader, 1, &shaderSource, NULL);
-	glCompileShader(fragShader);
+		const GLchar *shaderSource = "shader.frag";
+		GLint bufferln = GL_FALSE;	
 
-	shaderProgram = glCreateProgram();
+		fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragShader, 1, &shaderSource, NULL);
+		glCompileShader(fragShader);
+
+		shaderProgram = glCreateProgram();
+		
+		glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
+		
+		if(bufferln == GL_TRUE){
+			std::cout << "Error compiling shader" << std::endl;
+		}
+		
+		glAttachShader(shaderProgram, fragShader);
+		glLinkProgram(shaderProgram);
+		glValidateProgram(shaderProgram);
+	#endif //SHADERS
 	
-	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
-	
-	if(bufferln == GL_TRUE){
-		std::cout << "Error compiling shader" << std::endl;
-	}
-	
-	glAttachShader(shaderProgram, fragShader);
-	glLinkProgram(shaderProgram);
-	glValidateProgram(shaderProgram);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_MULTISAMPLE);*/
+	//glEnable(GL_DEPTH_TEST); //THIS DOESN'T WORK ON LINUX
+	glEnable(GL_MULTISAMPLE);
 
 	/*
 	 *	Open the names file containing potential names for NPCs and store it in the names file
@@ -448,15 +452,15 @@ void mainLoop(void){
 	player->loc.y+= player->vel.y				*deltaTime;
 	player->loc.x+=(player->vel.x*player->speed)*deltaTime;
 	
-	for(int i=0;i<entity.size();i++){
+	for(auto &e : entity){
 		
-		if(entity[i]->type == NPCT ||
-		   entity[i]->type == MOBT ){
-			entity[i]->loc.x += entity[i]->vel.x * deltaTime;
-			entity[i]->loc.y += entity[i]->vel.y * deltaTime;
+		if(e->type == NPCT ||
+		   e->type == MOBT ){
+			e->loc.x += e->vel.x * deltaTime;
+			e->loc.y += e->vel.y * deltaTime;
 		
-				 if(entity[i]->vel.x < 0)entity[i]->left = true;
-			else if(entity[i]->vel.x > 0)entity[i]->left = false;
+				 if(e->vel.x < 0)e->left = true;
+			else if(e->vel.x > 0)e->left = false;
 		}
 	}
 	
@@ -513,7 +517,6 @@ void render(){
 	 *	glLoadIdentity	This scales the current matrix back to the origin so the
 	 *					translations are seen normally on a stack.
 	*/
-
 	glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
@@ -665,22 +668,22 @@ void logic(){
 	 * 
 	*/
 	
-	for(unsigned int i=0;i<entity.size();i++){
+	for(auto &e : entity){
 		
-		if(!entity[i]->alive)std::cout<<"Entity "<<i<<" is not alive!"<<std::endl;
+		if(!e->alive)std::cout<<"Entity "<<e<<" is not alive!"<<std::endl;
 		
 		/*
 		 *	Check if the entity is in this world and is alive.
 		*/
 		
-		if(entity[i]->inWorld == currentWorld &&
-		   entity[i]->alive){
+		if(e->inWorld == currentWorld &&
+		   e->alive){
 			
 			/*
 			 *	Switch on the entity's type and handle them accordingly.
 			*/
 			
-			switch(entity[i]->type){
+			switch(e->type){
 				
 			case NPCT:	// Handle NPCs
 			
@@ -691,15 +694,15 @@ void logic(){
 				 * 
 				*/
 			
-				if(entity[i]->canMove)
-					NPCp(entity[i])->wander((rand() % 120 + 30), &entity[i]->vel);
+				if(e->canMove)
+					NPCp(e)->wander((rand() % 120 + 30), &e->vel);
 				
 				/*
 				 *	Don't bother handling the NPC if another has already been handled.
 				*/
 				
 				if(NPCSelected){
-					entity[i]->near=false;
+					e->near=false;
 					break;
 				}
 				
@@ -707,10 +710,10 @@ void logic(){
 				 *	Check if the NPC is under the mouse.
 				*/
 				
-				if(ui::mouse.x >= entity[i]->loc.x 						&&
-				   ui::mouse.x <= entity[i]->loc.x + entity[i]->width 	&&
-				   ui::mouse.y >= entity[i]->loc.y						&&
-				   ui::mouse.y <= entity[i]->loc.y + entity[i]->width	){
+				if(ui::mouse.x >= e->loc.x 						&&
+				   ui::mouse.x <= e->loc.x + e->width 	&&
+				   ui::mouse.y >= e->loc.y						&&
+				   ui::mouse.y <= e->loc.y + e->width	){
 					   
 					/*
 					 *	Check of the NPC is close enough to the player for interaction to be
@@ -722,14 +725,14 @@ void logic(){
 					 * 
 					*/   
 					
-					if(pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
+					if(pow((e->loc.x - player->loc.x),2) + pow((e->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
 						
 						/*
 						 *	Set Entity->near so that this NPC's name is drawn under them, and toggle NPCSelected
 						 *	so this NPC is the only one that's clickable.
 						*/
 						
-						entity[i]->near=true;
+						e->near=true;
 						NPCSelected=true;
 						
 						/*
@@ -739,7 +742,7 @@ void logic(){
 						
 						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 							
-							NPCp(entity[i])->interact();
+							NPCp(e)->interact();
 							//Mix_PlayChannel( -1, horn, 0);	// Audio feedback
 							
 						}
@@ -749,7 +752,7 @@ void logic(){
 				 *	Hide the NPC's name if the mouse isn't on the NPC.
 				*/
 				
-				}else entity[i]->near=false;
+				}else e->near=false;
 				
 				break;	// End case NPCT
 				
@@ -759,10 +762,10 @@ void logic(){
 				 *	Run the Mob's AI function.
 				*/
 			
-				switch(entity[i]->subtype){
+				switch(e->subtype){
 				case MS_RABBIT:
 				case MS_BIRD:
-					Mobp(entity[i])->wander((rand()%240 + 15));	// Make the mob wander
+					Mobp(e)->wander((rand()%240 + 15));	// Make the mob wander
 					break;
 				}
 				

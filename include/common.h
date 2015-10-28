@@ -27,6 +27,12 @@
 #include <Texture.h>
 
 /*
+ *	This flag lets the compiler know that we are using shaders
+*/
+
+ #define SHADERS
+
+/*
  *	Create a basic 2-point structure for coordinate saving
 */
 
