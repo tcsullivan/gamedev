@@ -62,7 +62,7 @@ static GLuint  bgImage, bgTreesFirst;
  * 
 */
 
-bool gameRunning = true;
+bool gameRunning;
 
 /*
  *	currentWorld 	-	This is a pointer to the current world that the player
@@ -173,6 +173,7 @@ unsigned int millis(void){
  * MAIN ************************************************************************
  *******************************************************************************/
 int main(int argc, char *argv[]){
+	gameRunning=false;
 	
 	/*
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
@@ -383,6 +384,7 @@ int main(int argc, char *argv[]){
 	****     GAMELOOP      ****
 	**************************/
 	
+	gameRunning=true;
 	while(gameRunning){
 		mainLoop();
 	}
@@ -558,7 +560,7 @@ void render(){
 		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2,SCREEN_HEIGHT);
 	glEnd();
 
-	int base = 50 - (int)worldGetYBase(currentWorld);
+	int base = 40 - (int)worldGetYBase(currentWorld);
 
 	glBindTexture(GL_TEXTURE_2D, bgTreesFirst);
 
@@ -729,9 +731,9 @@ void logic(){
 				 *	that the NPC doesn't move when it talks to the player.
 				 * 
 				*/
-			
+				
 				if(entity[i]->canMove)
-					NPCp(entity[i])->wander((rand() % 120 + 30), &entity[i]->vel);
+					NPCp(entity[i])->wander((rand() % 120 + 30));
 				
 				/*
 				 *	Don't bother handling the NPC if another has already been handled.

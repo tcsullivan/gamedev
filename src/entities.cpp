@@ -227,28 +227,32 @@ void Player::interact(){ //the function that will cause the player to search for
  *							the memory address passed to it is directly modified.
 */
 
-void NPC::wander(int timeRun, vec2 *v){ //this makes the entites wander about
+void NPC::wander(int timeRun){
+	
 	/*
 	 *	Direction is the variable that decides what direction the entity will travel in
 	 *	the value is either -1, 0, or 1. -1 being left, 0 means that the npc will stay still
 	 *	and a value of 1 makes the entity move to the right
 	*/
-	static int direction;	//variable to decide what direction the entity moves
+	
+	static int direction;
+	
 	/*
 	 *	Ticks to use is a variable in the entity class that counts the total ticks that need to be used
 	 *
 	 *	This loop only runs when ticksToUse is 0, this means that the speed, direction, etc... Will be
 	 *	calculated only after the npc has finished his current walking state
 	*/
+	
 	if(ticksToUse == 0){
 		ticksToUse = timeRun;
-		v->x = .008*HLINE;	//sets the inital velocity of the entity
+		vel.x = .008*HLINE;					//sets the inital velocity of the entity
 		direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
 											//this lets the entity move left, right, or stay still
 		if(direction==0)ticksToUse*=2;
-		v->x *= direction;	//changes the velocity based off of the direction
+		vel.x *= direction;					//changes the velocity based off of the direction
 	}
-	ticksToUse--; //removes one off of the entities timer
+	ticksToUse--;							 //removes one off of the entities timer
 }
 
 std::vector<int (*)(NPC *)> AIpreload;	// A dynamic array of AI functions that are being preloaded

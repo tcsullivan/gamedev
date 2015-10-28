@@ -69,7 +69,7 @@ public:
 
 	void spawn(float, float);
 	void draw(void);
-	virtual void wander(int, vec2*){}
+	virtual void wander(int){}
 	void getName();
 	virtual void interact(){}
 	int ticksToUse;	//The variable for deciding how long an entity should do a certain task
@@ -89,14 +89,16 @@ public:
 	NPC();
 	void addAIFunc(int (*func)(NPC *),bool preload);
 	void interact();
-	void wander(int, vec2*);
+	void wander(int);
 };
+
 class Structures : public Entity{
 public:
 	void *inside;
 	Structures();
 	unsigned int spawn(_TYPE, float, float);
 };
+
 class Mob : public Entity{
 public:
 	float init_y;

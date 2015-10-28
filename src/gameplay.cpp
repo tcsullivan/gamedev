@@ -20,9 +20,10 @@ int compTestQuest(NPC *speaker){
 }
 
 int giveTestQuest(NPC *speaker){
+	unsigned int i;
 	ui::dialogBox(speaker->name,"Here, have a quest!");
 	player->qh.assign("Test");
-	NPCp(entity[2])->addAIFunc(compTestQuest,true);
+	npc[1]->addAIFunc(compTestQuest,true);
 	return 0;
 }
 
@@ -41,7 +42,6 @@ void initEverything(void){
 	*/
 	
 	test->addLayer(400);
-	//test->addLayer(100);
 	
 	test->addPlatform(150,100,100,10);
 
@@ -91,7 +91,7 @@ void initEverything(void){
 	/*
 	 *	Link all the entities that were just created to the initial world, and setup a test AI function. 
 	*/
-	NPCp(entity[1])->addAIFunc(giveTestQuest,false);
+	npc[0]->addAIFunc(giveTestQuest,false);
 	
 	for(i=0;i<entity.size();i++){
 		entity[i]->inWorld=currentWorld;

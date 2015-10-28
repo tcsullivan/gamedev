@@ -182,3 +182,13 @@
 	- gained knowledge on sprite creation
 	- created tree and mountain sprites
 	- created a decent bird AI
+
+10/28/2015:
+===========
+
+	- fixed world drawing bug
+	- fixed segfault with entering buildings
+	- found bug with npc quest preloading
+	- documented more of world.cpp
+	- improved background textures/parallax stuff
+	- 

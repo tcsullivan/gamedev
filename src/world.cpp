@@ -15,7 +15,8 @@
 
 #define INDOOR_FLOOR_HEIGHT 100 // Defines how high the base floor of an IndoorWorld should be
 
-extern std::vector<Entity *>entity;
+extern std::vector<Entity 	  *> entity;
+extern std::vector<Structures *> build;
 
 void safeSetColor(int r,int g,int b){	// safeSetColor() is an alternative to directly using glColor3ub() to set
 	if(r>255)r=255;						// the color for OpenGL drawing. safeSetColor() checks for values that are
@@ -79,8 +80,8 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 		*/
 		
 		line[i].y=rand() % 8 - 4 + line[i-GEN_INC].y;	// Add +/- 4 to the previous line
-			 if(line[i].y < 60)line[i].y =  60;			// Minimum bound
-		else if(line[i].y > 90)line[i].y =  90;			// Maximum bound
+			 if(line[i].y < 40)line[i].y =  40;			// Minimum bound
+		else if(line[i].y > 70)line[i].y =  70;			// Maximum bound
 		
 	}
 	
@@ -198,14 +199,16 @@ LOOP2:
 	 *	the 'for' loop below that draws the layer.
 	*/
 
-	v_offset=(p->loc.x - current->x_start) / HLINE;
+	v_offset=(p->loc.x + p->width / 2 - current->x_start) / HLINE;
 	
 	// is -> i start
 	
-	is=v_offset - SCREEN_WIDTH / (yoff / (DRAW_Y_OFFSET / 2));
+	is=v_offset - (SCREEN_WIDTH / 2 / HLINE) - GEN_INC;
 	if(is<0)is=0;												// Minimum bound
-
-	ie=v_offset + SCREEN_WIDTH / (yoff / (DRAW_Y_OFFSET / 2));
+	
+	// ie -> i end
+	
+	ie=v_offset + (SCREEN_WIDTH / 2 / HLINE) + GEN_INC; 
 	if(ie>current->lineCount)ie=current->lineCount;				// Maximum bound
 	
 	/*
@@ -222,12 +225,13 @@ LOOP2:
 	//shade*=-1;
 	
 	/*
-	 *	Draw entities in the current layer if we're on the one we started at.
+	 *	Draw structures in the current layer if we're on the one we started at. We draw
+	 *	structures behind the dirt/grass so that the buildings corners don't stick out.
 	*/
 	
 	if(current==this){
 		for(i=0;i<entity.size();i++){
-			if(entity[i]->inWorld==this)
+			if(entity[i]->inWorld==this && entity[i]->type == STRUCTURET)
 				entity[i]->draw();
 		}
 	}
@@ -248,48 +252,133 @@ LOOP2:
 		}
 	glEnd();
 	
+	/*
+	 *	If we're drawing the closest/last world, handle and draw the player and entities in
+	 *	the world.
+	*/
+	
 	if(current==this){
-		int ph;
-		ph=(p->loc.x+p->width/2-x_start)/HLINE;	// Calculate what line the player is currently on
-		for(i=0;i<lineCount-GEN_INC;i++){
-			if(p->ground==1&&i<ph+6&&i>ph-6)cline[i].gs=false;
-			else cline[i].gs=true;
+		
+		/*
+		 *	Calculate the line that the player is on
+		*/
+		
+		int ph = (p->loc.x + p->width / 2 - x_start) / HLINE;
+		
+		/*
+		 *	If the player is on the ground, flatten the grass where the player is standing
+		 *	by setting line.gs to false.
+		*/
+		
+		if(p->ground){
+			for(i=0;i<lineCount-GEN_INC;i++){
+				if(i < ph + 6 && 
+				   i > ph - 6 )
+					cline[i].gs=false;
+				else cline[i].gs=true;
+			}
 		}
+		
+		/*
+		 *	Draw the player.
+		*/
+		
 		p->draw();
+		
+		/*
+		 *	Draw non-structure entities.
+		*/
+		
+		if(current==this){
+			for(i=0;i<entity.size();i++){
+				if(entity[i]->inWorld==this && entity[i]->type != STRUCTURET)
+					entity[i]->draw();
+			}
+		}
 	}
+	
+	/*
+	 *	Draw grass on every line.
+	*/
+	
 	float cgh[2];
 	glBegin(GL_QUADS);
 		for(i=is;i<ie-GEN_INC;i++){
-			memcpy(cgh,cline[i].gh,2*sizeof(float));
+			
+			/*
+			 *	Load the current line's grass values
+			*/
+			
+			if(cline[i].y)memcpy(cgh,cline[i].gh,2*sizeof(float));
+			else 		  memset(cgh,0			,2*sizeof(float));
+			
+			
+			
+			/*
+			 *	Flatten the grass if the player is standing on it.
+			*/
+			
 			if(!cline[i].gs){
 				cgh[0]/=4;
 				cgh[1]/=4;
 			}
+			
+			/*
+			 *	Actually draw the grass.
+			*/
+			
 			cline[i].y+=(yoff-DRAW_Y_OFFSET);
+			
 			safeSetColor(shade,150+shade,shade);
+			
 			glVertex2i(cx_start+i*HLINE        ,cline[i].y+cgh[0]);
 			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y+cgh[0]);
 			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y-GRASS_HEIGHT);
 			glVertex2i(cx_start+i*HLINE		   ,cline[i].y-GRASS_HEIGHT);
+			
 			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y+cgh[1]);
 			glVertex2i(cx_start+i*HLINE+HLINE  ,cline[i].y+cgh[1]);
 			glVertex2i(cx_start+i*HLINE+HLINE  ,cline[i].y-GRASS_HEIGHT);
 			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y-GRASS_HEIGHT);
+			
 			cline[i].y-=(yoff-DRAW_Y_OFFSET);
 		}
 	glEnd();
+	
+	/*
+	 *	Restore the inverted shading if it was inverted above.
+	*/
+	
 	//shade*=-1;
+	
+	/*
+	 *	Draw platforms...
+	*/
+	
 	safeSetColor(255+shade*2,0+shade,0+shade);
+	
 	for(i=0;i<current->platform.size();i++){
-		glRectf(current->platform[i].p1.x,current->platform[i].p1.y+yoff-DRAW_Y_OFFSET,
-				current->platform[i].p2.x,current->platform[i].p2.y+yoff-DRAW_Y_OFFSET);
+		glRectf(current->platform[i].p1.x, current->platform[i].p1.y + yoff - DRAW_Y_OFFSET,
+				current->platform[i].p2.x, current->platform[i].p2.y + yoff - DRAW_Y_OFFSET);
 	}
-	if(current->infront){			// If there's a world in front of the one that was just drawn
-		yoff-=DRAW_Y_OFFSET;		// draw it as well.
-		shade-=DRAW_SHADE;
+	
+	/*
+	 *	Draw the next closest world if it exists.
+	*/
+	
+	if(current->infront){
+		yoff  -= DRAW_Y_OFFSET;
+		shade -= DRAW_SHADE;
+		
 		current=current->infront;
 		goto LOOP2;
-	}else{							// Otherwise reset static values and return
+		
+	}else{
+		
+		/*
+		 *	If finished, reset the yoff and shade variables for the next call.
+		*/
+		
 		yoff=DRAW_Y_OFFSET;
 		shade=0;
 	}
@@ -470,17 +559,16 @@ void World::addPlatform(float x,float y,float w,float h){
 
 World *World::goInsideStructure(Player *p){
 	unsigned int i;
-	for(i=0;i<entity.size();i++){
-		if(entity[i]->type==-1){
-			if(entity[i]->inWorld==this){
-				if(p->loc.x>entity[i]->loc.x&&p->loc.x+p->width<entity[i]->loc.x+entity[i]->width){
-					return (World *)((Structures *)entity[i])->inside;
-				}
-			}else if(((Structures *)entity[i])->inside==this){
-				p->loc.x=entity[i]->loc.x+entity[i]->width/2-p->width/2;
-				p->loc.y=entity[i]->loc.y+HLINE;
-				return (World *)entity[i]->inWorld;
+	for(i=0;i<build.size();i++){
+		if(build[i]->inWorld==this){
+			if(p->loc.x			   > build[i]->loc.x &&
+			   p->loc.x + p->width < build[i]->loc.x + build[i]->width){
+				return (World *)build[i]->inside;
 			}
+		}else if(build[i]->inside==this){
+			p->loc.x=build[i]->loc.x + build[i]->width / 2 - p->width / 2;
+			p->loc.y=build[i]->loc.y + HLINE;
+			return (World *)build[i]->inWorld;
 		}
 	}
 	return this;
@@ -492,8 +580,6 @@ void World::addHole(unsigned int start,unsigned int end){
 		line[i].y=0;
 	}
 }
-
-
 
 IndoorWorld::IndoorWorld(void){
 }
@@ -519,6 +605,7 @@ void IndoorWorld::generate(unsigned int width){		// Generates a flat area of wid
 
 void IndoorWorld::draw(Player *p){
 	int i,ie,v_offset;
+	
 	v_offset=(p->loc.x-x_start)/HLINE;					// Calculate the player's offset in the array 'line' using the player's location 'vec'
 	i=v_offset-SCREEN_WIDTH/2;							// um
 	if(i<0)i=0;											// If the player is past the start of that world 'i' should start at the beginning
@@ -535,7 +622,7 @@ void IndoorWorld::draw(Player *p){
 			glVertex2i(x_start+i*HLINE		,line[i].y-50);
 		}
 	glEnd();
-	for(i=0;i<entity.size()+1;i++){
+	for(i=0;i<entity.size();i++){
 		if(entity[i]->inWorld==this)
 			entity[i]->draw();
 	}
