@@ -65,7 +65,7 @@ typedef struct {
  * 
 */
 
-#define HLINE 2	// 3 as in 3 pixels
+#define HLINE 3	// 3 as in 3 pixels
 
 /*
  *	Define 'our' random number generation library. Eventually these macros will be replaced

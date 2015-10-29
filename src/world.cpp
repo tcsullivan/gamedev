@@ -581,7 +581,7 @@ void World::addHole(unsigned int start,unsigned int end){
 	}
 }
 
-int World::getWidth(void){
+int World::getStart(void){
 	return -x_start;
 }
 

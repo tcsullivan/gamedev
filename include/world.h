@@ -71,7 +71,7 @@ public:
 														// drawn and handled by the world.
 	void addHole(unsigned int start,unsigned int end);	// Create a hole in the world
 	
-	int getWidth(void);
+	int getStart(void);
 };
 
 float worldGetYBase(World *w);
