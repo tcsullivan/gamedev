@@ -262,6 +262,9 @@ namespace ui {
 						player->ground=false;
 					}
 				}
+				if(SDL_KEY==SDLK_q){
+					player->inv->itemToss();
+				}
 				if(SDL_KEY==SDLK_c){
 					dialogBox("","You pressed `c`, but nothing happened.");
 				}
@@ -286,6 +289,8 @@ namespace ui {
 				break;
 			}
 		}
+		
+		if(player->inv->tossd)player->inv->itemToss();
 		
 		unsigned int i;
 		if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary

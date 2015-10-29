@@ -602,7 +602,13 @@ void World::addHole(unsigned int start,unsigned int end){
 }
 
 int World::getTheWidth(void){
-	return -x_start*2;
+	World *hey=this;
+LOOP:
+	if(hey->infront){
+		hey=hey->infront;
+		goto LOOP;
+	}
+	return -hey->x_start*2;
 }
 
 IndoorWorld::IndoorWorld(void){

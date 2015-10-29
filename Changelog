@@ -201,3 +201,8 @@
 	- documented world.h
 	- fixed camera ortho
 	- began working on layer-switching animation
+	- added variable width backgrounds
+	- added a debug sprint speed
+
+	- the currently selected item is now drawn on the player
+	- pressing q discards (w/ visuals) the currently selected item
