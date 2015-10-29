@@ -238,11 +238,17 @@ namespace ui {
 					}
 				}
 				if(SDL_KEY==SDLK_i){
-					player->vel.y=.5;
+					player->vel.y=.2;
+					player->loc.y+=HLINE*7;
 					player->ground=false;
 					currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
 				}
-				if(SDL_KEY==SDLK_k)currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
+				if(SDL_KEY==SDLK_k){
+					player->vel.y=.2;
+					player->loc.y+=HLINE*10;
+					player->ground=false;
+					currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
+				}
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = 3;							// Sprint
 				if(SDL_KEY==SDLK_LCTRL)player->speed = .5;
 			}
