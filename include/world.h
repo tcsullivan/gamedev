@@ -36,7 +36,6 @@ protected:
 	void singleDetect(Entity *e);	// Handles an individual entity (gravity n' stuff)
 public:
 	unsigned int lineCount;		// Size of the array 'line' (aka the width of the world)
-	unsigned int worldWidth;
 	World *toLeft,*toRight;		// Pointers to areas to the left and right of this world. These are made public
 								// so that they can easily be set without a function.
 	World *infront;
@@ -71,6 +70,8 @@ public:
 	void addPlatform(float x,float y,float w,float h);	// Dynamically adds a platform to the platform array. These will be automatically
 														// drawn and handled by the world.
 	void addHole(unsigned int start,unsigned int end);	// Create a hole in the world
+	
+	int getWidth(void);
 };
 
 float worldGetYBase(World *w);

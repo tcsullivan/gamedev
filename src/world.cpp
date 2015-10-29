@@ -42,7 +42,6 @@ World::World(void){
 }
 
 void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
-	worldWidth = width;
 	unsigned int i;
 	float inc;
 	
@@ -580,6 +579,10 @@ void World::addHole(unsigned int start,unsigned int end){
 	for(i=start;i<end;i++){
 		line[i].y=0;
 	}
+}
+
+int World::getWidth(void){
+	return -x_start;
 }
 
 IndoorWorld::IndoorWorld(void){

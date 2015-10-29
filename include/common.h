@@ -49,9 +49,8 @@ typedef struct {
 
 #define GAME_NAME		"Independent Study v.0.2 alpha"
 
-#define SCREEN_WIDTH	1920
-#define SCREEN_HEIGHT	1080
-#define FULLSCREEN
+#define SCREEN_WIDTH	1280
+#define SCREEN_HEIGHT	720
 
 //#define FULLSCREEN
 
@@ -66,7 +65,7 @@ typedef struct {
  * 
 */
 
-#define HLINE 3	// 3 as in 3 pixels
+#define HLINE 2	// 3 as in 3 pixels
 
 /*
  *	Define 'our' random number generation library. Eventually these macros will be replaced

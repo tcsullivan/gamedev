@@ -237,7 +237,11 @@ namespace ui {
 						player->ground=false;
 					}
 				}
-				if(SDL_KEY==SDLK_i)currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible
+				if(SDL_KEY==SDLK_i){
+					player->vel.y=.5;
+					player->ground=false;
+					currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
+				}
 				if(SDL_KEY==SDLK_k)currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = 3;							// Sprint
 				if(SDL_KEY==SDLK_LCTRL)player->speed = .5;
