@@ -16,6 +16,7 @@ namespace ui {	// Functions are kept in a namespace simply
 	extern vec2 mouse;
 
 	extern bool debug;
+	extern bool posFlag;
 	extern bool dialogBoxExists;
 	extern unsigned int fontSize;
 

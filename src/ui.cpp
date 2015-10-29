@@ -19,6 +19,7 @@ static char *dialogBoxText;
 namespace ui {
 	vec2 mouse;
 	bool debug=false;
+	bool posFlag=false;
 	bool dialogBoxExists=false;
 	unsigned int fontSize;
 
@@ -264,10 +265,11 @@ namespace ui {
 				if(SDL_KEY==SDLK_c){
 					dialogBox("","You pressed `c`, but nothing happened.");
 				}
-				if(SDL_KEY==SDLK_LSHIFT)player->speed = 3;							// Sprint
+				if(SDL_KEY==SDLK_LSHIFT)player->speed = debug?4:3;							// Sprint
 				if(SDL_KEY==SDLK_LCTRL)player->speed = .5;
 			}
 				if(SDL_KEY==SDLK_F3)debug^=true;
+				if(SDL_KEY==SDLK_b & SDL_KEY==SDLK_F3)posFlag^=true;
 				break;
 			/*
 				KEYUP

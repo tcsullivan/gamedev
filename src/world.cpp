@@ -222,7 +222,7 @@ LOOP2:
 	 *	Invert shading if desired.
 	*/
 	
-	//shade*=-1;
+	shade*=-1;
 	
 	/*
 	 *	Draw structures in the current layer if we're on the one we started at. We draw
@@ -369,7 +369,7 @@ LOOP2:
 	 *	Restore the inverted shading if it was inverted above.
 	*/
 	
-	//shade*=-1;
+	shade*=-1;
 	
 	/*
 	 *	Draw platforms...
@@ -602,7 +602,7 @@ void World::addHole(unsigned int start,unsigned int end){
 }
 
 int World::getTheWidth(void){
-	return x_start*2;
+	return -x_start*2;
 }
 
 IndoorWorld::IndoorWorld(void){
