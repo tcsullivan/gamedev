@@ -122,15 +122,18 @@ namespace ui {
 	}
 	float putString(const float x,const float y,const char *s){
 		unsigned int i=0,j;
-		float xo=x,yo=y;
+		float xo=x,yo=y,pw=0;
 		do{
 			if(s[i]=='\n'){
 				yo-=fontSize*1.05;
 				xo=x;
 			}else if(s[i]==' '){
 				xo+=fontSize/2;
+			}else if(s[i]=='\b'){
+				xo-=pw;
 			}else{
-				xo+=putChar(xo,yo,s[i])+fontSize*.1;
+				pw=putChar(xo,yo,s[i])+fontSize*.1;
+				xo+=pw;
 			}
 		}while(s[i++]);
 		return xo;
@@ -237,17 +240,29 @@ namespace ui {
 						player->ground=false;
 					}
 				}
+				World *tmp;
 				if(SDL_KEY==SDLK_i){
-					player->vel.y=.2;
-					player->loc.y+=HLINE*7;
-					player->ground=false;
+					tmp=currentWorld;
 					currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
+					if(tmp!=currentWorld){
+						currentWorld->detect(player);
+						player->vel.y=.2;
+						player->loc.y+=HLINE*5;
+						player->ground=false;
+					}
 				}
 				if(SDL_KEY==SDLK_k){
-					player->vel.y=.2;
-					player->loc.y+=HLINE*10;
-					player->ground=false;
+					tmp=currentWorld;
 					currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
+					if(tmp!=currentWorld){
+						player->loc.y=0;
+						currentWorld->behind->detect(player);
+						player->vel.y=.2;
+						player->ground=false;
+					}
+				}
+				if(SDL_KEY==SDLK_c){
+					dialogBox("","You pressed `c`, but nothing happened.");
 				}
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = 3;							// Sprint
 				if(SDL_KEY==SDLK_LCTRL)player->speed = .5;
@@ -271,12 +286,12 @@ namespace ui {
 		}
 		
 		unsigned int i;
-		//if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary
-			//for(i=0;i<AIpreaddr.size();i++){
-				//AIpreaddr.front()->addAIFunc(AIpreload.front(),false);
-				//AIpreaddr.erase(AIpreaddr.begin());
-				//AIpreload.erase(AIpreload.begin());
-			//}
-		//}
+		if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary
+			for(i=0;i<AIpreaddr.size();i++){
+				AIpreaddr.front()->addAIFunc(AIpreload.front(),false);
+				AIpreaddr.erase(AIpreaddr.begin());
+				AIpreload.erase(AIpreload.begin());
+			}
+		}
 	}
 }

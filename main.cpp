@@ -181,6 +181,7 @@ unsigned int millis(void){
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
+ 
 int main(int argc, char *argv[]){
 	gameRunning=false;
 	
@@ -740,6 +741,7 @@ void logic(){
 	*/
 	
 	currentWorld->detect(player);
+	if(player->loc.y<.02)gameRunning=false;
 	
 	/*
 	 *	Entity logic: This loop finds every entity that is alive and in the current world. It then

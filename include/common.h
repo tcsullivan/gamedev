@@ -47,7 +47,7 @@ typedef struct {
  *	and whether or not we want the window to be fullscreen.
 */
 
-#define GAME_NAME		"Independent Study v.0.2 alpha"
+#define GAME_NAME		"Independent Study v.0.3 alpha"
 
 #define SCREEN_WIDTH	1280
 #define SCREEN_HEIGHT	720

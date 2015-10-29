@@ -191,4 +191,13 @@
 	- found bug with npc quest preloading
 	- documented more of world.cpp
 	- improved background textures/parallax stuff
-	- 
+
+10/29/2015:
+===========
+
+	- re-added NPC quests
+	- fixed issue with player standing on grass
+	- made game exit when player falls in hole
+	- documented world.h
+	- fixed camera ortho
+	- began working on layer-switching animation

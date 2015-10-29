@@ -13,6 +13,7 @@ typedef struct {
 */
 class World {
 protected:
+	
 	/*
 	 *	struct line_t
 	 * 
@@ -24,61 +25,126 @@ protected:
 	 * line no. 123456789...
 	 * 
 	 */
+	 
 	struct line_t {
 		bool gs;
 		float y,gh[2];
 		unsigned char color;
 	} __attribute__ ((packed)) *line;
-	std::vector<Platform> platform;	// An array (vector thing) of platforms
-	int x_start;			// Worlds are centered on the x axis (0,n), this contains
-							// where to start drawing the world to have it centered properly.
-	World *behind;			// Pointers to other areas of land that are behind or in front of this one, respectively.
-	void singleDetect(Entity *e);	// Handles an individual entity (gravity n' stuff)
+	
+	/*
+	 *	Keeps a dynamically allocated array of platforms in the world.
+	*/
+	
+	std::vector<Platform> platform;
+	
+	/*
+	 *	Contains the starting x-coordinate to draw the world at. This should be equal to
+	 *	- getWidth() (see world.cpp) / 2
+	*/
+	
+	int x_start;
+	
+	/*
+	 *	Runs world detection for a single entity. This function is used in World->detect()
+	 *	to detect the player and all entities in the world.
+	*/
+	
+	void singleDetect(Entity *e);
+	
+	/*
+	 *	The size of the line array. This is set once by World->generate().
+	*/
+	
+	unsigned int lineCount;
+	
 public:
-	unsigned int lineCount;		// Size of the array 'line' (aka the width of the world)
-	World *toLeft,*toRight;		// Pointers to areas to the left and right of this world. These are made public
-								// so that they can easily be set without a function.
-	World *infront;
-								
+
+	/*
+	 *	These pointers keep track of worlds that are adjacent to this one. Used in ui.cpp
+	 *	for world jumping.
+	*/
+
+	World *toLeft,
+		  *toRight,
+		  *behind,
+		  *infront;
+	
+	/*
+	 *	Constructor and deconstructor, these do what you would expect.
+	*/
+						
 	World(void);
 	~World(void);				// Frees the 'line' array.
 	
-	virtual void generate(unsigned int width);			// Generate the world
+	/*
+	 *	Generate a world of width `width`. This function is virtual so that other world
+	 *	classes that are based on this one can generate themselves their own way.
+	*/
 	
-	void addLayer(unsigned int width);					// Generates a new world and makes 'behind' point to it. If 'behind'
-														// already points to a world, the new world will be set to be behind 'behind'.
+	virtual void generate(unsigned int width);
+	
+	/*
+	 *	Looks for the furthest back layer in this world and adds a new layer of width `width` behind it.
+	*/
+	
+	void addLayer(unsigned int width);
+	
+	/*
+	 *	Draw the world and entities based on the player's coordinates. Virtual for the same
+	 *	reason generate() is.
+	*/
 														
-	virtual void draw(Player *p);						// Draws the world around the coordinates 'vec'
+	virtual void draw(Player *p);
 	
 	
-	void detect(Player *p);								// Insures objects/entities stored in an Entity class stay outside of the
-														// ground (defined by array 'line'), and handles gravity for the object/entity
-														// by modifying it's velocity
+	/*
+	 *	Detect the player and any entities in the current world.
+	*/
 	
-	World *goWorldLeft(Player *p);						// Returns the world to the left of this one if it exists and the player at
-														// location 'loc' with width 'width' is at the left edge of this world.
-	World *goWorldRight(Player *p);						// Functions the same as goWorldLeft(), but checks/returns the world to the right
-														// of the player.
-														
-	World *goWorldBack(Player *p);						// Returns the address of the world behind this one if it exists and the player
-														// at location 'loc' with width 'width' is within the area of it (i.e., when this
-														// world is drawn the world has to appear directly behind the player)
-	World *goWorldFront(Player *p);						// Functions the same as goWorldBack(), but checks/returns the world in front of
-														// this one.
-	World *goInsideStructure(Player *p);				// Returns the world contained in a structure if the player is requesting to enter
-														// it and is standing in front of it.
-	void addPlatform(float x,float y,float w,float h);	// Dynamically adds a platform to the platform array. These will be automatically
-														// drawn and handled by the world.
-	void addHole(unsigned int start,unsigned int end);	// Create a hole in the world
+	void detect(Player *p);
 	
-	int getStart(void);
+	/*
+	 *	These functions return the pointer to the world in the direction that is requested if it
+	 *	exists and the player is in a condition that it can make the switch, otherwise they
+	 *	return the current world.
+	*/
+	
+	World *goWorldLeft(Player *p);
+	World *goWorldRight(Player *p);					
+	World *goWorldBack(Player *p);
+	World *goWorldFront(Player *p);
+	
+	/*
+	 *	Called to enter/exit a structure.
+	*/
+	
+	World *goInsideStructure(Player *p);
+	
+	/*
+	 *	These functions add features to the world.
+	*/
+	
+	void addPlatform(float x,float y,float w,float h);
+	void addHole(unsigned int start,unsigned int end);
+	
+	/*
+	 *	Get's the world's width.
+	*/
+	
+	int getTheWidth(void);
 };
+
+/*
+ *	Gets a good base y value for background rendering.
+*/
 
 float worldGetYBase(World *w);
 
 /*
  *	IndoorWorld - Indoor settings stored in a World class ;)
  */
+ 
 class IndoorWorld : public World {
 public:
 	IndoorWorld(void);

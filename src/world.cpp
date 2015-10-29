@@ -240,15 +240,26 @@ LOOP2:
 	 *	Draw the layer up until the grass portion, which is done later.
 	*/
 	
+	bool hey=false;
 	glBegin(GL_QUADS);
 		for(i=is;i<ie-GEN_INC;i++){
-			cline[i].y+=(yoff-DRAW_Y_OFFSET);														// Add the y offset
-			safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);	// Set the shaded dirt color
+			cline[i].y+=(yoff-DRAW_Y_OFFSET);															// Add the y offset
+			if(!cline[i].y){
+				cline[i].y+=50;
+				hey=true;
+				safeSetColor(cline[i].color-100+shade,cline[i].color-150+shade,cline[i].color-200+shade);
+			}else{
+				safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);	// Set the shaded dirt color
+			}
 			glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
 			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
 			glVertex2i(cx_start+i*HLINE+HLINE,0);
 			glVertex2i(cx_start+i*HLINE		 ,0);
-			cline[i].y-=(yoff-DRAW_Y_OFFSET);														// Restore the line's y value
+			cline[i].y-=(yoff-DRAW_Y_OFFSET);															// Restore the line's y value
+			if(hey){
+				hey=false;
+				cline[i].y=0;
+			}
 		}
 	glEnd();
 	
@@ -277,6 +288,10 @@ LOOP2:
 					cline[i].gs=false;
 				else cline[i].gs=true;
 			}
+		}else{
+			for(i=0;i<lineCount-GEN_INC;i++){
+				cline[i].gs=true;
+			}
 		}
 		
 		/*
@@ -289,12 +304,17 @@ LOOP2:
 		 *	Draw non-structure entities.
 		*/
 		
-		if(current==this){
-			for(i=0;i<entity.size();i++){
-				if(entity[i]->inWorld==this && entity[i]->type != STRUCTURET)
-					entity[i]->draw();
-			}
+		for(i=0;i<entity.size();i++){
+			if(entity[i]->inWorld==this && entity[i]->type != STRUCTURET)
+				entity[i]->draw();
 		}
+		
+	}else{
+		
+		/*for(i=0;i<lineCount-GEN_INC;i++){
+			cline[i].gs=true;
+		}*/
+	
 	}
 	
 	/*
@@ -581,8 +601,8 @@ void World::addHole(unsigned int start,unsigned int end){
 	}
 }
 
-int World::getStart(void){
-	return -x_start;
+int World::getTheWidth(void){
+	return x_start*2;
 }
 
 IndoorWorld::IndoorWorld(void){
