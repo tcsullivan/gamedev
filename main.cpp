@@ -49,7 +49,7 @@ SDL_GLContext  mainGLContext = NULL;
  * 
 */
 
-static GLuint  bgImage, bgMtn, bgTreesFirst;
+static GLuint  bgImage, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar;
 
 /*
  *	gameRunning
@@ -336,7 +336,7 @@ int main(int argc, char *argv[]){
 		
 		glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
 		
-		if(bufferln == GL_TRUE){
+		if(bufferln == GL_FALSE){
 			std::cout << "Error compiling shader" << std::endl;
 		}
 		
@@ -382,7 +382,9 @@ int main(int argc, char *argv[]){
 	
 	bgImage=		Texture::loadTexture("assets/bg.png");
 	bgMtn=			Texture::loadTexture("assets/bgFarMountain.png");
-	bgTreesFirst =	Texture::loadTexture("assets/antree.png");
+	bgTreesFront =	Texture::loadTexture("assets/bgFrontTree.png");
+	bgTreesMid =	Texture::loadTexture("assets/bgMidTree.png");
+	bgTreesFar =	Texture::loadTexture("assets/bgFarTree.png");
 	
 	/*
 	 *	Load sprites used in the inventory menu. See src/inventory.cpp
@@ -541,8 +543,8 @@ void render(){
 	 *	If the camera will go off of the left  or right of the screen we want to lock it so we can't
 	 *  see past the world render
 	*/
-	if(player->loc.x - SCREEN_WIDTH/2 < SCREEN_WIDTH*-1.5)offset.x = ((SCREEN_WIDTH*-1.5) + SCREEN_WIDTH/2) + player->width/2;
-	if(player->loc.x + SCREEN_WIDTH/2 > SCREEN_WIDTH*1.5)offset.x = ((SCREEN_WIDTH*1.5) - SCREEN_WIDTH/2) + player->width/2;
+	if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth()*-0.5f)offset.x = ((currentWorld->getTheWidth()*-0.5f) + SCREEN_WIDTH/2) + player->width/2;
+	if(player->loc.x + SCREEN_WIDTH/2 > currentWorld->getTheWidth()*0.5f)offset.x = ((currentWorld->getTheWidth()*0.5f) - SCREEN_WIDTH/2) + player->width/2;
 	glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
@@ -576,75 +578,58 @@ void render(){
 
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,bgImage);
-	
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2,0);
-		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2,0);
-		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2,SCREEN_HEIGHT);
-		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2,SCREEN_HEIGHT);
+		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0);
+		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0);
+		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT);
+		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT);
 	glEnd();
 
 	int base = 40 - (int)worldGetYBase(currentWorld);
 
 	glBindTexture(GL_TEXTURE_2D, bgMtn);
-
+	glBegin(GL_QUADS);
 	glColor4ub(150,150,150,220);
-	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-1920+offset.x*.85,base);
-		glTexCoord2i(1,1);glVertex2i( 	   offset.x*.85,base);
-		glTexCoord2i(1,0);glVertex2i(      offset.x*.85,base+1080);
-		glTexCoord2i(0,0);glVertex2i(-1920+offset.x*.85,base+1080);
-	glEnd();
-	glColor4ub(150,150,150,220);
-	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(	  offset.x*.85,base);
-		glTexCoord2i(1,1);glVertex2i(1920+offset.x*.85,base);
-		glTexCoord2i(1,0);glVertex2i(1920+offset.x*.85,base+1080);
-		glTexCoord2i(0,0);glVertex2i(     offset.x*.85,base+1080);
+		for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
+		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.85,base);
+		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.85,base);
+		glTexCoord2i(1,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.85,base+1080);
+		glTexCoord2i(0,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.85,base+1080);
+	}
 	glEnd();
 
-	glBindTexture(GL_TEXTURE_2D, bgTreesFirst);
 
-	glPushMatrix();
+	glBindTexture(GL_TEXTURE_2D, bgTreesFar);
+	glBegin(GL_QUADS);
 	glColor4ub(100,100,100,240);
-	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-1920+offset.x*.6,base);
-		glTexCoord2i(1,1);glVertex2i( 	   offset.x*.6,base);
-		glTexCoord2i(1,0);glVertex2i(      offset.x*.6,base+1080);
-		glTexCoord2i(0,0);glVertex2i(-1920+offset.x*.6,base+1080);
+	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
+		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.6,base);
+		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.6,base);
+		glTexCoord2i(1,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.6,base+1080);
+		glTexCoord2i(0,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.6,base+1080);
+	}
 	glEnd();
 
-	glColor4ub(100,100,100,240);
+	glBindTexture(GL_TEXTURE_2D, bgTreesMid);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(	  offset.x*.6,base);
-		glTexCoord2i(1,1);glVertex2i(1920+offset.x*.6,base);
-		glTexCoord2i(1,0);glVertex2i(1920+offset.x*.6,base+1080);
-		glTexCoord2i(0,0);glVertex2i(     offset.x*.6,base+1080);
-	glEnd();
-	glPopMatrix();
-
 	glColor4ub(150,150,150,250);
-	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-1920+offset.x*.4,base);
-		glTexCoord2i(1,1);glVertex2i( 	   offset.x*.4,base);
-		glTexCoord2i(1,0);glVertex2i(      offset.x*.4,base+1080);
-		glTexCoord2i(0,0);glVertex2i(-1920+offset.x*.4,base+1080);
+	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
+		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.4,base);
+		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.4,base);
+		glTexCoord2i(1,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.4,base+1080);
+		glTexCoord2i(0,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.4,base+1080);
+	}
 	glEnd();
 
-	glColor4ub(150,150,150,250);
+	glBindTexture(GL_TEXTURE_2D, bgTreesFront);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(	  offset.x*.4,base);
-		glTexCoord2i(1,1);glVertex2i(1920+offset.x*.4,base);
-		glTexCoord2i(1,0);glVertex2i(1920+offset.x*.4,base+1080);
-		glTexCoord2i(0,0);glVertex2i(     offset.x*.4,base+1080);
-	glEnd();
-
 	glColor4ub(255,255,255,255);
-	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-960+offset.x*.25,base);
-		glTexCoord2i(1,1);glVertex2i( 960+offset.x*.25,base);
-		glTexCoord2i(1,0);glVertex2i( 960+offset.x*.25,base+1080);
-		glTexCoord2i(0,0);glVertex2i(-960+offset.x*.25,base+1080);
+	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
+		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.25,base);
+		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.25,base);
+		glTexCoord2i(1,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.25,base+1080);
+		glTexCoord2i(0,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.25,base+1080);
+	}
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	
@@ -685,6 +670,20 @@ void render(){
 					debugY,						// The player's y coordinate
 					player->qh.current.size()	// Active quest count
 					);
+		if(ui::posFlag){
+			glBegin(GL_LINES);
+				glColor3ub(255,0,0);
+				glVertex2i(0,0);
+				glVertex2i(0,SCREEN_HEIGHT);
+
+				glColor3ub(255,255,255);
+				glVertex2i(player->loc.x + player->width/2,0);
+				glVertex2i(player->loc.x + player->width/2,SCREEN_HEIGHT);
+
+				glVertex2i(-SCREEN_WIDTH/2+offset.x,player->loc.y);
+				glVertex2i(SCREEN_WIDTH/2+offset.x, player->loc.y);
+			glEnd();
+		}
 					
 	}
 	
