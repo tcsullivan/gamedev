@@ -49,7 +49,7 @@ SDL_GLContext  mainGLContext = NULL;
  * 
 */
 
-static GLuint  bgImage, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar;
+static GLuint  bgDay, bgNight, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar;
 
 /*
  *	gameRunning
@@ -177,6 +177,18 @@ unsigned int millis(void){
 	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
 	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }
+
+typedef enum {
+	SUNNY = 0,
+	DARK,
+	RAIN
+} WEATHER;
+
+#define DAY_CYCLE 10000
+
+static WEATHER weather = SUNNY;
+static vec2 star[100];
+
 
 /*******************************************************************************
  * MAIN ************************************************************************
@@ -381,17 +393,24 @@ int main(int argc, char *argv[]){
 	 *	Load a temporary background image.
 	*/
 	
-	bgImage=		Texture::loadTexture("assets/bg.png");
-	bgMtn=			Texture::loadTexture("assets/bgFarMountain.png");
-	bgTreesFront =	Texture::loadTexture("assets/bgFrontTree.png");
-	bgTreesMid =	Texture::loadTexture("assets/bgMidTree.png");
-	bgTreesFar =	Texture::loadTexture("assets/bgFarTree.png");
+	bgDay		 =Texture::loadTexture("assets/bg.png"			 );
+	bgNight		 =Texture::loadTexture("assets/bgn.png"			 );
+	bgMtn		 =Texture::loadTexture("assets/bgFarMountain.png");
+	bgTreesFront =Texture::loadTexture("assets/bgFrontTree.png"	 );
+	bgTreesMid	 =Texture::loadTexture("assets/bgMidTree.png"	 );
+	bgTreesFar	 =Texture::loadTexture("assets/bgFarTree.png"	 );
 	
 	/*
 	 *	Load sprites used in the inventory menu. See src/inventory.cpp
 	*/
 	
 	initInventorySprites();
+	
+	unsigned int i;
+	for(i=0;i<100;i++){
+		star[i].x=getRand()%currentWorld->getTheWidth()-currentWorld->getTheWidth()/2;
+		star[i].y=getRand()%SCREEN_HEIGHT+100;
+	}
 	
 	/**************************
 	****     GAMELOOP      ****
@@ -578,7 +597,16 @@ void render(){
 	*/
 
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,bgImage);
+	glBindTexture(GL_TEXTURE_2D,bgDay);
+	safeSetColorA(255,255,255,255-worldShade*4);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0);
+		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0);
+		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT);
+		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT);
+	glEnd();
+	glBindTexture(GL_TEXTURE_2D,bgNight);
+	safeSetColorA(255,255,255,worldShade*4);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0);
 		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0);
@@ -586,11 +614,27 @@ void render(){
 		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT);
 	glEnd();
 
+	glDisable(GL_TEXTURE_2D);
+
+	if(((weather==DARK )&(tickCount%DAY_CYCLE)<DAY_CYCLE/2)   ||
+	   ((weather==SUNNY)&(tickCount%DAY_CYCLE)>DAY_CYCLE*.75) ){
+		if(tickCount%DAY_CYCLE){	
+			glColor4ub(255,255,255,255);
+			for(unsigned int i=0;i<100;i++){
+				glRectf(star[i].x+offset.x*.9,star[i].y,star[i].x+offset.x*.9+HLINE,star[i].y+HLINE);
+			}
+		}
+	}
+
 	int base = 40 - (int)worldGetYBase(currentWorld);
+	int shade = worldShade*2;
+
+	glEnable(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, bgMtn);
 	glBegin(GL_QUADS);
-	glColor4ub(150,150,150,220);
+	safeSetColorA(150-shade,150-shade,150-shade,220);
+	//glColor4ub(150,150,150,220);
 		for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
 		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.85,base);
 		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.85,base);
@@ -602,7 +646,8 @@ void render(){
 
 	glBindTexture(GL_TEXTURE_2D, bgTreesFar);
 	glBegin(GL_QUADS);
-	glColor4ub(100,100,100,240);
+	safeSetColorA(100-shade,100-shade,100-shade,240);
+	//glColor4ub(100,100,100,240);
 	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
 		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.6,base);
 		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.6,base);
@@ -613,7 +658,8 @@ void render(){
 
 	glBindTexture(GL_TEXTURE_2D, bgTreesMid);
 	glBegin(GL_QUADS);
-	glColor4ub(150,150,150,250);
+	safeSetColorA(150-shade,150-shade,150-shade,250);
+	//glColor4ub(150,150,150,250);
 	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
 		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.4,base);
 		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.4,base);
@@ -624,7 +670,8 @@ void render(){
 
 	glBindTexture(GL_TEXTURE_2D, bgTreesFront);
 	glBegin(GL_QUADS);
-	glColor4ub(255,255,255,255);
+	safeSetColorA(255-shade,255-shade,255-shade,255);
+	//glColor4ub(255,255,255,255);
 	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
 		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.25,base);
 		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.25,base);
@@ -661,7 +708,7 @@ void render(){
 		
 		ui::putText(offset.x-SCREEN_WIDTH/2,
 					SCREEN_HEIGHT-ui::fontSize,
-					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nQc: %u",
+					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nQc: %u",
 					fps,
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
@@ -669,6 +716,7 @@ void render(){
 					entity.size(),				// Size of entity array
 					player->loc.x,				// The player's x coordinate
 					debugY,						// The player's y coordinate
+					tickCount,
 					player->qh.current.size()	// Active quest count
 					);
 		if(ui::posFlag){
@@ -857,10 +905,22 @@ void logic(){
 		}
 	}
 	
+	if(!(tickCount%DAY_CYCLE)||!tickCount){
+		if(weather==SUNNY){
+			weather=DARK;
+		}else{
+			weather=SUNNY;
+		}
+	}
+	
+	#define PI 3.1415926535
+	worldShade=50*sin((tickCount+(DAY_CYCLE/2))/(DAY_CYCLE/PI));
+	
 	/*
 	 *	Increment a loop counter used for animating sprites.
 	*/
 	
 	loops++;
+	tickCount++;
 	NPCSelected=false;
 }

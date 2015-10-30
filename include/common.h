@@ -114,4 +114,7 @@ extern vec2 offset;
 
 void DEBUG_prints(const char* file, int line, const char *s,...);
 
+void safeSetColor(int r,int g,int b);
+void safeSetColorA(int r,int g,int b,int a);
+
 #endif // COMMON_H

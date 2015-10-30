@@ -30,7 +30,7 @@ public:
 	
 	int addItem(ITEM_ID id,unsigned char count);	// Add 'count' items with an id of 'id' to the inventory
 	int takeItem(ITEM_ID id,unsigned char count);	// Take 'count' items with an id of 'id' from the inventory
-	int useItem(ITEM_ID id);
+	int useItem(void);
 	
 	bool tossd;
 	int itemToss(void);
@@ -42,5 +42,6 @@ public:
 };
 
 unsigned int initInventorySprites(void);	// Loads as many inventory textures as it can find, returns count
+void itemUse(void *p);
 
 #endif // INVENTORY_H

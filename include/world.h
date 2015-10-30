@@ -154,4 +154,6 @@ public:
 	void draw(Player *p);				// Draws the world (ignores layers)
 };
 
+extern int worldShade;
+
 #endif // WORLD_H

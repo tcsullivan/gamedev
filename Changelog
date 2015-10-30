@@ -206,3 +206,12 @@
 
 	- the currently selected item is now drawn on the player
 	- pressing q discards (w/ visuals) the currently selected item
+
+10/30/2015:
+===========
+
+	- fixed bug involving grass pressing and platforms
+	- added a day/night cycle, with shading on all drawn
+	  objects except for entities
+	- added stars at night
+	- successfully enabled and loaded GLSL shaders

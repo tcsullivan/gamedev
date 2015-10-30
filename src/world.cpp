@@ -18,16 +18,6 @@
 extern std::vector<Entity 	  *> entity;
 extern std::vector<Structures *> build;
 
-void safeSetColor(int r,int g,int b){	// safeSetColor() is an alternative to directly using glColor3ub() to set
-	if(r>255)r=255;						// the color for OpenGL drawing. safeSetColor() checks for values that are
-	if(g>255)g=255;						// outside the range of an unsigned character and sets them to a safer value.
-	if(b>255)b=255;
-	if(r<0)r=0;
-	if(g<0)g=0;
-	if(b<0)b=0;
-	glColor3ub(r,g,b);
-}
-
 float worldGetYBase(World *w){
 	float base = 0;
 	World *ptr = w;
@@ -150,9 +140,11 @@ World::~World(void){
 	free(line);
 }
 
+int worldShade = 0;
+
 void World::draw(Player *p){
 	static float yoff=DRAW_Y_OFFSET;	// Initialize stuff
-	static int shade=0;
+	static int shade;
 	static World *current;
 	int i,is,ie,v_offset,cx_start;
 	struct line_t *cline;
@@ -168,6 +160,7 @@ void World::draw(Player *p){
 	*/
 	
 	current=this;
+	shade=worldShade;
 	
 LOOP1:
 
@@ -281,7 +274,7 @@ LOOP2:
 		 *	by setting line.gs to false.
 		*/
 		
-		if(p->ground){
+		if(p->ground==1){
 			for(i=0;i<lineCount-GEN_INC;i++){
 				if(i < ph + 6 && 
 				   i > ph - 6 )

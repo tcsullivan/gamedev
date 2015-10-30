@@ -131,7 +131,6 @@ void itemDraw(Player *p,ITEM_ID id){
 			  p->loc.y+HLINE*3};
 	}
 	if(p->inv->tossd) yes=true;
-	std::cout<<item_coord.x<<" "<<item_coord.y<<std::endl;
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2f(item_coord.x+p1.x,item_coord.y+p2.y);
 		glTexCoord2i(1,1);glVertex2f(item_coord.x+p2.x,item_coord.y+p2.y);
@@ -141,12 +140,14 @@ void itemDraw(Player *p,ITEM_ID id){
 	glDisable(GL_TEXTURE_2D);
 }
 
-void itemUse(Player *p,ITEM_ID id){
+int Inventory::useItem(void){
+	ITEM_ID id = item[sel].id;
 	switch(id){
 	default:
 		ui::dialogBox(itemName[id],"You cannot use this item.");
 		break;
 	}
+	return 0;
 }
 
 int Inventory::itemToss(void){

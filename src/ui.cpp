@@ -265,6 +265,9 @@ namespace ui {
 				if(SDL_KEY==SDLK_q){
 					player->inv->itemToss();
 				}
+				if(SDL_KEY==SDLK_e){
+					player->inv->useItem();
+				}
 				if(SDL_KEY==SDLK_c){
 					dialogBox("","You pressed `c`, but nothing happened.");
 				}
