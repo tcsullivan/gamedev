@@ -14,7 +14,8 @@
  *	The call for rendering is made every time the main loop loops, and then
  *	uses interpolation for smooth drawing to the screen. However, the call
  *	for logic would be preferred to be run every set amount of time.
- * 
+ *  
+
  *	The logic loop is currently implemented to run at a certain interval
  *	that we call a 'tick'. As one may now guess, TICKS_PER_SEC defines the
  *	amount of ticks that should be made every second. MSEC_PER_TICK then
@@ -104,6 +105,12 @@ unsigned int tickCount = 0;
 unsigned int deltaTime = 0;
 
 /*
+ *
+*/
+GLuint fragShader;
+GLuint shaderProgram;
+
+/*
  *	names is used to open a file containing all possible NPC names. It is externally
  *	referenced in src/entities.cpp for getting random names.
  *
@@ -157,6 +164,25 @@ extern void initEverything(void);
 void logic(void);
 void render(void);
 void mainLoop(void);
+
+std::string readFile(const char *filePath) {
+    std::string content;
+    std::ifstream fileStream(filePath, std::ios::in);
+
+    if(!fileStream.is_open()) {
+        std::cerr << "Could not read file " << filePath << ". File does not exist." << std::endl;
+        return "";
+    }
+
+    std::string line = "";
+    while(!fileStream.eof()) {
+        std::getline(fileStream, line);
+        content.append(line + "\n");
+    }
+
+    fileStream.close();
+    return content;
+}
 
 /* 
  *	This offset is used as the player offset in the world drawing so
@@ -331,31 +357,41 @@ int main(int argc, char *argv[]){
 	/*
 	 *	Initializes our shaders so that the game has shadows.
 	*/
-
 	#ifdef SHADERS
 		std::cout << "Initializing shaders!" << std::endl;
 
-		GLuint fragShader;
-		GLuint shaderProgram;
+	 	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-		const GLchar *shaderSource = "shader.frag";
-		GLint bufferln = GL_FALSE;	
+		std::string shaderFileContents = readFile("test.frag");
+		const GLchar *shaderSource = shaderFileContents.c_str();
 
-		fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+		GLint bufferln = GL_FALSE;
+		int logLength;	
+
+
 		glShaderSource(fragShader, 1, &shaderSource, NULL);
 		glCompileShader(fragShader);
 
-		shaderProgram = glCreateProgram();
-		
 		glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
+		glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
+		std::vector<char>fragShaderError((logLength > 1) ? logLength : 1);
+		glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
+		std::cout << &fragShaderError[0] << std::endl;
 		
 		if(bufferln == GL_FALSE){
 			std::cout << "Error compiling shader" << std::endl;
 		}
-		
+
+		shaderProgram = glCreateProgram();		
 		glAttachShader(shaderProgram, fragShader);
 		glLinkProgram(shaderProgram);
 		glValidateProgram(shaderProgram);
+
+		glGetProgramiv(shaderProgram, GL_LINK_STATUS, &bufferln);
+	    glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
+	    std::vector<char> programError( (logLength > 1) ? logLength : 1 );
+	    glGetProgramInfoLog(shaderProgram, logLength, NULL, &programError[0]);
+	    std::cout << &programError[0] << std::endl;
 	#endif //SHADERS
 	
 	//glEnable(GL_DEPTH_TEST); //THIS DOESN'T WORK ON LINUX
@@ -572,6 +608,7 @@ void render(){
 	glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
 	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
 	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
+	glEnable(GL_STENCIL_TEST);
 	glPushMatrix();									//basically here we put a blank canvas (new matrix) on the screen to draw on
 	
 	/*
@@ -687,10 +724,22 @@ void render(){
 	*/
 
 	player->near=true;			// Draw the player's name
+
+	#ifdef SHADERS
+		glUseProgramObjectARB(shaderProgram);
+		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 0,100);
+		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 255,255,255);
+		//glBlendFunc(GL_ONE, GL_ONE);
+	#endif //SHADERS
 	
 	currentWorld->draw(player);
+
+	#ifdef SHADERS
+		glUseProgramObjectARB(0);
+	#endif //SHADERS
 	
 	player->inv->draw();
+
 
 	/*
 	 *	Draw UI elements. As of 10/20/2015 this includes the player's health bar and the dialog box.

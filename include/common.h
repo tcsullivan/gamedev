@@ -20,6 +20,8 @@
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
+#include <string>
+#include <fstream>
 
 /*
  *	Include file headers
@@ -30,7 +32,7 @@
  *	This flag lets the compiler know that we are using shaders
 */
 
- #define SHADERS
+ #define SHADERSere
 
 /*
  *	Create a basic 2-point structure for coordinate saving
