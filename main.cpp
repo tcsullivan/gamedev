@@ -199,10 +199,15 @@ vec2 offset;
  *	of milliseconds that have passed sine the epoch.
  * 
 */
+
+#ifdef __WIN32__
+#define millis()	SDL_GetTicks()
+#else
 unsigned int millis(void){
 	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
 	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }
+#endif
 
 typedef enum {
 	SUNNY = 0,
@@ -237,10 +242,10 @@ int main(int argc, char *argv[]){
 	// Run SDL_Quit when main returns
     atexit(SDL_Quit);
     
-    /*Untitled
+    /*
      *	(Attempt to) Initialize SDL_image libraries with IMG_INIT_PNG so that we can load PNG
      *	textures for the entities and stuff.
-     * Untitled
+     *
     */
     
     if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)){
@@ -313,7 +318,9 @@ int main(int argc, char *argv[]){
 	*/
 	
 	GLenum err;
+#ifndef __WIN32__
 	glewExperimental = GL_TRUE;
+#endif
 	if((err=glewInit()) != GLEW_OK){
 		std::cout << "GLEW was not able to initialize! Error: " << glewGetErrorString(err) << std::endl;
 		return -1;

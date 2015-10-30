@@ -14,6 +14,7 @@
  *	Include GLEW and the SDL 2 headers
 */
 
+#define GLEW_STATIC
 #include <GL/glew.h>
 
 #include <SDL2/SDL.h>
@@ -22,6 +23,11 @@
 #include <SDL2/SDL_mixer.h>
 #include <string>
 #include <fstream>
+
+#ifdef __WIN32__
+typedef unsigned int uint;
+#undef near
+#endif
 
 /*
  *	Include file headers
