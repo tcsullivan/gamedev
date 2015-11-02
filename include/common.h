@@ -32,7 +32,7 @@
  *	This flag lets the compiler know that we are using shaders
 */
 
- #define SHADERSere
+ #define SHADERS
 
 /*
  *	Create a basic 2-point structure for coordinate saving

@@ -210,7 +210,7 @@ typedef enum {
 	RAIN
 } WEATHER;
 
-#define DAY_CYCLE 10000
+#define DAY_CYCLE 3000
 
 static WEATHER weather = SUNNY;
 static vec2 star[100];
@@ -362,7 +362,7 @@ int main(int argc, char *argv[]){
 
 	 	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-		std::string shaderFileContents = readFile("test.frag");
+		std::string shaderFileContents = readFile("shader.frag");
 		const GLchar *shaderSource = shaderFileContents.c_str();
 
 		GLint bufferln = GL_FALSE;
@@ -724,15 +724,20 @@ void render(){
 	*/
 
 	player->near=true;			// Draw the player's name
+	
+	currentWorld->draw(player);
 
 	#ifdef SHADERS
 		glUseProgramObjectARB(shaderProgram);
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 0,100);
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 255,255,255);
+		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,100);
+		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
+		glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 100 + (1000-(shade*10)));
+		std::cout << 100 + (1000-(shade*10)) << std::endl;
 		//glBlendFunc(GL_ONE, GL_ONE);
 	#endif //SHADERS
-	
-	currentWorld->draw(player);
+
+	glColor4ub(0,0,0,200);
+	glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
 
 	#ifdef SHADERS
 		glUseProgramObjectARB(0);
