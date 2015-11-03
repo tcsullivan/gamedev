@@ -39,7 +39,7 @@ typedef unsigned int uint;
  *	This flag lets the compiler know that we are using shaders
 */
 
-#define SHADERS
+#define SHADERSf
 
 /*
  *	Create a basic 2-point structure for coordinate saving
@@ -49,6 +49,11 @@ typedef struct {
 	float x;
 	float y;
 } vec2;
+
+typedef struct {
+	vec2 start;
+	vec2 end;
+} Ray;
 
 /*
  *	Define the game's name (displayed in the window title),

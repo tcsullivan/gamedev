@@ -735,21 +735,93 @@ void render(){
 	currentWorld->draw(player);
 
 	#ifdef SHADERS
+
 		glUseProgramObjectARB(shaderProgram);
 		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,100);
 		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
 		glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 100 + (1000-(shade*10)));
 		std::cout << 100 + (1000-(shade*10)) << std::endl;
 		//glBlendFunc(GL_ONE, GL_ONE);
-	#endif //SHADERS
 
-	glColor4ub(0,0,0,200);
-	glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
+		glColor4ub(0,0,0,200);
+		glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
 
-	#ifdef SHADERS
 		glUseProgramObjectARB(0);
+
 	#endif //SHADERS
-	
+
+	#define pi 3.14
+	#define raysNOPE
+
+	#ifdef rays
+	//LIGHT
+	static vec2 light;
+	float lightStr = 100;
+	vec2 curCoord;
+	light.x = player->loc.x;
+	light.y = player->loc.y;
+	std::vector<Ray>ray(30);
+	unsigned int a = 0;
+	int angle = 0;
+	glColor3f(0.0f, 0.0f, 0.0f);
+	for(auto &r : ray){
+		r.start = light;
+		angle = 12*a;
+		for(int l = 0;l<lightStr;l+=36){
+			//switch
+			switch(angle){
+			case 0:
+				curCoord.x += HLINE;
+				curCoord.y += 0;
+				break;
+			case 180:
+				curCoord.x -= HLINE;
+				curCoord.y -= 0;
+				break;
+			case 360:
+				curCoord.x += HLINE;
+				curCoord.y += 0;
+				angle = 0;
+				break;
+			default:
+				if(angle > 0 && angle < 90){
+					curCoord.x = r.start.x + float(HLINE / cos(angle*pi/180));
+					curCoord.y = r.start.y + float(HLINE / sin(angle*pi/180));
+				}
+				if(angle > 90 && angle < 180){
+					curCoord.x = r.start.x - float(HLINE / cos((90-angle)*pi/180));
+					curCoord.y = r.start.y + float(HLINE / sin((90-angle)*pi/180));
+				}
+				if(angle > 180 && angle < 270){
+					curCoord.x = r.start.x - float(HLINE / cos((270-angle)*pi/180));
+					curCoord.y = r.start.y - float(HLINE / sin((270-angle)*pi/180));
+				}
+				if(angle > 270 && angle < 360){
+					curCoord.x = r.start.x + float(HLINE / cos((360-angle)*pi/180));
+					curCoord.y = r.start.y - float(HLINE / sin((360-angle)*pi/180));
+				}
+			}//end swtich
+			/*for(auto &en : entity){
+				if(curCoord.x > en->loc.x && curCoord.x < en->loc.x + en->width){
+					if(curCoord.y > en->loc.y && curCoord .y < en->loc.y + en->height){
+						r.end = curCoord;
+					}
+				}
+			}*/
+
+		}//end length
+		r.end = curCoord;
+		glBegin(GL_LINES);
+			glVertex2f(r.start.x,r.start.y);
+			glVertex2f(r.end.x, r.end.y);
+		glEnd();
+		//std::cout << angle << "\n";
+		a++;
+	}
+	#endif //rays
+
+
+	//LIGHT
 	player->inv->draw();
 
 
