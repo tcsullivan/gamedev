@@ -11,6 +11,7 @@ typedef struct {
 /*
  *	World - creates and handles an area of land
 */
+
 class World {
 protected:
 	
@@ -35,8 +36,6 @@ protected:
 	/*
 	 *	Keeps a dynamically allocated array of platforms in the world.
 	*/
-	
-	std::vector<Platform> platform;
 	
 	/*
 	 *	Contains the starting x-coordinate to draw the world at. This should be equal to
@@ -125,7 +124,6 @@ public:
 	 *	These functions add features to the world.
 	*/
 	
-	void addPlatform(float x,float y,float w,float h);
 	void addHole(unsigned int start,unsigned int end);
 	
 	/*

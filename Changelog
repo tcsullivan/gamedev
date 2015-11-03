@@ -215,3 +215,10 @@
 	  objects except for entities
 	- added stars at night
 	- successfully enabled and loaded GLSL shaders
+
+11/2/2015:
+==========
+
+	- improved shaders (can now see drawn objects)
+	- re-organized Goals.txt
+	- began working on game concept/design/plot/everything (in google doc)

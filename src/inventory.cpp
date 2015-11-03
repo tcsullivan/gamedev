@@ -92,6 +92,7 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 void Inventory::draw(void){
 	unsigned int i=0;
 	float y=SCREEN_HEIGHT/2,xoff;
+	ui::setFontSize(12);
 	ui::putText(offset.x-SCREEN_WIDTH/2,y,"Inventory:");
 	while(item[i].count){
 		y-=HLINE*12;

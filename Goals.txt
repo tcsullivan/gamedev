@@ -3,9 +3,72 @@ Goals:
 End of October:
 ===============
 
-	- have textures for the world and entities (png's and stuff)				check!
-	- have basic quest handling/player can interact with NPCs to take quests	check!
-	- have basic mobs/animals													check?
+	- have textures for the world and entities (png's and stuff)
+	- have basic quest handling/player can interact with NPCs to take quests
+	- have basic mobs/animals
+	
+Summary:
+	NPCs and a village were created, and a basic quest handling structure was design so that
+the player could accept and complete quests from NPCs. Next we developed textures for the player,
+NPCs, house and background, using PNG loading from SDL_image. After that, Andy began to work on
+more textures for the game as well as animations for the player while Clyne worked on a player
+inventory and rewarding items from quest completions. While these were (are) still in development
+Andy added a basic template for mobs.
+
+End of November:
+================
+
+	- design the game
+	- work on GLSL shaders to replace the current 'fake' ones
+	- redesign what currently exists to match what is desired
+
+End of December:
+================
+
+	- create first 'chapters' of story
+	- create very first areas in the game (code it) to get an
+	  idea of what's gonna go down
+	  
+January - March:
+===============
+
+	- design more story line...
+	- implement story line
+
+February - End of March:
+========================
+
+	- design sound effects / background music?
+	
+March-ish:
+======
+
+	- allow friends to beta-test game
+	- modify game according to feedback
+	
+April:
+====
+
+	- remove any remaining bugs in game
+	- get more testing done...
+	- look into methods of releasing the game (steam)
+	
+May:
+====
+
+	- release game
+	
+June:
+=====
+
+	- profit????
+
+
+********************************************************************************************************
+********************************************************************************************************
+Goals.txt before redesign:
+********************************************************************************************************
+********************************************************************************************************
 
 End of November:
 ================

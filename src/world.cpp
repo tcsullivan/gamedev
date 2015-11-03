@@ -7,6 +7,10 @@
 						// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
 						// and detect().
 
+#define GEN_MIN  40
+#define GEN_MAX  70
+#define GEN_INIT 60
+
 #define GRASS_HEIGHT 4	// Defines how long the grass layer of a line should be in multiples of HLINE.
 
 
@@ -57,7 +61,7 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	 *	Set an initial y to base generation off of, as generation references previous lines.
 	*/
 	
-	line[0].y=80;
+	line[0].y=GEN_INIT;
 	
 	/*
 	 *	Populate every GEN_INCth line structure. The remaining lines will be based off of these.
@@ -69,9 +73,9 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 		 *	Generate a y value, ensuring it stays within a reasonable range.
 		*/
 		
-		line[i].y=rand() % 8 - 4 + line[i-GEN_INC].y;	// Add +/- 4 to the previous line
-			 if(line[i].y < 40)line[i].y =  40;			// Minimum bound
-		else if(line[i].y > 70)line[i].y =  70;			// Maximum bound
+		line[i].y=rand() % 8 - 4 + line[i-GEN_INC].y;		// Add +/- 4 to the previous line
+			 if(line[i].y < GEN_MIN)line[i].y =  GEN_MIN;	// Minimum bound
+		else if(line[i].y > GEN_MAX)line[i].y =  GEN_MAX;	// Maximum bound
 		
 	}
 	
@@ -88,7 +92,7 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 		 * 
 		*/
 		
-		if(!i||!(i%GEN_INC)){
+		if(!(i%GEN_INC)){
 			
 			inc=(line[i + GEN_INC].y - line[i].y) / (float)GEN_INC;
 			
@@ -124,7 +128,7 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	 *	Calculate the x coordinate to start drawing this world from so that it is centered at (0,0).
 	*/
 	
-	x_start=0 - getWidth(this) / 2 + GEN_INC / 2 * HLINE;
+	x_start=0 - getWidth(this) / 2;
 	
 	/*
 	 *	Nullify pointers to other worlds.
@@ -257,60 +261,6 @@ LOOP2:
 	glEnd();
 	
 	/*
-	 *	If we're drawing the closest/last world, handle and draw the player and entities in
-	 *	the world.
-	*/
-	
-	if(current==this){
-		
-		/*
-		 *	Calculate the line that the player is on
-		*/
-		
-		int ph = (p->loc.x + p->width / 2 - x_start) / HLINE;
-		
-		/*
-		 *	If the player is on the ground, flatten the grass where the player is standing
-		 *	by setting line.gs to false.
-		*/
-		
-		if(p->ground==1){
-			for(i=0;i<lineCount-GEN_INC;i++){
-				if(i < ph + 6 && 
-				   i > ph - 6 )
-					cline[i].gs=false;
-				else cline[i].gs=true;
-			}
-		}else{
-			for(i=0;i<lineCount-GEN_INC;i++){
-				cline[i].gs=true;
-			}
-		}
-		
-		/*
-		 *	Draw the player.
-		*/
-		
-		p->draw();
-		
-		/*
-		 *	Draw non-structure entities.
-		*/
-		
-		for(i=0;i<entity.size();i++){
-			if(entity[i]->inWorld==this && entity[i]->type != STRUCTURET)
-				entity[i]->draw();
-		}
-		
-	}else{
-		
-		/*for(i=0;i<lineCount-GEN_INC;i++){
-			cline[i].gs=true;
-		}*/
-	
-	}
-	
-	/*
 	 *	Draw grass on every line.
 	*/
 	
@@ -359,21 +309,58 @@ LOOP2:
 	glEnd();
 	
 	/*
+	 *	If we're drawing the closest/last world, handle and draw the player and entities in
+	 *	the world.
+	*/
+	
+	if(current==this){
+		
+		/*
+		 *	Calculate the line that the player is on
+		*/
+		
+		int ph = (p->loc.x + p->width / 2 - x_start) / HLINE;
+		
+		/*
+		 *	If the player is on the ground, flatten the grass where the player is standing
+		 *	by setting line.gs to false.
+		*/
+		
+		if(p->ground==1){
+			for(i=0;i<lineCount-GEN_INC;i++){
+				if(i < ph + 6 && 
+				   i > ph - 6 )
+					cline[i].gs=false;
+				else cline[i].gs=true;
+			}
+		}else{
+			for(i=0;i<lineCount-GEN_INC;i++){
+				cline[i].gs=true;
+			}
+		}
+		
+		/*
+		 *	Draw the player.
+		*/
+		
+		p->draw();
+		
+		/*
+		 *	Draw non-structure entities.
+		*/
+		
+		for(i=0;i<entity.size();i++){
+			if(entity[i]->inWorld==this && entity[i]->type != STRUCTURET)
+				entity[i]->draw();
+		}
+		
+	}
+	
+	/*
 	 *	Restore the inverted shading if it was inverted above.
 	*/
 	
 	shade*=-1;
-	
-	/*
-	 *	Draw platforms...
-	*/
-	
-	safeSetColor(255+shade*2,0+shade,0+shade);
-	
-	for(i=0;i<current->platform.size();i++){
-		glRectf(current->platform[i].p1.x, current->platform[i].p1.y + yoff - DRAW_Y_OFFSET,
-				current->platform[i].p2.x, current->platform[i].p2.y + yoff - DRAW_Y_OFFSET);
-	}
 	
 	/*
 	 *	Draw the next closest world if it exists.
@@ -439,37 +426,7 @@ void World::singleDetect(Entity *e){
 		 *	Otherwise, if the entity is above the line... 
 		*/
 		
-		}else if(e->loc.y > line[i].y - .002 * deltaTime){
-		  
-			/*
-			 *	Check for any potential platform collision (i.e. landing on a platform) 
-			*/
-		  
-			for(i=0;i<platform.size();i++){
-			  
-				if(((e->loc.x + e->width > platform[i].p1.x) & (e->loc.x + e->width < platform[i].p2.x)) ||	// Check X left bounds
-				   ((e->loc.x < platform[i].p2.x) & (e->loc.x>platform[i].p1.x))){							// Check X right bounds
-					if(e->loc.y > platform[i].p1.y && e->loc.y < platform[i].p2.y){							// Check Y bounds
-					  
-						/*
-						 *	Check if the entity is falling onto the platform so
-						 *	that it doesn't snap to it when attempting to jump
-						 *	through it.
-						 * 
-						*/
-					  
-						if(e->vel.y<=0){
-						  
-							e->ground=2;
-						  
-							e->vel.y=0;
-							e->loc.y=platform[i].p2.y;
-							
-							//return;	// May not be necessary
-						}
-					}
-				}
-			}
+		}else{
 			
 			/*
 			 *	Handle gravity.
@@ -564,10 +521,6 @@ World *World::goWorldFront(Player *p){
 		return infront;
 	}
 	return this;
-}
-
-void World::addPlatform(float x,float y,float w,float h){
-	platform.push_back((Platform){{x,y},{x+w,y+h}});
 }
 
 World *World::goInsideStructure(Player *p){

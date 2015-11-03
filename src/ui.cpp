@@ -136,7 +136,7 @@ namespace ui {
 				pw=putChar(xo,yo,s[i])+fontSize*.1;
 				xo+=pw;
 			}
-		}while(s[i++]);
+		}while(s[++i]);
 		return xo;
 	}
 	float putText(const float x,const float y,const char *str,...){	// putText() simply runs 'str' and the extra arguments though
@@ -174,10 +174,10 @@ namespace ui {
 			x=player->loc.x-SCREEN_WIDTH/2+HLINE*8;
 			y=SCREEN_HEIGHT-HLINE*8;
 			glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
-			setFontSize(16);
+			setFontSize(12);
 			putString(x+HLINE,y-fontSize-HLINE,dialogBoxText);
 		}
-		setFontSize(16);
+		setFontSize(12);
 		putText(((SCREEN_WIDTH/2)+offset.x)-125,SCREEN_HEIGHT-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
 																							(unsigned)player->maxHealth);
 		if(player->alive){

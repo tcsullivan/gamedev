@@ -37,8 +37,6 @@ void initEverything(void){
 	World *test=new World();
 	test->generate(SCREEN_WIDTH * 2);
 	test->addLayer(400);
-	
-	test->addPlatform(150,100,100,10);
 
 	test->addHole(100,150);
 	

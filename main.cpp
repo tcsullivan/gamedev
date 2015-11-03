@@ -732,17 +732,9 @@ void render(){
 
 	player->near=true;			// Draw the player's name
 
-	#ifdef SHADERS
-		glUseProgramObjectARB(shaderProgram);
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 0,100);
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 255,255,255);
-		//glBlendFunc(GL_ONE, GL_ONE);
-	#endif //SHADERS
-	
 	currentWorld->draw(player);
 
 	#ifdef SHADERS
-<<<<<<< Updated upstream
 		glUseProgramObjectARB(shaderProgram);
 		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,100);
 		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
@@ -755,8 +747,6 @@ void render(){
 	glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
 
 	#ifdef SHADERS
-=======
->>>>>>> Stashed changes
 		glUseProgramObjectARB(0);
 	#endif //SHADERS
 	
@@ -764,7 +754,7 @@ void render(){
 
 
 	/*
-	 *	Draw UI elements. As of 10/20/2015 this includes the player's health bar and the dialog box.
+	 *	Draw UI elements. This includes the player's health bar and the dialog box.
 	*/
 	
 	ui::draw();

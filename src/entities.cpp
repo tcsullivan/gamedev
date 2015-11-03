@@ -176,7 +176,7 @@ void Entity::draw(void){		//draws the entities
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 	if(near){
-		ui::setFontSize(14);
+		ui::setFontSize(10);
 		ui::putText(loc.x,loc.y-ui::fontSize-HLINE/2,"%s",name);
 	}
 }
