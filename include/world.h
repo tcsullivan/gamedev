@@ -82,6 +82,7 @@ public:
 	*/
 	
 	virtual void generate(unsigned int width);
+	void generateFunc(unsigned int width,unsigned int (*func)(unsigned int));
 	
 	/*
 	 *	Looks for the furthest back layer in this world and adds a new layer of width `width` behind it.

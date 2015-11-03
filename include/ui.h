@@ -2,39 +2,87 @@
 #define UI_H
 
 #include <common.h>
-#include <cstdarg> // For putText()
+#include <cstdarg>
 
-#include <world.h> // World-switching stuff
-#include <ft2build.h> // FreeType stuff
+#include <world.h>
+#include <ft2build.h>
 #include FT_FREETYPE_H
 
 #define DEBUG
 
-namespace ui {	// Functions are kept in a namespace simply
-				// for organization
+namespace ui {
+
+	/*
+	 *	Contains the coordinates of the mouse in the window.
+	*/
 
 	extern vec2 mouse;
 
+	/*
+	 *	These flags are used elsewhere.
+	*/
+
 	extern bool debug;
 	extern bool posFlag;
-	extern bool dialogBoxExists;
 	extern unsigned int fontSize;
 
-	void initFonts(void);	// Checks for and initializes the FreeType 2 library
+	/*
+	 *	Initializes the FreeType system.
+	*/
+
+	void initFonts(void);
 	
-	void setFontFace(const char *ttf);		// Checks and unpacks the TTF file for use by putString() and putText()
-	void setFontSize(unsigned int size);	// Sets the size of the currently loaded font to 'size' pixels
+	/*
+	 *	Sets the current font/font size.
+	*/
 	
-	float putString(const float x,const float y,const char *s);		// Draws the string 's' to the coordinates ('x','y'). The height (and therefore the width)
-																	// are determined by what's currently set by setFontSize()
-	float putText(const float x,const float y,const char *str,...);	// Draws the formatted string 'str' using putString()
+	void setFontFace(const char *ttf);
+	void setFontSize(unsigned int size);
 	
-	void dialogBox(const char *name,const char *text,...);			// Prepares a dialog box to be drawn (its drawn as a black background at the top of the
-																	// screen and then 'text' is putString()'d
+	/*
+	 *	Draws a string of text at the given coordinates.
+	*/
 	
-	void draw(void);												// Draws things like dialogBox's if necessary
+	float putString(const float x,const float y,const char *s);
 	
-	void handleEvents(void);	// Handles keyboard and mouse events
+	/*
+	 *	Draws a formatted string at the given coordinates.
+	*/
+	
+	float putText(const float x,const float y,const char *str,...);
+	
+	/*
+	 *	Creates a dialogBox text string (format: `name`: `text`). This function simply sets up
+	 *	variables that are drawn in ui::draw(). When the dialog box exists player control is
+	 *	limited until a right click is given, closing the box.
+	*/
+	
+	void dialogBox(const char *name,const char *text,...);
+	
+	/*
+	 *	Draws a larger string in the center of the screen. Drawing is done inside this function.
+	*/
+	
+	void importantText(const char *text,...);
+	
+	/*
+	 *	Draw various UI elements (dialogBox, player health)
+	*/
+	
+	void draw(void);
+	
+	/*
+	 *	Handle keyboard/mouse events.
+	*/
+	
+	void handleEvents(void);
+	
+	/*
+	 *	Toggle the black overlay thing.
+	*/
+	
+	void toggleBlack(void);
+	
 }
 
 #endif // UI_H

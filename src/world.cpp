@@ -33,6 +33,14 @@ float worldGetYBase(World *w){
 }
 
 World::World(void){
+	/*
+	 *	Nullify pointers to other worlds.
+	*/
+	
+	behind	=
+	infront	=
+	toLeft	=
+	toRight	= NULL;
 }
 
 void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
@@ -129,15 +137,21 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	*/
 	
 	x_start=0 - getWidth(this) / 2;
-	
-	/*
-	 *	Nullify pointers to other worlds.
-	*/
-	
-	behind	=
-	infront	=
-	toLeft	=
-	toRight	= NULL;
+}
+
+void World::generateFunc(unsigned int width,unsigned int (*func)(unsigned int)){
+	unsigned int i;
+	if((lineCount = width) <= 0)
+		abort();
+	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));
+	for(i=0;i<lineCount;i++){
+		line[i].y=func(i);
+		line[i].color=rand() % 20 + 100;
+		line[i].gh[0]=(getRand() % 16) / 3.5 + 2;
+		line[i].gh[1]=(getRand() % 16) / 3.5 + 2;
+		line[i].gs=true;
+	}
+	x_start=0 - getWidth(this) / 2;
 }
 
 World::~World(void){

@@ -16,6 +16,8 @@ static GLuint       ftex;
 
 static char *dialogBoxText;
 
+bool fadeEnable = false;
+
 namespace ui {
 	vec2 mouse;
 	bool debug=false;
@@ -139,6 +141,23 @@ namespace ui {
 		}while(s[++i]);
 		return xo;
 	}
+	char *typeOut(char *str){
+		static unsigned int sinc,linc,size;
+		static char *ret = NULL;
+		unsigned int i;
+		if(!ret || size != strlen(str)){
+			size=strlen(str);
+			ret=(char *)calloc(size,sizeof(char));
+			linc=0;
+			sinc=2;
+		}
+		if(++sinc==3){
+			sinc=0;
+			strncpy(ret+linc,str+linc,1);
+			if(linc<size)linc++;
+		}
+		return ret;
+	}
 	float putText(const float x,const float y,const char *str,...){	// putText() simply runs 'str' and the extra arguments though
 		va_list args;												// vsnprintf(), which'll store the complete string to a buffer
 		char *buf;													// that's then passed to putString()
@@ -167,6 +186,21 @@ namespace ui {
 		vsnprintf(dialogBoxText+name_len+2,512-name_len-2,text,dialogArgs);
 		va_end(dialogArgs);
 	}
+	void importantText(const char *text,...){
+		va_list textArgs;
+		char *ttext;
+		va_start(textArgs,text);
+		ttext=(char *)calloc(512,sizeof(char));
+		vsnprintf(ttext,512,text,textArgs);
+		va_end(textArgs);
+		setFontSize(24);
+		char *rtext;
+		rtext=typeOut(ttext);
+		putString(player->loc.x+player->width/2-SCREEN_WIDTH/2,
+				  SCREEN_HEIGHT/2+fontSize,
+				  rtext);
+		free(ttext);
+	}
 	void draw(void){
 		float x,y;
 		if(dialogBoxExists){
@@ -174,10 +208,12 @@ namespace ui {
 			x=player->loc.x-SCREEN_WIDTH/2+HLINE*8;
 			y=SCREEN_HEIGHT-HLINE*8;
 			glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
-			setFontSize(12);
-			putString(x+HLINE,y-fontSize-HLINE,dialogBoxText);
+			char *rtext;
+			rtext=typeOut(dialogBoxText);
+			setFontSize(16);
+			putString(x+HLINE,y-fontSize-HLINE,rtext);
 		}
-		setFontSize(12);
+		setFontSize(14);
 		putText(((SCREEN_WIDTH/2)+offset.x)-125,SCREEN_HEIGHT-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
 																							(unsigned)player->maxHealth);
 		if(player->alive){
@@ -269,8 +305,9 @@ namespace ui {
 					player->inv->useItem();
 				}
 				if(SDL_KEY==SDLK_c){
-					dialogBox("","You pressed `c`, but nothing happened.");
+					dialogBox("","You pressed `c`, but nothing happened?");
 				}
+				if(SDL_KEY==SDLK_p)toggleBlack();
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = debug?4:3;							// Sprint
 				if(SDL_KEY==SDLK_LCTRL)player->speed = .5;
 			}
@@ -303,5 +340,9 @@ namespace ui {
 				AIpreload.erase(AIpreload.begin());
 			}
 		}
+	}
+	
+	void toggleBlack(void){
+		fadeEnable ^= true;
 	}
 }

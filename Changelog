@@ -222,3 +222,12 @@
 	- improved shaders (can now see drawn objects)
 	- re-organized Goals.txt
 	- began working on game concept/design/plot/everything (in google doc)
+
+11/3/2015:
+==========
+
+	- added world gen based off of functions
+	- added cutting to black
+	- added typewriter-esque text drawing
+	- documented ui.h
+	- continued work on GLSL shaders

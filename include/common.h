@@ -58,7 +58,7 @@ typedef struct {
 
 #define GAME_NAME		"Independent Study v.0.3 alpha"
 
-#define SCREEN_WIDTH	1280
+#define SCREEN_WIDTH	1200
 #define SCREEN_HEIGHT	720
 
 //#define FULLSCREEN

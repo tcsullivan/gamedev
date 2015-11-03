@@ -8,21 +8,21 @@
 
 /*
  *	TICKS_PER_SEC & MSEC_PER_TICK
- * 
+ *
  *	The game's main loop mainly takes care of two things: drawing to the
  *	screen and handling game logic, from user input to world gravity stuff.
  *	The call for rendering is made every time the main loop loops, and then
  *	uses interpolation for smooth drawing to the screen. However, the call
  *	for logic would be preferred to be run every set amount of time.
- *  
-
+ *
+ *
  *	The logic loop is currently implemented to run at a certain interval
  *	that we call a 'tick'. As one may now guess, TICKS_PER_SEC defines the
  *	amount of ticks that should be made every second. MSEC_PER_TICK then
  *	does a simple calculation of how many milliseconds elapse per each
  * 	'tick'. Simple math is then done in the main loop using MSEC_PER_TICK
  *	to call the logic handler when necessary.
- * 
+ *
 */
 
 #define TICKS_PER_SEC 20
@@ -30,13 +30,13 @@
 
 /*
  *	window & mainGLContext
- * 
+ *
  *	In order to draw using SDL and its openGL facilities SDL requires
  *	an SDL_Window object, which spawns a window for the program to draw
  *	to. Once the SDL_Window is initialized, an SDL_GLContext is made so
  *	that openGL calls can be made to SDL. The game requires both of these
  *	variables to initialize.
- * 
+ *
 */
 
 SDL_Window    *window = NULL;
@@ -47,20 +47,20 @@ SDL_GLContext  mainGLContext = NULL;
  *	background image. Currently there is only one background image for the
  *	main world; this will be changed and bgImage likely removed once better
  *	backgrounds are implemented.
- * 
+ *
 */
 
 static GLuint  bgDay, bgNight, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar;
 
 /*
  *	gameRunning
- * 
+ *
  *	This is one of the most important variables in the program. The main
  *	loop of the game is set to break once this variable is set to false.
  *	The only call to modify this variable is made in src/ui.cpp, where it
  *	is set to false if either an SDL_QUIT message is received (the user
  *	closes the window through their window manager) or if escape is pressed.
- * 
+ *
 */
 
 bool gameRunning;
@@ -71,20 +71,20 @@ bool gameRunning;
  * 						variable. This should only be changed when layer switch
  * 						buttons are pressed (see src/ui.cpp), or when the player
  * 						enters a Structure/Indoor World (see src/ui.cpp again).
- * 
+ *
  *	player			-	This points to a Player object, containing everything for
  * 						the player. Most calls made with currentWorld require a
  * 						Player object as an argument, and glOrtho is set based
  * 						off of the player's coordinates. This is probably the one
  * 						Entity-derived object that is not pointed to in the entity
  * 						array.
- * 
+ *
  *	entity			 -	Contains pointers to 'all' entities that have been created in
  * 						the game, including NPCs, Structures, and Mobs. World draws
  * 						and entity handling done by the world cycle through entities
  * 						using this array. Entities made that aren't added to this
  * 						array probably won't be noticable by the game.
- * 
+ *
 */
 
 World  							*currentWorld=NULL;
@@ -94,9 +94,9 @@ extern std::vector<Entity *	>	 entity;
 /*
  *	tickCount contains the number of ticks generated since main loop entrance.
  *	This variable might be used anywhere.
- * 
+ *
  *	deltaTime is used for interpolation stuff.
- * 
+ *
  *	Pretty sure these variables are considered static as they might be externally
  *	referenced somewhere.
 */
@@ -107,13 +107,13 @@ unsigned int deltaTime = 0;
 /*
  *
 */
+
 GLuint fragShader;
 GLuint shaderProgram;
 
 /*
  *	names is used to open a file containing all possible NPC names. It is externally
  *	referenced in src/entities.cpp for getting random names.
- *
 */
 
 FILE *names;
@@ -121,7 +121,6 @@ FILE *names;
 /*
  *	These variables are used by SDL_mixer to create sound.
  *	horn is not currently used, although it may be set.
- * 
 */
 
 Mix_Music *music;
@@ -130,35 +129,34 @@ Mix_Chunk *horn;
 /*
  *	loops is used for texture animation. It is believed to be passed to entity
  *	draw functions, although it may be externally referenced instead.
- * 
 */
 
 unsigned int loops = 0;	// Used for texture animation
 
 /*
  *	initEverything
- * 
+ *
  *	Before the main loop, things like the player, entities, and worlds should
  *	be created. This game has not reached the point that these can be scripted
  *	or programmed, so this function substitues for that. It is defined in
  *	src/gameplay.cpp.
- * 
+ *
 */
 
 extern void initEverything(void);
 
 /*
  *	mainLoop is in fact the main loop, which runs 'infinitely' (as long as gameRunning
-
-
-
+ *
+ *
+ *
  *	is set). Each loop updates timing values (tickCount and deltaTime), runs logic()
  *	if MSEC_PER_TICK milliseconds have passed, and then runs render().
- * 
+ *
  *	logic handles all user input and entity/world physics.
- * 
+ *
  *	render handles all drawing to the window, calling draw functions for everything.
- * 
+ *
 */
 
 void logic(void);
@@ -184,7 +182,7 @@ std::string readFile(const char *filePath) {
     return content;
 }
 
-/* 
+/*
  *	This offset is used as the player offset in the world drawing so
  *	everything can be moved according to the player
 */
@@ -192,12 +190,12 @@ vec2 offset;
 
 /*
  *	millis
- * 
+ *
  *	We've encountered many problems when attempting to create delays for triggering
  *	the logic function. As a result, we decided on using the timing libraries given
  *	by <chrono> in the standard C++ library. This function simply returns the amount
  *	of milliseconds that have passed sine the epoch.
- * 
+ *
 */
 
 #ifdef __WIN32__
@@ -224,62 +222,60 @@ static vec2 star[100];
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
- 
+
 int main(int argc, char *argv[]){
 	gameRunning=false;
-	
+
 	/*
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
 	 *	make openGL calls. Exit if there was an error.
-	 * 
 	*/
-	
+
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
 		return -1;
 	}
-	
+
 	// Run SDL_Quit when main returns
-    atexit(SDL_Quit);
-    
-    /*
-     *	(Attempt to) Initialize SDL_image libraries with IMG_INIT_PNG so that we can load PNG
-     *	textures for the entities and stuff.
-     *
-    */
-    
-    if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)){
+	atexit(SDL_Quit);
+
+	/*
+	 *	(Attempt to) Initialize SDL_image libraries with IMG_INIT_PNG so that we can load PNG
+	 *	textures for the entities and stuff.
+	*/
+
+	if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)){
 		std::cout << "Could not init image libraries! Error: " << IMG_GetError() << std::endl;
 		return -1;
 	}
-	
+
 	// Run IMG_Quit when main returns
 	atexit(IMG_Quit);
-	
+
 	/*
 	 *	(Attempt to) Initialize SDL_mixer libraries for loading and playing music/sound files.
-	 * 
+	 *
 	*/
-	
+
 	if(Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
 		std::cout << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
 	}
-	
+
 	// Run Mix_Quit when main returns
 	atexit(Mix_Quit);
-    
-    /*
-     *	Create a window for SDL to draw to. Most parameters are the default, except for the
-     *	following which are defined in include/common.h:
-     * 
-     *	GAME_NAME		the name of the game that is displayed in the window title bar
-     *	SCREEN_WIDTH	the width of the created window
-     *	SCREEN_HEIGHT	the height of the created window
-     *	FULLSCREEN		makes the window fullscreen
-     * 
-    */
-    
-    window = SDL_CreateWindow(GAME_NAME,
+
+	/*
+	 *	Create a window for SDL to draw to. Most parameters are the default, except for the
+	 *	following which are defined in include/common.h:
+	 *
+	 *	GAME_NAME		the name of the game that is displayed in the window title bar
+	 *	SCREEN_WIDTH	the width of the created window
+	 *	SCREEN_HEIGHT	the height of the created window
+	 *	FULLSCREEN		makes the window fullscreen
+	 *
+	*/
+
+	window = SDL_CreateWindow(GAME_NAME,
 							  SDL_WINDOWPOS_UNDEFINED,	// Spawn the window at random (undefined) x and y coordinates
 							  SDL_WINDOWPOS_UNDEFINED,	//
 							  SCREEN_WIDTH,
@@ -288,35 +284,35 @@ int main(int argc, char *argv[]){
 #ifdef FULLSCREEN
 							  | SDL_WINDOW_FULLSCREEN
 #endif // FULLSCREEN
-                              );
-    
+				  );
+
     /*
      *	Exit if the window cannot be created
     */
-    
+
     if(window==NULL){
 		std::cout << "The window failed to generate! SDL_Error: " << SDL_GetError() << std::endl;
         return -1;
     }
-    
+
     /*
      *	Create the SDL OpenGL context. Once created, we are allowed to use OpenGL functions.
      *	Saving this context to mainGLContext does not appear to be necessary as mainGLContext
      *	is never referenced again.
-     * 
+     *
     */
-    
+
     if((mainGLContext = SDL_GL_CreateContext(window)) == NULL){
 		std::cout << "The OpenGL context failed to initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return -1;
     }
-	
+
 	/*
 	 *	Initialize GLEW libraries, and exit if there was an error.
 	 *	Not sure what they're for yet.
-	 * 
+	 *
 	*/
-	
+
 	GLenum err;
 #ifndef __WIN32__
 	glewExperimental = GL_TRUE;
@@ -364,6 +360,7 @@ int main(int argc, char *argv[]){
 	/*
 	 *	Initializes our shaders so that the game has shadows.
 	*/
+	
 	#ifdef SHADERS
 		std::cout << "Initializing shaders!" << std::endl;
 
@@ -448,6 +445,10 @@ int main(int argc, char *argv[]){
 	*/
 	
 	initInventorySprites();
+	
+	/*
+	 *	Generate coordinates for stars that are drawn at night.
+	*/
 	
 	unsigned int i;
 	for(i=0;i<100;i++){
@@ -557,7 +558,29 @@ void mainLoop(void){
 	render();	// Call the render loop
 }
 
+extern bool fadeEnable;
+static unsigned char fadeIntensity = 0;
+
 void render(){
+	
+	 /*
+	  *	This offset variable is what we use to move the camera and locked
+	  *	objects on the screen so they always appear to be in the same relative area
+	 */
+	
+	offset = player->loc;
+	offset.x += player->width/2;
+
+	/*
+	 *	If the camera will go off of the left  or right of the screen we want to lock it so we can't
+	 *  see past the world render
+	*/
+	
+	if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
+		offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
+	if(player->loc.x + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
+		offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2) + player->width / 2;
+
 	/*
 	 *	These functions run everyloop to update the current stacks presets
 	 *
@@ -594,29 +617,16 @@ void render(){
 	 *	glLoadIdentity	This scales the current matrix back to the origin so the
 	 *					translations are seen normally on a stack.
 	*/
-
-	 /*
-	  *	This offset variable is what we use to move the camera and locked
-	  *	objects on the screen so they always appear to be in the same relative area
-	 */
-	offset = player->loc;
-	offset.x += player->width/2;
-
-	/*
-	 *	If the camera will go off of the left  or right of the screen we want to lock it so we can't
-	 *  see past the world render
-	*/
-	if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth()*-0.5f)offset.x = ((currentWorld->getTheWidth()*-0.5f) + SCREEN_WIDTH/2) + player->width/2;
-	if(player->loc.x + SCREEN_WIDTH/2 > currentWorld->getTheWidth()*0.5f)offset.x = ((currentWorld->getTheWidth()*0.5f) - SCREEN_WIDTH/2) + player->width/2;
-	glMatrixMode(GL_PROJECTION); 					//set the matrix mode as projection so we can set the ortho size and the camera settings later on
-	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
-	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_PROJECTION mode
+	
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
 	glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),0,SCREEN_HEIGHT,-1,1);
-	glMatrixMode(GL_MODELVIEW); 					//set the matrix to modelview so we can draw objects
-	glPushMatrix(); 								//push the  matrix to the top of the matrix stack
-	glLoadIdentity(); 								//replace the entire matrix stack with the updated GL_MODELVIEW mode
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
 	glEnable(GL_STENCIL_TEST);
-	glPushMatrix();									//basically here we put a blank canvas (new matrix) on the screen to draw on
+	glPushMatrix();
 	
 	/*
 	 * glPushAttrib		This passes attributes to the renderer so it knows what it can
@@ -660,26 +670,41 @@ void render(){
 
 	glDisable(GL_TEXTURE_2D);
 
+	/*
+	 *	Draws stars if it is an appropriate time of day for them.
+	*/
+
 	if(((weather==DARK )&(tickCount%DAY_CYCLE)<DAY_CYCLE/2)   ||
 	   ((weather==SUNNY)&(tickCount%DAY_CYCLE)>DAY_CYCLE*.75) ){
-		if(tickCount%DAY_CYCLE){	
+		   
+		if(tickCount%DAY_CYCLE){	// The above if statement doesn't check for exact midnight.
+				
 			glColor4ub(255,255,255,255);
 			for(unsigned int i=0;i<100;i++){
 				glRectf(star[i].x+offset.x*.9,star[i].y,star[i].x+offset.x*.9+HLINE,star[i].y+HLINE);
 			}
+			
 		}
 	}
+
+	/*
+	 *	Calculate the Y to start drawing the background at, and a value for how shaded the
+	 *	background elements should be. 
+	*/
 
 	int base = 40 - (int)worldGetYBase(currentWorld);
 	int shade = worldShade*2;
 
 	glEnable(GL_TEXTURE_2D);
 
+	/*
+	 *	Draw the mountains.
+	*/
+
 	glBindTexture(GL_TEXTURE_2D, bgMtn);
 	glBegin(GL_QUADS);
 	safeSetColorA(150-shade,150-shade,150-shade,220);
-	//glColor4ub(150,150,150,220);
-		for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
+	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
 		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.85,base);
 		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.85,base);
 		glTexCoord2i(1,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.85,base+1080);
@@ -687,11 +712,13 @@ void render(){
 	}
 	glEnd();
 
+	/*
+	 *	Draw three layers of trees.
+	*/
 
 	glBindTexture(GL_TEXTURE_2D, bgTreesFar);
 	glBegin(GL_QUADS);
 	safeSetColorA(100-shade,100-shade,100-shade,240);
-	//glColor4ub(100,100,100,240);
 	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
 		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.6,base);
 		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.6,base);
@@ -703,7 +730,6 @@ void render(){
 	glBindTexture(GL_TEXTURE_2D, bgTreesMid);
 	glBegin(GL_QUADS);
 	safeSetColorA(150-shade,150-shade,150-shade,250);
-	//glColor4ub(150,150,150,250);
 	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
 		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.4,base);
 		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.4,base);
@@ -715,7 +741,6 @@ void render(){
 	glBindTexture(GL_TEXTURE_2D, bgTreesFront);
 	glBegin(GL_QUADS);
 	safeSetColorA(255-shade,255-shade,255-shade,255);
-	//glColor4ub(255,255,255,255);
 	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
 		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.25,base);
 		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.25,base);
@@ -734,24 +759,24 @@ void render(){
 
 	currentWorld->draw(player);
 
+	/*
+	 *	Apply shaders if desired.
+	*/
+
 	#ifdef SHADERS
+	
 		glUseProgramObjectARB(shaderProgram);
 		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,100);
 		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
 		glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 100 + (1000-(shade*10)));
 		std::cout << 100 + (1000-(shade*10)) << std::endl;
-		//glBlendFunc(GL_ONE, GL_ONE);
-	#endif //SHADERS
-
-	glColor4ub(0,0,0,200);
-	glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
-
-	#ifdef SHADERS
+		glColor4ub(0,0,0,200);
+		glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
 		glUseProgramObjectARB(0);
+		
 	#endif //SHADERS
 	
 	player->inv->draw();
-
 
 	/*
 	 *	Draw UI elements. This includes the player's health bar and the dialog box.
@@ -794,20 +819,35 @@ void render(){
 				glVertex2i(SCREEN_WIDTH/2+offset.x, player->loc.y);
 			glEnd();
 		}
-					
+
 	}
-	
+
 	/*
 	 *	Draw a white triangle as a replacement for the mouse's cursor.
 	*/
-	
+
 	glColor3ub(255,255,255);
-	
+
 	glBegin(GL_TRIANGLES);
 		glVertex2i(ui::mouse.x			 ,ui::mouse.y		  );
 		glVertex2i(ui::mouse.x+HLINE*3.5,ui::mouse.y		  );
 		glVertex2i(ui::mouse.x			 ,ui::mouse.y-HLINE*3.5);
 	glEnd();
+
+	/*
+	 *	Here we draw a black overlay if it's been requested.
+	*/
+
+	if(fadeIntensity){
+		glColor4ub(0,0,0,fadeIntensity);
+		glRectf(player->loc.x-SCREEN_WIDTH,
+				SCREEN_HEIGHT,
+				player->loc.x+SCREEN_WIDTH,
+				0);
+		if(fadeIntensity == 255){
+			ui::importantText("The screen is black.");
+		}
+	}
 
 	/**************************
 	****  END RENDERING   ****
@@ -829,143 +869,147 @@ void render(){
 }
 
 void logic(){
-	
+
 	/*
 	 *	NPCSelected is used to insure that only one NPC is made interactable with the mouse
 	 *	if, for example, multiple entities are occupying one space.
 	*/
-	
+
 	static bool NPCSelected = false;
-	
+
 	/*
 	 *	Handle user input (keyboard & mouse).
 	*/
-	
+
 	ui::handleEvents();
-	
+
 	/*
 	 *	Run the world's detect function. This handles the physics of the player and any entities
 	 *	that exist in this world.
 	*/
-	
+
 	currentWorld->detect(player);
 	if(player->loc.y<.02)gameRunning=false;
-	
+
 	/*
 	 *	Entity logic: This loop finds every entity that is alive and in the current world. It then
 	 *	basically runs their AI functions depending on what type of entity they are. For NPCs,
 	 *	click detection is done as well for NPC/player interaction.
-	 * 
+	 *
 	*/
-	
+
 	for(int i = 0 ; i < entity.size(); i++){
 		if(!entity[i]->alive)std::cout<<"Entity "<<i<<" is not alive!"<<std::endl;
-		
+
 		/*
 		 *	Check if the entity is in this world and is alive.
 		*/
-		
+
 		if(entity[i]->inWorld == currentWorld &&
 		   entity[i]->alive){
-			
+
 			/*
 			 *	Switch on the entity's type and handle them accordingly
 			*/
-			
+
 			switch(entity[i]->type){
-				
+
 			case NPCT:	// Handle NPCs
-			
+
 				/*
 				 *	Make the NPC 'wander' about the world if they're allowed to do so.
 				 *	Entity->canMove is modified when a player interacts with an NPC so
 				 *	that the NPC doesn't move when it talks to the player.
-				 * 
+				 *
 				*/
-				
+
 				if(entity[i]->canMove)
 					NPCp(entity[i])->wander((rand() % 120 + 30));
-				
+
 				/*
 				 *	Don't bother handling the NPC if another has already been handled.
 				*/
-				
+
 				if(NPCSelected){
 					entity[i]->near=false;
 					break;
 				}
-				
+
 				/*
 				 *	Check if the NPC is under the mouse.
 				*/
-				
+
 				if(ui::mouse.x >= entity[i]->loc.x 						&&
 				   ui::mouse.x <= entity[i]->loc.x + entity[i]->width 	&&
 				   ui::mouse.y >= entity[i]->loc.y						&&
 				   ui::mouse.y <= entity[i]->loc.y + entity[i]->width	){
-					   
+
 					/*
 					 *	Check of the NPC is close enough to the player for interaction to be
 					 *	considered legal. In other words, require the player to be close to
-					 *	the NPC in order to interact with it. 
-					 * 
+					 *	the NPC in order to interact with it.
+					 *
 					 *	This uses the Pythagorean theorem to check for NPCs within a certain
 					 *	radius (40 HLINEs) of the player's coordinates.
-					 * 
-					*/   
-					
+					 *
+					*/
+
 					if(pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
-						
+
 						/*
 						 *	Set Entity->near so that this NPC's name is drawn under them, and toggle NPCSelected
 						 *	so this NPC is the only one that's clickable.
 						*/
-						
+
 						entity[i]->near=true;
 						NPCSelected=true;
-						
+
 						/*
 						 *	Check for a right click, and allow the NPC to interact with the
 						 *	player if one was made.
 						*/
-						
+
 						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-							
+
 							NPCp(entity[i])->interact();
 							//Mix_PlayChannel( -1, horn, 0);	// Audio feedback
-							
+
 						}
 					}
-					
+
 				/*
 				 *	Hide the NPC's name if the mouse isn't on the NPC.
 				*/
-				
+
 				}else entity[i]->near=false;
-				
+
 				break;	// End case NPCT
-				
+
 			case MOBT:	// Handle Mobs
-			
+
 				/*
 				 *	Run the Mob's AI function.
 				*/
-			
+
 				switch(entity[i]->subtype){
 				case MS_RABBIT:
 				case MS_BIRD:
 					Mobp(entity[i])->wander((rand()%240 + 15));	// Make the mob wander
 					break;
 				}
-				
+
 				break;	// End case MOBT
-				
+
 			default:break;
-			
+
 			}
 		}
 	}
-	
+
+	/*
+	 *	Switch between day and night (SUNNY and DARK) if necessary.
+	*/
+
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
 		if(weather==SUNNY){
 			weather=DARK;
@@ -973,15 +1017,31 @@ void logic(){
 			weather=SUNNY;
 		}
 	}
-	
+
+	/*
+	 *	Calculate an in-game shading value (as opposed to GLSL shading).
+	*/
+
 	#define PI 3.1415926535
 	worldShade=50*sin((tickCount+(DAY_CYCLE/2))/(DAY_CYCLE/PI));
-	
+
+	/*
+	 *	Transition to and from black if necessary.
+	*/
+
+	if(fadeEnable){
+			 if(fadeIntensity < 160)fadeIntensity+=5;
+		else if(fadeIntensity < 255)fadeIntensity+=1;
+	}else{
+			 if(fadeIntensity > 150)fadeIntensity-=1;
+		else if(fadeIntensity)		fadeIntensity-=5;
+	}
+
 	/*
 	 *	Increment a loop counter used for animating sprites.
 	*/
-	
+
 	loops++;
-	tickCount++;
-	NPCSelected=false;
+	tickCount++;		// Used for day/night cycles
+	NPCSelected=false;	// See above
 }
