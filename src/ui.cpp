@@ -142,12 +142,13 @@ namespace ui {
 		return xo;
 	}
 	char *typeOut(char *str){
-		static unsigned int sinc,linc,size;
+		static unsigned int sinc,linc,size=0;
 		static char *ret = NULL;
 		unsigned int i;
-		if(!ret || size != strlen(str)){
+		if(!ret)ret=(char *)calloc(512,sizeof(char));
+		if(size != strlen(str)){
+			memset(ret,0,512);
 			size=strlen(str);
-			ret=(char *)calloc(size,sizeof(char));
 			linc=0;
 			sinc=2;
 		}
@@ -189,6 +190,7 @@ namespace ui {
 	void importantText(const char *text,...){
 		va_list textArgs;
 		char *ttext;
+		if(!player->ground)return;
 		va_start(textArgs,text);
 		ttext=(char *)calloc(512,sizeof(char));
 		vsnprintf(ttext,512,text,textArgs);
@@ -196,8 +198,8 @@ namespace ui {
 		setFontSize(24);
 		char *rtext;
 		rtext=typeOut(ttext);
-		putString(player->loc.x+player->width/2-SCREEN_WIDTH/2,
-				  SCREEN_HEIGHT/2+fontSize,
+		putString(offset.x-SCREEN_WIDTH/2,
+				  offset.y+fontSize,
 				  rtext);
 		free(ttext);
 	}
@@ -206,7 +208,7 @@ namespace ui {
 		if(dialogBoxExists){
 			glColor3ub(0,0,0);
 			x=player->loc.x-SCREEN_WIDTH/2+HLINE*8;
-			y=SCREEN_HEIGHT-HLINE*8;
+			y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
 			glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
 			char *rtext;
 			rtext=typeOut(dialogBoxText);
@@ -214,14 +216,14 @@ namespace ui {
 			putString(x+HLINE,y-fontSize-HLINE,rtext);
 		}
 		setFontSize(14);
-		putText(((SCREEN_WIDTH/2)+offset.x)-125,SCREEN_HEIGHT-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
+		putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
 																							(unsigned)player->maxHealth);
 		if(player->alive){
 			glColor3ub(255,0,0);
 			glRectf((SCREEN_WIDTH/2+offset.x)-125,
-					SCREEN_HEIGHT-32,
+					(offset.y+SCREEN_HEIGHT/2)-32,
 					((SCREEN_WIDTH/2+offset.x)-125)+((player->health/player->maxHealth)*100),
-					SCREEN_HEIGHT-32+12);
+					(offset.y+SCREEN_HEIGHT/2)-32+12);
 		}
 	}
 	void handleEvents(void){
@@ -229,7 +231,7 @@ namespace ui {
 		static vec2 premouse={0,0};
 		SDL_Event e;
 		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
-		mouse.y=SCREEN_HEIGHT-premouse.y;
+		mouse.y=(offset.y+SCREEN_HEIGHT/2)-premouse.y;
 		while(SDL_PollEvent(&e)){
 			switch(e.type){
 			case SDL_QUIT:
@@ -250,7 +252,7 @@ namespace ui {
 			*/
 			case SDL_KEYDOWN:
 				if(SDL_KEY==SDLK_ESCAPE)gameRunning=false;							// Exit the game with ESC
-			if(!dialogBoxExists){
+			if(!dialogBoxExists&&!fadeEnable){
 				if(SDL_KEY==SDLK_a){												// Move left
 					left=true;
 					player->vel.x=-.15;
@@ -272,7 +274,7 @@ namespace ui {
 				if(SDL_KEY==SDLK_w)currentWorld=currentWorld->goInsideStructure(player);
 				if(SDL_KEY==SDLK_SPACE){											// Jump
 					if(player->ground){
-						player->vel.y=.5;
+						player->vel.y=.4;
 						player->loc.y+=HLINE*2;
 						player->ground=false;
 					}
@@ -307,10 +309,10 @@ namespace ui {
 				if(SDL_KEY==SDLK_c){
 					dialogBox("","You pressed `c`, but nothing happened?");
 				}
-				if(SDL_KEY==SDLK_p)toggleBlack();
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = debug?4:3;							// Sprint
 				if(SDL_KEY==SDLK_LCTRL)player->speed = .5;
 			}
+				if(SDL_KEY==SDLK_p)toggleBlack();
 				if(SDL_KEY==SDLK_F3)debug^=true;
 				if(SDL_KEY==SDLK_b & SDL_KEY==SDLK_F3)posFlag^=true;
 				break;

@@ -446,7 +446,7 @@ void World::singleDetect(Entity *e){
 			 *	Handle gravity.
 			*/
 			
-			e->vel.y-=.001 * deltaTime;
+			if(e->vel.y > -2)e->vel.y-=.001 * deltaTime;
 			
 		}
 		

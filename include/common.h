@@ -101,6 +101,10 @@ typedef struct {
 
 #define DEBUG_printf( message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__ )
 
+
+#define PI 3.1415926535
+
+
 /*
  *	References the variable in main.cpp, used for smoother drawing.
 */

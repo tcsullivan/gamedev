@@ -231,3 +231,11 @@
 	- added typewriter-esque text drawing
 	- documented ui.h
 	- continued work on GLSL shaders
+	
+11/4/2015:
+==========
+
+	- fixed typewriter output free() error
+	- added y-binding to ortho (if player is high in the sky ortho and UI will match it)
+	- added maximum to gravity's pull
+	- worked on storyline

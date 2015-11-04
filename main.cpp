@@ -186,7 +186,8 @@ std::string readFile(const char *filePath) {
  *	This offset is used as the player offset in the world drawing so
  *	everything can be moved according to the player
 */
-vec2 offset;
+
+vec2 offset;																			/**	OFFSET!!!!!!!!!!!!!!!!!!!! **/
 
 /*
  *	millis
@@ -568,8 +569,8 @@ void render(){
 	  *	objects on the screen so they always appear to be in the same relative area
 	 */
 	
-	offset = player->loc;
-	offset.x += player->width/2;
+	offset.x = player->loc.x + player->width/2;
+	offset.y = SCREEN_HEIGHT/2;
 
 	/*
 	 *	If the camera will go off of the left  or right of the screen we want to lock it so we can't
@@ -580,6 +581,9 @@ void render(){
 		offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
 	if(player->loc.x + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
 		offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2) + player->width / 2;
+
+	if(player->loc.y > 300 )
+		offset.y = player->loc.y + player->height;
 
 	/*
 	 *	These functions run everyloop to update the current stacks presets
@@ -621,7 +625,7 @@ void render(){
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),0,SCREEN_HEIGHT,-1,1);
+	glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),offset.y-SCREEN_HEIGHT/2,offset.y+SCREEN_HEIGHT/2,-1,1);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -656,16 +660,16 @@ void render(){
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0);
 		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0);
-		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT);
-		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT);
+		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2);
+		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2);
 	glEnd();
 	glBindTexture(GL_TEXTURE_2D,bgNight);
 	safeSetColorA(255,255,255,worldShade*4);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0);
 		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0);
-		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT);
-		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT);
+		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2);
+		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2);
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);
@@ -774,7 +778,6 @@ void render(){
 		glUseProgramObjectARB(0);
 	#endif //SHADERS
 
-	#define pi 3.1415926535
 	#define raysNOPE
 
 	#ifdef rays
@@ -809,20 +812,20 @@ void render(){
 				break;
 			default:
 				if(angle > 0 && angle < 90){
-					curCoord.x = r.start.x + float(HLINE / cos(angle*pi/180));
-					curCoord.y = r.start.y + float(HLINE / sin(angle*pi/180));
+					curCoord.x = r.start.x + float(HLINE / cos(angle*PI/180));
+					curCoord.y = r.start.y + float(HLINE / sin(angle*PI/180));
 				}
 				if(angle > 90 && angle < 180){
-					curCoord.x = r.start.x - float(HLINE / cos((90-angle)*pi/180));
-					curCoord.y = r.start.y + float(HLINE / sin((90-angle)*pi/180));
+					curCoord.x = r.start.x - float(HLINE / cos((90-angle)*PI/180));
+					curCoord.y = r.start.y + float(HLINE / sin((90-angle)*PI/180));
 				}
 				if(angle > 180 && angle < 270){
-					curCoord.x = r.start.x - float(HLINE / cos((270-angle)*pi/180));
-					curCoord.y = r.start.y - float(HLINE / sin((270-angle)*pi/180));
+					curCoord.x = r.start.x - float(HLINE / cos((270-angle)*PI/180));
+					curCoord.y = r.start.y - float(HLINE / sin((270-angle)*PI/180));
 				}
 				if(angle > 270 && angle < 360){
-					curCoord.x = r.start.x + float(HLINE / cos((360-angle)*pi/180));
-					curCoord.y = r.start.y - float(HLINE / sin((360-angle)*pi/180));
+					curCoord.x = r.start.x + float(HLINE / cos((360-angle)*PI/180));
+					curCoord.y = r.start.y - float(HLINE / sin((360-angle)*PI/180));
 				}
 			}//end swtich
 			/*for(auto &en : entity){
@@ -844,8 +847,6 @@ void render(){
 	}
 	#endif //rays
 
-
-	//LIGHT
 	player->inv->draw();
 
 	/*
@@ -863,7 +864,7 @@ void render(){
 		ui::setFontSize(16);
 		
 		ui::putText(offset.x-SCREEN_WIDTH/2,
-					SCREEN_HEIGHT-ui::fontSize,
+					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
 					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nQc: %u",
 					fps,
 					player->ground,
@@ -910,10 +911,10 @@ void render(){
 
 	if(fadeIntensity){
 		glColor4ub(0,0,0,fadeIntensity);
-		glRectf(player->loc.x-SCREEN_WIDTH,
-				SCREEN_HEIGHT,
-				player->loc.x+SCREEN_WIDTH,
-				0);
+		glRectf(offset.x-SCREEN_WIDTH /2,
+				offset.y-SCREEN_HEIGHT/2,
+				offset.x+SCREEN_WIDTH /2,
+				offset.y+SCREEN_HEIGHT/2);
 		if(fadeIntensity == 255){
 			ui::importantText("The screen is black.");
 		}
@@ -969,8 +970,7 @@ void logic(){
 	*/
 
 	for(int i = 0 ; i < entity.size(); i++){
-		if(!entity[i]->alive)std::cout<<"Entity "<<i<<" is not alive!"<<std::endl;
-
+		
 		/*
 		 *	Check if the entity is in this world and is alive.
 		*/
@@ -1092,7 +1092,6 @@ void logic(){
 	 *	Calculate an in-game shading value (as opposed to GLSL shading).
 	*/
 
-	#define PI 3.1415926535
 	worldShade=50*sin((tickCount+(DAY_CYCLE/2))/(DAY_CYCLE/PI));
 
 	/*

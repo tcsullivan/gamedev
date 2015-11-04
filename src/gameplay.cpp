@@ -51,7 +51,7 @@ void initEverything(void){
 	*/
 	
 	player=new Player();
-	player->spawn(0,100);
+	player->spawn(0,5000);
 	
 	/*
 	 *	Create a structure (this will create villagers when spawned).
