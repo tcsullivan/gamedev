@@ -772,80 +772,94 @@ void render(){
 		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,100);
 		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
 		glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 100 + (1000-(shade*10)));
-		std::cout << 100 + (1000-(shade*10)) << std::endl;
+		//std::cout << 100 + (1000-(shade*10)) << std::endl;
 		glColor4ub(0,0,0,200);
 		glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
 		glUseProgramObjectARB(0);
 	#endif //SHADERS
 
-	#define raysNOPE
+	#define rays
 
 	#ifdef rays
 	//LIGHT
-	static vec2 light;
-	float lightStr = 100;
+	vec2 light;
+	int lightStr = 150;
 	vec2 curCoord;
-	light.x = player->loc.x;
-	light.y = player->loc.y;
-	std::vector<Ray>ray(30);
+
+	light.x = 0;
+	light.y = 300;
+
+	std::vector<Ray>ray(180);
 	unsigned int a = 0;
-	int angle = 0;
+	float angle = 0;
+
 	glColor3f(0.0f, 0.0f, 0.0f);
 	for(auto &r : ray){
 		r.start = light;
-		angle = 12*a;
-		for(int l = 0;l<lightStr;l+=36){
-			//switch
-			switch(angle){
-			case 0:
+		curCoord = r.start;
+		angle = 2*a;
+		//for length
+		for(int l = 0;l<=lightStr;l++){
+			//std::cout << a << ": " << curCoord.x << "," << curCoord.y << "\n";
+			if(angle == 0){
 				curCoord.x += HLINE;
 				curCoord.y += 0;
-				break;
-			case 180:
+			}
+			if(angle == 90){
+				curCoord.y += HLINE;
+				curCoord.x += 0;
+			}
+			if(angle == 180){
 				curCoord.x -= HLINE;
-				curCoord.y -= 0;
-				break;
-			case 360:
+				curCoord.y += 0;
+			}
+			if(angle == 270){
+				curCoord.y -= HLINE;
+				curCoord.x += 0;
+			}
+			if(angle == 360){
 				curCoord.x += HLINE;
 				curCoord.y += 0;
-				angle = 0;
-				break;
-			default:
-				if(angle > 0 && angle < 90){
-					curCoord.x = r.start.x + float(HLINE / cos(angle*PI/180));
-					curCoord.y = r.start.y + float(HLINE / sin(angle*PI/180));
-				}
-				if(angle > 90 && angle < 180){
-					curCoord.x = r.start.x - float(HLINE / cos((90-angle)*PI/180));
-					curCoord.y = r.start.y + float(HLINE / sin((90-angle)*PI/180));
-				}
-				if(angle > 180 && angle < 270){
-					curCoord.x = r.start.x - float(HLINE / cos((270-angle)*PI/180));
-					curCoord.y = r.start.y - float(HLINE / sin((270-angle)*PI/180));
-				}
-				if(angle > 270 && angle < 360){
-					curCoord.x = r.start.x + float(HLINE / cos((360-angle)*PI/180));
-					curCoord.y = r.start.y - float(HLINE / sin((360-angle)*PI/180));
-				}
-			}//end swtich
-			/*for(auto &en : entity){
+			}else{
+				curCoord.x += float((HLINE) * cos(angle*PI/180));
+				curCoord.y += float((HLINE) * sin(angle*PI/180));
+			}
+			for(auto &en : entity){
 				if(curCoord.x > en->loc.x && curCoord.x < en->loc.x + en->width){
 					if(curCoord.y > en->loc.y && curCoord .y < en->loc.y + en->height){
 						r.end = curCoord;
+						l=lightStr;
 					}
 				}
-			}*/
-
+			}
+			if(curCoord.x > player->loc.x && curCoord.x < player->loc.x + player->width){
+					if(curCoord.y > player->loc.y && curCoord .y < player->loc.y + player->height){
+						r.end = curCoord;
+						l=lightStr;
+					}
+			}if(l==lightStr)r.end = curCoord;
 		}//end length
-		r.end = curCoord;
-		glBegin(GL_LINES);
+		/*glBegin(GL_LINES);
 			glVertex2f(r.start.x,r.start.y);
 			glVertex2f(r.end.x, r.end.y);
-		glEnd();
+		glEnd();*/
 		//std::cout << angle << "\n";
 		a++;
 	}
-	#endif //rays
+	glUseProgramObjectARB(shaderProgram);
+	glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,300);
+	glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
+	glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 5);
+	glColor4f(1.0f, 1.0f, 1.0f, .5f);
+	for(auto r = 0; r < ray.size(); r++){
+		glBegin(GL_TRIANGLES);
+			glVertex2f(ray[r].start.x, ray[r].start.y);
+			glVertex2f(ray[r].end.x, ray[r].end.y);
+			r==ray.size()-1 ? glVertex2f(ray[0].end.x, ray[0].end.y) : glVertex2f(ray[r+1].end.x, ray[r+1].end.y);
+		glEnd();
+	}
+	glUseProgramObjectARB(0);
+	#endif //ray
 
 	player->inv->draw();
 

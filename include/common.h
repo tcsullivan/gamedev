@@ -39,7 +39,7 @@ typedef unsigned int uint;
  *	This flag lets the compiler know that we are using shaders
 */
 
-#define SHADERSf
+#define SHADERSd
 
 /*
  *	Create a basic 2-point structure for coordinate saving
