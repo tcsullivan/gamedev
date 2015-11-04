@@ -39,7 +39,13 @@ typedef unsigned int uint;
  *	This flag lets the compiler know that we are using shaders
 */
 
-#define SHADERSf
+#define SHADERSd
+
+/*
+ * This is pi...
+*/
+
+#define PI 3.141592653598723846433
 
 /*
  *	Create a basic 2-point structure for coordinate saving
