@@ -590,7 +590,7 @@ void render(){
 			offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2) + player->width / 2;
 	}
 
-	if(player->loc.y > 300 )
+	if(player->loc.y > SCREEN_HEIGHT/2)
 		offset.y = player->loc.y + player->height;
 
 	/*
@@ -666,18 +666,18 @@ void render(){
 	glBindTexture(GL_TEXTURE_2D,bgDay);
 	safeSetColorA(255,255,255,255-worldShade*4);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0);
-		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0);
-		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2);
-		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2);
+		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0+offset.y-SCREEN_HEIGHT/2);
+		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0+offset.y-SCREEN_HEIGHT/2);
+		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2+offset.y-SCREEN_HEIGHT/2);
+		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2+offset.y-SCREEN_HEIGHT/2);
 	glEnd();
 	glBindTexture(GL_TEXTURE_2D,bgNight);
 	safeSetColorA(255,255,255,worldShade*4);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0);
-		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0);
-		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2);
-		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2);
+		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0+offset.y-SCREEN_HEIGHT/2);
+		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0+offset.y-SCREEN_HEIGHT/2);
+		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2+offset.y-SCREEN_HEIGHT/2);
+		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2+offset.y-SCREEN_HEIGHT/2);
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);
@@ -786,89 +786,97 @@ void render(){
 		glUseProgramObjectARB(0);
 	#endif //SHADERS
 
-	#define raysSHITUPMYASS
+	float handAngle;
+	if(player->light){
+		handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
+		if(ui::mouse.x < player->loc.x){
+			if(handAngle <= 0)
+				handAngle+=180;
+			if(ui::mouse.y < player->loc.y + player->height/2){
+				handAngle+=180;
+			}
+		}
+		if(ui::mouse.x > player->loc.x && ui::mouse.y < player->loc.y+player->height/2 && handAngle <= 0) handAngle = 360+handAngle;
+		vec2 light;
+		int lightStr = 150;
+		vec2 curCoord;
 
-	#ifdef rays
-	//LIGHT
-	vec2 light;
-	int lightStr = 150;
-	vec2 curCoord;
+		light.x = player->loc.x + player->width;
+		light.y = player->loc.y + player->height/2;
 
-	light.x = 0;
-	light.y = 300;
+		std::vector<Ray>fray(60);
+		unsigned int a = 0;
+		float angle = 0;
 
-	std::vector<Ray>ray(180);
-	unsigned int a = 0;
-	float angle = 0;
+		glColor3f(0.0f, 0.0f, 0.0f);
 
-	glColor3f(0.0f, 0.0f, 0.0f);
-	for(auto &r : ray){
-		r.start = light;
-		curCoord = r.start;
-		angle = 2*a;
-		//for length
-		for(int l = 0;l<=lightStr;l++){
-			//std::cout << a << ": " << curCoord.x << "," << curCoord.y << "\n";
-			if(angle == 0){
-				curCoord.x += HLINE;
-				curCoord.y += 0;
-			}
-			if(angle == 90){
-				curCoord.y += HLINE;
-				curCoord.x += 0;
-			}
-			if(angle == 180){
-				curCoord.x -= HLINE;
-				curCoord.y += 0;
-			}
-			if(angle == 270){
-				curCoord.y -= HLINE;
-				curCoord.x += 0;
-			}
-			if(angle == 360){
-				curCoord.x += HLINE;
-				curCoord.y += 0;
-			}else{
-				curCoord.x += float((HLINE) * cos(angle*PI/180));
-				curCoord.y += float((HLINE) * sin(angle*PI/180));
-			}
-			for(auto &en : entity){
-				if(curCoord.x > en->loc.x && curCoord.x < en->loc.x + en->width){
-					if(curCoord.y > en->loc.y && curCoord .y < en->loc.y + en->height){
-						r.end = curCoord;
-						l=lightStr;
+		for(auto &r : fray){
+			r.start = light;
+			curCoord = r.start;
+			angle = .5*a + handAngle;
+			//for length
+			for(int l = 0;l<=lightStr;l++){
+				//std::cout << a << ": " << curCoord.x << "," << curCoord.y << "\n";
+				if(angle == 0){
+					curCoord.x += HLINE;
+					curCoord.y += 0;
+				}
+				if(angle == 90){
+					curCoord.y += HLINE;
+					curCoord.x += 0;
+				}
+				if(angle == 180){
+					curCoord.x -= HLINE;
+					curCoord.y += 0;
+				}
+				if(angle == 270){
+					curCoord.y -= HLINE;
+					curCoord.x += 0;
+				}
+				if(angle == 360){
+					curCoord.x += HLINE;
+					curCoord.y += 0;
+				}else{
+					curCoord.x += float((HLINE) * cos(angle*PI/180));
+					curCoord.y += float((HLINE) * sin(angle*PI/180));
+				}
+				for(auto &en : entity){
+					if(curCoord.x > en->loc.x && curCoord.x < en->loc.x + en->width){
+						if(curCoord.y > en->loc.y && curCoord .y < en->loc.y + en->height){
+							r.end = curCoord;
+							l=lightStr;
+						}
 					}
 				}
-			}
-			if(curCoord.x > player->loc.x && curCoord.x < player->loc.x + player->width){
-					if(curCoord.y > player->loc.y && curCoord .y < player->loc.y + player->height){
-						r.end = curCoord;
-						l=lightStr;
-					}
-			}if(l==lightStr)r.end = curCoord;
-		}//end length
-		/*glBegin(GL_LINES);
-			glVertex2f(r.start.x,r.start.y);
-			glVertex2f(r.end.x, r.end.y);
-		glEnd();*/
-		//std::cout << angle << "\n";
-		a++;
-	}
-	glUseProgramObjectARB(shaderProgram);
-	glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,300);
-	glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
-	glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 5);
-	glColor4f(1.0f, 1.0f, 1.0f, .5f);
-	for(auto r = 0; r < ray.size(); r++){
-		glBegin(GL_TRIANGLES);
-			glVertex2f(ray[r].start.x, ray[r].start.y);
-			glVertex2f(ray[r].end.x, ray[r].end.y);
-			r==ray.size()-1 ? glVertex2f(ray[0].end.x, ray[0].end.y) : glVertex2f(ray[r+1].end.x, ray[r+1].end.y);
-		glEnd();
-	}
-	glUseProgramObjectARB(0);
-	#endif //ray
+				/*if(curCoord.x > player->loc.x && curCoord.x < player->loc.x + player->width){
+						if(curCoord.y > player->loc.y && curCoord .y < player->loc.y + player->height){
+							r.end = curCoord;
+							l=lightStr;
+						}
+				}*/if(l==lightStr)r.end = curCoord;
+			}//end length
+			glBegin(GL_LINES);
+				glVertex2f(r.start.x,r.start.y);
+				glVertex2f(r.end.x, r.end.y);
+			glEnd();
+			//std::cout << angle << "\n";
+			a++;
+		}
 
+		glUseProgramObjectARB(shaderProgram);
+		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,300);
+		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
+		glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 5);
+		glColor4f(1.0f, 1.0f, 1.0f, .5f);
+		for(auto r = 0; r < fray.size(); r++){
+			glBegin(GL_TRIANGLES);
+				glVertex2f(fray[r].start.x, fray[r].start.y);
+				glVertex2f(fray[r].end.x, fray[r].end.y);
+				r==fray.size()-1 ? glVertex2f(fray[r].end.x, fray[r].end.y) : glVertex2f(fray[r+1].end.x, fray[r+1].end.y);
+			glEnd();
+		}
+		glUseProgramObjectARB(0);
+	}
 	player->inv->draw();
 
 	/*
@@ -887,7 +895,7 @@ void render(){
 		
 		ui::putText(offset.x-SCREEN_WIDTH/2,
 					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nQc: %u",
+					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nQc: %u\n HA: %+.2f",
 					fps,
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
@@ -896,7 +904,8 @@ void render(){
 					player->loc.x,				// The player's x coordinate
 					debugY,						// The player's y coordinate
 					tickCount,
-					player->qh.current.size()	// Active quest count
+					player->qh.current.size(),	// Active quest count
+					handAngle
 					);
 		if(ui::posFlag){
 			glBegin(GL_LINES);

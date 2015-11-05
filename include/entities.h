@@ -81,6 +81,7 @@ public:
 	QuestHandler qh;
 	Player();
 	void interact();
+	bool light = false;
 };
 
 class NPC : public Entity{
