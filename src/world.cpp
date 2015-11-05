@@ -22,6 +22,8 @@
 extern std::vector<Entity 	  *> entity;
 extern std::vector<Structures *> build;
 
+bool worldInside = false;
+
 float worldGetYBase(World *w){
 	float base = 0;
 	World *ptr = w;
@@ -543,11 +545,13 @@ World *World::goInsideStructure(Player *p){
 		if(build[i]->inWorld==this){
 			if(p->loc.x			   > build[i]->loc.x &&
 			   p->loc.x + p->width < build[i]->loc.x + build[i]->width){
+				worldInside = true;
 				return (World *)build[i]->inside;
 			}
 		}else if(build[i]->inside==this){
 			p->loc.x=build[i]->loc.x + build[i]->width / 2 - p->width / 2;
 			p->loc.y=build[i]->loc.y + HLINE;
+			worldInside = false;
 			return (World *)build[i]->inWorld;
 		}
 	}

@@ -239,3 +239,13 @@
 	- added y-binding to ortho (if player is high in the sky ortho and UI will match it)
 	- added maximum to gravity's pull
 	- worked on storyline
+
+11/5/2015:
+===========
+
+	- wrote more storyline (up to 7 pages)
+	- fixed ortho for when player is inside a building
+	- began work on ray shading (flashlight)
+	- (out of class) began experimenting with writing game soundtracks
+
+	~ About 3400 lines of code + documentation written

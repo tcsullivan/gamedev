@@ -92,6 +92,12 @@ Player 							*player;
 extern std::vector<Entity *	>	 entity;
 
 /*
+ *	Tells if player is currently inside a structure.
+*/
+
+extern bool worldInside;
+
+/*
  *	tickCount contains the number of ticks generated since main loop entrance.
  *	This variable might be used anywhere.
  *
@@ -577,10 +583,12 @@ void render(){
 	 *  see past the world render
 	*/
 	
-	if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
-		offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
-	if(player->loc.x + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
-		offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2) + player->width / 2;
+	if(!worldInside){
+		if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
+			offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
+		if(player->loc.x + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
+			offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2) + player->width / 2;
+	}
 
 	if(player->loc.y > 300 )
 		offset.y = player->loc.y + player->height;
@@ -778,7 +786,7 @@ void render(){
 		glUseProgramObjectARB(0);
 	#endif //SHADERS
 
-	#define rays
+	#define raysSHITUPMYASS
 
 	#ifdef rays
 	//LIGHT
