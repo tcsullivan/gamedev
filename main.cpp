@@ -491,7 +491,6 @@ int main(int argc, char *argv[]){
     char *worldBuf;
     unsigned int worldSize;
     worldBuf=currentWorld->save(&worldSize);
-    if(ferror(worldSave))perror("HEY: ");
     fclose(worldSave);
     
     return 0;	// Calls everything passed to atexit
