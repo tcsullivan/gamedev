@@ -7,11 +7,11 @@
 						// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
 						// and detect().
 
-#define GEN_MIN  40
-#define GEN_MAX  70
+#define GEN_MIN  80
+#define GEN_MAX  110
 #define GEN_INIT 60
 
-#define GRASS_HEIGHT 4	// Defines how long the grass layer of a line should be in multiples of HLINE.
+#define GRASS_HEIGHT 4 	// Defines how long the grass layer of a line should be in multiples of HLINE.
 
 
 #define DRAW_Y_OFFSET 50	// Defines how many pixels each layer should be offset from each other on the y axis when drawn.
@@ -56,7 +56,6 @@ char *World::save(unsigned int *ssize){
 void World::load(char *buf){
 	struct wSavePack *sp;
 	sp=(struct wSavePack *)buf;
-	std::cout<<sp->lineCount<<std::endl;
 	x_start=sp->x_start;
 	lineCount=sp->lineCount;
 	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));

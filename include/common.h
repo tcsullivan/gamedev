@@ -113,6 +113,8 @@ extern unsigned int deltaTime;
 */
 extern vec2 offset;
 
+extern float handAngle;
+
 /*
  *	Loads an image from the given file path and attempts to make a texture out of it. The
  *	resulting GLuint is returned (used to recall the texture in glBindTexture).

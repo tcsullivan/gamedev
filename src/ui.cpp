@@ -150,9 +150,9 @@ namespace ui {
 			memset(ret,0,512);
 			size=strlen(str);
 			linc=0;
-			sinc=2;
+			sinc=1;
 		}
-		if(++sinc==3){
+		if(++sinc==2){
 			sinc=0;
 			strncpy(ret+linc,str+linc,1);
 			if(linc<size)linc++;
@@ -315,6 +315,8 @@ namespace ui {
 				if(SDL_KEY==SDLK_p)toggleBlack();
 				if(SDL_KEY==SDLK_F3)debug^=true;
 				if(SDL_KEY==SDLK_b & SDL_KEY==SDLK_F3)posFlag^=true;
+				if(SDL_KEY==SDLK_UP)handAngle++;
+				if(SDL_KEY==SDLK_DOWN)handAngle--;
 				break;
 			/*
 				KEYUP
@@ -327,6 +329,9 @@ namespace ui {
 				if(SDL_KEY==SDLK_LCTRL)player->speed = 1;
 				if(SDL_KEY==SDLK_h)player->health-=5;
 				if(SDL_KEY==SDLK_f)player->light ^= true;
+				if(SDL_KEY==SDLK_UP)handAngle+=0;
+				if(SDL_KEY==SDLK_DOWN)handAngle-=0;
+
 				break;
 			default:
 				break;

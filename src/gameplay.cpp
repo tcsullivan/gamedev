@@ -40,7 +40,7 @@ void initEverything(void){
 	 *	Load the saved world if it exists, otherwise generate a new one.
 	*/
 	
-	FILE *worldLoad;
+	/*FILE *worldLoad;
 	if((worldLoad=fopen("world.dat","r"))){
 		std::cout<<"Yes"<<std::endl;
 		char *buf;
@@ -51,10 +51,10 @@ void initEverything(void){
 		buf=(char *)malloc(size);
 		fread(buf,1,size,worldLoad);
 		test->load(buf);
-	}else{
+	}else{*/
 		test->generate(SCREEN_WIDTH * 2);
 		test->addHole(100,150);
-	}
+	//}
 	
 	test->addLayer(400);
 	

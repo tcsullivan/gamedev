@@ -65,6 +65,8 @@ static GLuint  bgDay, bgNight, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar;
 
 bool gameRunning;
 
+float handAngle;
+
 /*
  *	currentWorld 	-	This is a pointer to the current world that the player
  * 						is in. Most drawing/entity handling is done through this
@@ -489,8 +491,6 @@ int main(int argc, char *argv[]){
     char *worldBuf;
     unsigned int worldSize;
     worldBuf=currentWorld->save(&worldSize);
-    std::cout<<worldSize<<" "<<(int)worldBuf<<std::endl;
-    std::cout<<fwrite(worldBuf,1,worldSize,worldSave)<<std::endl;
     if(ferror(worldSave))perror("HEY: ");
     fclose(worldSave);
     
@@ -795,7 +795,6 @@ void render(){
 		glUseProgramObjectARB(0);
 	#endif //SHADERS
 
-	float handAngle;
 	if(player->light){
 		handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
 		if(ui::mouse.x < player->loc.x){
@@ -1082,7 +1081,7 @@ void logic(){
 						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 
 							NPCp(entity[i])->interact();
-							//Mix_PlayChannel( -1, horn, 0);	// Audio feedback
+							Mix_PlayChannel( -1, horn, 0);	// Audio feedback
 
 						}
 					}
