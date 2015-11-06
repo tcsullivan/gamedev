@@ -241,11 +241,16 @@
 	- worked on storyline
 
 11/5/2015:
-===========
+==========
 
 	- wrote more storyline (up to 7 pages)
 	- fixed ortho for when player is inside a building
 	- began work on ray shading (flashlight)
 	- (out of class) began experimenting with writing game soundtracks
 
-	~ About 3400 lines of code + documentation written
+	~ About 3400 lines of code + documentation written ( +7 pages of story on gdoc)
+
+11/6/2015:
+==========
+
+	- worlds can now be saved & loaded from a file

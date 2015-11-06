@@ -31,14 +31,32 @@ void initEverything(void){
 	unsigned int i;
 	
 	/*
-	 *	Generate a new world. 
+	 *	World creation:
 	*/
 	
 	World *test=new World();
-	test->generate(SCREEN_WIDTH * 2);
+	
+	/*
+	 *	Load the saved world if it exists, otherwise generate a new one.
+	*/
+	
+	FILE *worldLoad;
+	if((worldLoad=fopen("world.dat","r"))){
+		std::cout<<"Yes"<<std::endl;
+		char *buf;
+		unsigned int size;
+		fseek(worldLoad,0,SEEK_END);
+		size=ftell(worldLoad);
+		rewind(worldLoad);
+		buf=(char *)malloc(size);
+		fread(buf,1,size,worldLoad);
+		test->load(buf);
+	}else{
+		test->generate(SCREEN_WIDTH * 2);
+		test->addHole(100,150);
+	}
+	
 	test->addLayer(400);
-
-	test->addHole(100,150);
 	
 	/*
 	 *	Setup the current world, making the player initially spawn in `test`.

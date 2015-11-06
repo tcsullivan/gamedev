@@ -4,9 +4,11 @@
 #include <common.h> // For HLINE, vec2, OpenGL utilities, etc.
 #include <entities.h>
 
-typedef struct {
-	vec2 p1,p2;
-} __attribute__ ((packed)) Platform;
+struct line_t {
+	bool gs;
+	float y,gh[2];
+	unsigned char color;
+} __attribute__ ((packed));
 
 /*
  *	World - creates and handles an area of land
@@ -27,11 +29,7 @@ protected:
 	 * 
 	 */
 	 
-	struct line_t {
-		bool gs;
-		float y,gh[2];
-		unsigned char color;
-	} __attribute__ ((packed)) *line;
+	struct line_t *line;
 	
 	/*
 	 *	Keeps a dynamically allocated array of platforms in the world.
@@ -132,6 +130,20 @@ public:
 	*/
 	
 	int getTheWidth(void);
+	
+	/*
+	 *	Stores all of this class's contents in a string for saving to a file. This array should
+	 *	be freed after being written to a file.
+	*/
+	
+	char *save(unsigned int *ssize);
+	
+	/*
+	 *	Loads a previous world's contents (from save()) into this one.
+	*/
+	
+	void load(char *buf);
+	
 };
 
 /*

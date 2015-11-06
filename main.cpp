@@ -485,6 +485,15 @@ int main(int argc, char *argv[]){
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
     
+    FILE *worldSave = fopen("world.dat","w");
+    char *worldBuf;
+    unsigned int worldSize;
+    worldBuf=currentWorld->save(&worldSize);
+    std::cout<<worldSize<<" "<<(int)worldBuf<<std::endl;
+    std::cout<<fwrite(worldBuf,1,worldSize,worldSave)<<std::endl;
+    if(ferror(worldSave))perror("HEY: ");
+    fclose(worldSave);
+    
     return 0;	// Calls everything passed to atexit
 }
 

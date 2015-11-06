@@ -30,9 +30,6 @@ typedef unsigned int uint;
 #undef near
 #endif
 
-/*
- *	Include file headers
-*/
 #include <Texture.h>
 
 /*

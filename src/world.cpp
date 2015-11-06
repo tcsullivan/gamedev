@@ -34,6 +34,35 @@ float worldGetYBase(World *w){
 	return base;
 }
 
+struct wSavePack {
+	int				x_start;
+	unsigned int	lineCount;
+} __attribute__ ((packed));
+
+char *World::save(unsigned int *ssize){
+	struct wSavePack *sp;
+	unsigned int size;
+	char *buf;
+	size=sizeof(struct wSavePack) + lineCount * sizeof(struct line_t);
+	buf=(char *)malloc(size);
+	sp=(struct wSavePack *)buf;
+	sp->x_start=x_start;
+	sp->lineCount=lineCount;
+	memcpy(buf+sizeof(struct wSavePack),line,lineCount * sizeof(struct line_t));
+	*ssize=size;
+	return buf;
+}
+
+void World::load(char *buf){
+	struct wSavePack *sp;
+	sp=(struct wSavePack *)buf;
+	std::cout<<sp->lineCount<<std::endl;
+	x_start=sp->x_start;
+	lineCount=sp->lineCount;
+	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));
+	memcpy(line,buf+sizeof(struct wSavePack),lineCount * sizeof(struct line_t));
+}
+
 World::World(void){
 	/*
 	 *	Nullify pointers to other worlds.
