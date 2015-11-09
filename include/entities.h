@@ -36,8 +36,6 @@ class Entity{
 public:
 	Inventory *inv;
 
-	void *inWorld;
-
 	float width;	//width and height of the player
 	float height;
 	float speed;	//speed of the play
@@ -95,6 +93,7 @@ public:
 
 class Structures : public Entity{
 public:
+	void *inWorld;
 	void *inside;
 	Structures();
 	unsigned int spawn(_TYPE, float, float);

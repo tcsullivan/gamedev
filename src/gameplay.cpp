@@ -64,22 +64,16 @@ void initEverything(void){
 	*/
 	
 	player=new Player();
-	player->spawn(0,5000);
+	player->spawn(0,200);
 	
 	/*
 	 *	Create a structure (this will create villagers when spawned).
 	*/
 	
-	currentWorld->addStructure(STRUCTURET,(rand()%120*HLINE),10);
-	
-	/*
-	 *	Generate an indoor world and link the structure to it. 
-	*/
-	
 	IndoorWorld *iw=new IndoorWorld();
 	iw->generate(200);
-	currentWorld->build.back()->inside=iw;
-
+	currentWorld->addStructure(STRUCTURET,(rand()%120*HLINE),10,iw);
+	
 	/*
 	 *	Spawn a mob. 
 	*/

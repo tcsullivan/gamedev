@@ -276,14 +276,14 @@ LOOP2:
 	shade*=-1;
 	
 	/*
-	 *	Draw structures in the current layer if we're on the one we started at. We draw
-	 *	structures behind the dirt/grass so that the buildings corners don't stick out.
+	 *	Draw structures. We draw structures behind the dirt/grass so that the building's
+	 *	corners don't stick out.
 	*/
 	
-	if(current==this){
-		for(i=0;i<build.size();i++){
-			build[i]->draw();
-		}
+	for(auto &b : current->build){
+		b->loc.y+=(yoff-DRAW_Y_OFFSET);
+		b->draw();
+		b->loc.y-=(yoff-DRAW_Y_OFFSET);
 	}
 	
 	/*
@@ -362,8 +362,22 @@ LOOP2:
 	glEnd();
 	
 	/*
-	 *	If we're drawing the closest/last world, handle and draw the player and entities in
-	 *	the world.
+	 *	Draw non-structure entities.
+	*/
+		
+	for(auto &n : current->npc){
+		n->loc.y+=(yoff-DRAW_Y_OFFSET);
+		n->draw();
+		n->loc.y-=(yoff-DRAW_Y_OFFSET);
+	}
+	for(auto &m : current->mob){
+		m->loc.y+=(yoff-DRAW_Y_OFFSET);
+		m->draw();
+		m->loc.y-=(yoff-DRAW_Y_OFFSET);
+	}
+	
+	/*
+	 *	If we're drawing the closest/last world, handle and draw the player.
 	*/
 	
 	if(current==this){
@@ -398,14 +412,6 @@ LOOP2:
 		
 		p->draw();
 		
-		/*
-		 *	Draw non-structure entities.
-		*/
-		
-		for(i=0;i<npc.size();i++)
-			npc[i]->draw();
-		for(i=0;i<mob.size();i++)
-			mob[i]->draw();
 	}
 	
 	/*
@@ -507,7 +513,7 @@ void World::singleDetect(Entity *e){
 }
 
 void World::detect(Player *p){
-	unsigned int i;
+	World *hey;
 	
 	/*
 	 *	Handle the player. 
@@ -519,13 +525,32 @@ void World::detect(Player *p){
 	 *	Handle all remaining entities in this world. 
 	*/
 	
-	for(i=0;i<entity.size();i++)
-		singleDetect(entity[i]);
+	 hey = this;
+
+LOOP:
+
+	if(hey->behind){
+		hey=hey->behind;
+		goto LOOP;
+	}
+
+LOOP2:
+	
+	for(auto &e : hey->entity)
+		singleDetect(e);
+		
+	if(hey->infront){
+		hey=hey->infront;
+		goto LOOP2;
+	}
 }
 
-void World::addStructure(_TYPE t,float x,float y){
+void World::addStructure(_TYPE t,float x,float y,void *inside){
 	build.push_back(new Structures());
 	build.back()->spawn(t,x,y);
+	build.back()->inside=inside;
+	
+	std::cout<<"inside: "<<build.back()->inside<<" "<<inside<<std::endl;
 	
 	entity.push_back(build.back());
 }
@@ -591,21 +616,6 @@ World *World::goWorldFront(Player *p){
 }
 
 World *World::goInsideStructure(Player *p){
-	unsigned int i;
-	for(i=0;i<build.size();i++){
-		if(build[i]->inWorld==this){
-			if(p->loc.x			   > build[i]->loc.x &&
-			   p->loc.x + p->width < build[i]->loc.x + build[i]->width){
-				worldInside = true;
-				return (World *)build[i]->inside;
-			}
-		}else if(build[i]->inside==this){
-			p->loc.x=build[i]->loc.x + build[i]->width / 2 - p->width / 2;
-			p->loc.y=build[i]->loc.y + HLINE;
-			worldInside = false;
-			return (World *)build[i]->inWorld;
-		}
-	}
 	return this;
 }
 

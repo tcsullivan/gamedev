@@ -76,7 +76,7 @@ public:
 	std::vector<Mob			*>	mob;
 	std::vector<Entity		*>	entity;
 	
-	void addStructure(_TYPE t,float x,float y);
+	void addStructure(_TYPE t,float x,float y,void *inside);
 	void addMob(int t,float x,float y);
 	void addNPC(float x,float y);
 	
@@ -173,6 +173,7 @@ float worldGetYBase(World *w);
  
 class IndoorWorld : public World {
 public:
+	World *outside;
 	IndoorWorld(void);
 	~IndoorWorld(void);
 	

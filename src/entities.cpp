@@ -64,6 +64,8 @@ Structures::Structures(){ //sets the structure type
 	near  = false;
 	
 	tex = new Texturec(1,"assets/house1.png");
+	
+	inWorld = NULL;
 }
 
 Mob::Mob(int sub){

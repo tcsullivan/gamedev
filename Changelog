@@ -257,3 +257,12 @@
 	- created 'storyboard' for first few player areas
 	- improved flashlight
 	- made some minor improvements to world appearance
+
+11/9/2015:
+==========
+
+	- gave world's their own entity/mob/npc/build arrays
+	- cleaned up for loops (switched most to `for(auto :)`
+	- added drawing/handling of entities on all layers at all times
+	- removed building entering/exiting
+	- andy broke SDL cuz he's bad
