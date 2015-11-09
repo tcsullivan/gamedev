@@ -68,6 +68,21 @@ public:
 		  *infront;
 	
 	/*
+	 *	Entity arrays.
+	*/
+	
+	std::vector<NPC			*>	npc;
+	std::vector<Structures	*>	build;
+	std::vector<Mob			*>	mob;
+	std::vector<Entity		*>	entity;
+	
+	void addStructure(_TYPE t,float x,float y);
+	void addMob(int t,float x,float y);
+	void addNPC(float x,float y);
+	
+	void update(Player *p,unsigned int delta);
+	
+	/*
 	 *	Constructor and deconstructor, these do what you would expect.
 	*/
 						

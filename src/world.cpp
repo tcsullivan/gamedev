@@ -19,9 +19,6 @@
 
 #define INDOOR_FLOOR_HEIGHT 100 // Defines how high the base floor of an IndoorWorld should be
 
-extern std::vector<Entity 	  *> entity;
-extern std::vector<Structures *> build;
-
 bool worldInside = false;
 
 float worldGetYBase(World *w){
@@ -188,6 +185,19 @@ World::~World(void){
 	free(line);
 }
 
+void World::update(Player *p,unsigned int delta){
+	p->loc.y+= p->vel.y			 *delta;
+	p->loc.x+=(p->vel.x*p->speed)*delta;
+	
+	for(auto &e : entity){
+		if(e->type != STRUCTURET)
+			e->loc.x += e->vel.x * delta;
+			e->loc.y += e->vel.y * delta;
+			if(e->vel.x < 0)e->left = true;
+	   else if(e->vel.x > 0)e->left = false;
+	}
+}
+
 int worldShade = 0;
 
 void World::draw(Player *p){
@@ -271,9 +281,8 @@ LOOP2:
 	*/
 	
 	if(current==this){
-		for(i=0;i<entity.size();i++){
-			if(entity[i]->inWorld==this && entity[i]->type == STRUCTURET)
-				entity[i]->draw();
+		for(i=0;i<build.size();i++){
+			build[i]->draw();
 		}
 	}
 	
@@ -393,11 +402,10 @@ LOOP2:
 		 *	Draw non-structure entities.
 		*/
 		
-		for(i=0;i<entity.size();i++){
-			if(entity[i]->inWorld==this && entity[i]->type != STRUCTURET)
-				entity[i]->draw();
-		}
-		
+		for(i=0;i<npc.size();i++)
+			npc[i]->draw();
+		for(i=0;i<mob.size();i++)
+			mob[i]->draw();
 	}
 	
 	/*
@@ -511,14 +519,29 @@ void World::detect(Player *p){
 	 *	Handle all remaining entities in this world. 
 	*/
 	
-	for(i=0;i<entity.size();i++){
-		
-		if(entity[i]->inWorld==this){
-			
-			singleDetect(entity[i]);
-			
-		}
-	}
+	for(i=0;i<entity.size();i++)
+		singleDetect(entity[i]);
+}
+
+void World::addStructure(_TYPE t,float x,float y){
+	build.push_back(new Structures());
+	build.back()->spawn(t,x,y);
+	
+	entity.push_back(build.back());
+}
+
+void World::addMob(int t,float x,float y){
+	mob.push_back(new Mob(t));
+	mob.back()->spawn(x,y);
+	
+	entity.push_back(mob.back());
+}
+
+void World::addNPC(float x,float y){
+	npc.push_back(new NPC());
+	npc.back()->spawn(x,y);
+	
+	entity.push_back(npc.back());
 }
 
 /*
@@ -644,9 +667,7 @@ void IndoorWorld::draw(Player *p){
 			glVertex2i(x_start+i*HLINE		,line[i].y-50);
 		}
 	glEnd();
-	for(i=0;i<entity.size();i++){
-		if(entity[i]->inWorld==this)
-			entity[i]->draw();
-	}
+	for(i=0;i<entity.size();i++)
+		entity[i]->draw();
 	p->draw();
 }

@@ -5,11 +5,6 @@
 
 extern World	*currentWorld;
 extern Player	*player;
-extern std::vector<Entity		*>	entity;
-extern std::vector<Structures	*>	build;
-extern std::vector<Mob			*>	mob;
-extern std::vector<NPC			*>	npc;
-
 
 extern void mainLoop(void);
 
@@ -23,7 +18,7 @@ int giveTestQuest(NPC *speaker){
 	unsigned int i;
 	ui::dialogBox(speaker->name,"Here, have a quest!");
 	player->qh.assign("Test");
-	npc[1]->addAIFunc(compTestQuest,true);
+	currentWorld->npc[1]->addAIFunc(compTestQuest,true);
 	return 0;
 }
 
@@ -75,9 +70,7 @@ void initEverything(void){
 	 *	Create a structure (this will create villagers when spawned).
 	*/
 	
-	build.push_back(new Structures());
-	entity.push_back(build.back());
-	build.back()->spawn(STRUCTURET,(rand()%120*HLINE),10);
+	currentWorld->addStructure(STRUCTURET,(rand()%120*HLINE),10);
 	
 	/*
 	 *	Generate an indoor world and link the structure to it. 
@@ -85,26 +78,19 @@ void initEverything(void){
 	
 	IndoorWorld *iw=new IndoorWorld();
 	iw->generate(200);
-	build.back()->inside=iw;
+	currentWorld->build.back()->inside=iw;
 
 	/*
 	 *	Spawn a mob. 
 	*/
 	
-	mob.push_back(new Mob(MS_RABBIT));
-	entity.push_back(mob.back());
-	mob.back()->spawn(200,100);
-
-	mob.push_back(new Mob(MS_BIRD));
-	entity.push_back(mob.back());
-	mob.back()->spawn(-500,500);
+	currentWorld->addMob(MS_RABBIT,200,100);
+	currentWorld->addMob(MS_BIRD,-500,500);
 	
 	/*
 	 *	Link all the entities that were just created to the initial world, and setup a test AI function. 
 	*/
-	npc[0]->addAIFunc(giveTestQuest,false);
 	
-	for(i=0;i<entity.size();i++){
-		entity[i]->inWorld=currentWorld;
-	}
+	currentWorld->npc[0]->addAIFunc(giveTestQuest,false);
+	
 }

@@ -81,17 +81,10 @@ float handAngle;
  * 						Entity-derived object that is not pointed to in the entity
  * 						array.
  *
- *	entity			 -	Contains pointers to 'all' entities that have been created in
- * 						the game, including NPCs, Structures, and Mobs. World draws
- * 						and entity handling done by the world cycle through entities
- * 						using this array. Entities made that aren't added to this
- * 						array probably won't be noticable by the game.
- *
 */
 
 World  							*currentWorld=NULL;
 Player 							*player;
-extern std::vector<Entity *	>	 entity;
 
 /*
  *	Tells if player is currently inside a structure.
@@ -542,20 +535,7 @@ void mainLoop(void){
 	 *	Update player and entity coordinates.
 	*/
 	
-	player->loc.y+= player->vel.y				*deltaTime;
-	player->loc.x+=(player->vel.x*player->speed)*deltaTime;
-	
-	for(auto &e : entity){
-		
-		if( e->type == NPCT ||
-		    e->type == MOBT ){
-			e->loc.x += e->vel.x * deltaTime;
-			e->loc.y += e->vel.y * deltaTime;
-		
-				 if(e->vel.x < 0)e->left = true;
-			else if(e->vel.x > 0)e->left = false;
-		}
-	}
+	currentWorld->update(player,deltaTime);
 	
 	/*
 	 * 	Update debug variables if necessary
@@ -847,7 +827,7 @@ void render(){
 					curCoord.x += float((HLINE) * cos(angle*PI/180));
 					curCoord.y += float((HLINE) * sin(angle*PI/180));
 				}
-				for(auto &en : entity){
+				for(auto &en : currentWorld->entity){
 					if(curCoord.x > en->loc.x && curCoord.x < en->loc.x + en->width){
 						if(curCoord.y > en->loc.y && curCoord .y < en->loc.y + en->height){
 							r.end = curCoord;
@@ -907,7 +887,7 @@ void render(){
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
 					SCREEN_HEIGHT,				//
-					entity.size(),				// Size of entity array
+					currentWorld->entity.size(),// Size of entity array
 					player->loc.x,				// The player's x coordinate
 					debugY,						// The player's y coordinate
 					tickCount,
@@ -1007,109 +987,88 @@ void logic(){
 	 *
 	*/
 
-	for(int i = 0 ; i < entity.size(); i++){
-		
-		/*
-		 *	Check if the entity is in this world and is alive.
-		*/
-
-		if(entity[i]->inWorld == currentWorld &&
-		   entity[i]->alive){
-
+	for(auto &n : currentWorld->npc){
+		if(n->alive){
 			/*
-			 *	Switch on the entity's type and handle them accordingly
+			 *	Make the NPC 'wander' about the world if they're allowed to do so.
+			 *	Entity->canMove is modified when a player interacts with an NPC so
+			 *	that the NPC doesn't move when it talks to the player.
+			 *
 			*/
 
-			switch(entity[i]->type){
+			if(n->canMove) n->wander((rand() % 120 + 30));
 
-			case NPCT:	// Handle NPCs
+			/*
+			 *	Don't bother handling the NPC if another has already been handled.
+			*/
+
+			if(NPCSelected){
+				n->near=false;
+				break;
+			}
+
+			/*
+			 *	Check if the NPC is under the mouse.
+			*/
+
+			if(ui::mouse.x >= n->loc.x 				&&
+			   ui::mouse.x <= n->loc.x + n->width 	&&
+			   ui::mouse.y >= n->loc.y				&&
+			   ui::mouse.y <= n->loc.y + n->width	){
 
 				/*
-				 *	Make the NPC 'wander' about the world if they're allowed to do so.
-				 *	Entity->canMove is modified when a player interacts with an NPC so
-				 *	that the NPC doesn't move when it talks to the player.
+				 *	Check of the NPC is close enough to the player for interaction to be
+				 *	considered legal. In other words, require the player to be close to
+				 *	the NPC in order to interact with it.
+				 *
+				 *	This uses the Pythagorean theorem to check for NPCs within a certain
+				 *	radius (40 HLINEs) of the player's coordinates.
 				 *
 				*/
 
-				if(entity[i]->canMove)
-					NPCp(entity[i])->wander((rand() % 120 + 30));
-
-				/*
-				 *	Don't bother handling the NPC if another has already been handled.
-				*/
-
-				if(NPCSelected){
-					entity[i]->near=false;
-					break;
-				}
-
-				/*
-				 *	Check if the NPC is under the mouse.
-				*/
-
-				if(ui::mouse.x >= entity[i]->loc.x 						&&
-				   ui::mouse.x <= entity[i]->loc.x + entity[i]->width 	&&
-				   ui::mouse.y >= entity[i]->loc.y						&&
-				   ui::mouse.y <= entity[i]->loc.y + entity[i]->width	){
+				if(pow((n->loc.x - player->loc.x),2) + pow((n->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
 
 					/*
-					 *	Check of the NPC is close enough to the player for interaction to be
-					 *	considered legal. In other words, require the player to be close to
-					 *	the NPC in order to interact with it.
-					 *
-					 *	This uses the Pythagorean theorem to check for NPCs within a certain
-					 *	radius (40 HLINEs) of the player's coordinates.
-					 *
+					 *	Set Entity->near so that this NPC's name is drawn under them, and toggle NPCSelected
+					 *	so this NPC is the only one that's clickable.
 					*/
 
-					if(pow((entity[i]->loc.x - player->loc.x),2) + pow((entity[i]->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
+					n->near=true;
+					NPCSelected=true;
 
-						/*
-						 *	Set Entity->near so that this NPC's name is drawn under them, and toggle NPCSelected
-						 *	so this NPC is the only one that's clickable.
-						*/
+					/*
+					 *	Check for a right click, and allow the NPC to interact with the
+					 *	player if one was made.
+					*/
 
-						entity[i]->near=true;
-						NPCSelected=true;
+					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 
-						/*
-						 *	Check for a right click, and allow the NPC to interact with the
-						 *	player if one was made.
-						*/
+						n->interact();
+						Mix_PlayChannel( -1, horn, 0);	// Audio feedback
 
-						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-
-							NPCp(entity[i])->interact();
-							Mix_PlayChannel( -1, horn, 0);	// Audio feedback
-
-						}
 					}
+				}
 
 				/*
 				 *	Hide the NPC's name if the mouse isn't on the NPC.
 				*/
 
-				}else entity[i]->near=false;
+			}else n->near=false;
+		}
+	}
 
-				break;	// End case NPCT
+	for(auto &m : currentWorld->mob){
+		if(m->alive){
 
-			case MOBT:	// Handle Mobs
+			/*
+			 *	Run the Mob's AI function.
+			*/
 
-				/*
-				 *	Run the Mob's AI function.
-				*/
-
-				switch(entity[i]->subtype){
-				case MS_RABBIT:
-				case MS_BIRD:
-					Mobp(entity[i])->wander((rand()%240 + 15));	// Make the mob wander
-					break;
-				}
-
-				break;	// End case MOBT
-
-			default:break;
-
+			switch(m->subtype){
+			case MS_RABBIT:
+			case MS_BIRD:
+				m->wander((rand()%240 + 15));	// Make the mob wander :)
+				break;
 			}
 		}
 	}

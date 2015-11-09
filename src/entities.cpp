@@ -1,13 +1,10 @@
 #include <entities.h>
 #include <ui.h>
 
-std::vector<Entity		*>	entity;
-std::vector<NPC			*>	npc;
-std::vector<Structures	*>	build;
-std::vector<Mob			*>	mob;
-
 extern FILE* names;
 extern unsigned int loops;
+
+extern World *currentWorld;
 
 void Entity::spawn(float x, float y){	//spawns the entity you pass to it based off of coords and global entity settings
 	loc.x = x;
@@ -317,10 +314,7 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 			 *	with type NPC by using polymorphism.
 			*/
 			
-			npc.push_back(new NPC());
-			npc.back()->spawn(loc.x+(i-5),100);
-			
-			entity.push_back(npc.back());
+			currentWorld->addNPC(loc.x+(i-5),100);
 			
 		}
 		break;
