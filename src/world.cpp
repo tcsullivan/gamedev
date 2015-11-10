@@ -2,11 +2,6 @@
 
 #define getWidth(w) ((w->lineCount-GEN_INC)*HLINE)	// Calculates the width of world 'w'
 
-#define GEN_INC 10		// Defines at what interval y values should be calculated for the array 'line'.
-						// As explained in World(), the last few lines in the array 'line' are incorrectly calculated
-						// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
-						// and detect().
-
 #define GEN_MIN  80
 #define GEN_MAX  110
 #define GEN_INIT 60
@@ -166,13 +161,15 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	x_start=0 - getWidth(this) / 2;
 }
 
-void World::generateFunc(unsigned int width,unsigned int (*func)(unsigned int)){
+void World::generateFunc(unsigned int width,float(*func)(float)){
 	unsigned int i;
 	if((lineCount = width) <= 0)
 		abort();
 	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));
 	for(i=0;i<lineCount;i++){
 		line[i].y=func(i);
+		if(line[i].y<0)line[i].y=0;
+		if(line[i].y>2000)line[i].y=2000;
 		line[i].color=rand() % 20 + 100;
 		line[i].gh[0]=(getRand() % 16) / 3.5 + 2;
 		line[i].gh[1]=(getRand() % 16) / 3.5 + 2;
@@ -584,7 +581,7 @@ void World::addLayer(unsigned int width){
 }
 
 World *World::goWorldLeft(Player *p){
-	if(toLeft&&p->loc.x<x_start+HLINE*10){
+	if(toLeft&&p->loc.x<x_start+HLINE*15){
 		p->loc.x=toLeft->x_start+getWidth(toLeft)-HLINE*10;
 		p->loc.y=toLeft->line[0].y;
 		return toLeft;

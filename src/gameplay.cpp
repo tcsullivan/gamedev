@@ -22,6 +22,10 @@ int giveTestQuest(NPC *speaker){
 	return 0;
 }
 
+float playerSpawnHillFunc(float x){
+	x=-x;
+	return (float)(pow(2,(x+200)/5) + 80);
+}
 void initEverything(void){
 	unsigned int i;
 	
@@ -30,6 +34,7 @@ void initEverything(void){
 	*/
 	
 	World *test=new World();
+	World *playerSpawnHill=new World();
 	
 	/*
 	 *	Load the saved world if it exists, otherwise generate a new one.
@@ -47,24 +52,29 @@ void initEverything(void){
 		fread(buf,1,size,worldLoad);
 		test->load(buf);
 	}else{*/
-		test->generate(SCREEN_WIDTH * 2);
+		test->generate(SCREEN_WIDTH*2);
 		test->addHole(100,150);
 	//}
 	
 	test->addLayer(400);
 	
+	playerSpawnHill->generateFunc(1280,playerSpawnHillFunc);
+	//playerSpawnHill->generate(1920);
+
 	/*
 	 *	Setup the current world, making the player initially spawn in `test`.
 	*/
 	
-	currentWorld=test;
+	currentWorld=playerSpawnHill;
+	playerSpawnHill->toRight=test;
+	test->toLeft=playerSpawnHill;
 	
 	/*
 	 *	Create the player.
 	*/
 	
 	player=new Player();
-	player->spawn(0,200);
+	player->spawn(-1000,200);
 	
 	/*
 	 *	Create a structure (this will create villagers when spawned).

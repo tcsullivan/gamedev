@@ -4,6 +4,11 @@
 #include <common.h> // For HLINE, vec2, OpenGL utilities, etc.
 #include <entities.h>
 
+#define GEN_INC 10		// Defines at what interval y values should be calculated for the array 'line'.
+						// As explained in World(), the last few lines in the array 'line' are incorrectly calculated
+						// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
+						// and detect().
+
 struct line_t {
 	bool gs;
 	float y,gh[2];
@@ -95,7 +100,7 @@ public:
 	*/
 	
 	virtual void generate(unsigned int width);
-	void generateFunc(unsigned int width,unsigned int (*func)(unsigned int));
+	void generateFunc(unsigned int width,float(*func)(float));
 	
 	/*
 	 *	Looks for the furthest back layer in this world and adds a new layer of width `width` behind it.
