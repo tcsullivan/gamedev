@@ -82,7 +82,8 @@ void initEverything(void){
 	
 	IndoorWorld *iw=new IndoorWorld();
 	iw->generate(200);
-	currentWorld->addStructure(STRUCTURET,(rand()%120*HLINE),10,iw);
+	
+	currentWorld->addStructure(STRUCTURET,(rand()%120*HLINE),10,test,iw);
 	
 	/*
 	 *	Spawn a mob. 

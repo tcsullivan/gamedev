@@ -471,21 +471,36 @@ void World::singleDetect(Entity *e){
 		*/
 		
 		if(e->loc.y < line[i].y){
-		  
-			e->ground=true;
 			
-			e->vel.y=0;
-			e->loc.y=line[i].y - .001 * deltaTime;
+			/*
+			 *	Check that the entity isn't trying to run through a wall.
+			*/
+			
+			if(e->loc.y + e->height > line[i-(int)e->width/2/HLINE].y &&
+			   e->loc.y + e->height > line[i+(int)e->width/2/HLINE].y ){
+			
+				e->loc.y=line[i].y - .001 * deltaTime;
+				e->ground=true;
+				e->vel.y=0;
+				
+			}else{
+				
+				/*
+				 *	Push the entity out of the wall if it's trying to go through it.
+				*/
+				
+				do{
+					e->loc.x+=.001 * e->vel.x>0?-1:1;
+					i=(e->loc.x - e->width / 2 - x_start) / HLINE;
+				}while(line[i].y>e->loc.y+ e->height);
+				
+			}
 		
 		/*
-		 *	Otherwise, if the entity is above the line... 
+		 *	Handle gravity if the entity is above the line.
 		*/
 		
 		}else{
-			
-			/*
-			 *	Handle gravity.
-			*/
 			
 			if(e->vel.y > -2)e->vel.y-=.001 * deltaTime;
 			
@@ -510,44 +525,26 @@ void World::singleDetect(Entity *e){
 }
 
 void World::detect(Player *p){
-	World *hey;
 	
 	/*
 	 *	Handle the player. 
 	*/
 	
 	singleDetect(p);
-	
+		
 	/*
 	 *	Handle all remaining entities in this world. 
 	*/
 	
-	 hey = this;
-
-LOOP:
-
-	if(hey->behind){
-		hey=hey->behind;
-		goto LOOP;
-	}
-
-LOOP2:
-	
-	for(auto &e : hey->entity)
+	for(auto &e : entity)
 		singleDetect(e);
-		
-	if(hey->infront){
-		hey=hey->infront;
-		goto LOOP2;
-	}
 }
 
-void World::addStructure(_TYPE t,float x,float y,void *inside){
+void World::addStructure(_TYPE t,float x,float y,World *outside,World *inside){
 	build.push_back(new Structures());
 	build.back()->spawn(t,x,y);
-	build.back()->inside=inside;
-	
-	std::cout<<"inside: "<<build.back()->inside<<" "<<inside<<std::endl;
+	build.back()->inWorld=outside;
+	build.back()->inside=(void *)inside;
 	
 	entity.push_back(build.back());
 }
@@ -583,7 +580,7 @@ void World::addLayer(unsigned int width){
 World *World::goWorldLeft(Player *p){
 	if(toLeft&&p->loc.x<x_start+HLINE*15){
 		p->loc.x=toLeft->x_start+getWidth(toLeft)-HLINE*10;
-		p->loc.y=toLeft->line[0].y;
+		p->loc.y=toLeft->line[toLeft->lineCount-GEN_INC-1].y;
 		return toLeft;
 	}
 	return this;
@@ -612,7 +609,26 @@ World *World::goWorldFront(Player *p){
 	return this;
 }
 
+std::vector<void *>thing;
 World *World::goInsideStructure(Player *p){
+	if(!thing.size()){
+		for(auto &b : build){
+			if(p->loc.x            > b->loc.x            &&
+			   p->loc.x + p->width < b->loc.x + b->width ){
+				thing.push_back(this);
+				return (World *)b->inside;
+			}
+		}
+	}else{
+		for(auto &b : ((World *)thing.back())->build){
+			if(b->inside == this){
+				World *tmp = (World *)thing.back();
+				p->loc.x = b->loc.x + (b->width / 2) - (p->width / 2);
+				thing.erase(thing.end()-1);
+				return tmp;
+			}
+		}
+	}
 	return this;
 }
 

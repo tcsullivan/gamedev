@@ -37,10 +37,6 @@ protected:
 	struct line_t *line;
 	
 	/*
-	 *	Keeps a dynamically allocated array of platforms in the world.
-	*/
-	
-	/*
 	 *	Contains the starting x-coordinate to draw the world at. This should be equal to
 	 *	- getWidth() (see world.cpp) / 2
 	*/
@@ -81,7 +77,7 @@ public:
 	std::vector<Mob			*>	mob;
 	std::vector<Entity		*>	entity;
 	
-	void addStructure(_TYPE t,float x,float y,void *inside);
+	void addStructure(_TYPE t,float x,float y,World *outside,World *inside);
 	void addMob(int t,float x,float y);
 	void addNPC(float x,float y);
 	

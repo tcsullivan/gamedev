@@ -266,3 +266,10 @@
 	- added drawing/handling of entities on all layers at all times
 	- removed building entering/exiting
 	- andy broke SDL cuz he's bad
+	
+11/10/2015:
+===========
+
+	- fixed building entering/exiting
+	- prototyped first world for story-line-thing
+	- andy fixes sdl
