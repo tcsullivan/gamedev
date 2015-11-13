@@ -7,17 +7,37 @@ extern World	*currentWorld;
 extern Player	*player;
 extern void mainLoop(void);
 
+void waitForDialog(void){
+	do{
+		mainLoop();
+	}while(ui::dialogBoxExists);
+}
+
 int compTestQuest(NPC *speaker){
-	ui::dialogBox(speaker->name,"Ooo, that's a nice quest you got there. Lemme finish that for you ;).");
+	ui::dialogBox(speaker->name,NULL,"Ooo, that's a nice quest you got there. Lemme finish that for you ;).");
 	player->qh.finish("Test",player);
 	return 0;
 }
 
 int giveTestQuest(NPC *speaker){
-	unsigned int i;
-	ui::dialogBox(speaker->name,"Here, have a quest!");
-	player->qh.assign("Test");
-	currentWorld->npc[1]->addAIFunc(compTestQuest,true);
+	unsigned char i;
+	
+	char opt[]=":Yes:No";
+	ui::dialogBox(speaker->name,opt,"Here, have a quest!");
+	
+	waitForDialog();
+	
+	if(ui::dialogOptChosen == 1){
+	
+		ui::dialogBox(speaker->name,NULL,"Have a good day! :)");
+
+		waitForDialog();
+
+		player->qh.assign("Test");
+		currentWorld->npc[1]->addAIFunc(compTestQuest,true);
+		
+	}else return 1;
+	
 	return 0;
 }
 

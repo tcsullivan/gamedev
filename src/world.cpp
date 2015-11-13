@@ -621,7 +621,7 @@ World *World::goWorldLeft(Player *p){
 World *World::goWorldRight(Player *p){
 	if(toRight&&p->loc.x+p->width>x_start+getWidth(this)-HLINE*10){
 		p->loc.x=toRight->x_start+HLINE*10;
-		p->loc.y=toRight->line[toRight->lineCount-GEN_INC-1].y;
+		p->loc.y=toRight->line[0].y;
 		return toRight;
 	}
 	return this;

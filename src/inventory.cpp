@@ -145,7 +145,7 @@ int Inventory::useItem(void){
 	ITEM_ID id = item[sel].id;
 	switch(id){
 	default:
-		ui::dialogBox(itemName[id],"You cannot use this item.");
+		ui::dialogBox(itemName[id],NULL,"You cannot use this item.");
 		break;
 	}
 	return 0;

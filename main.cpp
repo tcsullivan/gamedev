@@ -549,7 +549,9 @@ void mainLoop(void){
 	}else if(!(debugDiv%10)){
 		debugY = player->loc.y;
 	}	
+
 	render();	// Call the render loop
+	
 }
 
 extern bool fadeEnable;
@@ -1041,8 +1043,10 @@ void logic(){
 
 					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 
-						n->interact();
-						Mix_PlayChannel( -1, horn, 0);	// Audio feedback
+						if(!ui::dialogBoxExists){
+							n->interact();
+							Mix_PlayChannel( -1, horn, 0);	// Audio feedback
+						}
 
 					}
 				}
