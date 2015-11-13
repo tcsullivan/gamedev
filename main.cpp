@@ -215,7 +215,7 @@ typedef enum {
 	RAIN
 } WEATHER;
 
-#define DAY_CYCLE 3000
+#define DAY_CYCLE 2000
 
 static WEATHER weather = SUNNY;
 static vec2 star[100];
@@ -541,16 +541,17 @@ void mainLoop(void){
 	 * 	Update debug variables if necessary
 	*/
 	
-	if(++debugDiv==20){
-		debugDiv=0;
-		
-		fps=1000/deltaTime;
-		
-	}else if(!(debugDiv%10)){
-		debugY = player->loc.y;
+	if(ui::debug){
+		if(++debugDiv==20){
+			debugDiv=0;
+			fps=1000/deltaTime;
+		}else if(!(debugDiv%10)){
+			debugY = player->loc.y;
+		}
 	}
 	
 	render();	// Call the render loop
+	
 }
 
 extern bool fadeEnable;
@@ -1043,8 +1044,10 @@ void logic(){
 
 					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 
-						n->interact();
-						Mix_PlayChannel( -1, horn, 0);	// Audio feedback
+						if(!ui::dialogBoxExists){
+							n->interact();
+							Mix_PlayChannel( -1, horn, 0);	// Audio feedback
+						}
 
 					}
 				}

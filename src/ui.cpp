@@ -1,32 +1,88 @@
 #include <ui.h>
 
-#define SDL_KEY e.key.keysym.sym	// Keeps the code neater :)
+/*
+ *	Create a macro to easily access SDL keypresses
+*/
 
-extern Player *player;			// 'player' should be (must be) defined in main.cpp
-extern World  *currentWorld;	// should/must also be defined in main.cpp
+#define SDL_KEY e.key.keysym.sym
 
-extern std::vector<int (*)(NPC *)> AIpreload;	// see entities.cpp
-extern std::vector<NPC *> AIpreaddr;			//
+/*
+ *	External references for updating player coords / current world.
+*/
+
+extern Player *player;
+extern World  *currentWorld;
+
+/*
+ *	In the case of dialog, some NPC quests can be preloaded so that they aren't assigned until
+ *	the dialog box closes. Reference variables for that here.
+*/
+
+extern std::vector<int (*)(NPC *)> AIpreload;
+extern std::vector<NPC *> AIpreaddr;
+
+/*
+ *	Pressing ESC or closing the window will set this to false.
+*/
 
 extern bool gameRunning;
 
-static FT_Library   ftl;		// Variables for the FreeType library and stuff
+/*
+ *	Freetype variables, and a GLuint for referencing rendered letters.
+*/
+
+static FT_Library   ftl;
 static FT_Face      ftf;
 static GLuint       ftex;
 
-static char *dialogBoxText;
+static unsigned char fontColor[3] = {255,255,255};
+
+/*
+ *	Variables for dialog boxes / options.
+*/
+
+static char *dialogBoxText			= NULL;
+static char *dialogOptText[4];
+static int   dialogOptLoc[4][3];
+static unsigned char dialogOptCount = 0;
+
+/*
+ *	Toggled by pressing 'q', disables some controls when true.
+*/
 
 bool fadeEnable = false;
 
 namespace ui {
+	
+	/*
+	 *	Mouse coordinates.
+	*/
+	
 	vec2 mouse;
+	
+	/*
+	 *	Debugging flags.
+	*/
+	
 	bool debug=false;
 	bool posFlag=false;
+	
+	/*
+	 *	Dialog stuff that needs to be 'public'.
+	*/
+	
 	bool dialogBoxExists=false;
+	unsigned char dialogOptChosen = 0;
+	
+	/*
+	 *	Current font size. Changing this WILL NOT change the font size, see setFontSize() for
+	 *	actual font size changing.
+	*/
+	
 	unsigned int fontSize;
 
 	/*
-	 * initFonts(), setFontFace(), and setFontSize() are pretty self-explanatory
+	 *	Initialises the Freetype library, and sets a font size.
 	*/
 
 	void initFonts(void){
@@ -34,11 +90,16 @@ namespace ui {
 			std::cout<<"Error! Couldn't initialize freetype."<<std::endl;
 			abort();
 		}
-		fontSize=12; // to be safe
+		fontSize=12;
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
 	}
+	
+	/*
+	 *	Sets a new font family to use (*.ttf).
+	*/
+	
 	void setFontFace(const char *ttf){
 		if(FT_New_Face(ftl,ttf,0,&ftf)){
 			std::cout<<"Error! Couldn't open "<<ttf<<"."<<std::endl;
@@ -48,20 +109,48 @@ namespace ui {
 		DEBUG_printf("Using font %s\n",ttf);
 #endif // DEBUG
 	}
+	
+	/*
+	 *	Sets a new font size (default: 12).
+	*/
+	
 	void setFontSize(unsigned int size){
 		fontSize=size;
 		FT_Set_Pixel_Sizes(ftf,0,fontSize);
 	}
+	
+	/*
+	 *	Set a color for font rendering (default: white).
+	*/
+	
+	void setFontColor(unsigned char r,unsigned char g,unsigned char b){
+		fontColor[0]=r;
+		fontColor[1]=g;
+		fontColor[2]=b;
+	}
+	
+	/*
+	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
+	*/
+	
 	float putChar(float x,float y,char c){
-		unsigned int j;
+		unsigned int i;
 		char *buf;
 		float w,h;
-		// Load the first/next character (if possible)
+		
+		/*
+		 *	Load the character from the font family library.
+		*/
+		
 		if(FT_Load_Char(ftf,c,FT_LOAD_RENDER)){
 			std::cout<<"Error! Unsupported character "<<c<<" ("<<(int)c<<")."<<std::endl;
 			abort();
 		}
-		// Load the bitmap with OpenGL
+		
+		/*
+		 *	Load the character into a texture for rendering.
+		*/
+		
 		//glActiveTexture(GL_TEXTURE0);
 		glGenTextures(1,&ftex);
 		glBindTexture(GL_TEXTURE_2D,ftex);
@@ -70,30 +159,41 @@ namespace ui {
 		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+		
 		/*
-		 *	ftf->glyph->bitmap.buffer simply stores a bitmap of the character,
-		 * 	and if OpenGL tries to load it directly it'll mistake it as a simple
-		 * 	red on black texture. Here we allocate enough space to convert this
-		 * 	bitmap to an RGBA-type buffer, also making the text white on black.
-		 * 
-		 * 	TODO: allow different colors
+		 *	The just-created texture will render red-on-black if we don't do anything to it, so
+		 *	here we create a buffer 4 times the size and transform the texture into an RGBA array,
+		 *	making it white-on-black.
 		*/
+		
 		buf=(char *)malloc(ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows*4);
-		for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
-			buf[j*4]=255;
-			buf[j*4+1]=255;
-			buf[j*4+2]=255;
-			buf[j*4+3]=ftf->glyph->bitmap.buffer[j]?255:0;
+		
+		for(i=0;i<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;i++){
+			buf[i*4  ]=fontColor[0];
+			buf[i*4+1]=fontColor[1];
+			buf[i*4+2]=fontColor[2];
+			buf[i*4+3]=ftf->glyph->bitmap.buffer[i]?255:0;
 		}
+		
 		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf);
-		// Draw the texture and move the cursor
+		
+		/*
+		 *	Get the width and height of the rendered character.
+		*/
+		
 		w=ftf->glyph->bitmap.width;
 		h=ftf->glyph->bitmap.rows;
+		
+		/*
+		 *	Draw the character:
+		*/
+		
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D,ftex);
-		switch(c){	// Some characters are not properly spaced, make them so here
-		case '^':
-		case '*':
+		
+		switch(c){						//		We're bad, so in here we adjust the y of
+		case '^':						//		some letters so that they look like they
+		case '*':						//		fit.
 		case '`':
 		case '\'':
 		case '\"':
@@ -110,6 +210,7 @@ namespace ui {
 		case 'j':y-=fontSize/4;break;
 		default:break;
 		}
+		
 		glBegin(GL_QUADS);
 			glColor3ub(255,255,255);
 			glTexCoord2f(0,1);glVertex2f(x,y);
@@ -117,75 +218,175 @@ namespace ui {
 			glTexCoord2f(1,0);glVertex2f(x+w,y+h);
 			glTexCoord2f(0,0);glVertex2f(x,y+h);
 		glEnd();
+		
 		glDisable(GL_TEXTURE_2D);
-		// Free the RGBA buffer and the OpenGL texture
+		
+		/*
+		 *	Free resources, and return the width.
+		*/
+		
 		free(buf);
 		glDeleteTextures(1,&ftex);
+		
 		return w;
 	}
+	
+	/*
+	 *	Draw a string at the specified coordinates.
+	*/
+	
 	float putString(const float x,const float y,const char *s){
 		unsigned int i=0,j;
 		float xo=x,yo=y,pw=0;
+		
+		/*
+		 *	Loop on each character:
+		*/
+		
 		do{
-			if(s[i]=='\n'){
+			if(s[i]=='\n'){			//	Handle newlines
 				yo-=fontSize*1.05;
 				xo=x;
-			}else if(s[i]==' '){
+			}else if(s[i]==' '){	//	Handle spaces
 				xo+=fontSize/2;
-			}else if(s[i]=='\b'){
+			}else if(s[i]=='\b'){	//	Handle backspaces?
 				xo-=pw;
 			}else{
 				pw=putChar(xo,yo,s[i])+fontSize*.1;
 				xo+=pw;
 			}
 		}while(s[++i]);
-		return xo;
+		
+		return xo;	// i.e. the string width
 	}
+	
+	/*
+	 *	Draw a string in a typewriter-esque fashion. Each letter is rendered as calls are made
+	 *	to this function. Passing a different string to the function will reset the counters.
+	*/
+	
 	char *typeOut(char *str){
-		static unsigned int sinc,linc,size=0;
+		static unsigned int sinc,	//	Acts as a delayer for the space between each character.
+							linc=0,	//	Contains the number of letters that should be drawn.
+							size=0;	//	Contains the full size of the current string.
 		static char *ret = NULL;
 		unsigned int i;
-		if(!ret)ret=(char *)calloc(512,sizeof(char));
-		if(size != strlen(str)){
-			memset(ret,0,512);
-			size=strlen(str);
-			linc=0;
+		
+		/*
+		 *	Create a well-sized buffer if we haven't yet.
+		*/
+		
+		if(!ret) ret=(char *)calloc(512,sizeof(char));
+		
+		/*
+		 *	Reset values if a new string is being passed.
+		*/
+		
+		if(!size || ((linc>15)&(strncmp(ret,str,15)))){
+			memset(ret,0,512);		//	Zero the buffer
+			size=strlen(str);		//	Set the new target string size
+			linc=0;					//	Reset the incrementers
 			sinc=1;
 		}
+		
+		/*
+		 *	Draw the next letter if necessary.
+		*/
+		
 		if(++sinc==2){
 			sinc=0;
-			strncpy(ret+linc,str+linc,1);
+			
+			strncpy(ret+linc,str+linc,1);	//	Get next character
+			
 			if(linc<size)linc++;
 		}
-		return ret;
+		
+		return ret;		//	The buffered string.
 	}
-	float putText(const float x,const float y,const char *str,...){	// putText() simply runs 'str' and the extra arguments though
-		va_list args;												// vsnprintf(), which'll store the complete string to a buffer
-		char *buf;													// that's then passed to putString()
+	
+	/*
+	 *	Draw a formatted string to the specified coordinates.
+	*/
+	
+	float putText(const float x,const float y,const char *str,...){
+		va_list args;
+		char *buf;
 		float width;
+		
+		/*
+		 *	Create a wimpy buffer.
+		*/
+		
 		buf=(char *)calloc(128,sizeof(char));
+		
+		/*
+		 *	Handle the formatted string, printing it to the buffer.
+		*/
+		
 		va_start(args,str);
 		vsnprintf(buf,128,str,args);
 		va_end(args);
+		
+		/*
+		 *	Draw the string, free resources, return the width of the string.
+		*/
+		
 		width=putString(x,y,buf);
 		free(buf);
+		
 		return width;
 	}
-	void dialogBox(const char *name,const char *text,...){
-		unsigned int name_len;
+	
+	void dialogBox(const char *name,char *opt,const char *text,...){
 		va_list dialogArgs;
+		unsigned int len;
+		char *sopt;
+		
+		/*
+		 *	Set up the text buffer.
+		*/
+		
+		if(!dialogBoxText) dialogBoxText=(char *)malloc(512);
+		memset(dialogBoxText,0,512);
+		
+		/*
+		 *	Get the text ready for rendering.
+		*/
+		
+		len=strlen(name);
+		strcpy(dialogBoxText    ,name);
+		strcpy(dialogBoxText+len,": ");
+		len+=2;
+		
 		va_start(dialogArgs,text);
-		dialogBoxExists=true;
-		if(dialogBoxText){
-			free(dialogBoxText);
-			dialogBoxText=NULL;
-		}
-		dialogBoxText=(char *)calloc(512,sizeof(char));
-		name_len=strlen(name);
-		strcpy(dialogBoxText,name);
-		strcpy(dialogBoxText+strlen(name),": ");
-		vsnprintf(dialogBoxText+name_len+2,512-name_len-2,text,dialogArgs);
+		vsnprintf(dialogBoxText+len,512-len,text,dialogArgs);
 		va_end(dialogArgs);
+				
+		/*
+		 *	Set up option text.
+		*/
+		
+		while(dialogOptCount){
+			if(dialogOptText[dialogOptCount])
+				free(dialogOptText[dialogOptCount]);
+			dialogOptCount--;
+		};
+		dialogOptChosen=0;
+		dialogOptCount=0;
+		
+		sopt=strtok(opt,":");
+		while(sopt != NULL){
+			dialogOptText[dialogOptCount]=(char *)malloc(strlen(sopt));
+			strcpy(dialogOptText[dialogOptCount++],sopt);
+			sopt=strtok(NULL,":");
+		}
+		
+		/*
+		 *	Tell draw() that the box is ready. 
+		*/
+		
+		dialogBoxExists = true;
+		
 	}
 	void importantText(const char *text,...){
 		va_list textArgs;
@@ -204,17 +405,39 @@ namespace ui {
 		free(ttext);
 	}
 	void draw(void){
+		unsigned char i;
 		float x,y;
+		char *rtext;
+		
 		if(dialogBoxExists){
+			
 			glColor3ub(0,0,0);
 			x=player->loc.x-SCREEN_WIDTH/2+HLINE*8;
 			y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
+			
 			glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
-			char *rtext;
+			
 			rtext=typeOut(dialogBoxText);
+			
 			setFontSize(16);
 			putString(x+HLINE,y-fontSize-HLINE,rtext);
+			
+			for(i=0;i<dialogOptCount;i++){
+				if(mouse.x > dialogOptLoc[i][0] &&
+						   mouse.x < dialogOptLoc[i][2] &&
+						   mouse.y > dialogOptLoc[i][1] &&
+						   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
+					  setFontColor(255,255,0);
+				}else setFontColor(255,255,255);
+				dialogOptLoc[i][0]=x+HLINE;
+				dialogOptLoc[i][1]=y-SCREEN_HEIGHT/4+(fontSize+HLINE)*(i+1);
+				dialogOptLoc[i][2]=
+			
+				putString(x+HLINE,y-SCREEN_HEIGHT/4+(fontSize+HLINE)*(i+1),dialogOptText[i]);
+			}
+			setFontColor(255,255,255);
 		}
+		
 		setFontSize(14);
 		putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
 																							(unsigned)player->maxHealth);
@@ -227,6 +450,7 @@ namespace ui {
 		}
 	}
 	void handleEvents(void){
+		unsigned char i;
 		static bool left=false,right=false;
 		static vec2 premouse={0,0};
 		SDL_Event e;
@@ -243,8 +467,18 @@ namespace ui {
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if((e.button.button&SDL_BUTTON_RIGHT)&&dialogBoxExists){
+					for(i=0;i<dialogOptCount;i++){
+						if(mouse.x > dialogOptLoc[i][0] &&
+						   mouse.x < dialogOptLoc[i][2] &&
+						   mouse.y > dialogOptLoc[i][1] &&
+						   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
+							dialogOptChosen = i + 1;
+							goto DONE;
+						}
+					}
+DONE:
 					dialogBoxExists=false;
-					dialogBoxText=NULL;
+					//dialogBoxText=NULL;
 				}
 				break;
 			/*
@@ -306,9 +540,6 @@ namespace ui {
 				if(SDL_KEY==SDLK_e){
 					player->inv->useItem();
 				}
-				if(SDL_KEY==SDLK_c){
-					dialogBox("","You pressed `c`, but nothing happened?");
-				}
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = debug?4:3;							// Sprint
 				if(SDL_KEY==SDLK_LCTRL)player->speed = .5;
 			}
@@ -340,7 +571,6 @@ namespace ui {
 		
 		if(player->inv->tossd)player->inv->itemToss();
 		
-		unsigned int i;
 		if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary
 			for(i=0;i<AIpreaddr.size();i++){
 				AIpreaddr.front()->addAIFunc(AIpreload.front(),false);

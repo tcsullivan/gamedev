@@ -273,7 +273,7 @@ void NPC::interact(){ //have the npc's interact back to the player
 		func=aiFunc.front();
 		canMove=false;
 		if(!func(this)){
-			aiFunc.erase(aiFunc.begin());
+			if(aiFunc.size())aiFunc.erase(aiFunc.begin());
 		}
 		canMove=true;
 	}

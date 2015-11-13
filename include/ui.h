@@ -25,6 +25,8 @@ namespace ui {
 	extern bool debug;
 	extern bool posFlag;
 	extern unsigned int fontSize;
+	extern bool			 dialogBoxExists;
+	extern unsigned char dialogOptChosen;
 
 	/*
 	 *	Initializes the FreeType system.
@@ -57,7 +59,7 @@ namespace ui {
 	 *	limited until a right click is given, closing the box.
 	*/
 	
-	void dialogBox(const char *name,const char *text,...);
+	void dialogBox(const char *name,char *opt,const char *text,...);
 	
 	/*
 	 *	Draws a larger string in the center of the screen. Drawing is done inside this function.

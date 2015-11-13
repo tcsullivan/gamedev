@@ -273,3 +273,13 @@
 	- fixed building entering/exiting
 	- prototyped first world for story-line-thing
 	- andy fixes sdl
+
+11/12/2015:
+===========
+
+	- began documenting ui.cpp
+	- vastly improved dialog, added options/buttons
+	- improved world physics a lot
+	- created a generic object class
+	- began death handling stuffs
+	- added a quest list in-game
