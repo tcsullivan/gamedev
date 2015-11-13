@@ -1,4 +1,4 @@
-LIBS = -lGL -lGLEW -lSDL2main -lSDL2 -lfreetype -lSDL2_image -lSDL2_mixer
+LIBS = -lGL -lGLEW -lSDL2 -lfreetype -lSDL2_image -lSDL2_mixer
 
 WIN_LIBS = -lopengl32 -lglew32 -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
 

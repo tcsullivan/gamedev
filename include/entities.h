@@ -15,6 +15,7 @@
 #define NPC_INV_SIZE	3	// Size of an NPC's inventory
 
 enum _TYPE { //these are the main types of entities
+	OBJECTT = -2,
 	STRUCTURET = -1,
 	PLAYERT,
 	NPCT,
@@ -106,6 +107,13 @@ public:
 	void wander(int);
 };
 
+class Object : public Entity{
+public:
+	Object(int);
+	void interact();
+private:
+	int ID;
+};
 #endif // ENTITIES_H
 
 /**
