@@ -458,22 +458,33 @@ namespace ui {
 			setFontColor(255,255,255);
 		}
 		
-		putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
-																							(unsigned)player->maxHealth);
+		vec2 hub = {
+			(SCREEN_WIDTH/2+offset.x)-fontSize*10,
+			(offset.y+SCREEN_HEIGHT/2)-fontSize
+		};
+		
+		putText(hub.x,hub.y,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
+											(unsigned)player->maxHealth);
 		if(player->alive){
 			glColor3ub(255,0,0);
-			glRectf((SCREEN_WIDTH/2+offset.x)-125,
-					(offset.y+SCREEN_HEIGHT/2)-32,
-					((SCREEN_WIDTH/2+offset.x)-125)+((player->health/player->maxHealth)*100),
-					(offset.y+SCREEN_HEIGHT/2)-32+12);
+			hub.y-=fontSize*1.15;
+			glRectf(hub.x,
+					hub.y,
+					hub.x+(player->health/player->maxHealth)*100,
+					hub.y+12);
 		}
+		
 		/*
 		 * Lists all of the quests the player has
 		*/
-		putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize*4, "Current Quests:",NULL);
+		
+		hub.y-=fontSize*1.15;
+		
+		putString(hub.x,hub.y,"Current Quests:");
 
 		for(auto &c : player->qh.current){
-			putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize*5, "%s",c->title);
+			hub.y-=fontSize*1.15;
+			putString(hub.x,hub.y,c->title);
 		}
 	}
 	void handleEvents(void){
