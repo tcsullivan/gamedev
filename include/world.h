@@ -189,6 +189,14 @@ public:
 	void draw(Player *p);				// Draws the world (ignores layers)
 };
 
+class Arena : public World {
+private:
+	World *exit;
+public:
+	void drawDoor(void);
+	World *exitArena(void);
+};
+
 extern int worldShade;
 
 #endif // WORLD_H

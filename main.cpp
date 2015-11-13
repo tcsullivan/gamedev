@@ -878,8 +878,6 @@ void render(){
 
 	if(ui::debug){
 		
-		ui::setFontSize(16);
-		
 		ui::putText(offset.x-SCREEN_WIDTH/2,
 					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
 					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f",
@@ -893,6 +891,7 @@ void render(){
 					tickCount,
 					handAngle
 					);
+		
 		if(ui::posFlag){
 			glBegin(GL_LINES);
 				glColor3ub(255,0,0);
@@ -935,7 +934,7 @@ void render(){
 		if(fadeIntensity == 255){
 			ui::importantText("The screen is black.");
 		}
-	}
+	}else if(ui::fontSize != 16) ui::setFontSize(16);
 
 	/**************************
 	****  END RENDERING   ****

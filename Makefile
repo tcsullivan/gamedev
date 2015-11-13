@@ -2,7 +2,7 @@ LIBS = -lGL -lGLEW -lSDL2 -lfreetype -lSDL2_image -lSDL2_mixer
 
 WIN_LIBS = -lopengl32 -lglew32 -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
 
-FLAGS = -std=c++11 -Iinclude -Iinclude/freetype2
+FLAGS = -m32 -std=c++11 -Iinclude -Iinclude/freetype2
 
 MFLAGS64 = 64
 all:
