@@ -694,3 +694,10 @@ void IndoorWorld::draw(Player *p){
 		entity[i]->draw();
 	p->draw();
 }
+
+void Arena::drawDoor(void){
+}
+
+World *Arena::exitArena(void){
+	return this;
+}

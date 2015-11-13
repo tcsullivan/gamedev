@@ -33,7 +33,10 @@ extern bool gameRunning;
 
 static FT_Library   ftl;
 static FT_Face      ftf;
-static GLuint       ftex;
+static GLuint       ftex[93];
+static vec2			ftexwh[93];
+static vec2			ftexbl[93];
+static vec2			ftexad[93];
 
 static unsigned char fontColor[3] = {255,255,255};
 
@@ -43,7 +46,7 @@ static unsigned char fontColor[3] = {255,255,255};
 
 static char *dialogBoxText			= NULL;
 static char *dialogOptText[4];
-static int   dialogOptLoc[4][3];
+static float dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
 
 /*
@@ -90,7 +93,8 @@ namespace ui {
 			std::cout<<"Error! Couldn't initialize freetype."<<std::endl;
 			abort();
 		}
-		fontSize=12;
+		fontSize=0;
+		memset(&ftex,0,93*sizeof(GLuint));
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
@@ -115,8 +119,67 @@ namespace ui {
 	*/
 	
 	void setFontSize(unsigned int size){
+		unsigned int i,j;
+		char *buf;
+		
 		fontSize=size;
 		FT_Set_Pixel_Sizes(ftf,0,fontSize);
+		
+		/*
+		 *	Pre-render 'all' the characters.
+		*/
+		
+		glDeleteTextures(93,ftex);	//	Delete any already-rendered textures
+		glGenTextures(93,ftex);		//	Generate new texture name/locations?
+		
+		for(i=33;i<126;i++){
+		
+			/*
+			 *	Load the character from the font family file.
+			*/
+		
+			if(FT_Load_Char(ftf,i,FT_LOAD_RENDER)){
+				std::cout<<"Error! Unsupported character "<<(char)i<<" ("<<i<<")."<<std::endl;
+				abort();
+			}
+			
+			/*
+			 *	Transfer the character's bitmap (?) to a texture for rendering.
+			*/
+		
+			glBindTexture(GL_TEXTURE_2D,ftex[i-33]);
+			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S		,GL_CLAMP_TO_EDGE);
+			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T		,GL_CLAMP_TO_EDGE);
+			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER	,GL_LINEAR		 );
+			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER	,GL_LINEAR		 );
+			glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+		
+			/*
+			 *	The just-created texture will render red-on-black if we don't do anything to it, so
+			 *	here we create a buffer 4 times the size and transform the texture into an RGBA array,
+			 *	making it white-on-black.
+			*/
+			
+			buf=(char *)malloc(ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows*4);
+		
+			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
+				buf[j*4  ]=fontColor[0];
+				buf[j*4+1]=fontColor[1];
+				buf[j*4+2]=fontColor[2];
+				buf[j*4+3]=ftf->glyph->bitmap.buffer[j];
+			}
+			
+			ftexwh[i-33].x=ftf->glyph->bitmap.width;
+			ftexwh[i-33].y=ftf->glyph->bitmap.rows;
+			ftexbl[i-33].x=ftf->glyph->bitmap_left;
+			ftexbl[i-33].y=ftf->glyph->bitmap_top;
+			ftexad[i-33].x=ftf->glyph->advance.x>>6;
+			ftexad[i-33].y=ftf->glyph->advance.y>>6;
+		
+			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf);	
+			
+			free(buf);
+		}
 	}
 	
 	/*
@@ -133,102 +196,40 @@ namespace ui {
 	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
 	*/
 	
-	float putChar(float x,float y,char c){
-		unsigned int i;
-		char *buf;
-		float w,h;
-		
-		/*
-		 *	Load the character from the font family library.
-		*/
-		
-		if(FT_Load_Char(ftf,c,FT_LOAD_RENDER)){
-			std::cout<<"Error! Unsupported character "<<c<<" ("<<(int)c<<")."<<std::endl;
-			abort();
-		}
-		
-		/*
-		 *	Load the character into a texture for rendering.
-		*/
-		
-		//glActiveTexture(GL_TEXTURE0);
-		glGenTextures(1,&ftex);
-		glBindTexture(GL_TEXTURE_2D,ftex);
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-		
-		/*
-		 *	The just-created texture will render red-on-black if we don't do anything to it, so
-		 *	here we create a buffer 4 times the size and transform the texture into an RGBA array,
-		 *	making it white-on-black.
-		*/
-		
-		buf=(char *)malloc(ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows*4);
-		
-		for(i=0;i<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;i++){
-			buf[i*4  ]=fontColor[0];
-			buf[i*4+1]=fontColor[1];
-			buf[i*4+2]=fontColor[2];
-			buf[i*4+3]=ftf->glyph->bitmap.buffer[i]?255:0;
-		}
-		
-		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf);
+	vec2 putChar(float x,float y,char c){
+		vec2 c1,c2;
 		
 		/*
 		 *	Get the width and height of the rendered character.
 		*/
 		
-		w=ftf->glyph->bitmap.width;
-		h=ftf->glyph->bitmap.rows;
+		c1={x+ftexbl[c-33].x,
+		    y+ftexbl[c-33].y};
+		c2=ftexwh[c-33];
 		
 		/*
 		 *	Draw the character:
 		*/
 		
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D,ftex);
-		
-		switch(c){						//		We're bad, so in here we adjust the y of
-		case '^':						//		some letters so that they look like they
-		case '*':						//		fit.
-		case '`':
-		case '\'':
-		case '\"':
-		case '-':y+=fontSize/3;break;
-		case '~':
-		case '<':
-		case '>':
-		case '+':
-		case '=':y+=fontSize/5;break;
-		case 'g':
-		case 'q':
-		case 'y':
-		case 'p':
-		case 'j':y-=fontSize/4;break;
-		default:break;
-		}
-		
+		glBindTexture(GL_TEXTURE_2D,ftex[c-33]);
+		glPushMatrix();
+		glTranslatef(0,-c2.y,0);
 		glBegin(GL_QUADS);
-			glColor3ub(255,255,255);
-			glTexCoord2f(0,1);glVertex2f(x,y);
-			glTexCoord2f(1,1);glVertex2f(x+w,y);
-			glTexCoord2f(1,0);glVertex2f(x+w,y+h);
-			glTexCoord2f(0,0);glVertex2f(x,y+h);
+			glColor3ub(fontColor[0],fontColor[1],fontColor[2]);
+			glTexCoord2f(0,1);glVertex2f(c1.x     ,c1.y		);
+			glTexCoord2f(1,1);glVertex2f(c1.x+c2.x,c1.y		);
+			glTexCoord2f(1,0);glVertex2f(c1.x+c2.x,c1.y+c2.y);
+			glTexCoord2f(0,0);glVertex2f(c1.x     ,c1.y+c2.y);
 		glEnd();
-		
+		glPopMatrix();
 		glDisable(GL_TEXTURE_2D);
 		
 		/*
-		 *	Free resources, and return the width.
+		 * return the width.
 		*/
 		
-		free(buf);
-		glDeleteTextures(1,&ftex);
-		
-		return w;
+		return ftexad[c-33];//(vec2){c2.x,ftexad[c-33].y};
 	}
 	
 	/*
@@ -237,7 +238,8 @@ namespace ui {
 	
 	float putString(const float x,const float y,const char *s){
 		unsigned int i=0,j;
-		float xo=x,yo=y,pw=0;
+		float xo=x,yo=y;
+		vec2 add;
 		
 		/*
 		 *	Loop on each character:
@@ -250,14 +252,34 @@ namespace ui {
 			}else if(s[i]==' '){	//	Handle spaces
 				xo+=fontSize/2;
 			}else if(s[i]=='\b'){	//	Handle backspaces?
-				xo-=pw;
+				xo-=add.x;
 			}else{
-				pw=putChar(xo,yo,s[i])+fontSize*.1;
-				xo+=pw;
+				add=putChar(xo,yo,s[i]);
+				xo+=add.x;
+				yo+=add.y;
 			}
 		}while(s[++i]);
 		
 		return xo;	// i.e. the string width
+	}
+	
+	float putStringCentered(const float x,const float y,const char *s){
+		unsigned int i = 0;
+		float width = 0, prev = 0;
+		
+		do{
+			if(s[i]=='\n'){			//	Handle newlines
+				// TODO
+			}else if(s[i]==' '){	//	Handle spaces
+				width+=fontSize/2;
+			}else if(s[i]=='\b'){	//	Handle backspaces?
+				// Why?
+			}else{
+				width+=ftexwh[i].x+fontSize*.1;
+			}
+		}while(s[++i]);
+		
+		return putString(x-width/2,y,s);
 	}
 	
 	/*
@@ -419,7 +441,6 @@ namespace ui {
 			
 			rtext=typeOut(dialogBoxText);
 			
-			setFontSize(16);
 			putString(x+HLINE,y-fontSize-HLINE,rtext);
 			
 			for(i=0;i<dialogOptCount;i++){
@@ -429,16 +450,14 @@ namespace ui {
 						   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
 					  setFontColor(255,255,0);
 				}else setFontColor(255,255,255);
-				dialogOptLoc[i][0]=x+HLINE;
 				dialogOptLoc[i][1]=y-SCREEN_HEIGHT/4+(fontSize+HLINE)*(i+1);
 				dialogOptLoc[i][2]=
-			
-				putString(x+HLINE,y-SCREEN_HEIGHT/4+(fontSize+HLINE)*(i+1),dialogOptText[i]);
+				putStringCentered(player->loc.x,dialogOptLoc[i][1],dialogOptText[i]);
+				dialogOptLoc[i][0]=player->loc.x-dialogOptLoc[i][2]/2;
 			}
 			setFontColor(255,255,255);
 		}
 		
-		setFontSize(14);
 		putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
 																							(unsigned)player->maxHealth);
 		if(player->alive){

@@ -42,10 +42,10 @@ namespace ui {
 	void setFontSize(unsigned int size);
 	
 	/*
-	 *	Draws a string of text at the given coordinates.
+	 *	Draw a centered string.
 	*/
 	
-	float putString(const float x,const float y,const char *s);
+	float putStringCentered(const float x,const float y,const char *s);
 	
 	/*
 	 *	Draws a formatted string at the given coordinates.
