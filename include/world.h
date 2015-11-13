@@ -80,7 +80,7 @@ public:
 	
 	//template<class T>
 	//void getEntityLocation(std::vector<T*>&, unsigned int);
-
+	
 	void addStructure(_TYPE t,float x,float y,World *outside,World *inside);
 	void addMob(int t,float x,float y);
 	void addNPC(float x,float y);

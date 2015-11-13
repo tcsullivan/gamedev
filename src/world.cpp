@@ -569,7 +569,7 @@ void World::getEntityLocation(std::vector<T*>&vecBuf, unsigned int n){
 		i++;
 	}
 }*/
-
+	
 void World::addMob(int t,float x,float y){
 	mob.push_back(new Mob(t));
 	mob.back()->spawn(x,y);

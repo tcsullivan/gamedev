@@ -214,7 +214,7 @@ typedef enum {
 	RAIN
 } WEATHER;
 
-#define DAY_CYCLE 300
+#define DAY_CYCLE 3000
 
 static WEATHER weather = SUNNY;
 static vec2 star[100];
@@ -575,10 +575,9 @@ void render(){
 	if(!worldInside){
 		if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
 			offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
-		if(player->loc.x + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
-			offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2) + player->width / 2;
+		if(player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
+			offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2);// + player->width / 2;
 	}
-
 	if(player->loc.y > SCREEN_HEIGHT/2)
 		offset.y = player->loc.y + player->height;
 

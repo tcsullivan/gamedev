@@ -10,6 +10,7 @@ namespace Texture{
 
 		glGenTextures(1, &object); //turns "object" into a texture
 		glBindTexture(GL_TEXTURE_2D, object); //binds "object" to the top of the stack
+		glPixelStoref(GL_UNPACK_ALIGNMENT,1 );
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //sets the "min" filter
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //the the "max" filter of the stack
@@ -17,7 +18,15 @@ namespace Texture{
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); //Wrap the texture to the matrix
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); //Wrap the texutre to the matrix
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->w, image->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->pixels); //sets the texture to the image file loaded above
+		glTexImage2D(	GL_TEXTURE_2D, 
+						0, 
+					    GL_RGBA,
+					    image->w,
+					    image->h, 
+					    0, 
+					    GL_RGBA, 
+					    GL_UNSIGNED_BYTE, 
+					    image->pixels); //sets the texture to the image file loaded above
 
 		SDL_FreeSurface(image);	//Free surface
 		return object;
