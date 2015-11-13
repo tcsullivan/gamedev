@@ -6,6 +6,8 @@ extern unsigned int loops;
 
 extern World *currentWorld;
 
+extern Player *player;
+
 void Entity::spawn(float x, float y){	//spawns the entity you pass to it based off of coords and global entity settings
 	loc.x = x;
 	loc.y = y;
@@ -89,6 +91,18 @@ Mob::Mob(int sub){
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
+Object::Object(int id):ID(id){
+	type = OBJECTT;
+	alive = true;
+	near = false;
+	width  = HLINE * 8;
+	height = HLINE * 8;
+
+	maxHealth = health = 1;
+	tex = new Texturec(1, "assets/items/ITEM_SWORD.png");	
+}
+
+
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	if(type==NPCT){
@@ -161,6 +175,8 @@ void Entity::draw(void){		//draws the entities
 			default:
 			break;
 		}
+	}else if(type == OBJECTT){
+		tex->bind(0);
 	}else{
 		tex->bind(0);
 	}
@@ -277,6 +293,11 @@ void NPC::interact(){ //have the npc's interact back to the player
 		}
 		canMove=true;
 	}
+}
+
+void Object::interact(){
+	this->alive = false;
+	player->inv->addItem((ITEM_ID)(ID), (char)1);
 }
 
 /*

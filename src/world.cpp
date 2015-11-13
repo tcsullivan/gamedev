@@ -286,7 +286,9 @@ LOOP2:
 	/*
 	 *	Draw the layer up until the grass portion, which is done later.
 	*/
-	
+	/*
+	 * TODO: CLYNE CHANGE THE NAME OF THIS
+	*/
 	bool hey=false;
 	glBegin(GL_QUADS);
 		for(i=is;i<ie-GEN_INC;i++){
@@ -371,6 +373,13 @@ LOOP2:
 		m->loc.y+=(yoff-DRAW_Y_OFFSET);
 		m->draw();
 		m->loc.y-=(yoff-DRAW_Y_OFFSET);
+	}
+	for(auto &o : current->object){
+		if(o->alive){
+			o->loc.y+=(yoff-DRAW_Y_OFFSET);
+			o->draw();
+			o->loc.y-=(yoff-DRAW_Y_OFFSET);
+		}
 	}
 	
 	/*
@@ -549,6 +558,18 @@ void World::addStructure(_TYPE t,float x,float y,World *outside,World *inside){
 	entity.push_back(build.back());
 }
 
+/*template<class T>
+void World::getEntityLocation(std::vector<T*>&vecBuf, unsigned int n){
+	T bufVar = vecBuf.at(n);
+	unsigned int i = 0;
+	for(auto &e : entity){
+		if(entity.at(i) == bufVar){
+			entity.erase(entity.begin()+i);
+		}
+		i++;
+	}
+}*/
+
 void World::addMob(int t,float x,float y){
 	mob.push_back(new Mob(t));
 	mob.back()->spawn(x,y);
@@ -562,6 +583,17 @@ void World::addNPC(float x,float y){
 	
 	entity.push_back(npc.back());
 }
+
+void World::addObject(int i, float x, float y){
+	object.push_back(new Object(i));
+	object.back()->spawn(x,y);
+
+	entity.push_back(object.back());
+}
+
+/*void World::removeObject(Object i){
+	object.delete(i);
+}*/
 
 /*
  *	The rest of these functions are explained well enough in world.h ;)

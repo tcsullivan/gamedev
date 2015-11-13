@@ -108,6 +108,7 @@ namespace ui {
 		case 'y':
 		case 'p':
 		case 'j':y-=fontSize/4;break;
+		case 'Q':y-=fontSize/5;break;
 		default:break;
 		}
 		glBegin(GL_QUADS);
@@ -217,6 +218,7 @@ namespace ui {
 		}
 		setFontSize(14);
 		putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
+								
 																							(unsigned)player->maxHealth);
 		if(player->alive){
 			glColor3ub(255,0,0);
@@ -225,6 +227,16 @@ namespace ui {
 					((SCREEN_WIDTH/2+offset.x)-125)+((player->health/player->maxHealth)*100),
 					(offset.y+SCREEN_HEIGHT/2)-32+12);
 		}
+
+		/*
+		 * Lists all of the quests the player has
+		*/
+		putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize*4, "Current Quests:",NULL);
+
+		for(auto &c : player->qh.current){
+			putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize*5, "%s",c->title);
+		}
+
 	}
 	void handleEvents(void){
 		static bool left=false,right=false;

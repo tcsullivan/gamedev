@@ -85,7 +85,6 @@ float handAngle;
 
 World  							*currentWorld=NULL;
 Player 							*player;
-
 /*
  *	Tells if player is currently inside a structure.
 */
@@ -215,7 +214,7 @@ typedef enum {
 	RAIN
 } WEATHER;
 
-#define DAY_CYCLE 3000
+#define DAY_CYCLE 300
 
 static WEATHER weather = SUNNY;
 static vec2 star[100];
@@ -530,6 +529,7 @@ void mainLoop(void){
 		logic();
 		prevPrevTime = currentTime;
 	}
+	//ui::handleMouse();
 	
 	/*
 	 *	Update player and entity coordinates.
@@ -548,8 +548,7 @@ void mainLoop(void){
 		
 	}else if(!(debugDiv%10)){
 		debugY = player->loc.y;
-	}
-	
+	}	
 	render();	// Call the render loop
 }
 
@@ -674,12 +673,15 @@ void render(){
 	 *	Draws stars if it is an appropriate time of day for them.
 	*/
 
+	int base = 40 - (int)worldGetYBase(currentWorld);
+	int shade = worldShade*2;
+
 	if(((weather==DARK )&(tickCount%DAY_CYCLE)<DAY_CYCLE/2)   ||
 	   ((weather==SUNNY)&(tickCount%DAY_CYCLE)>DAY_CYCLE*.75) ){
 		   
 		if(tickCount%DAY_CYCLE){	// The above if statement doesn't check for exact midnight.
 				
-			glColor4ub(255,255,255,255);
+			safeSetColorA(255,255,255,shade);
 			for(unsigned int i=0;i<100;i++){
 				glRectf(star[i].x+offset.x*.9,star[i].y,star[i].x+offset.x*.9+HLINE,star[i].y+HLINE);
 			}
@@ -691,9 +693,6 @@ void render(){
 	 *	Calculate the Y to start drawing the background at, and a value for how shaded the
 	 *	background elements should be. 
 	*/
-
-	int base = 40 - (int)worldGetYBase(currentWorld);
-	int shade = worldShade*2;
 
 	glEnable(GL_TEXTURE_2D);
 
@@ -882,7 +881,7 @@ void render(){
 		
 		ui::putText(offset.x-SCREEN_WIDTH/2,
 					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nQc: %u\n HA: %+.2f",
+					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f",
 					fps,
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
@@ -891,7 +890,6 @@ void render(){
 					player->loc.x,				// The player's x coordinate
 					debugY,						// The player's y coordinate
 					tickCount,
-					player->qh.current.size(),	// Active quest count
 					handAngle
 					);
 		if(ui::posFlag){
@@ -1071,6 +1069,28 @@ void logic(){
 				break;
 			}
 		}
+	}
+
+	unsigned int i = 0;
+	for(auto &o : currentWorld->object){
+		if(o->alive){
+			if(pow((o->loc.x - player->loc.x),2) + pow((o->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
+
+					/*
+					 *	Check for a right click, and allow the Object to interact with the
+					 *	player if one was made.
+					*/
+
+					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+						std::cout << "Picking up!\n";
+						o->interact();
+					}
+				}
+		}
+		if(!(o->alive)){
+			currentWorld->object.erase(currentWorld->object.begin()+i);
+		}
+		i++;
 	}
 
 	/*

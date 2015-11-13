@@ -76,10 +76,17 @@ public:
 	std::vector<Structures	*>	build;
 	std::vector<Mob			*>	mob;
 	std::vector<Entity		*>	entity;
+	std::vector<Object		*>	object;
 	
+	//template<class T>
+	//void getEntityLocation(std::vector<T*>&, unsigned int);
+
 	void addStructure(_TYPE t,float x,float y,World *outside,World *inside);
 	void addMob(int t,float x,float y);
 	void addNPC(float x,float y);
+	void addObject(int, float, float);
+
+	//void removeObjet(Object);
 	
 	void update(Player *p,unsigned int delta);
 	

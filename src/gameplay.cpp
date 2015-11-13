@@ -5,7 +5,6 @@
 
 extern World	*currentWorld;
 extern Player	*player;
-
 extern void mainLoop(void);
 
 int compTestQuest(NPC *speaker){
@@ -32,7 +31,6 @@ void initEverything(void){
 	/*
 	 *	World creation:
 	*/
-	
 	World *test=new World();
 	World *playerSpawnHill=new World();
 	
@@ -89,8 +87,10 @@ void initEverything(void){
 	 *	Spawn a mob. 
 	*/
 	
-	currentWorld->addMob(MS_RABBIT,200,100);
-	currentWorld->addMob(MS_BIRD,-500,500);
+	test->addMob(MS_RABBIT,200,100);
+	test->addMob(MS_BIRD,-500,500);
+
+	currentWorld->addObject(2, 500,200);
 	
 	/*
 	 *	Link all the entities that were just created to the initial world, and setup a test AI function. 
