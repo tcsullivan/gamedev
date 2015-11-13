@@ -467,6 +467,14 @@ namespace ui {
 					((SCREEN_WIDTH/2+offset.x)-125)+((player->health/player->maxHealth)*100),
 					(offset.y+SCREEN_HEIGHT/2)-32+12);
 		}
+		/*
+		 * Lists all of the quests the player has
+		*/
+		putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize*4, "Current Quests:",NULL);
+
+		for(auto &c : player->qh.current){
+			putText(((SCREEN_WIDTH/2)+offset.x)-125,(offset.y+SCREEN_HEIGHT/2)-fontSize*5, "%s",c->title);
+		}
 	}
 	void handleEvents(void){
 		unsigned char i;

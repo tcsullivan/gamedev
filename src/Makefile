@@ -1,6 +1,6 @@
 LIBS = -lGL -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
 
-FLAGS = -m32 -std=c++11 -I../include -I../include/freetype2
+FLAGS = -std=c++11 -I../include -I../include/freetype2
 
 OUT = `echo "" $$(ls -c $(wildcard *.cpp)) | sed s/.cpp/.o/g | sed 's/ / ..\/out\//g'`
 OUT64 = `echo "" $$(ls -c $(wildcard *.cpp)) | sed s/.cpp/.o/g | sed 's/ / ..\/out64\//g'`
