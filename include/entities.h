@@ -30,7 +30,8 @@ enum GENDER{
 
 enum MOB_SUB {
 	MS_RABBIT = 1,
-	MS_BIRD
+	MS_BIRD,
+	MS_TRIGGER
 };
 
 class Entity{
@@ -102,8 +103,10 @@ public:
 
 class Mob : public Entity{
 public:
-	float init_y;
+	double init_y;
+	void (*hey)();
 	Mob(int);
+	Mob(int,unsigned int);
 	void wander(int);
 };
 

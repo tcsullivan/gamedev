@@ -41,9 +41,26 @@ int giveTestQuest(NPC *speaker){
 	return 0;
 }
 
+static Arena *a;
+
+void CUTSCENEEE(void){
+	char opt[]=":K.";
+	player->vel.x = 0;
+	ui::dialogBox(player->name,opt,"No way I\'m gettin\' up this hill.");
+	
+	waitForDialog();
+
+	a = new Arena(currentWorld,player);
+	
+	currentWorld = a;
+	
+	/*player->right = true;
+	player->left  = false;
+	player->loc.x += HLINE * 5;*/
+}
+
 float playerSpawnHillFunc(float x){
-	x=-x;
-	return (float)(pow(2,(x+200)/5) + 80);
+	return (float)(pow(2,(-x+200)/5) + 80);
 }
 void initEverything(void){
 	unsigned int i;
@@ -104,13 +121,15 @@ void initEverything(void){
 	currentWorld->addStructure(STRUCTURET,(rand()%120*HLINE),10,test,iw);
 	
 	/*
-	 *	Spawn a mob. 
+	 *	Spawn some mobs.
 	*/
+
+	playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);
 	
 	test->addMob(MS_RABBIT,200,100);
 	test->addMob(MS_BIRD,-500,500);
 
-	currentWorld->addObject(2, 500,200);
+	test->addObject(2, 500,200);
 	
 	/*
 	 *	Link all the entities that were just created to the initial world, and setup a test AI function. 

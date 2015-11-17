@@ -25,8 +25,11 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	
 	if(!maxHealth)health = maxHealth = 1;
 	
-	if(type==MOBT)
-		Mobp(this)->init_y=loc.y;
+	if(type==MOBT){
+		if(Mobp(this)->subtype == MS_BIRD){
+			Mobp(this)->init_y=loc.y;
+		}
+	}
 	
 	name = (char*)malloc(16);
 	getName();
@@ -71,7 +74,7 @@ Structures::Structures(){ //sets the structure type
 }
 
 Mob::Mob(int sub){
-	type   = MOBT;
+	type = MOBT;
 	
 	maxHealth = health = 50;
 	
@@ -85,6 +88,10 @@ Mob::Mob(int sub){
 		width = HLINE * 8;
 		height = HLINE * 8;
 		tex = new Texturec(1, "assets/robin.png");
+	case MS_TRIGGER:
+		width = HLINE * 8;
+		height = 2000;
+		tex = new Texturec(0);
 		break;
 	}
 	
@@ -152,28 +159,27 @@ void Entity::draw(void){		//draws the entities
 					tex->bind(2);
 				break;
 			}
-		}
-		else{
+		}else{
 			tex->bind(1);
 		}
 	}else if(type == MOBT){
 		switch(subtype){
-			case 1: //RABBIT
+			case MS_RABBIT:
 				if(ground == 0){
 					tex->bind(1);
 				}else if(ground == 1){
 					tex->bind(0);
 				}
 				break;
-			case 2: //RABBIT
-				if(ground == 0){
-					tex->bind(0);
-				}else if(ground == 1){
-					tex->bind(0);
-				}
+			case MS_BIRD:
+				tex->bind(0);
+				break;
+			case MS_TRIGGER:
+				goto NOPE;
 				break;
 			default:
-			break;
+				tex->bind(0);
+				break;
 		}
 	}else if(type == OBJECTT){
 		tex->bind(0);
@@ -187,6 +193,7 @@ void Entity::draw(void){		//draws the entities
 		glTexCoord2i(1,0);glVertex2i(loc.x + width, loc.y + height);
 		glTexCoord2i(0,0);glVertex2i(loc.x, loc.y + height);
 	glEnd();
+NOPE:
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
@@ -352,7 +359,7 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure 
 
 void Mob::wander(int timeRun){
 	static int direction;	//variable to decide what direction the entity moves
-	static unsigned int hey=0,hi=0;
+	static unsigned int heya=0,hi=0;
 	switch(subtype){
 	case MS_RABBIT:
 		if(!ticksToUse){
@@ -373,8 +380,16 @@ void Mob::wander(int timeRun){
 	case MS_BIRD:
 		if(loc.y<=init_y-.2)vel.y=.02*deltaTime;	// TODO handle direction
 		vel.x=.02*deltaTime;
-		if(++hey==200){hey=0;hi^=1;}
+		if(++heya==200){heya=0;hi^=1;}
 		if(hi)vel.x*=-1;
+		break;
+	case MS_TRIGGER:
+		if(player->loc.x + player->width / 2 > loc.x		 &&
+		   player->loc.x + player->width / 2 < loc.x + width ){
+			if(player->left)player->loc.x = loc.x + width;
+			else if(player->right) player->loc.x = loc.x - player->width;
+			hey();
+		}
 		break;
 	default:
 		break;

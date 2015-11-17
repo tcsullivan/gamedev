@@ -283,3 +283,24 @@
 	- created a generic object class
 	- began death handling stuffs
 	- added a quest list in-game
+
+11/13/2015:
+===========
+
+	- began working on cutscene triggers
+	- began working on item dialogs
+
+11/16/2015:
+===========
+
+	- minor bug fixes
+	- began working on arenas
+	- began working on cutscene triggers
+	
+11/17/2015:
+===========
+
+	- created basic arena / arena handling
+	- added entity deletion when an entity dies
+	- fixed errors with typewriter-text
+	- finished cutscene triggers

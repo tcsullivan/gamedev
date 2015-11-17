@@ -1069,6 +1069,12 @@ void logic(){
 			case MS_BIRD:
 				m->wander((rand()%240 + 15));	// Make the mob wander :)
 				break;
+			case MS_TRIGGER:
+				m->wander(0);
+				break;
+			default:
+				std::cout<<"Unhandled mob of subtype "<<m->subtype<<"."<<std::endl;
+				break;
 			}
 		}
 	}
@@ -1084,7 +1090,6 @@ void logic(){
 					*/
 
 					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-						std::cout << "Picking up!\n";
 						o->interact();
 					}
 				}

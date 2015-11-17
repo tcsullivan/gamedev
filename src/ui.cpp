@@ -55,6 +55,9 @@ static unsigned char dialogOptCount = 0;
 
 bool fadeEnable = false;
 
+
+bool inBattle = false;
+
 namespace ui {
 	
 	/*
@@ -304,7 +307,7 @@ namespace ui {
 		 *	Reset values if a new string is being passed.
 		*/
 		
-		if(!size || ((linc>15)&(strncmp(ret,str,15)))){
+		if(strncmp(ret,str,linc-1)){
 			memset(ret,0,512);		//	Zero the buffer
 			size=strlen(str);		//	Set the new target string size
 			linc=0;					//	Reset the incrementers
@@ -434,7 +437,7 @@ namespace ui {
 		if(dialogBoxExists){
 			
 			glColor3ub(0,0,0);
-			x=player->loc.x-SCREEN_WIDTH/2+HLINE*8;
+			x=offset.x-SCREEN_WIDTH/2+HLINE*8;
 			y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
 			
 			glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
@@ -543,7 +546,11 @@ DONE:
 					player->ground=false;
 					player->loc.y-=HLINE*1.5;
 				}
-				if(SDL_KEY==SDLK_w)currentWorld=currentWorld->goInsideStructure(player);
+				if(SDL_KEY==SDLK_w){
+					if(inBattle){
+						currentWorld=((Arena *)currentWorld)->exitArena(player);
+					}else currentWorld=currentWorld->goInsideStructure(player);
+				}
 				if(SDL_KEY==SDLK_SPACE){											// Jump
 					if(player->ground){
 						player->vel.y=.4;
