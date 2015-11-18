@@ -304,3 +304,10 @@
 	- added entity deletion when an entity dies
 	- fixed errors with typewriter-text
 	- finished cutscene triggers
+
+11/18/2015:
+===========
+
+	- converted layered background items to tiles
+	- fixed ortho in small spaces
+	- began formalizing item system

@@ -17,13 +17,13 @@
 bool worldInside = false;
 
 float worldGetYBase(World *w){
-	float base = 0;
+	/*float base = 0;
 	World *ptr = w;
 	while(ptr->infront){
 		base+=DRAW_Y_OFFSET;
 		ptr=ptr->infront;
-	}
-	return base;
+	}*/
+	return /*base*/ GEN_MIN;
 }
 
 struct wSavePack {
