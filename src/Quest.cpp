@@ -85,7 +85,7 @@ int QuestHandler::finish(const char *t,void *completer){
 #ifdef DEBUG
 			DEBUG_printf("Completing quest %s.\n",t);
 #endif // DEBUG
-			((Entity *)completer)->inv->addItem(current[i]->reward.id,current[i]->reward.count);
+			((Entity *)completer)->inv->addItem(current[i]->reward.itmid,current[i]->reward.count);
 			current.erase(current.begin()+i);
 #ifdef DEBUG
 			DEBUG_printf("QuestHandler now has %u active quests.\n",current.size());
