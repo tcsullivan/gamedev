@@ -447,7 +447,7 @@ int main(int argc, char *argv[]){
 	bgTreesMid	 =Texture::loadTexture("assets/bgMidTree.png"	 );
 	bgTreesFar	 =Texture::loadTexture("assets/bgFarTree.png"	 );
 	invUI		 =Texture::loadTexture("assets/invUI.png"		 );
-	
+
 	/*
 	 *	Load sprites used in the inventory menu. See src/inventory.cpp
 	*/
@@ -578,7 +578,9 @@ void render(){
 	 *  see past the world render
 	*/
 	
-	if(!worldInside){
+	if(currentWorld->getTheWidth() < SCREEN_WIDTH){
+		offset.x = 0;
+	}else if(!worldInside){
 		if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
 			offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
 		if(player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
@@ -680,7 +682,7 @@ void render(){
 	 *	Draws stars if it is an appropriate time of day for them.
 	*/
 
-	int base = 40 - (int)worldGetYBase(currentWorld);
+	int base = 80;
 	int shade = worldShade*2;
 
 	if(((weather==DARK )&(tickCount%DAY_CYCLE)<DAY_CYCLE/2)   ||
@@ -725,33 +727,33 @@ void render(){
 	glBindTexture(GL_TEXTURE_2D, bgTreesFar);
 	glBegin(GL_QUADS);
 	safeSetColorA(100-shade,100-shade,100-shade,240);
-	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
-		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.6,base);
-		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.6,base);
-		glTexCoord2i(1,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.6,base+1080);
-		glTexCoord2i(0,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.6,base+1080);
+	for(int i = -currentWorld->getTheWidth() / 2; i <= currentWorld->getTheWidth() / 2; i += 300){
+		glTexCoord2i(0,1);glVertex2i(i+offset.x*.6,base);
+		glTexCoord2i(1,1);glVertex2i((i+300)+offset.x*.6,base);
+		glTexCoord2i(1,0);glVertex2i((i+300)+offset.x*.6,base+200);
+		glTexCoord2i(0,0);glVertex2i(i+offset.x*.6,base+200);
 	}
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_2D, bgTreesMid);
 	glBegin(GL_QUADS);
 	safeSetColorA(150-shade,150-shade,150-shade,250);
-	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
-		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.4,base);
-		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.4,base);
-		glTexCoord2i(1,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.4,base+1080);
-		glTexCoord2i(0,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.4,base+1080);
+	for(int i = -currentWorld->getTheWidth() / 2; i <= currentWorld->getTheWidth() / 2; i += 400){
+		glTexCoord2i(0,1);glVertex2i(i+offset.x*.4,base);
+		glTexCoord2i(1,1);glVertex2i((i+300)+offset.x*.4,base);
+		glTexCoord2i(1,0);glVertex2i((i+300)+offset.x*.4,base+200);
+		glTexCoord2i(0,0);glVertex2i(i+offset.x*.4,base+200);
 	}
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_2D, bgTreesFront);
 	glBegin(GL_QUADS);
 	safeSetColorA(255-shade,255-shade,255-shade,255);
-	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
-		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.25,base);
-		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.25,base);
-		glTexCoord2i(1,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.25,base+1080);
-		glTexCoord2i(0,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.25,base+1080);
+	for(int i = -currentWorld->getTheWidth() / 2; i <= currentWorld->getTheWidth() / 2; i += 280){
+		glTexCoord2i(0,1);glVertex2i(i+offset.x*.25,base);
+		glTexCoord2i(1,1);glVertex2i((i+300)+offset.x*.25,base);
+		glTexCoord2i(1,0);glVertex2i((i+300)+offset.x*.25,base+200);
+		glTexCoord2i(0,0);glVertex2i(i+offset.x*.25,base+200);
 	}
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
@@ -1079,6 +1081,12 @@ void logic(){
 			case MS_BIRD:
 				m->wander((rand()%240 + 15));	// Make the mob wander :)
 				break;
+			case MS_TRIGGER:
+				m->wander(0);
+				break;
+			default:
+				std::cout<<"Unhandled mob of subtype "<<m->subtype<<"."<<std::endl;
+				break;
 			}
 		}
 	}
@@ -1098,7 +1106,6 @@ void logic(){
 					*/
 
 					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-						std::cout << "Picking up!\n";
 						o->interact();
 					}
 				}

@@ -83,6 +83,7 @@ public:
 	
 	void addStructure(_TYPE t,float x,float y,World *outside,World *inside);
 	void addMob(int t,float x,float y);
+	void addMob(int t,float x,float y,void (*hey)());
 	void addNPC(float x,float y);
 	void addObject(int, float, float);
 	void addObject(int, bool, char*, float, float);
@@ -193,10 +194,12 @@ public:
 
 class Arena : public World {
 private:
-	World *exit;
+	vec2	 pxy;
+	vec2	 door;
+	World	*exit;
 public:
-	void drawDoor(void);
-	World *exitArena(void);
+	Arena(World *leave,Player *p);
+	World *exitArena(Player *p);
 };
 
 extern int worldShade;

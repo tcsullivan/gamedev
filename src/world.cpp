@@ -17,13 +17,13 @@
 bool worldInside = false;
 
 float worldGetYBase(World *w){
-	float base = 0;
+	/*float base = 0;
 	World *ptr = w;
 	while(ptr->infront){
 		base+=DRAW_Y_OFFSET;
 		ptr=ptr->infront;
-	}
-	return base;
+	}*/
+	return /*base*/ GEN_MIN;
 }
 
 struct wSavePack {
@@ -286,9 +286,7 @@ LOOP2:
 	/*
 	 *	Draw the layer up until the grass portion, which is done later.
 	*/
-	/*
-	 * TODO: CLYNE CHANGE THE NAME OF THIS
-	*/
+
 	bool hey=false;
 	glBegin(GL_QUADS);
 		for(i=is;i<ie-GEN_INC;i++){
@@ -449,18 +447,51 @@ LOOP2:
 }
 
 void World::singleDetect(Entity *e){
-	unsigned int i;
+	unsigned int i,j;
 	
 	/*
 	 *	Kill any dead entities.
 	*/
 	
-	if(e->alive&&e->health<=0){
-	  
-		e->alive=false;
-		std::cout<<"Killing entity..."<<std::endl;
-		return;
+	if(!e->alive||e->health<=0){
 		
+		for(i=0;i<entity.size();i++){
+			if(entity[i]==e){
+				entity.erase(entity.begin()+i);
+				switch(e->type){
+				case STRUCTURET:
+					for(j=0;j<build.size();j++){
+						if(build[j]==e){
+							build.erase(build.begin()+j);
+							return;
+						}
+					}
+					break;
+				case NPCT:
+					for(j=0;j<npc.size();j++){
+						if(npc[j]==e){
+							npc.erase(npc.begin()+j);
+							return;
+						}
+					}
+					break;
+				case MOBT:
+					for(j=0;j<mob.size();j++){
+						if(mob[j]==e){
+							mob.erase(mob.begin()+j);
+							return;
+						}
+					}
+					break;
+				}
+				return;
+			}
+		}
+
+		std::cout<<"RIP "<<e->name<<"."<<std::endl;
+		exit(0);
+
+		return;
 	}
 	
 	/*
@@ -468,6 +499,8 @@ void World::singleDetect(Entity *e){
 	*/
 	
 	if(e->alive){
+	  
+		if(e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER)return;
 	  
 		/*
 		 *	Calculate the line that this entity is currently standing on.
@@ -573,6 +606,14 @@ void World::getEntityLocation(std::vector<T*>&vecBuf, unsigned int n){
 void World::addMob(int t,float x,float y){
 	mob.push_back(new Mob(t));
 	mob.back()->spawn(x,y);
+	
+	entity.push_back(mob.back());
+}
+
+void World::addMob(int t,float x,float y,void (*hey)()){
+	mob.push_back(new Mob(t));
+	mob.back()->spawn(x,y);
+	mob.back()->hey = hey;
 	
 	entity.push_back(mob.back());
 }
@@ -734,9 +775,33 @@ void IndoorWorld::draw(Player *p){
 	p->draw();
 }
 
-void Arena::drawDoor(void){
+extern bool inBattle;
+
+Arena::Arena(World *leave,Player *p){
+	generate(300);
+	door.y = line[299].y;
+	door.x = 100;
+	exit = leave;
+	
+	npc.push_back(new NPC());
+	entity.push_back(npc.back());
+	entity.back()->spawn(door.x,door.y);
+	entity.back()->width = HLINE * 12;
+	entity.back()->height = HLINE * 16;
+	
+	inBattle = true;
+	pxy = p->loc;
 }
 
-World *Arena::exitArena(void){
-	return this;
+World *Arena::exitArena(Player *p){
+	npc[0]->loc.x = door.x;
+	npc[0]->loc.y = door.y;
+	if(p->loc.x + p->width / 2 > door.x				 &&
+	   p->loc.x + p->width / 2 < door.x + HLINE * 12 ){
+		inBattle = false;
+		p->loc = pxy;
+		return exit;
+	}else{
+		return this;
+	}
 }
