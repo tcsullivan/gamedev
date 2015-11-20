@@ -6,15 +6,32 @@
 #define GEN_MAX  110
 #define GEN_INIT 60
 
-#define GRASS_HEIGHT 4 	// Defines how long the grass layer of a line should be in multiples of HLINE.
+#define GRASS_HEIGHT 4 			// Defines how long the grass layer of a line should be in multiples of HLINE.
 
 
-#define DRAW_Y_OFFSET 50	// Defines how many pixels each layer should be offset from each other on the y axis when drawn.
-#define DRAW_SHADE	  30	// Defines a shade increment for draw()
+#define DRAW_Y_OFFSET 50		// Defines how many pixels each layer should be offset from each other on the y axis when drawn.
+#define DRAW_SHADE	  30		// Defines a shade increment for draw()
 
 #define INDOOR_FLOOR_HEIGHT 100 // Defines how high the base floor of an IndoorWorld should be
 
-bool worldInside = false;
+bool worldInside = false;		// True if player is inside a structure
+
+WEATHER weather = SUNNY;
+
+const char *bgPaths[6]={
+	"assets/bg.png",				// Daytime background
+	"assets/bgn.png",				// Nighttime background
+	"assets/bgFarMountain.png",		// Furthest layer
+	"assets/forestTileBack.png",	// Closer layer
+	"assets/forestTileMid.png",		// Near layer
+	"assets/forestTileFront.png"	// Closest layer
+};
+
+const float bgDraw[3][3]={
+	{100,240,.6 },
+	{150,250,.4 },
+	{255,255,.25}
+};
 
 float worldGetYBase(World *w){
 	/*float base = 0;
@@ -54,6 +71,20 @@ void World::load(char *buf){
 	memcpy(line,buf+sizeof(struct wSavePack),lineCount * sizeof(struct line_t));
 }
 
+void World::setBackground(WORLD_BG_TYPE bgt){
+	switch(bgt){
+	default:
+		bgTex = new Texturec(6,bgPaths[0],
+							   bgPaths[1],
+							   bgPaths[2],
+							   bgPaths[3],
+							   bgPaths[4],
+							   bgPaths[5]
+							   );
+		break;
+	}
+}
+
 World::World(void){
 	/*
 	 *	Nullify pointers to other worlds.
@@ -63,6 +94,8 @@ World::World(void){
 	infront	=
 	toLeft	=
 	toRight	= NULL;
+	
+	star = (vec2 *)calloc(100,sizeof(vec2));
 }
 
 void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
@@ -159,6 +192,11 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	*/
 	
 	x_start=0 - getWidth(this) / 2;
+	
+	for(int i=0;i<100;i++){
+		star[i].x=getRand()%getTheWidth()-getTheWidth()/2;
+		star[i].y=getRand()%SCREEN_HEIGHT+100;
+	}
 }
 
 void World::generateFunc(unsigned int width,float(*func)(float)){
@@ -176,6 +214,11 @@ void World::generateFunc(unsigned int width,float(*func)(float)){
 		line[i].gs=true;
 	}
 	x_start=0 - getWidth(this) / 2;
+	
+	for(int i=0;i<100;i++){
+		star[i].x=getRand()%getTheWidth()-getTheWidth()/2;
+		star[i].y=getRand()%SCREEN_HEIGHT+100;
+	}
 }
 
 World::~World(void){
@@ -197,13 +240,105 @@ void World::update(Player *p,unsigned int delta){
 
 int worldShade = 0;
 
+extern vec2 offset;
+extern unsigned int tickCount;
+
 void World::draw(Player *p){
 	static float yoff=DRAW_Y_OFFSET;	// Initialize stuff
-	static int shade;
+	static int shade,bgshade;
 	static World *current;
-	int i,is,ie,v_offset,cx_start;
+	int i,is,ie,v_offset,cx_start,width;
 	struct line_t *cline;
-	glClearColor(.1,.3,.6,0);
+	
+	bgshade = worldShade << 1; // *2
+	width = (-x_start) << 1;
+	
+	/*
+	 *	Draw the background images in the appropriate order.
+	*/
+	
+	glEnable(GL_TEXTURE_2D);
+	
+	bgTex->bind(0);
+	safeSetColorA(255,255,255,255 - worldShade * 4);
+	
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,0);glVertex2i( x_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,0);glVertex2i(-x_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,1);glVertex2i(-x_start,0);
+		glTexCoord2i(0,1);glVertex2i( x_start,0);
+	glEnd();
+	
+	bgTex->bindNext();
+	safeSetColorA(255,255,255,worldShade * 4);
+	
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,0);glVertex2i( x_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,0);glVertex2i(-x_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,1);glVertex2i(-x_start,0);
+		glTexCoord2i(0,1);glVertex2i( x_start,0);
+	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+
+	/*
+	 *	Draws stars if it is an appropriate time of day for them.
+	*/
+
+	if(((weather==DARK )&(tickCount%DAY_CYCLE)<DAY_CYCLE/2)   ||
+	   ((weather==SUNNY)&(tickCount%DAY_CYCLE)>DAY_CYCLE*.75) ){
+		   
+		if(tickCount % DAY_CYCLE){	// The above if statement doesn't check for exact midnight.
+				
+			safeSetColorA(255,255,255,bgshade + getRand() % 30 - 15);
+			for(i = 0; i < 100; i++){
+				glRectf(star[i].x+offset.x*.9,
+						star[i].y,
+						star[i].x+offset.x*.9+HLINE,
+						star[i].y+HLINE
+						);
+			}
+			
+		}
+	}
+	
+	glEnable(GL_TEXTURE_2D);
+
+	/*
+	 *	Draw the mountains.
+	*/
+
+	bgTex->bindNext();
+	safeSetColorA(150-bgshade,150-bgshade,150-bgshade,220);
+	
+	glBegin(GL_QUADS);
+		for(int i = 0; i <= width/1920; i++){
+			glTexCoord2i(0,1);glVertex2i(width/-2+(1920*i    )+offset.x*.85,GEN_MIN);
+			glTexCoord2i(1,1);glVertex2i(width/-2+(1920*(i+1))+offset.x*.85,GEN_MIN);
+			glTexCoord2i(1,0);glVertex2i(width/-2+(1920*(i+1))+offset.x*.85,GEN_MIN+1080);
+			glTexCoord2i(0,0);glVertex2i(width/-2+(1920*i    )+offset.x*.85,GEN_MIN+1080);
+		}
+	glEnd();
+	
+	/*
+	 *	Draw three layers of trees.
+	*/
+
+	for(i = 0; i < 3; i++){
+		bgTex->bindNext();
+		safeSetColorA(bgDraw[i][0]-bgshade,bgDraw[i][0]-bgshade,bgDraw[i][0]-bgshade,bgDraw[i][1]);
+	
+		glBegin(GL_QUADS);
+			for(int j = x_start; j <= -x_start; j += 600){
+				glTexCoord2i(0,1);glVertex2i( j     +offset.x*bgDraw[i][2],GEN_MIN);
+				glTexCoord2i(1,1);glVertex2i((j+600)+offset.x*bgDraw[i][2],GEN_MIN);
+				glTexCoord2i(1,0);glVertex2i((j+600)+offset.x*bgDraw[i][2],GEN_MIN+400);
+				glTexCoord2i(0,0);glVertex2i( j     +offset.x*bgDraw[i][2],GEN_MIN+400);
+			}
+		glEnd();
+	}
+	
+	glDisable(GL_TEXTURE_2D);
 	
 	/*
 	 *	World drawing is done recursively, meaning that this function jumps

@@ -208,17 +208,7 @@ unsigned int millis(void){
 }
 #endif
 
-typedef enum {
-	SUNNY = 0,
-	DARK,
-	RAIN
-} WEATHER;
-
-#define DAY_CYCLE 3000
-
-static WEATHER weather = SUNNY;
-static vec2 star[100];
-
+extern WEATHER weather;
 
 /*******************************************************************************
  * MAIN ************************************************************************
@@ -434,28 +424,18 @@ int main(int argc, char *argv[]){
 	 *	Load a temporary background image.
 	*/
 	
-	bgDay		 =Texture::loadTexture("assets/bg.png"				);
+	/*bgDay		 =Texture::loadTexture("assets/bg.png"				);
 	bgNight		 =Texture::loadTexture("assets/bgn.png"				);
 	bgMtn		 =Texture::loadTexture("assets/bgFarMountain.png"	);
 	bgTreesFront =Texture::loadTexture("assets/bgFrontTreeTile.png"	);
 	bgTreesMid	 =Texture::loadTexture("assets/bgMidTreeTile.png"	);
-	bgTreesFar	 =Texture::loadTexture("assets/bgFarTreeTile.png"	);
+	bgTreesFar	 =Texture::loadTexture("assets/bgFarTreeTile.png"	);*/
 	
 	/*
 	 *	Load sprites used in the inventory menu. See src/inventory.cpp
 	*/
 	
 	initInventorySprites();
-	
-	/*
-	 *	Generate coordinates for stars that are drawn at night.
-	*/
-	
-	unsigned int i;
-	for(i=0;i<100;i++){
-		star[i].x=getRand()%currentWorld->getTheWidth()-currentWorld->getTheWidth()/2;
-		star[i].y=getRand()%SCREEN_HEIGHT+100;
-	}
 	
 	/**************************
 	****     GAMELOOP      ****
@@ -647,113 +627,9 @@ void render(){
 	/**************************
 	**** RENDER STUFF HERE ****
 	**************************/
-
+		
 	/*
-	 *  Draw a temporary background image
-	*/
-
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,bgDay);
-	safeSetColorA(255,255,255,255-worldShade*4);
-	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0+offset.y-SCREEN_HEIGHT/2);
-		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0+offset.y-SCREEN_HEIGHT/2);
-		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2+offset.y-SCREEN_HEIGHT/2);
-		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2+offset.y-SCREEN_HEIGHT/2);
-	glEnd();
-	glBindTexture(GL_TEXTURE_2D,bgNight);
-	safeSetColorA(255,255,255,worldShade*4);
-	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(-SCREEN_WIDTH*2+offset.x,0+offset.y-SCREEN_HEIGHT/2);
-		glTexCoord2i(1,1);glVertex2i( SCREEN_WIDTH*2+offset.x,0+offset.y-SCREEN_HEIGHT/2);
-		glTexCoord2i(1,0);glVertex2i( SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2+offset.y-SCREEN_HEIGHT/2);
-		glTexCoord2i(0,0);glVertex2i(-SCREEN_WIDTH*2+offset.x,SCREEN_HEIGHT*2+offset.y-SCREEN_HEIGHT/2);
-	glEnd();
-
-	glDisable(GL_TEXTURE_2D);
-
-	/*
-	 *	Draws stars if it is an appropriate time of day for them.
-	*/
-
-	int base = 80;
-	int shade = worldShade*2;
-
-	if(((weather==DARK )&(tickCount%DAY_CYCLE)<DAY_CYCLE/2)   ||
-	   ((weather==SUNNY)&(tickCount%DAY_CYCLE)>DAY_CYCLE*.75) ){
-		   
-		if(tickCount%DAY_CYCLE){	// The above if statement doesn't check for exact midnight.
-				
-			safeSetColorA(255,255,255,shade);
-			for(unsigned int i=0;i<100;i++){
-				glRectf(star[i].x+offset.x*.9,star[i].y,star[i].x+offset.x*.9+HLINE,star[i].y+HLINE);
-			}
-			
-		}
-	}
-
-	/*
-	 *	Calculate the Y to start drawing the background at, and a value for how shaded the
-	 *	background elements should be. 
-	*/
-
-	glEnable(GL_TEXTURE_2D);
-
-	/*
-	 *	Draw the mountains.
-	*/
-
-	glBindTexture(GL_TEXTURE_2D, bgMtn);
-	glBegin(GL_QUADS);
-	safeSetColorA(150-shade,150-shade,150-shade,220);
-	for(int i = 0; i <= currentWorld->getTheWidth()/1920; i++){
-		glTexCoord2i(0,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.85,base);
-		glTexCoord2i(1,1);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.85,base);
-		glTexCoord2i(1,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * (i+1))+offset.x*.85,base+1080);
-		glTexCoord2i(0,0);glVertex2i((currentWorld->getTheWidth()*-0.5f)+(1920 * i)+offset.x*.85,base+1080);
-	}
-	glEnd();
-
-	/*
-	 *	Draw three layers of trees.
-	*/
-
-	glBindTexture(GL_TEXTURE_2D, bgTreesFar);
-	glBegin(GL_QUADS);
-	safeSetColorA(100-shade,100-shade,100-shade,240);
-	for(int i = -currentWorld->getTheWidth() / 2; i <= currentWorld->getTheWidth() / 2; i += 300){
-		glTexCoord2i(0,1);glVertex2i(i+offset.x*.6,base);
-		glTexCoord2i(1,1);glVertex2i((i+300)+offset.x*.6,base);
-		glTexCoord2i(1,0);glVertex2i((i+300)+offset.x*.6,base+200);
-		glTexCoord2i(0,0);glVertex2i(i+offset.x*.6,base+200);
-	}
-	glEnd();
-
-	glBindTexture(GL_TEXTURE_2D, bgTreesMid);
-	glBegin(GL_QUADS);
-	safeSetColorA(150-shade,150-shade,150-shade,250);
-	for(int i = -currentWorld->getTheWidth() / 2; i <= currentWorld->getTheWidth() / 2; i += 400){
-		glTexCoord2i(0,1);glVertex2i(i+offset.x*.4,base);
-		glTexCoord2i(1,1);glVertex2i((i+300)+offset.x*.4,base);
-		glTexCoord2i(1,0);glVertex2i((i+300)+offset.x*.4,base+200);
-		glTexCoord2i(0,0);glVertex2i(i+offset.x*.4,base+200);
-	}
-	glEnd();
-
-	glBindTexture(GL_TEXTURE_2D, bgTreesFront);
-	glBegin(GL_QUADS);
-	safeSetColorA(255-shade,255-shade,255-shade,255);
-	for(int i = -currentWorld->getTheWidth() / 2; i <= currentWorld->getTheWidth() / 2; i += 280){
-		glTexCoord2i(0,1);glVertex2i(i+offset.x*.25,base);
-		glTexCoord2i(1,1);glVertex2i((i+300)+offset.x*.25,base);
-		glTexCoord2i(1,0);glVertex2i((i+300)+offset.x*.25,base+200);
-		glTexCoord2i(0,0);glVertex2i(i+offset.x*.25,base+200);
-	}
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
-	
-	/*
-	 *	Call the world's draw function, drawing the player, the world, and entities. Also
+	 *	Call the world's draw function, drawing the player, the world, the background, and entities. Also
 	 *	draw the player's inventory if it exists.
 	*/
 

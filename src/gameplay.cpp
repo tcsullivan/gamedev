@@ -91,9 +91,11 @@ void initEverything(void){
 		test->addHole(100,150);
 	//}
 	
+	test->setBackground(BG_FOREST);
 	test->addLayer(400);
 	
 	playerSpawnHill->generateFunc(1280,playerSpawnHillFunc);
+	playerSpawnHill->setBackground(BG_FOREST);
 	//playerSpawnHill->generate(1920);
 
 	/*

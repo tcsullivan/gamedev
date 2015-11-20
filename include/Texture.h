@@ -3,23 +3,22 @@
 
 #include <common.h>
 
+#define DEBUG
+
 namespace Texture{
 	GLuint loadTexture(const char *fileName);
 }
 
 class Texturec{
+private:
+	GLuint *image;
+	int texState;
 public:
 	Texturec(uint amt, ...);
 	void bindNext();
 	void bindPrev();
 	void bind(int);
 	void walk();
-
-	GLuint *image;
-	int texState;
-private:
-
-
 };
 
 #endif //TEXTURE_H

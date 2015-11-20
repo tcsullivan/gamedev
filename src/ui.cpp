@@ -455,8 +455,8 @@ namespace ui {
 				}else setFontColor(255,255,255);
 				dialogOptLoc[i][1]=y-SCREEN_HEIGHT/4+(fontSize+HLINE)*(i+1);
 				dialogOptLoc[i][2]=
-				putStringCentered(player->loc.x,dialogOptLoc[i][1],dialogOptText[i]);
-				dialogOptLoc[i][0]=player->loc.x-dialogOptLoc[i][2]/2;
+				putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+				dialogOptLoc[i][0]=offset.x-dialogOptLoc[i][2]/2;
 			}
 			setFontColor(255,255,255);
 		}

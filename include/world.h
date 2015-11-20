@@ -9,6 +9,18 @@
 						// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
 						// and detect().
 
+#define DAY_CYCLE 3000
+
+typedef enum {
+	BG_FOREST
+} WORLD_BG_TYPE;
+
+typedef enum {
+	SUNNY = 0,
+	DARK,
+	RAIN
+} WEATHER;
+
 struct line_t {
 	bool gs;
 	float y,gh[2];
@@ -56,6 +68,14 @@ protected:
 	
 	unsigned int lineCount;
 	
+	/*
+	 *	Contains the background image layers (including the background image).
+	*/
+	
+	vec2 *star;
+	
+	Texturec *bgTex;
+	
 public:
 
 	/*
@@ -78,16 +98,11 @@ public:
 	std::vector<Entity		*>	entity;
 	std::vector<Object		*>	object;
 	
-	//template<class T>
-	//void getEntityLocation(std::vector<T*>&, unsigned int);
-	
 	void addStructure(_TYPE t,float x,float y,World *outside,World *inside);
 	void addMob(int t,float x,float y);
 	void addMob(int t,float x,float y,void (*hey)());
 	void addNPC(float x,float y);
 	void addObject(int, float, float);
-
-	//void removeObjet(Object);
 	
 	void update(Player *p,unsigned int delta);
 	
@@ -105,6 +120,12 @@ public:
 	
 	virtual void generate(unsigned int width);
 	void generateFunc(unsigned int width,float(*func)(float));
+	
+	/*
+	 *	Adds images to using for the background.
+	*/
+	
+	void setBackground(WORLD_BG_TYPE bgt);
 	
 	/*
 	 *	Looks for the furthest back layer in this world and adds a new layer of width `width` behind it.
