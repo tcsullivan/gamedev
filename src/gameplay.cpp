@@ -6,6 +6,35 @@
 extern World	*currentWorld;
 extern Player	*player;
 extern void mainLoop(void);
+extern SDL_Window *window;
+extern bool fadeEnable;
+
+void story(void){
+	for(int i=0;i<600;i++){
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),offset.y-SCREEN_HEIGHT/2,offset.y+SCREEN_HEIGHT/2,-1,1);
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glEnable(GL_STENCIL_TEST);
+		glPushMatrix();
+
+		glPushAttrib( GL_DEPTH_BUFFER_BIT | GL_LIGHTING_BIT );
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		glColor4f(0.0f,0.0f,0.0f,0.0f);
+		glRectf(-SCREEN_WIDTH/2,0,SCREEN_WIDTH/2,SCREEN_HEIGHT);
+		glColor4f(1.0f,1.0f,1.0f,1.0f);
+		ui::importantText("Oh hello, where are you?");
+		//ui::setFontSize(16);
+		//ui::putText(54,540,"BITC.");
+
+		glPopMatrix();
+		SDL_GL_SwapWindow(window);
+	}
+}
 
 void waitForDialog(void){
 	do{
@@ -110,12 +139,11 @@ void initEverything(void){
 	test->addMob(MS_RABBIT,200,100);
 	test->addMob(MS_BIRD,-500,500);
 
-	currentWorld->addObject(2, 500,200);
-	
+	currentWorld->addObject(SWORD_WOOD, 500,200);
+	currentWorld->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",600,200);
 	/*
 	 *	Link all the entities that were just created to the initial world, and setup a test AI function. 
 	*/
 	
 	currentWorld->npc[0]->addAIFunc(giveTestQuest,false);
-	
 }

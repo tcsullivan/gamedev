@@ -274,6 +274,7 @@ namespace ui {
 				width+=fontSize/2;
 			}else if(s[i]=='\b'){	//	Handle backspaces?
 				// Why?
+				// Cuz
 			}else{
 				width+=ftexwh[i].x+fontSize*.1;
 			}
@@ -304,7 +305,7 @@ namespace ui {
 		 *	Reset values if a new string is being passed.
 		*/
 		
-		if(!size || ((linc>15)&(strncmp(ret,str,15)))){
+		if(strncmp(ret,str,linc-1)){
 			memset(ret,0,512);		//	Zero the buffer
 			size=strlen(str);		//	Set the new target string size
 			linc=0;					//	Reset the incrementers
@@ -470,7 +471,7 @@ namespace ui {
 			hub.y-=fontSize*1.15;
 			glRectf(hub.x,
 					hub.y,
-					hub.x+(player->health/player->maxHealth)*100,
+					hub.x+(player->health/player->maxHealth)*130,
 					hub.y+12);
 		}
 		

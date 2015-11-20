@@ -1,3 +1,8 @@
+/*! @file main.cpp
+	@brief The file that links everything together for the game to run.
+	The  main game loop contains all of the global variables the game uses, and it runs the main game loop, the render loop, and the logic loop that control all of the entities.
+*/
+
 #include <cstdio> // fopen
 #include <chrono> // see millis()
 
@@ -50,7 +55,7 @@ SDL_GLContext  mainGLContext = NULL;
  *
 */
 
-static GLuint  bgDay, bgNight, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar;
+GLuint  bgDay, bgNight, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar, invUI;
 
 /*
  *	gameRunning
@@ -187,9 +192,9 @@ std::string readFile(const char *filePath) {
  *	everything can be moved according to the player
 */
 
-vec2 offset;																			/**	OFFSET!!!!!!!!!!!!!!!!!!!! **/
+vec2 offset;																			/*	OFFSET!!!!!!!!!!!!!!!!!!!! */
 
-/*
+/**
  *	millis
  *
  *	We've encountered many problems when attempting to create delays for triggering
@@ -197,7 +202,7 @@ vec2 offset;																			/**	OFFSET!!!!!!!!!!!!!!!!!!!! **/
  *	by <chrono> in the standard C++ library. This function simply returns the amount
  *	of milliseconds that have passed sine the epoch.
  *
-*/
+**/
 
 #ifdef __WIN32__
 #define millis()	SDL_GetTicks()
@@ -218,6 +223,7 @@ typedef enum {
 
 static WEATHER weather = SUNNY;
 static vec2 star[100];
+static unsigned char fadeIntensity = 0;
 
 
 /*******************************************************************************
@@ -227,7 +233,7 @@ static vec2 star[100];
 int main(int argc, char *argv[]){
 	gameRunning=false;
 
-	/*
+	/*!
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
 	 *	make openGL calls. Exit if there was an error.
 	*/
@@ -240,10 +246,10 @@ int main(int argc, char *argv[]){
 	// Run SDL_Quit when main returns
 	atexit(SDL_Quit);
 
-	/*
+	/**`
 	 *	(Attempt to) Initialize SDL_image libraries with IMG_INIT_PNG so that we can load PNG
 	 *	textures for the entities and stuff.
-	*/
+	**/
 
 	if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)){
 		std::cout << "Could not init image libraries! Error: " << IMG_GetError() << std::endl;
@@ -253,10 +259,10 @@ int main(int argc, char *argv[]){
 	// Run IMG_Quit when main returns
 	atexit(IMG_Quit);
 
-	/*
+	/**
 	 *	(Attempt to) Initialize SDL_mixer libraries for loading and playing music/sound files.
 	 *
-	*/
+	**/
 
 	if(Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
 		std::cout << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
@@ -415,7 +421,7 @@ int main(int argc, char *argv[]){
 	 *	src/gameplay.cpp
 	 * 
 	*/
-	
+	fadeIntensity = 254;
 	initEverything();
 	
 	/*
@@ -440,12 +446,15 @@ int main(int argc, char *argv[]){
 	bgTreesFront =Texture::loadTexture("assets/bgFrontTree.png"	 );
 	bgTreesMid	 =Texture::loadTexture("assets/bgMidTree.png"	 );
 	bgTreesFar	 =Texture::loadTexture("assets/bgFarTree.png"	 );
+	invUI		 =Texture::loadTexture("assets/invUI.png"		 );
 	
 	/*
 	 *	Load sprites used in the inventory menu. See src/inventory.cpp
 	*/
 	
+	std::cout << "Before invSprites\n";
 	initInventorySprites();
+	std::cout << "After invSprites\n";
 	
 	/*
 	 *	Generate coordinates for stars that are drawn at night.
@@ -460,7 +469,6 @@ int main(int argc, char *argv[]){
 	/**************************
 	****     GAMELOOP      ****
 	**************************/
-	
 	gameRunning=true;
 	while(gameRunning){
 		mainLoop();
@@ -524,7 +532,6 @@ void mainLoop(void){
 	/*
 	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
 	*/
-	
 	if(prevPrevTime + MSEC_PER_TICK >= currentTime){
 		logic();
 		prevPrevTime = currentTime;
@@ -555,7 +562,6 @@ void mainLoop(void){
 }
 
 extern bool fadeEnable;
-static unsigned char fadeIntensity = 0;
 
 void render(){
 	
@@ -774,16 +780,18 @@ void render(){
 		glUseProgramObjectARB(0);
 	#endif //SHADERS
 
-	if(player->light){
-		handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
-		if(ui::mouse.x < player->loc.x){
-			if(handAngle <= 0)
-				handAngle+=180;
-			if(ui::mouse.y < player->loc.y + player->height/2){
-				handAngle+=180;
-			}
+	handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
+	if(ui::mouse.x < player->loc.x){
+		if(handAngle <= 0)
+			handAngle+=180;
+		if(ui::mouse.y < player->loc.y + player->height/2){
+			handAngle+=180;
 		}
-		if(ui::mouse.x > player->loc.x && ui::mouse.y < player->loc.y+player->height/2 && handAngle <= 0) handAngle = 360+handAngle;
+	}
+	if(ui::mouse.x > player->loc.x && ui::mouse.y < player->loc.y+player->height/2 && handAngle <= 0) handAngle = 360+handAngle;
+	//if(ui::mouse.x < player->loc.x + (player->width/2)){player->left = true;player->right=false;}
+	//if(ui::mouse.x >= player->loc.x + (player->width/2)){player->right = true;player->left=false;}
+	if(player->light){
 		vec2 light;
 		int lightStr = 150;
 		vec2 curCoord;
@@ -828,7 +836,7 @@ void render(){
 					curCoord.y += float((HLINE) * sin(angle*PI/180));
 				}
 				for(auto &en : currentWorld->entity){
-					if(curCoord.x > en->loc.x && curCoord.x < en->loc.x + en->width){
+					if(curCoord.x > en->loc.x && curCoord.x < en->loc.x + en->width && en->type!=STRUCTURET){
 						if(curCoord.y > en->loc.y && curCoord .y < en->loc.y + en->height){
 							r.end = curCoord;
 							l=lightStr;
@@ -985,6 +993,8 @@ void logic(){
 	 *
 	*/
 
+	if((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) && !ui::dialogBoxExists)player->inv->useItem();
+
 	for(auto &n : currentWorld->npc){
 		if(n->alive){
 			/*
@@ -1076,7 +1086,11 @@ void logic(){
 	unsigned int i = 0;
 	for(auto &o : currentWorld->object){
 		if(o->alive){
-			if(pow((o->loc.x - player->loc.x),2) + pow((o->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
+			if(ui::mouse.x >= o->loc.x 				&&
+			   ui::mouse.x <= o->loc.x + o->width 	&&
+			   ui::mouse.y >= o->loc.y				&&
+			   ui::mouse.y <= o->loc.y + o->width	){
+				if(pow((o->loc.x - player->loc.x),2) + pow((o->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
 
 					/*
 					 *	Check for a right click, and allow the Object to interact with the
@@ -1088,6 +1102,7 @@ void logic(){
 						o->interact();
 					}
 				}
+			}
 		}
 		if(!(o->alive)){
 			currentWorld->object.erase(currentWorld->object.begin()+i);

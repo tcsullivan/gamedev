@@ -85,6 +85,8 @@ public:
 	void addMob(int t,float x,float y);
 	void addNPC(float x,float y);
 	void addObject(int, float, float);
+	void addObject(int, bool, char*, float, float);
+
 
 	//void removeObjet(Object);
 	

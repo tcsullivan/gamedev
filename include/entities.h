@@ -110,9 +110,12 @@ public:
 class Object : public Entity{
 public:
 	Object(int);
+	Object(int, bool, char*);
 	void interact();
+	bool questObject = false;
+	char *pickupDialog;
 private:
-	int ID;
+	int identifier;
 };
 #endif // ENTITIES_H
 
