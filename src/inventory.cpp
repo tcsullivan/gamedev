@@ -2,21 +2,10 @@
 #include <entities.h>
 #include <ui.h>
 
-#define ITEM_COUNT 2	// Total number of items that actually exist
+#define ITEM_COUNT 5	// Total number of items that actually exist
 
 extern Player *player;
-
-const char *itemName[]={
-	"\0",
-	"Dank Maymay",
-	"Sword"
-};
-
-const char *ITEM_SPRITE[]={
-	"\0",							// Null
-	"assets/items/ITEM_TEST.png",	// Dank maymay
-	"assets/items/ITEM_SWORD.png"
-};
+extern GLuint invUI;
 
 GLuint *ITEM_TEX;
 
@@ -26,7 +15,7 @@ unsigned int initInventorySprites(void){
 	unsigned int i,loadCount=0;
 	ITEM_TEX=(GLuint *)calloc(ITEM_COUNT,sizeof(GLuint));
 	for(i=0;i<ITEM_COUNT;i++){
-		if((ITEM_TEX[i]=Texture::loadTexture(ITEM_SPRITE[i+1])))loadCount++;
+		if((ITEM_TEX[i]=Texture::loadTexture(item[i].textureLoc)))loadCount++;
 	}
 #ifdef DEBUG
 	DEBUG_printf("Loaded %u/%u item texture(s).\n",loadCount,ITEM_COUNT);
@@ -37,7 +26,7 @@ unsigned int initInventorySprites(void){
 Inventory::Inventory(unsigned int s){
 	sel=0;
 	size=s;
-	item=(struct item_t *)calloc(size,sizeof(struct item_t));
+	//item=(struct item_t *)calloc(size,sizeof(struct item_t));
 	tossd=false;
 }
 
@@ -51,22 +40,28 @@ void Inventory::setSelection(unsigned int s){
 
 int Inventory::addItem(ITEM_ID id,unsigned char count){
 	unsigned int i;
+
 	for(i=0;i<size;i++){
 		if(item[i].id==id){
 			item[i].count+=count;
-#ifdef DEBUG
-			DEBUG_printf("Gave player %u more %s(s).\n",count,itemName[item[i].id]);
-#endif // DEBUG
+
+			#ifdef DEBUG
+			DEBUG_printf("Gave player %u more %s(s).\n",count,item[i].name);
+			#endif // DEBUG
+
 			return 0;
 		}else if(!item[i].count){
 			item[i].id=id;
 			item[i].count=count;
-#ifdef DEBUG
-			DEBUG_printf("Gave player %u %s(s).\n",count,itemName[item[i].id]);
-#endif // DEBUG
+
+			#ifdef DEBUG
+			DEBUG_printf("Gave player %u %s(s).\n",count,item[i].name);
+			#endif // DEBUG
+
 			return 0;
 		}
 	}
+
 #ifdef DEBUG
 	DEBUG_printf("Failed to add non-existant item with id %u.\n",id);
 #endif // DEBUG
@@ -78,7 +73,7 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 	for(i=0;i<size;i++){
 		if(item[i].id==id){
 #ifdef DEBUG
-			DEBUG_printf("Took %u of player's %s(s).\n",count,itemName[item[i].id]);
+			DEBUG_printf("Took %u of player's %s(s).\n",count,item[i].name);
 #endif // DEBUG
 			item[i].count-=count;
 			if(item[i].count<0)
@@ -92,12 +87,20 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 void Inventory::draw(void){
 	unsigned int i=0;
 	float y=offset.y,xoff;
-	ui::putText(offset.x-SCREEN_WIDTH/2,y,"Inventory:");
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, invUI);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,1);glVertex2i(offset.x-SCREEN_WIDTH/2,			0);
+		glTexCoord2i(1,1);glVertex2i(offset.x-SCREEN_WIDTH/2+261,		0);
+		glTexCoord2i(1,0);glVertex2i(offset.x-SCREEN_WIDTH/2+261,	   57);
+		glTexCoord2i(0,0);glVertex2i(offset.x-SCREEN_WIDTH/2,		   57);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
 	while(item[i].count){
 		y-=HLINE*12;
 		xoff=ui::putText(offset.x-SCREEN_WIDTH/2,y,"%d x ",item[i].count);
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D,ITEM_TEX[item[i].id-1]);
+		glBindTexture(GL_TEXTURE_2D,ITEM_TEX[item[i].id]);
 		if(sel==i)glColor3ub(255,0,255);
 		else      glColor3ub(255,255,255);
 		glBegin(GL_QUADS);
@@ -107,7 +110,7 @@ void Inventory::draw(void){
 			glTexCoord2i(0,0);glVertex2i(xoff		  ,y+HLINE*10);
 		glEnd();
 		y-=ui::fontSize*1.15;
-		ui::putText(offset.x-SCREEN_WIDTH/2,y,"%s",itemName[(unsigned)item[i].id]);
+		ui::putText(offset.x-SCREEN_WIDTH/2,y,"%s",item[i].name);
 		glDisable(GL_TEXTURE_2D);
 		i++;
 	}
@@ -132,10 +135,10 @@ void itemDraw(Player *p,ITEM_ID id){
 	}
 	if(p->inv->tossd) yes=true;
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2f(item_coord.x+p1.x,item_coord.y+p2.y);
-		glTexCoord2i(1,1);glVertex2f(item_coord.x+p2.x,item_coord.y+p2.y);
-		glTexCoord2i(1,0);glVertex2f(item_coord.x+p2.x,item_coord.y+p1.y);
-		glTexCoord2i(0,0);glVertex2f(item_coord.x+p1.x,item_coord.y+p1.y);
+		glTexCoord2i(0,1);glVertex2f(item_coord.x+p->loc.x,						item_coord.y+p->loc.y);
+		glTexCoord2i(1,1);glVertex2f(item_coord.x+item[sel].width+p->loc.x,		item_coord.y+p->loc.y);
+		glTexCoord2i(1,0);glVertex2f(item_coord.x+item[sel].width+p->loc.x,		item_coord.y+item[sel].height+p->loc.y);
+		glTexCoord2i(0,0);glVertex2f(item_coord.x+p->loc.x,						item_coord.y+item[sel].height+p->loc.y);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 }
@@ -143,8 +146,11 @@ void itemDraw(Player *p,ITEM_ID id){
 int Inventory::useItem(void){
 	ITEM_ID id = item[sel].id;
 	switch(id){
+	case SWORD_WOOD:
+
+		break;
 	default:
-		ui::dialogBox(itemName[id],NULL,"You cannot use this item.");
+		ui::dialogBox(item[id].name,NULL,"You cannot use this item.");
 		break;
 	}
 	return 0;

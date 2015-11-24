@@ -8,6 +8,8 @@ extern World *currentWorld;
 
 extern Player *player;
 
+extern const char *itemName;
+
 void Entity::spawn(float x, float y){	//spawns the entity you pass to it based off of coords and global entity settings
 	loc.x = x;
 	loc.y = y;
@@ -98,7 +100,21 @@ Mob::Mob(int sub){
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
-Object::Object(int id):ID(id){
+Object::Object(int id):identifier(id){
+	type = OBJECTT;
+	alive = true;
+	near = false;
+	width  = HLINE * 8;
+	height = HLINE * 8;
+
+	maxHealth = health = 1;
+	tex = new Texturec(1, "assets/items/ITEM_SWORD.png");
+
+	questObject = false;
+	pickupDialog="\0";
+}
+
+Object::Object(int id, bool qo, char *pd):identifier(id),questObject(qo),pickupDialog(pd){
 	type = OBJECTT;
 	alive = true;
 	near = false;
@@ -181,8 +197,6 @@ void Entity::draw(void){		//draws the entities
 				tex->bind(0);
 				break;
 		}
-	}else if(type == OBJECTT){
-		tex->bind(0);
 	}else{
 		tex->bind(0);
 	}
@@ -301,9 +315,19 @@ void NPC::interact(){ //have the npc's interact back to the player
 	}
 }
 
+extern void waitForDialog(void);
 void Object::interact(){
-	this->alive = false;
-	player->inv->addItem((ITEM_ID)(ID), (char)1);
+	if(questObject){
+		char opt[]=":No:Yes";
+		ui::dialogBox("You",opt,pickupDialog);
+		if(ui::dialogOptChosen == 1){
+			this->alive = false;
+			player->inv->addItem((ITEM_ID)(identifier), (char)1);
+		}
+	}else{
+		this->alive = false;
+		player->inv->addItem((ITEM_ID)(identifier), (char)1);
+	}
 }
 
 /*

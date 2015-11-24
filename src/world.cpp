@@ -760,8 +760,8 @@ void World::addNPC(float x,float y){
 	entity.push_back(npc.back());
 }
 
-void World::addObject(int i, float x, float y){
-	object.push_back(new Object(i));
+void World::addObject(int i, bool q, char *p, float x, float y){
+	object.push_back(new Object(i,q, p));
 	object.back()->spawn(x,y);
 
 	entity.push_back(object.back());
