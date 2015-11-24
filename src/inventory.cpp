@@ -7,6 +7,10 @@
 extern Player *player;
 extern GLuint invUI;
 
+static Item item[5]= {
+	#include "../config/items.h"
+};
+
 GLuint *ITEM_TEX;
 
 void itemDraw(Player *p,ITEM_ID id);

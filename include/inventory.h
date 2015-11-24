@@ -60,18 +60,9 @@ public:
 
 };
 
-static Item item[5]= {
-	#include "../config/items.h"
-};
-
 struct item_t{
 	int count;
 	ITEM_ID itmid;
-	void addC(int c, ITEM_ID i){
-		count = c;
-		itmid = i;
-		item[itmid].addCount(count);
-	}
 } __attribute__((packed));
 
 
