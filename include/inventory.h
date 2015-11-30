@@ -67,10 +67,6 @@ public:
 	}
 };
 
-static Item item[5]= {
-	#include "../config/items.h"
-};
-
 struct item_t{
 	int count;
 	ITEM_ID id;

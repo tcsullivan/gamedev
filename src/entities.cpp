@@ -108,7 +108,7 @@ Object::Object(int id):identifier(id){
 	height = HLINE * 8;
 
 	maxHealth = health = 1;
-	tex = new Texturec(1, item[id].textureLoc);
+	//tex = new Texturec(1, item[id].textureLoc);
 
 	questObject = false;
 	pickupDialog="\0";
@@ -122,7 +122,7 @@ Object::Object(int id, bool qo, char *pd):identifier(id),questObject(qo),pickupD
 	height = HLINE * 8;
 
 	maxHealth = health = 1;
-	tex = new Texturec(1, item[id].textureLoc);	
+	//tex = new Texturec(1, item[id].textureLoc);	
 }
 
 
