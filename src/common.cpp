@@ -32,3 +32,29 @@ void safeSetColorA(int r,int g,int b,int a){
 	if(a<0)a=0;
 	glColor4ub(r,g,b,a);
 }
+
+//only trust the NSA
+#define STRLEN_MIN 32
+
+unsigned int safe_strlen(const char *s){
+	unsigned int size=0;
+	while(s[size])size++;
+	if(size<STRLEN_MIN)return STRLEN_MIN;
+	else return size;
+}
+
+void DrawCircle(float cx, float cy, float r, int num_segments) 
+{ 
+	glBegin(GL_LINE_LOOP); 
+	for(int ii = 0; ii < num_segments; ii++) 
+	{ 
+		float theta = 2.0f * 3.1415926f * float(ii) / float(num_segments);//get the current angle 
+
+		float x = r * cosf(theta);//calculate the x component 
+		float y = r * sinf(theta);//calculate the y component 
+
+		glVertex2f(x + cx, y + cy);//output vertex 
+
+	} 
+	glEnd(); 
+}

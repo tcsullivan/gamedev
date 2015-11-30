@@ -162,6 +162,13 @@ void initEverything(void){
 	
 	currentWorld->addObject(SWORD_WOOD, false, NULL, 500,200);
 	currentWorld->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",600,200);
+
+	/*currentWorld->addObject(DEBUG_ITEM, 500,200);
+	currentWorld->addObject(TEST_ITEM,  550,200);
+	currentWorld->addObject(PLAYER_BAG, 600,200);
+	currentWorld->addObject(SWORD_WOOD, 650,200);
+	currentWorld->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",700,200);
+	*/
 	/*
 	 *	Link all the entities that were just created to the initial world, and setup a test AI function. 
 	*/

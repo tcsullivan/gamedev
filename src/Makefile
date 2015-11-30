@@ -1,4 +1,4 @@
-LIBS = -lGL -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
+LIBS = -lpthread -lGL -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
 
 FLAGS = -std=c++11 -I../include -I../include/freetype2
 

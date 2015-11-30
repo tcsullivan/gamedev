@@ -325,3 +325,16 @@
 	- moved background drawing to World class
 	- re-did the item system
 	- actually tiled background images to save space
+
+11/23/2015:
+===========
+	- 2 month Changelog anniversary :)
+	- Created the new inventory ui
+	- Fixed texture loading bugs
+
+11/24/2015:
+===========
+
+	- Bug fixes related to memory allocation
+	- Broke item textures...
+	- Finshed new inventory ui animations

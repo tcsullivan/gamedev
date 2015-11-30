@@ -14,15 +14,6 @@ const Quest QuestList[TOTAL_QUESTS]={
 
 };
 
-// Trust nobody
-#define STRLEN_MIN 16
-
-unsigned int safe_strlen(const char *s){
-	unsigned int size=0;
-	while(s[size])size++;
-	if(size<STRLEN_MIN)return STRLEN_MIN;
-	else return size;
-}
 
 Quest::Quest(const char *t,const char *d,struct item_t r){
 	title=(char *)calloc(safe_strlen(t),sizeof(char));
@@ -85,7 +76,7 @@ int QuestHandler::finish(const char *t,void *completer){
 #ifdef DEBUG
 			DEBUG_printf("Completing quest %s.\n",t);
 #endif // DEBUG
-			((Entity *)completer)->inv->addItem(current[i]->reward.itmid,current[i]->reward.count);
+			((Entity *)completer)->inv->addItem(current[i]->reward.id,current[i]->reward.count);
 			current.erase(current.begin()+i);
 #ifdef DEBUG
 			DEBUG_printf("QuestHandler now has %u active quests.\n",current.size());

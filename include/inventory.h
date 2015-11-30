@@ -2,6 +2,7 @@
 #define INVENTORY_H
 
 #include <common.h>
+#include <string.h>
 
 #define DEBUG
 
@@ -18,8 +19,6 @@
 /*
  * A list of all item IDs.
 */
-
-static unsigned int sel;
 
 enum ITEM_ID {
 	DEBUG_ITEM = 69,
@@ -49,15 +48,23 @@ public:
 	float height;
 	int maxStackSize;
 	char* textureLoc;
+	Texturec *tex;
 	int count;
 	Item(ITEM_ID i, char* n, ITEM_TYPE t, float w, float h, int m, char* tl):
-		id(i), name(n), type(t), width(w), height(h), maxStackSize(m), textureLoc(tl){
+		id(i), type(t), width(w), height(h), maxStackSize(m){
 		count = 0;
-	}
-	void addCount(int c){
-		count += c;
-	}
 
+		name 		= (char*)calloc(strlen(n ),sizeof(char));
+		textureLoc 	= (char*)calloc(strlen(tl),sizeof(char));
+
+		strcpy(name,n);
+		strcpy(textureLoc,tl);
+
+		tex= new Texturec(1,textureLoc);
+	}
+	GLuint rtex(){
+		return tex->image[0];
+	}
 };
 
 static Item item[5]= {
@@ -66,20 +73,20 @@ static Item item[5]= {
 
 struct item_t{
 	int count;
-	ITEM_ID itmid;
-	void addC(int c, ITEM_ID i){
-		count = c;
-		itmid = i;
-		item[itmid].addCount(count);
-	}
+	ITEM_ID id;
 } __attribute__((packed));
 
 
 class Inventory {
 private:
 	unsigned int size;		// Size of 'item' array
+	item_t *inv;
+	int os = 0;
 	//struct item_t *item;	// An array of the items contained in this inventory.
 public:
+	unsigned int sel;
+	bool invOpen = false;
+	bool invOpening = false;
 
 	Inventory(unsigned int s);	// Creates an inventory of size 's'
 	~Inventory(void);			// Free's 'item'
@@ -97,7 +104,6 @@ public:
 	
 };
 
-unsigned int initInventorySprites(void);	// Loads as many inventory textures as it can find, returns count
 void itemUse(void *p);
 
 #endif // INVENTORY_H

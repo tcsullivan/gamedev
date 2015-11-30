@@ -9,6 +9,8 @@
 #include <cstdlib>
 #include <vector>
 #include <math.h>
+ #include <thread>
+
 
 /*
  *	Include GLEW and the SDL 2 headers
@@ -60,8 +62,8 @@ typedef struct {
 
 #define GAME_NAME		"Independent Study v.0.3 alpha"
 
-#define SCREEN_WIDTH	1200
-#define SCREEN_HEIGHT	720
+#define SCREEN_WIDTH	1792
+#define SCREEN_HEIGHT	1008
 
 //#define FULLSCREEN
 
@@ -133,5 +135,10 @@ void DEBUG_prints(const char* file, int line, const char *s,...);
 
 void safeSetColor(int r,int g,int b);
 void safeSetColorA(int r,int g,int b,int a);
+
+unsigned int safe_strlen(const char*);
+
+void DrawCircle(float cx, float cy, float r, int num_segments);
+
 
 #endif // COMMON_H

@@ -108,7 +108,7 @@ Object::Object(int id):identifier(id){
 	height = HLINE * 8;
 
 	maxHealth = health = 1;
-	tex = new Texturec(1, "assets/items/ITEM_SWORD.png");
+	tex = new Texturec(1, item[id].textureLoc);
 
 	questObject = false;
 	pickupDialog="\0";
@@ -122,7 +122,7 @@ Object::Object(int id, bool qo, char *pd):identifier(id),questObject(qo),pickupD
 	height = HLINE * 8;
 
 	maxHealth = health = 1;
-	tex = new Texturec(1, "assets/items/ITEM_SWORD.png");	
+	tex = new Texturec(1, item[id].textureLoc);	
 }
 
 
@@ -316,14 +316,16 @@ void NPC::interact(){ //have the npc's interact back to the player
 }
 
 extern void waitForDialog(void);
-void Object::interact(){
+void Object::interact(void){
 	if(questObject){
-		char opt[]=":No:Yes";
+		char opt[]=":Yes:No";
 		ui::dialogBox("You",opt,pickupDialog);
-		if(ui::dialogOptChosen == 1){
-			this->alive = false;
-			player->inv->addItem((ITEM_ID)(identifier), (char)1);
-		}
+		do{
+			if(ui::dialogOptChosen == 1 && this->alive == true){
+				player->inv->addItem((ITEM_ID)(identifier), (char)1);
+				this->alive = false;
+			}
+		}while(ui::dialogBoxExists);
 	}else{
 		this->alive = false;
 		player->inv->addItem((ITEM_ID)(identifier), (char)1);

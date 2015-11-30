@@ -114,9 +114,12 @@ class Object : public Entity{
 public:
 	Object(int);
 	Object(int, bool, char*);
-	void interact();
+	void interact(void);
 	bool questObject = false;
 	char *pickupDialog;
+	std::thread runInteract() {
+          return std::thread([=] { interact(); });
+    }
 private:
 	int identifier;
 };

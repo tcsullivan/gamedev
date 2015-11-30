@@ -7,26 +7,12 @@
 extern Player *player;
 extern GLuint invUI;
 
-GLuint *ITEM_TEX;
-
 void itemDraw(Player *p,ITEM_ID id);
-
-unsigned int initInventorySprites(void){
-	unsigned int i,loadCount=0;
-	ITEM_TEX=(GLuint *)calloc(ITEM_COUNT,sizeof(GLuint));
-	for(i=0;i<ITEM_COUNT;i++){
-		if((ITEM_TEX[i]=Texture::loadTexture(item[i].textureLoc)))loadCount++;
-	}
-#ifdef DEBUG
-	DEBUG_printf("Loaded %u/%u item texture(s).\n",loadCount,ITEM_COUNT);
-#endif // DEBUG
-	return loadCount;
-}
 
 Inventory::Inventory(unsigned int s){
 	sel=0;
 	size=s;
-	//item=(struct item_t *)calloc(size,sizeof(struct item_t));
+	inv=(struct item_t *)calloc(size,sizeof(struct item_t));
 	tossd=false;
 }
 
@@ -39,43 +25,29 @@ void Inventory::setSelection(unsigned int s){
 }
 
 int Inventory::addItem(ITEM_ID id,unsigned char count){
-	unsigned int i;
+	inv[os].id = id;
+	inv[os].count = count;
+	os++;
 
-	for(i=0;i<size;i++){
-		if(item[i].id==id){
-			item[i].count+=count;
 
-			#ifdef DEBUG
-			DEBUG_printf("Gave player %u more %s(s).\n",count,item[i].name);
-			#endif // DEBUG
+	#ifdef DEBUG
+	DEBUG_printf("Gave player %u more %s(s)(%d).\n",count,item[id].name,item[id].id);
+	#endif // DEBUG
 
-			return 0;
-		}else if(!item[i].count){
-			item[i].id=id;
-			item[i].count=count;
-
-			#ifdef DEBUG
-			DEBUG_printf("Gave player %u %s(s).\n",count,item[i].name);
-			#endif // DEBUG
-
-			return 0;
-		}
-	}
-
-#ifdef DEBUG
+	/*#ifdef DEBUG
 	DEBUG_printf("Failed to add non-existant item with id %u.\n",id);
-#endif // DEBUG
-	return -1;
+	#endif // DEBUG*/
+	return 0;
 }
 
 int Inventory::takeItem(ITEM_ID id,unsigned char count){
 	unsigned int i;
 	for(i=0;i<size;i++){
-		if(item[i].id==id){
+		if(inv[i].id==id){
 #ifdef DEBUG
 			DEBUG_printf("Took %u of player's %s(s).\n",count,item[i].name);
 #endif // DEBUG
-			item[i].count-=count;
+			inv[i].count-=count;
 			if(item[i].count<0)
 				return item[i].count*-1;
 			return 0;
@@ -85,36 +57,104 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 }
 
 void Inventory::draw(void){
+	ui::putText(offset.x-SCREEN_WIDTH/2,480,"%d",sel);
 	unsigned int i=0;
-	float y=offset.y,xoff;
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, invUI);
-	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(offset.x-SCREEN_WIDTH/2,			0);
-		glTexCoord2i(1,1);glVertex2i(offset.x-SCREEN_WIDTH/2+261,		0);
-		glTexCoord2i(1,0);glVertex2i(offset.x-SCREEN_WIDTH/2+261,	   57);
-		glTexCoord2i(0,0);glVertex2i(offset.x-SCREEN_WIDTH/2,		   57);
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
-	while(item[i].count){
-		y-=HLINE*12;
-		xoff=ui::putText(offset.x-SCREEN_WIDTH/2,y,"%d x ",item[i].count);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D,ITEM_TEX[item[i].id]);
-		if(sel==i)glColor3ub(255,0,255);
-		else      glColor3ub(255,255,255);
-		glBegin(GL_QUADS);
-			glTexCoord2i(0,1);glVertex2i(xoff		  ,y);
-			glTexCoord2i(1,1);glVertex2i(xoff+HLINE*10,y);
-			glTexCoord2i(1,0);glVertex2i(xoff+HLINE*10,y+HLINE*10);
-			glTexCoord2i(0,0);glVertex2i(xoff		  ,y+HLINE*10);
-		glEnd();
-		y-=ui::fontSize*1.15;
-		ui::putText(offset.x-SCREEN_WIDTH/2,y,"%s",item[i].name);
-		glDisable(GL_TEXTURE_2D);
-		i++;
+	float y,xoff;
+
+
+	static int numSlot = 7;
+	static std::vector<int>dfp(numSlot);
+	static std::vector<Ray>iray(numSlot);
+	static std::vector<vec2>curCoord(numSlot);
+	static int range = 200;
+	float angleB = (float)180/(float)numSlot;
+	float angle = float(angleB/2.0f);
+	unsigned int a = 0;
+	unsigned int end = 0;
+	for(auto &r : iray){
+		r.start = player->loc;
+		curCoord[a] = r.start;
+		//dfp[a] = 0;
+		a++;
+	}a=0;
+	if(invOpening){
+		end = 0;
+		for(auto &d : dfp){
+			if(a != 0){
+				if(dfp[a-1]>25)d+=25;
+			}else{
+				d += 25;
+			}
+			if(d >= range)
+				d = range;
+			a++;
+		}a=0;
+		if(end < numSlot)invOpen=true;
+	}else if(!invOpening){
+		for(auto &d : dfp){
+			if(d > 0){
+				if(a != 0){
+					//d-=25;
+					if(dfp[a-1]+25<d || dfp[a-1]<=0)d-=25;
+				}else{
+					d-=25;
+				}
+			}else end++;
+			a++;
+		}a=0;
+		if(end >= numSlot)invOpen=false;
 	}
-	if(item[sel].count)itemDraw(player,item[sel].id);
+	if(invOpen){
+		for(auto &r : iray){
+			angle=180-(angleB*a) - angleB/2.0f;
+			curCoord[a].x += float((dfp[a]) * cos(angle*PI/180));
+			curCoord[a].y += float((dfp[a]) * sin(angle*PI/180));
+			r.end = curCoord[a];
+
+			item[inv[i].id].tex->bind(0);			
+			glColor4f(1.0f, 1.0f, 1.0f, (float)dfp[a]/(float)range);
+ 			glBegin(GL_QUADS);
+				glTexCoord2i(0,1);glVertex2i(r.end.x,		r.end.y);
+				glTexCoord2i(1,1);glVertex2i(r.end.x+45,	r.end.y);
+				glTexCoord2i(1,0);glVertex2i(r.end.x+45,	r.end.y+45);
+				glTexCoord2i(0,0);glVertex2i(r.end.x,		r.end.y+45);
+			glEnd();
+			a++;
+		}
+	}
+
+
+	/*else if(!invOpen){
+		for(auto &d : dfp){
+			d = 0;
+		}
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, invUI);
+		glBegin(GL_QUADS);
+			glTexCoord2i(0,1);glVertex2i(offset.x-SCREEN_WIDTH/2,			0);
+			glTexCoord2i(1,1);glVertex2i(offset.x-SCREEN_WIDTH/2+261,		0);
+			glTexCoord2i(1,0);glVertex2i(offset.x-SCREEN_WIDTH/2+261,	   57);
+			glTexCoord2i(0,0);glVertex2i(offset.x-SCREEN_WIDTH/2,		   57);
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
+		while(i<size && inv[i].count > 0 && i<5){
+			y = 6;
+			xoff = (offset.x - (SCREEN_WIDTH /2)) + (51*i) + 6;
+			glEnable(GL_TEXTURE_2D);
+			item[inv[i].id].tex->bind(0);
+			if(sel==i)glColor3ub(255,0,255);
+			else      glColor3ub(255,255,255);
+			glBegin(GL_QUADS);
+				glTexCoord2i(0,1);glVertex2i(xoff,		y);
+				glTexCoord2i(1,1);glVertex2i(xoff+45,	y);
+				glTexCoord2i(1,0);glVertex2i(xoff+45,	y+45);
+				glTexCoord2i(0,0);glVertex2i(xoff,		y+45);
+			glEnd();
+			glDisable(GL_TEXTURE_2D);
+			i++;
+		}
+	}*/
+	if(inv[sel].count)itemDraw(player,inv[sel].id);
 }
 
 static vec2 item_coord = {0,0};
@@ -126,7 +166,7 @@ void itemDraw(Player *p,ITEM_ID id){
 	static vec2 p1,p2;
 	if(!id)return;
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,ITEM_TEX[id-1]);
+	item[id].tex->bind(0);
 	if(!yes){
 		p1 = {p->loc.x+p->width/2,
 			  p->loc.y+p->width/2+HLINE*3};
@@ -134,23 +174,24 @@ void itemDraw(Player *p,ITEM_ID id){
 			  p->loc.y+HLINE*3};
 	}
 	if(p->inv->tossd) yes=true;
+	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2f(item_coord.x+p->loc.x,						item_coord.y+p->loc.y);
-		glTexCoord2i(1,1);glVertex2f(item_coord.x+item[sel].width+p->loc.x,		item_coord.y+p->loc.y);
-		glTexCoord2i(1,0);glVertex2f(item_coord.x+item[sel].width+p->loc.x,		item_coord.y+item[sel].height+p->loc.y);
-		glTexCoord2i(0,0);glVertex2f(item_coord.x+p->loc.x,						item_coord.y+item[sel].height+p->loc.y);
+		glTexCoord2i(1,1);glVertex2f(item_coord.x+item[id].width+p->loc.x,		item_coord.y+p->loc.y);
+		glTexCoord2i(1,0);glVertex2f(item_coord.x+item[id].width+p->loc.x,		item_coord.y+item[id].height+p->loc.y);
+		glTexCoord2i(0,0);glVertex2f(item_coord.x+p->loc.x,						item_coord.y+item[id].height+p->loc.y);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 }
 
 int Inventory::useItem(void){
-	ITEM_ID id = item[sel].id;
+	ITEM_ID id = item[inv[sel].id].id;
 	switch(id){
-	case SWORD_WOOD:
-
+	case FLASHLIGHT:
+		player->light ^= true;
 		break;
 	default:
-		ui::dialogBox(item[id].name,NULL,"You cannot use this item.");
+		//ui::dialogBox(item[id].name,NULL,"You cannot use this item.");
 		break;
 	}
 	return 0;

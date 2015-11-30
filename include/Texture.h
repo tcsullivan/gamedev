@@ -11,7 +11,6 @@ namespace Texture{
 
 class Texturec{
 private:
-	GLuint *image;
 	int texState;
 public:
 	Texturec(uint amt, ...);
@@ -19,6 +18,8 @@ public:
 	void bindPrev();
 	void bind(int);
 	void walk();
+
+	GLuint *image;
 };
 
 #endif //TEXTURE_H

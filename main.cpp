@@ -433,9 +433,9 @@ int main(int argc, char *argv[]){
 	invUI = Texture::loadTexture("assets/invUI.png"	);
 	
 	//std::cout << "Before invSprites\n";
-	initInventorySprites();
+	//initInventorySprites();
 	//std::cout << "After invSprites\n";
-	
+
 	/**************************
 	****     GAMELOOP      ****
 	**************************/
@@ -456,12 +456,6 @@ int main(int argc, char *argv[]){
     
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
-    
-    FILE *worldSave = fopen("world.dat","w");
-    char *worldBuf;
-    unsigned int worldSize;
-    worldBuf=currentWorld->save(&worldSize);
-    fclose(worldSave);
     
     return 0;	// Calls everything passed to atexit
 }
@@ -680,29 +674,8 @@ void render(){
 			//for length
 			for(int l = 0;l<=lightStr;l++){
 				//std::cout << a << ": " << curCoord.x << "," << curCoord.y << "\n";
-				if(angle == 0){
-					curCoord.x += HLINE;
-					curCoord.y += 0;
-				}
-				if(angle == 90){
-					curCoord.y += HLINE;
-					curCoord.x += 0;
-				}
-				if(angle == 180){
-					curCoord.x -= HLINE;
-					curCoord.y += 0;
-				}
-				if(angle == 270){
-					curCoord.y -= HLINE;
-					curCoord.x += 0;
-				}
-				if(angle == 360){
-					curCoord.x += HLINE;
-					curCoord.y += 0;
-				}else{
-					curCoord.x += float((HLINE) * cos(angle*PI/180));
-					curCoord.y += float((HLINE) * sin(angle*PI/180));
-				}
+				curCoord.x += float((HLINE) * cos(angle*PI/180));
+				curCoord.y += float((HLINE) * sin(angle*PI/180));
 				for(auto &en : currentWorld->entity){
 					if(curCoord.x > en->loc.x && curCoord.x < en->loc.x + en->width && en->type!=STRUCTURET){
 						if(curCoord.y > en->loc.y && curCoord .y < en->loc.y + en->height){
@@ -972,7 +945,8 @@ void logic(){
 					*/
 
 					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-						o->interact();
+						std::thread thr(o->runInteract());
+						thr.detach();
 					}
 				}
 			}

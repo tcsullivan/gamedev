@@ -527,7 +527,7 @@ DONE:
 				KEYDOWN
 			*/
 			case SDL_KEYDOWN:
-				if(SDL_KEY==SDLK_ESCAPE)gameRunning=false;							// Exit the game with ESC
+			if(SDL_KEY==SDLK_ESCAPE)gameRunning=false;							// Exit the game with ESC
 			if(!dialogBoxExists&&!fadeEnable){
 				if(SDL_KEY==SDLK_a){												// Move left
 					left=true;
@@ -583,17 +583,12 @@ DONE:
 				if(SDL_KEY==SDLK_q){
 					player->inv->itemToss();
 				}
-				if(SDL_KEY==SDLK_e){
-					player->inv->useItem();
-				}
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = debug?4:3;							// Sprint
 				if(SDL_KEY==SDLK_LCTRL)player->speed = .5;
 			}
 				if(SDL_KEY==SDLK_p)toggleBlack();
 				if(SDL_KEY==SDLK_F3)debug^=true;
 				if(SDL_KEY==SDLK_b & SDL_KEY==SDLK_F3)posFlag^=true;
-				if(SDL_KEY==SDLK_UP)handAngle++;
-				if(SDL_KEY==SDLK_DOWN)handAngle--;
 				break;
 			/*
 				KEYUP
@@ -606,9 +601,9 @@ DONE:
 				if(SDL_KEY==SDLK_LCTRL)player->speed = 1;
 				if(SDL_KEY==SDLK_h)player->health-=5;
 				if(SDL_KEY==SDLK_f)player->light ^= true;
-				if(SDL_KEY==SDLK_UP)handAngle+=0;
-				if(SDL_KEY==SDLK_DOWN)handAngle-=0;
-
+				if(SDL_KEY==SDLK_e)player->inv->invOpening ^= true;
+				if(SDL_KEY==SDLK_RIGHT){player->inv->sel+=1;}
+				if(SDL_KEY==SDLK_LEFT){if(player->inv->sel!=0)player->inv->sel-=1;}
 				break;
 			default:
 				break;

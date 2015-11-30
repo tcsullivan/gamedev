@@ -54,7 +54,7 @@ namespace Texture{
 		SDL_FreeSurface(image);	// Free the surface
 		
 		LoadedTexture[LoadedTextureCounter]		  = (struct texture_t *)malloc(sizeof(struct texture_t));
-		LoadedTexture[LoadedTextureCounter]->name = (char *)malloc(strlen(fileName));
+		LoadedTexture[LoadedTextureCounter]->name = (char *)malloc(safe_strlen(fileName));
 		LoadedTexture[LoadedTextureCounter]->tex  = object;
 		strcpy(LoadedTexture[LoadedTextureCounter]->name,fileName);
 		LoadedTextureCounter++;
