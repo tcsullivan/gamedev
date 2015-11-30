@@ -132,7 +132,7 @@ namespace ui {
 		 *	Pre-render 'all' the characters.
 		*/
 		
-		glDeleteTextures(93,ftex);	//	Delete any already-rendered textures
+		glDeleteTextures(93,ftex);	//	delete[] any already-rendered textures
 		glGenTextures(93,ftex);		//	Generate new texture name/locations?
 		
 		for(i=33;i<126;i++){
@@ -163,7 +163,7 @@ namespace ui {
 			 *	making it white-on-black.
 			*/
 			
-			buf=(char *)malloc(ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows*4);
+			buf = new char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];	//(char *)malloc(ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows*4);
 		
 			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
 				buf[j*4  ]=fontColor[0];
@@ -181,7 +181,7 @@ namespace ui {
 		
 			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf);	
 			
-			free(buf);
+			delete[] buf;	//free(buf);
 		}
 	}
 	
@@ -302,7 +302,10 @@ namespace ui {
 		 *	Create a well-sized buffer if we haven't yet.
 		*/
 		
-		if(!ret) ret=(char *)calloc(512,sizeof(char));
+		if(!ret){
+			ret = new char[512];	//(char *)calloc(512,sizeof(char));
+			memset(ret,0,512*sizeof(char));
+		}
 		
 		/*
 		 *	Reset values if a new string is being passed.
@@ -343,7 +346,8 @@ namespace ui {
 		 *	Create a wimpy buffer.
 		*/
 		
-		buf=(char *)calloc(128,sizeof(char));
+		buf = new char[128];	//(char *)calloc(128,sizeof(char));
+		memset(buf,0,128*sizeof(char));
 		
 		/*
 		 *	Handle the formatted string, printing it to the buffer.
@@ -358,7 +362,7 @@ namespace ui {
 		*/
 		
 		width=putString(x,y,buf);
-		free(buf);
+		delete[] buf;	//free(buf);
 		
 		return width;
 	}
@@ -372,7 +376,7 @@ namespace ui {
 		 *	Set up the text buffer.
 		*/
 		
-		if(!dialogBoxText) dialogBoxText=(char *)malloc(512);
+		if(!dialogBoxText) dialogBoxText = new char[512];	//(char *)malloc(512);
 		memset(dialogBoxText,0,512);
 		
 		/*
@@ -394,7 +398,7 @@ namespace ui {
 		
 		while(dialogOptCount){
 			if(dialogOptText[dialogOptCount])
-				free(dialogOptText[dialogOptCount]);
+				delete[] dialogOptText[dialogOptCount];	//free(dialogOptText[dialogOptCount]);
 			dialogOptCount--;
 		};
 		dialogOptChosen=0;
@@ -402,7 +406,7 @@ namespace ui {
 		
 		sopt=strtok(opt,":");
 		while(sopt != NULL){
-			dialogOptText[dialogOptCount]=(char *)malloc(strlen(sopt));
+			dialogOptText[dialogOptCount] = new char[strlen(sopt)+1];	//(char *)malloc(strlen(sopt));
 			strcpy(dialogOptText[dialogOptCount++],sopt);
 			sopt=strtok(NULL,":");
 		}
@@ -416,19 +420,19 @@ namespace ui {
 	}
 	void importantText(const char *text,...){
 		va_list textArgs;
-		char *ttext;
+		char *ttext,*rtext;
 		if(!player->ground)return;
 		va_start(textArgs,text);
-		ttext=(char *)calloc(512,sizeof(char));
+		ttext = new char[512];	//(char *)calloc(512,sizeof(char));
+		memset(ttext,0,512*sizeof(char));
 		vsnprintf(ttext,512,text,textArgs);
 		va_end(textArgs);
 		setFontSize(24);
-		char *rtext;
 		rtext=typeOut(ttext);
 		putString(offset.x-SCREEN_WIDTH/2,
 				  offset.y+fontSize,
 				  rtext);
-		free(ttext);
+		delete[] ttext;	//free(ttext);
 	}
 	void draw(void){
 		unsigned char i;

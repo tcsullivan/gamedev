@@ -11,12 +11,12 @@ namespace Texture{
 
 class Texturec{
 private:
-	int texState;
+	unsigned int texState;
 public:
 	Texturec(uint amt, ...);
 	void bindNext();
 	void bindPrev();
-	void bind(int);
+	void bind(unsigned int);
 	void walk();
 
 	GLuint *image;

@@ -53,8 +53,8 @@ namespace Texture{
 
 		SDL_FreeSurface(image);	// Free the surface
 		
-		LoadedTexture[LoadedTextureCounter]		  = (struct texture_t *)malloc(sizeof(struct texture_t));
-		LoadedTexture[LoadedTextureCounter]->name = (char *)malloc(safe_strlen(fileName));
+		LoadedTexture[LoadedTextureCounter]		  = new struct texture_t;		//(struct texture_t *)malloc(sizeof(struct texture_t));
+		LoadedTexture[LoadedTextureCounter]->name = new char[strlen(fileName)+1];	//(char *)malloc(safe_strlen(fileName));
 		LoadedTexture[LoadedTextureCounter]->tex  = object;
 		strcpy(LoadedTexture[LoadedTextureCounter]->name,fileName);
 		LoadedTextureCounter++;
@@ -64,17 +64,17 @@ namespace Texture{
 }
 
 Texturec::Texturec(uint amt, ...){
-	image = new GLuint(amt);
+	texState = 0;
+	image = new GLuint[amt];
 	va_list fNames;
 	va_start(fNames, amt);
 	for(int i = 0; i < amt; i++){
-		char* f = va_arg(fNames, char*);
-		image[i] = Texture::loadTexture(f);
+		image[i] = Texture::loadTexture(va_arg(fNames, char *));
 	}
 	va_end(fNames);
 }
 
-void Texturec::bind(int bn){
+void Texturec::bind(unsigned int bn){
 	texState = bn;
 	glBindTexture(GL_TEXTURE_2D, image[texState]);
 }

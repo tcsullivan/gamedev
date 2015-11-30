@@ -9,8 +9,7 @@
 #include <cstdlib>
 #include <vector>
 #include <math.h>
- #include <thread>
-
+#include <thread>
 
 /*
  *	Include GLEW and the SDL 2 headers
@@ -60,10 +59,10 @@ typedef struct {
  *	and whether or not we want the window to be fullscreen.
 */
 
-#define GAME_NAME		"Independent Study v.0.3 alpha"
+#define GAME_NAME		"Independent Study v.0.4 alpha"
 
-#define SCREEN_WIDTH	1792
-#define SCREEN_HEIGHT	1008
+#define SCREEN_WIDTH	800
+#define SCREEN_HEIGHT	600
 
 //#define FULLSCREEN
 
@@ -118,14 +117,6 @@ extern vec2 offset;
 extern float handAngle;
 
 /*
- *	Loads an image from the given file path and attempts to make a texture out of it. The
- *	resulting GLuint is returned (used to recall the texture in glBindTexture).
- * 
-*/
-
-//GLuint loadTexture(const char *fileName);
-
-/*
  *	Prints a formatted debug message to the console, along with the callee's file and line
  *	number.
  * 
@@ -135,10 +126,5 @@ void DEBUG_prints(const char* file, int line, const char *s,...);
 
 void safeSetColor(int r,int g,int b);
 void safeSetColorA(int r,int g,int b,int a);
-
-unsigned int safe_strlen(const char*);
-
-void DrawCircle(float cx, float cy, float r, int num_segments);
-
 
 #endif // COMMON_H

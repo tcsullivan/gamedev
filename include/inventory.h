@@ -50,18 +50,7 @@ public:
 	char* textureLoc;
 	Texturec *tex;
 	int count;
-	Item(ITEM_ID i, char* n, ITEM_TYPE t, float w, float h, int m, char* tl):
-		id(i), type(t), width(w), height(h), maxStackSize(m){
-		count = 0;
-
-		name 		= (char*)calloc(strlen(n ),sizeof(char));
-		textureLoc 	= (char*)calloc(strlen(tl),sizeof(char));
-
-		strcpy(name,n);
-		strcpy(textureLoc,tl);
-
-		tex= new Texturec(1,textureLoc);
-	}
+	Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const char *tl);
 	GLuint rtex(){
 		return tex->image[0];
 	}
@@ -101,5 +90,6 @@ public:
 };
 
 void itemUse(void *p);
+char *getItemTexturePath(ITEM_ID id);
 
 #endif // INVENTORY_H

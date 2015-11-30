@@ -112,8 +112,7 @@ public:
 
 class Object : public Entity{
 public:
-	Object(int);
-	Object(int, bool, char*);
+	Object(ITEM_ID id, bool qo, const char *pd);
 	void interact(void);
 	bool questObject = false;
 	char *pickupDialog;

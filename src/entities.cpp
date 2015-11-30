@@ -33,7 +33,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 		}
 	}
 	
-	name = (char*)malloc(16);
+	name = new char[16];	//(char*)malloc(16);
 	getName();
 }
 
@@ -100,7 +100,13 @@ Mob::Mob(int sub){
 	inv = new Inventory(NPC_INV_SIZE);
 }
 
-Object::Object(int id):identifier(id){
+Object::Object(ITEM_ID id, bool qo, const char *pd){
+	identifier = id;
+	questObject = qo;
+	
+	pickupDialog = new char[strlen(pd)+1];
+	strcpy(pickupDialog,pd);
+	
 	type = OBJECTT;
 	alive = true;
 	near = false;
@@ -108,21 +114,7 @@ Object::Object(int id):identifier(id){
 	height = HLINE * 8;
 
 	maxHealth = health = 1;
-	//tex = new Texturec(1, item[id].textureLoc);
-
-	questObject = false;
-	pickupDialog="\0";
-}
-
-Object::Object(int id, bool qo, char *pd):identifier(id),questObject(qo),pickupDialog(pd){
-	type = OBJECTT;
-	alive = true;
-	near = false;
-	width  = HLINE * 8;
-	height = HLINE * 8;
-
-	maxHealth = health = 1;
-	//tex = new Texturec(1, item[id].textureLoc);	
+	tex = new Texturec(1,getItemTexturePath(id));
 }
 
 
@@ -218,7 +210,7 @@ NOPE:
 
 void Entity::getName(){
 	rewind(names);
-	char buf,*bufs = (char *)malloc(16);
+	char buf,*bufs = new char[16];	//(char *)malloc(16);
 	int tempNum,max = 0;
 	for(;!feof(names);max++){
 		fgets(bufs,16,(FILE*)names);
@@ -245,7 +237,7 @@ void Entity::getName(){
 		bufs[strlen(bufs)-1] = '\0';
 		strcpy(name,bufs);
 	}
-	free(bufs);
+	delete[] bufs;	//free(bufs);
 }
 
 void Player::interact(){ //the function that will cause the player to search for things to interact with

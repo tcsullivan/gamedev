@@ -496,11 +496,11 @@ void mainLoop(void){
 	/*
 	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
 	*/
+	
 	if(prevPrevTime + MSEC_PER_TICK >= currentTime){
 		logic();
 		prevPrevTime = currentTime;
 	}
-	//ui::handleMouse();
 	
 	/*
 	 *	Update player and entity coordinates.
@@ -519,7 +519,7 @@ void mainLoop(void){
 		
 	}else if(!(debugDiv%10)){
 		debugY = player->loc.y;
-	}	
+	}
 
 	render();	// Call the render loop
 	

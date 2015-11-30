@@ -16,16 +16,16 @@ const Quest QuestList[TOTAL_QUESTS]={
 
 
 Quest::Quest(const char *t,const char *d,struct item_t r){
-	title=(char *)calloc(safe_strlen(t),sizeof(char));
-	desc=(char *)calloc(safe_strlen(d),sizeof(char));
+	title = new char[strlen(t)+1];	//(char *)calloc(safe_strlen(t),sizeof(char));
+	desc = new char[strlen(d)+1];		//(char *)calloc(safe_strlen(d),sizeof(char));
 	strcpy(title,t);
 	strcpy(desc,d);
 	memcpy(&reward,&r,sizeof(struct item_t));
 }
 
 Quest::~Quest(){
-	free(title);
-	free(desc);
+	delete[] title;	//free(title);
+	delete[] desc;	//free(desc);
 	memset(&reward,0,sizeof(struct item_t));
 }
 

@@ -13,15 +13,38 @@ static Item item[5]= {
 
 void itemDraw(Player *p,ITEM_ID id);
 
+char *getItemTexturePath(ITEM_ID id){
+	return item[id].textureLoc;
+}
+
+Item::Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const char *tl){
+	id = i;
+	type = t;
+	width = w;
+	height = h;
+	maxStackSize = m;
+	count = 0;
+
+	name 		= new char[strlen(n)+1];	//(char*)calloc(strlen(n ),sizeof(char));
+	textureLoc 	= new char[strlen(tl)+1];	//(char*)calloc(strlen(tl),sizeof(char));
+
+	strcpy(name,n);
+	strcpy(textureLoc,tl);
+
+	tex= new Texturec(1,textureLoc);
+}
+
 Inventory::Inventory(unsigned int s){
 	sel=0;
 	size=s;
-	inv=(struct item_t *)calloc(size,sizeof(struct item_t));
+	inv = new struct item_t[size];	//(struct item_t *)calloc(size,sizeof(struct item_t));
+	memset(inv,0,size*sizeof(struct item_t));
 	tossd=false;
 }
 
 Inventory::~Inventory(void){
-	free(item);
+	delete[] inv;
+	//free(item);
 }
 
 void Inventory::setSelection(unsigned int s){
@@ -64,8 +87,6 @@ void Inventory::draw(void){
 	ui::putText(offset.x-SCREEN_WIDTH/2,480,"%d",sel);
 	unsigned int i=0;
 	float y,xoff;
-
-
 	static int numSlot = 7;
 	static std::vector<int>dfp(numSlot);
 	static std::vector<Ray>iray(numSlot);
@@ -158,6 +179,7 @@ void Inventory::draw(void){
 			i++;
 		}
 	}*/
+	
 	if(inv[sel].count)itemDraw(player,inv[sel].id);
 }
 
