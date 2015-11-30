@@ -97,28 +97,12 @@ void initEverything(void){
 	/*
 	 *	World creation:
 	*/
+	
 	World *test=new World();
 	World *playerSpawnHill=new World();
 	
-	/*
-	 *	Load the saved world if it exists, otherwise generate a new one.
-	*/
-	
-	/*FILE *worldLoad;
-	if((worldLoad=fopen("world.dat","r"))){
-		std::cout<<"Yes"<<std::endl;
-		char *buf;
-		unsigned int size;
-		fseek(worldLoad,0,SEEK_END);
-		size=ftell(worldLoad);
-		rewind(worldLoad);
-		buf=(char *)malloc(size);
-		fread(buf,1,size,worldLoad);
-		test->load(buf);
-	}else{*/
-		test->generate(SCREEN_WIDTH*2);
-		test->addHole(100,150);
-	//}
+	test->generate(SCREEN_WIDTH*2);
+	test->addHole(100,150);
 	
 	test->setBackground(BG_FOREST);
 	test->addLayer(400);
@@ -160,7 +144,7 @@ void initEverything(void){
 	test->addMob(MS_RABBIT,200,100);
 	test->addMob(MS_BIRD,-500,500);
 	
-	currentWorld->addObject(SWORD_WOOD, false, NULL, 500,200);
+	currentWorld->addObject(SWORD_WOOD, false, "", 500,200);
 	currentWorld->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",600,200);
 
 	/*currentWorld->addObject(DEBUG_ITEM, 500,200);

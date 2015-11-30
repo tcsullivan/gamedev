@@ -1,7 +1,7 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include <common.h> // For HLINE, vec2, OpenGL utilities, etc.
+#include <common.h>		// For HLINE, vec2, OpenGL utilities, etc.
 #include <entities.h>
 
 #define GEN_INC 10		// Defines at what interval y values should be calculated for the array 'line'.
@@ -102,7 +102,7 @@ public:
 	void addMob(int t,float x,float y);
 	void addMob(int t,float x,float y,void (*hey)());
 	void addNPC(float x,float y);
-	void addObject(int, bool, char*, float, float);
+	void addObject(ITEM_ID, bool, const char *, float, float);
 	
 	void update(Player *p,unsigned int delta);
 	
@@ -175,19 +175,6 @@ public:
 	*/
 	
 	int getTheWidth(void);
-	
-	/*
-	 *	Stores all of this class's contents in a string for saving to a file. This array should
-	 *	be freed after being written to a file.
-	*/
-	
-	char *save(unsigned int *ssize);
-	
-	/*
-	 *	Loads a previous world's contents (from save()) into this one.
-	*/
-	
-	void load(char *buf);
 	
 };
 

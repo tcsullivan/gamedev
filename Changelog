@@ -338,3 +338,10 @@
 	- Bug fixes related to memory allocation
 	- Broke item textures...
 	- Finshed new inventory ui animations
+
+11/30/2015:
+===========
+
+	- Converted all m/calloc/free calls to new/delete
+	- fixed hardcoded string issues
+	- improved inventory animation

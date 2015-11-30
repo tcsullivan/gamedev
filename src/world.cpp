@@ -43,34 +43,6 @@ float worldGetYBase(World *w){
 	return /*base*/ GEN_MIN;
 }
 
-struct wSavePack {
-	int				x_start;
-	unsigned int	lineCount;
-} __attribute__ ((packed));
-
-char *World::save(unsigned int *ssize){
-	struct wSavePack *sp;
-	unsigned int size;
-	char *buf;
-	size=sizeof(struct wSavePack) + lineCount * sizeof(struct line_t);
-	buf=(char *)malloc(size);
-	sp=(struct wSavePack *)buf;
-	sp->x_start=x_start;
-	sp->lineCount=lineCount;
-	memcpy(buf+sizeof(struct wSavePack),line,lineCount * sizeof(struct line_t));
-	*ssize=size;
-	return buf;
-}
-
-void World::load(char *buf){
-	struct wSavePack *sp;
-	sp=(struct wSavePack *)buf;
-	x_start=sp->x_start;
-	lineCount=sp->lineCount;
-	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));
-	memcpy(line,buf+sizeof(struct wSavePack),lineCount * sizeof(struct line_t));
-}
-
 void World::setBackground(WORLD_BG_TYPE bgt){
 	switch(bgt){
 	default:
@@ -95,7 +67,8 @@ World::World(void){
 	toLeft	=
 	toRight	= NULL;
 	
-	star = (vec2 *)calloc(100,sizeof(vec2));
+	star = new vec2[100];				//(vec2 *)calloc(100,sizeof(vec2));
+	memset(star,0,100*sizeof(vec2));
 }
 
 void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
@@ -118,7 +91,8 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	 *	Allocate enough memory for the world to be stored.
 	*/
 	
-	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));
+	line = new struct line_t[lineCount]; //(struct line_t *)calloc(lineCount,sizeof(struct line_t));
+	memset(line,0,lineCount*sizeof(struct line_t));
 	
 	/*
 	 *	Set an initial y to base generation off of, as generation references previous lines.
@@ -203,7 +177,8 @@ void World::generateFunc(unsigned int width,float(*func)(float)){
 	unsigned int i;
 	if((lineCount = width) <= 0)
 		abort();
-	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));
+	line = new struct line_t[lineCount];	//(struct line_t *)calloc(lineCount,sizeof(struct line_t));
+	memset(line,0,lineCount*sizeof(struct line_t));
 	for(i=0;i<lineCount;i++){
 		line[i].y=func(i);
 		if(line[i].y<0)line[i].y=0;
@@ -222,19 +197,19 @@ void World::generateFunc(unsigned int width,float(*func)(float)){
 }
 
 World::~World(void){
-	free(line);
+	delete[] line;
 }
 
 void World::update(Player *p,unsigned int delta){
 	p->loc.y+= p->vel.y			 *delta;
 	p->loc.x+=(p->vel.x*p->speed)*delta;
-	
+
 	for(auto &e : entity){
 		if(e->type != STRUCTURET)
 			e->loc.x += e->vel.x * delta;
 			e->loc.y += e->vel.y * delta;
 			if(e->vel.x < 0)e->left = true;
-	   else if(e->vel.x > 0)e->left = false;
+		else if(e->vel.x > 0)e->left = false;
 	}
 }
 
@@ -760,7 +735,7 @@ void World::addNPC(float x,float y){
 	entity.push_back(npc.back());
 }
 
-void World::addObject(int i, bool q, char *p, float x, float y){
+void World::addObject(ITEM_ID i, bool q, const char *p, float x, float y){
 	object.push_back(new Object(i,q, p));
 	object.back()->spawn(x,y);
 
@@ -768,7 +743,7 @@ void World::addObject(int i, bool q, char *p, float x, float y){
 }
 
 /*void World::removeObject(Object i){
-	object.delete(i);
+	object.delete[](i);
 }*/
 
 /*
@@ -861,7 +836,7 @@ IndoorWorld::IndoorWorld(void){
 }
 
 IndoorWorld::~IndoorWorld(void){
-	free(line);
+	delete[] line;	//free(line);
 }
 
 void IndoorWorld::generate(unsigned int width){		// Generates a flat area of width 'width'
@@ -869,7 +844,8 @@ void IndoorWorld::generate(unsigned int width){		// Generates a flat area of wid
 	lineCount=width+GEN_INC;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
 	if(lineCount<=0)abort();
 	
-	line=(struct line_t *)calloc(lineCount,sizeof(struct line_t));	// Allocate memory for the array 'line'
+	line = new struct line_t[lineCount];	//(struct line_t *)calloc(lineCount,sizeof(struct line_t));	// Allocate memory for the array 'line'
+	memset(line,0,lineCount*sizeof(struct line_t));
 	
 	for(i=0;i<lineCount;i++){			// Indoor areas don't have to be directly on the ground (i.e. 0)...
 		line[i].y=INDOOR_FLOOR_HEIGHT;
