@@ -123,6 +123,8 @@ extern float handAngle;
  * 
 */
 
+ extern unsigned int loops;
+
 //GLuint loadTexture(const char *fileName);
 
 /*

@@ -7,10 +7,6 @@
 extern Player *player;
 extern GLuint invUI;
 
-static Item item[5]= {
-	#include "../config/items.h"
-};
-
 void itemDraw(Player *p,ITEM_ID id);
 
 Inventory::Inventory(unsigned int s){
@@ -63,6 +59,7 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 void Inventory::draw(void){
 	ui::putText(offset.x-SCREEN_WIDTH/2,480,"%d",sel);
 	unsigned int i=0;
+	static unsigned int lop = 0;
 	float y,xoff;
 
 
@@ -81,7 +78,7 @@ void Inventory::draw(void){
 		//dfp[a] = 0;
 		a++;
 	}a=0;
-	if(invOpening){
+	if(invOpening && lop % 1 == 0){
 		end = 0;
 		for(auto &d : dfp){
 			if(a != 0){
@@ -94,18 +91,12 @@ void Inventory::draw(void){
 			a++;
 		}a=0;
 		if(end < numSlot)invOpen=true;
-	}else if(!invOpening){
-		for(auto &d : dfp){
+	}else if(!invOpening && lop % 1 == 0){
+		for(auto &d : boost::adaptors::reverse(dfp)){
 			if(d > 0){
-				if(a != 0){
-					//d-=25;
-					if(dfp[a-1]+25<d || dfp[a-1]<=0)d-=25;
-				}else{
-					d-=25;
-				}
+				d-=25;
 			}else end++;
-			a++;
-		}a=0;
+		}
 		if(end >= numSlot)invOpen=false;
 	}
 	if(invOpen){
@@ -115,14 +106,24 @@ void Inventory::draw(void){
 			curCoord[a].y += float((dfp[a]) * sin(angle*PI/180));
 			r.end = curCoord[a];
 
-			item[inv[i].id].tex->bind(0);			
-			glColor4f(1.0f, 1.0f, 1.0f, (float)dfp[a]/(float)range);
+			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)range));
  			glBegin(GL_QUADS);
-				glTexCoord2i(0,1);glVertex2i(r.end.x,		r.end.y);
-				glTexCoord2i(1,1);glVertex2i(r.end.x+45,	r.end.y);
-				glTexCoord2i(1,0);glVertex2i(r.end.x+45,	r.end.y+45);
-				glTexCoord2i(0,0);glVertex2i(r.end.x,		r.end.y+45);
+				glVertex2i(r.end.x,		r.end.y);
+				glVertex2i(r.end.x+45,	r.end.y);
+				glVertex2i(r.end.x+45,	r.end.y+45);
+				glVertex2i(r.end.x,		r.end.y+45);
 			glEnd();
+
+			if(inv[a].count > 0){
+				glBindTexture(GL_TEXTURE_2D, item[inv[a].id].text);			
+				glColor4f(1.0f, 1.0f, 1.0f, (float)dfp[a]/(float)range);
+	 			glBegin(GL_QUADS);
+					glTexCoord2i(0,1);glVertex2i(r.end.x,		r.end.y);
+					glTexCoord2i(1,1);glVertex2i(r.end.x+45,	r.end.y);
+					glTexCoord2i(1,0);glVertex2i(r.end.x+45,	r.end.y+45);
+					glTexCoord2i(0,0);glVertex2i(r.end.x,		r.end.y+45);
+				glEnd();
+			}
 			a++;
 		}
 	}
@@ -159,6 +160,7 @@ void Inventory::draw(void){
 		}
 	}*/
 	if(inv[sel].count)itemDraw(player,inv[sel].id);
+	lop++;
 }
 
 static vec2 item_coord = {0,0};

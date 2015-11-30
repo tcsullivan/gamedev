@@ -13,7 +13,6 @@ namespace Texture{
 	GLuint loadTexture(const char *fileName){
 		SDL_Surface *image;
 		GLuint object = 0;
-		unsigned int i;
 
 		for(unsigned int i=0;i<LoadedTextureCounter;i++){
 			if(!strcmp(LoadedTexture[i]->name,fileName)){
