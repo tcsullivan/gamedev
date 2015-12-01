@@ -76,7 +76,6 @@ namespace ui {
 	/*
 	 *	Handle keyboard/mouse events.
 	*/
-	
 	void handleEvents(void);
 	
 	/*

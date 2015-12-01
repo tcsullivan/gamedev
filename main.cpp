@@ -495,6 +495,7 @@ void mainLoop(void){
 	/*
 	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
 	*/
+	ui::handleEvents();
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
 		logic();
 		prevPrevTime = currentTime;
@@ -809,7 +810,7 @@ void logic(){
 	/*
 	 *	Handle user input (keyboard & mouse).
 	*/
-	ui::handleEvents();
+	//ui::handleEvents();
 
 	/*
 	 *	Run the world's detect function. This handles the physics of the player and any entities
