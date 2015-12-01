@@ -96,11 +96,11 @@ World::~World(void){
 	if(behind){
 		delete behind;
 	}
-	
+
 	delete bgTex;
 	delete[] star;
 	delete[] line;
-	
+
 	deleteEntities();
 }
 
@@ -934,7 +934,7 @@ Arena::~Arena(void){
 	delete bgTex;
 	delete[] star;
 	delete[] line;
-	
+
 	deleteEntities();
 }
 

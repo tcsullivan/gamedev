@@ -173,7 +173,6 @@ Object::Object(ITEM_ID id, bool qo, const char *pd){
 
 	maxHealth = health = 1;
 	tex = new Texturec(1,getItemTexturePath(id));
-
 }
 Object::~Object(){
 	delete[] pickupDialog;
