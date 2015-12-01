@@ -59,7 +59,8 @@ namespace ui {
 	 *	limited until a right click is given, closing the box.
 	*/
 	
-	void dialogBox(const char *name,char *opt,const char *text,...);
+	void dialogBox(const char *name,const char *opt,const char *text,...);
+	void waitForDialog(void);
 	
 	/*
 	 *	Draws a larger string in the center of the screen. Drawing is done inside this function.
@@ -76,7 +77,6 @@ namespace ui {
 	/*
 	 *	Handle keyboard/mouse events.
 	*/
-	
 	void handleEvents(void);
 	
 	/*

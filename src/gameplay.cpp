@@ -5,11 +5,145 @@
 
 extern World	*currentWorld;
 extern Player	*player;
-extern void mainLoop(void);
-extern SDL_Window *window;
-extern bool fadeEnable;
 
-void story(void){
+int compTestQuest(NPC *speaker){
+	ui::dialogBox(speaker->name,NULL,"Ooo, that's a nice quest you got there. Lemme finish that for you ;).");
+	player->qh.finish("Test",player);
+	return 0;
+}
+
+int giveTestQuest(NPC *speaker){
+	unsigned char i;
+	
+	ui::dialogBox(speaker->name,":Yes:No","Here, have a quest!");
+	ui::waitForDialog();
+	
+	if(ui::dialogOptChosen == 1){
+	
+		ui::dialogBox(speaker->name,NULL,"Have a good day! :)");
+		ui::waitForDialog();
+
+		player->qh.assign("Test");
+		currentWorld->npc[1]->addAIFunc(compTestQuest,true);
+		
+	}else return 1;
+	
+	return 0;
+}
+
+static Arena *a;
+
+void CUTSCENEEE(void){
+	player->vel.x = 0;
+	
+	ui::dialogBox(player->name,":K.","No way I\'m gettin\' up this hill.");
+	ui::waitForDialog();
+
+	a = new Arena(currentWorld,player);
+	currentWorld = a;
+	
+	/*player->right = true;
+	player->left  = false;
+	player->loc.x += HLINE * 5;*/
+}
+
+float playerSpawnHillFunc(float x){
+	return (float)(pow(2,(-x+200)/5) + 80);
+}
+
+static World *test;
+static World *playerSpawnHill;
+static IndoorWorld *iw;
+
+void destroyEverything(void);
+
+void initEverything(void){
+	unsigned int i;
+	
+	/*
+	 *	World creation:
+	*/
+	
+	test=new World();
+	
+	test->generate(SCREEN_WIDTH*2);
+	test->setBackground(BG_FOREST);
+	
+	test->addHole(100,150);
+	test->addLayer(400);
+	
+	playerSpawnHill=new World();
+	
+	playerSpawnHill->setBackground(BG_FOREST);
+	playerSpawnHill->generateFunc(1280,playerSpawnHillFunc);
+	//playerSpawnHill->generate(1920);
+
+	/*
+	 *	Setup the current world, making the player initially spawn in `test`.
+	*/
+	
+	currentWorld=playerSpawnHill;
+	
+	playerSpawnHill->toRight=test;
+	test->toLeft=playerSpawnHill;
+	
+	/*
+	 *	Create the player.
+	*/
+	
+	player=new Player();
+	player->spawn(-1000,200);
+	
+	/*
+	 *	Create a structure (this will create villagers when spawned).
+	*/
+	
+	iw=new IndoorWorld();
+	iw->generate(200);
+	
+	/*
+	 *	Spawn some entities.
+	*/
+
+	playerSpawnHill->addStructure(STRUCTURET,(rand()%120*HLINE),10,test,iw);
+	playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);
+	
+	playerSpawnHill->addObject(SWORD_WOOD, false, "", 500,200);
+	playerSpawnHill->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",600,200);
+	
+	test->addMob(MS_RABBIT,200,100);
+	test->addMob(MS_BIRD,-500,500);
+
+	/*currentWorld->addObject(DEBUG_ITEM, 500,200);
+	currentWorld->addObject(TEST_ITEM,  550,200);
+	currentWorld->addObject(PLAYER_BAG, 600,200);
+	currentWorld->addObject(SWORD_WOOD, 650,200);
+	currentWorld->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",700,200);
+	*/
+	
+	playerSpawnHill->npc[0]->addAIFunc(giveTestQuest,false);
+	
+	atexit(destroyEverything);
+}
+
+extern std::vector<int (*)(NPC *)> AIpreload;
+extern std::vector<NPC *> AIpreaddr;
+
+void destroyEverything(void){
+	delete test;
+	delete playerSpawnHill;
+	
+	while(!AIpreload.empty()){
+		AIpreload.pop_back();
+	}
+	while(!AIpreaddr.empty()){
+		AIpreaddr.pop_back();
+	}
+	
+	//delete iw;	// segfaults
+}
+
+/*void story(void){
 	for(int i=0;i<600;i++){
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
@@ -34,128 +168,4 @@ void story(void){
 		glPopMatrix();
 		SDL_GL_SwapWindow(window);
 	}
-}
-
-void waitForDialog(void){
-	do{
-		mainLoop();
-	}while(ui::dialogBoxExists);
-}
-
-int compTestQuest(NPC *speaker){
-	ui::dialogBox(speaker->name,NULL,"Ooo, that's a nice quest you got there. Lemme finish that for you ;).");
-	player->qh.finish("Test",player);
-	return 0;
-}
-
-int giveTestQuest(NPC *speaker){
-	unsigned char i;
-	
-	char opt[]=":Yes:No";
-	ui::dialogBox(speaker->name,opt,"Here, have a quest!");
-	
-	waitForDialog();
-	
-	if(ui::dialogOptChosen == 1){
-	
-		ui::dialogBox(speaker->name,NULL,"Have a good day! :)");
-
-		waitForDialog();
-
-		player->qh.assign("Test");
-		currentWorld->npc[1]->addAIFunc(compTestQuest,true);
-		
-	}else return 1;
-	
-	return 0;
-}
-
-static Arena *a;
-
-void CUTSCENEEE(void){
-	char opt[]=":K.";
-	player->vel.x = 0;
-	ui::dialogBox(player->name,opt,"No way I\'m gettin\' up this hill.");
-	
-	waitForDialog();
-
-	a = new Arena(currentWorld,player);
-	
-	currentWorld = a;
-	
-	/*player->right = true;
-	player->left  = false;
-	player->loc.x += HLINE * 5;*/
-}
-
-float playerSpawnHillFunc(float x){
-	return (float)(pow(2,(-x+200)/5) + 80);
-}
-void initEverything(void){
-	unsigned int i;
-	
-	/*
-	 *	World creation:
-	*/
-	
-	World *test=new World();
-	World *playerSpawnHill=new World();
-	
-	test->generate(SCREEN_WIDTH*2);
-	test->addHole(100,150);
-	
-	test->setBackground(BG_FOREST);
-	test->addLayer(400);
-	
-	playerSpawnHill->generateFunc(1280,playerSpawnHillFunc);
-	playerSpawnHill->setBackground(BG_FOREST);
-	//playerSpawnHill->generate(1920);
-
-	/*
-	 *	Setup the current world, making the player initially spawn in `test`.
-	*/
-	
-	currentWorld=playerSpawnHill;
-	playerSpawnHill->toRight=test;
-	test->toLeft=playerSpawnHill;
-	
-	/*
-	 *	Create the player.
-	*/
-	
-	player=new Player();
-	player->spawn(-1000,200);
-	
-	/*
-	 *	Create a structure (this will create villagers when spawned).
-	*/
-	
-	IndoorWorld *iw=new IndoorWorld();
-	iw->generate(200);
-	
-	currentWorld->addStructure(STRUCTURET,(rand()%120*HLINE),10,test,iw);
-	
-	/*
-	 *	Spawn some mobs.
-	*/
-
-	playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);
-	
-	test->addMob(MS_RABBIT,200,100);
-	test->addMob(MS_BIRD,-500,500);
-	
-	currentWorld->addObject(SWORD_WOOD, false, "", 500,200);
-	currentWorld->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",600,200);
-
-	/*currentWorld->addObject(DEBUG_ITEM, 500,200);
-	currentWorld->addObject(TEST_ITEM,  550,200);
-	currentWorld->addObject(PLAYER_BAG, 600,200);
-	currentWorld->addObject(SWORD_WOOD, 650,200);
-	currentWorld->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",700,200);
-	*/
-	/*
-	 *	Link all the entities that were just created to the initial world, and setup a test AI function. 
-	*/
-	
-	currentWorld->npc[0]->addAIFunc(giveTestQuest,false);
-}
+}*/

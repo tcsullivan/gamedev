@@ -38,56 +38,74 @@ class Entity{
 public:
 	Inventory *inv;
 
-	float width;	//width and height of the player
+	/*
+	 *	Movement variables
+	*/
+
+	vec2 loc;
+	vec2 vel;
+	
+	float width;
 	float height;
-	float speed;	//speed of the play
+	
+	float speed;	// A speed factor for X movement
+
+	/*
+	 *	Movement flags
+	*/
+
+	bool near;				// Causes name to display
+	bool canMove;			// Enables movement
+	bool right,left;		// Direction faced by Entity
+	bool alive;
+	unsigned char ground;	// Shows how the Entity is grounded (if it is)
+
+	/*
+	 *	Health variables
+	*/
 
 	float health;
 	float maxHealth;
 
-	int subtype;
+	/*
+	 *	Identification variables
+	*/
+
 	_TYPE type;
-			//example:
-			//type 	1(NPC)
-			//		|(subtype)
-			//		|->  0 Base NPC
-			//		|->  1 Merchant
+	int	  subtype;
 
-	vec2 loc; //location and velocity of the entity
-	vec2 vel;
-
-	bool near;
-	bool right,left, canMove; //movement variables
-	bool alive;				  //the flag for whether or not the entity is alive
-	unsigned char ground;	  //variable for testing what ground the entity is on to apply certain traits
-
-	char* name;
-	GENDER gender;
-	//GLuint texture[3];	  //TODO: ADD TEXTURES
-	Texturec* tex;
+	char   *name;
+	GENDER  gender;
+	
+	Texturec *tex;
 
 
-	void spawn(float, float);
 	void draw(void);
+	void spawn(float, float);
+	
+	int ticksToUse;				// Used by wander()
+	
 	virtual void wander(int){}
-	void getName();
 	virtual void interact(){}
-	int ticksToUse;	//The variable for deciding how long an entity should do a certain task
-private:
 };
 
 class Player : public Entity {
 public:
 	QuestHandler qh;
-	Player();
-	void interact();
 	bool light = false;
+	
+	Player();
+	~Player();
+	void interact();
 };
 
 class NPC : public Entity{
 public:
 	std::vector<int (*)(NPC *)>aiFunc;
+	
 	NPC();
+	~NPC();
+	
 	void addAIFunc(int (*func)(NPC *),bool preload);
 	void interact();
 	void wander(int);
@@ -97,7 +115,10 @@ class Structures : public Entity{
 public:
 	void *inWorld;
 	void *inside;
+	
 	Structures();
+	~Structures();
+	
 	unsigned int spawn(_TYPE, float, float);
 };
 
@@ -105,22 +126,28 @@ class Mob : public Entity{
 public:
 	double init_y;
 	void (*hey)();
+	
 	Mob(int);
 	Mob(int,unsigned int);
+	~Mob();
+	
 	void wander(int);
 };
 
 class Object : public Entity{
+private:
+	int identifier;
 public:
-	Object(ITEM_ID id, bool qo, const char *pd);
-	void interact(void);
-	bool questObject = false;
 	char *pickupDialog;
+	bool questObject = false;
+	
+	Object(ITEM_ID id, bool qo, const char *pd);
+	~Object();
+	
+	void interact(void);
 	std::thread runInteract() {
           return std::thread([=] { interact(); });
     }
-private:
-	int identifier;
 };
 #endif // ENTITIES_H
 

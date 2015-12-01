@@ -71,6 +71,39 @@ World::World(void){
 	memset(star,0,100*sizeof(vec2));
 }
 
+void World::deleteEntities(void){
+	while(!mob.empty()){
+		delete mob.back();
+		mob.pop_back();
+	}
+	while(!npc.empty()){
+		delete npc.back();
+		npc.pop_back();
+	}
+	while(!build.empty()){
+		delete build.back();
+		build.pop_back();
+	}
+	while(!object.empty()){
+		delete object.back();
+		object.pop_back();
+	}
+	while(!entity.empty()) entity.pop_back();
+}
+
+World::~World(void){
+	
+	if(behind){
+		delete behind;
+	}
+	
+	delete bgTex;
+	delete[] star;
+	delete[] line;
+	
+	deleteEntities();
+}
+
 void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
 	unsigned int i;
 	float inc;
@@ -194,10 +227,6 @@ void World::generateFunc(unsigned int width,float(*func)(float)){
 		star[i].x=getRand()%getTheWidth()-getTheWidth()/2;
 		star[i].y=getRand()%SCREEN_HEIGHT+100;
 	}
-}
-
-World::~World(void){
-	delete[] line;
 }
 
 void World::update(Player *p,unsigned int delta){
@@ -654,7 +683,7 @@ void World::singleDetect(Entity *e){
 		
 		}else{
 			
-			if(e->vel.y > -2)e->vel.y-=.001 * deltaTime;
+			if(e->vel.y > -2)e->vel.y-=.003 * deltaTime;
 			
 		}
 		
@@ -836,7 +865,11 @@ IndoorWorld::IndoorWorld(void){
 }
 
 IndoorWorld::~IndoorWorld(void){
-	delete[] line;	//free(line);
+	delete bgTex;
+	delete[] star;
+	delete[] line;
+
+	deleteEntities();
 }
 
 void IndoorWorld::generate(unsigned int width){		// Generates a flat area of width 'width'
@@ -895,6 +928,14 @@ Arena::Arena(World *leave,Player *p){
 	
 	inBattle = true;
 	pxy = p->loc;
+}
+
+Arena::~Arena(void){
+	delete bgTex;
+	delete[] star;
+	delete[] line;
+	
+	deleteEntities();
 }
 
 World *Arena::exitArena(Player *p){

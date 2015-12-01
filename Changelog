@@ -345,3 +345,6 @@
 	- Converted all m/calloc/free calls to new/delete
 	- fixed hardcoded string issues
 	- improved inventory animation
+	- began writing songs for game soundtrack
+
+	~ About 4280 lines of code + documentation written ( +7ish pages of story on gdoc)

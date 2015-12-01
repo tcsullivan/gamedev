@@ -13,13 +13,15 @@ class Texturec{
 private:
 	unsigned int texState;
 public:
+	GLuint *image;
+	
 	Texturec(uint amt, ...);
+	~Texturec();
+	
 	void bindNext();
 	void bindPrev();
 	void bind(unsigned int);
 	void walk();
-
-	GLuint *image;
 };
 
 #endif //TEXTURE_H

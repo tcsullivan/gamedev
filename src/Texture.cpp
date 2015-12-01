@@ -13,7 +13,6 @@ namespace Texture{
 	GLuint loadTexture(const char *fileName){
 		SDL_Surface *image;
 		GLuint object = 0;
-		unsigned int i;
 
 		for(unsigned int i=0;i<LoadedTextureCounter;i++){
 			if(!strcmp(LoadedTexture[i]->name,fileName)){
@@ -74,9 +73,13 @@ Texturec::Texturec(uint amt, ...){
 	va_end(fNames);
 }
 
+Texturec::~Texturec(){
+	delete[] image;
+}
+
 void Texturec::bind(unsigned int bn){
 	texState = bn;
-	glBindTexture(GL_TEXTURE_2D, image[texState]);
+	glBindTexture(GL_TEXTURE_2D,image[(int)texState]);
 }
 
 void Texturec::bindNext(){

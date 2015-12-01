@@ -61,8 +61,8 @@ typedef struct {
 
 #define GAME_NAME		"Independent Study v.0.4 alpha"
 
-#define SCREEN_WIDTH	800
-#define SCREEN_HEIGHT	600
+#define SCREEN_WIDTH	1280
+#define SCREEN_HEIGHT	720
 
 //#define FULLSCREEN
 
@@ -115,6 +115,8 @@ extern unsigned int deltaTime;
 extern vec2 offset;
 
 extern float handAngle;
+
+extern unsigned int loops;
 
 /*
  *	Prints a formatted debug message to the console, along with the callee's file and line

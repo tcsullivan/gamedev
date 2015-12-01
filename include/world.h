@@ -63,6 +63,12 @@ protected:
 	void singleDetect(Entity *e);
 	
 	/*
+	 *	Deletes all entities in the world.
+	*/
+	
+	void deleteEntities(void);
+	
+	/*
 	 *	The size of the line array. This is set once by World->generate().
 	*/
 	
@@ -205,6 +211,7 @@ private:
 	World	*exit;
 public:
 	Arena(World *leave,Player *p);
+	~Arena(void);
 	World *exitArena(Player *p);
 };
 

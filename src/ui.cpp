@@ -49,6 +49,8 @@ static char *dialogOptText[4];
 static float dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
 
+extern void mainLoop(void);
+
 /*
  *	Toggled by pressing 'q', disables some controls when true.
 */
@@ -366,11 +368,10 @@ namespace ui {
 		
 		return width;
 	}
-	
-	void dialogBox(const char *name,char *opt,const char *text,...){
+	void dialogBox(const char *name,const char *opt,const char *text,...){
 		va_list dialogArgs;
 		unsigned int len;
-		char *sopt;
+		char *sopt,*soptbuf;
 		
 		/*
 		 *	Set up the text buffer.
@@ -404,7 +405,9 @@ namespace ui {
 		dialogOptChosen=0;
 		dialogOptCount=0;
 		
-		sopt=strtok(opt,":");
+		soptbuf = new char[strlen(opt)+1];
+		
+		sopt=strtok(soptbuf,":");
 		while(sopt != NULL){
 			dialogOptText[dialogOptCount] = new char[strlen(sopt)+1];	//(char *)malloc(strlen(sopt));
 			strcpy(dialogOptText[dialogOptCount++],sopt);
@@ -417,6 +420,11 @@ namespace ui {
 		
 		dialogBoxExists = true;
 		
+	}
+	void waitForDialog(void){
+		do{
+			mainLoop();
+		}while(ui::dialogBoxExists);
 	}
 	void importantText(const char *text,...){
 		va_list textArgs;
