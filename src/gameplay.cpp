@@ -91,6 +91,9 @@ void CUTSCENEEE(void){
 float playerSpawnHillFunc(float x){
 	return (float)(pow(2,(-x+200)/5) + 80);
 }
+
+void destroyEverything(void);
+
 void initEverything(void){
 	unsigned int i;
 	
@@ -153,9 +156,11 @@ void initEverything(void){
 	currentWorld->addObject(SWORD_WOOD, 650,200);
 	currentWorld->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",700,200);
 	*/
-	/*
-	 *	Link all the entities that were just created to the initial world, and setup a test AI function. 
-	*/
 	
 	currentWorld->npc[0]->addAIFunc(giveTestQuest,false);
+	atexit(destroyEverything);
+}
+
+void destroyEverything(void){
+	//delete currentWorld;
 }

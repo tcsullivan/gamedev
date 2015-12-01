@@ -71,6 +71,18 @@ World::World(void){
 	memset(star,0,100*sizeof(vec2));
 }
 
+World::~World(void){
+	delete bgTex;
+	delete[] star;
+	delete[] line;
+	
+	delete &mob;
+	delete &npc;
+	delete &build;
+	delete &object;
+	delete &entity;
+}
+
 void World::generate(unsigned int width){	// Generates the world and sets all variables contained in the World class.
 	unsigned int i;
 	float inc;
@@ -194,10 +206,6 @@ void World::generateFunc(unsigned int width,float(*func)(float)){
 		star[i].x=getRand()%getTheWidth()-getTheWidth()/2;
 		star[i].y=getRand()%SCREEN_HEIGHT+100;
 	}
-}
-
-World::~World(void){
-	delete[] line;
 }
 
 void World::update(Player *p,unsigned int delta){
@@ -836,7 +844,15 @@ IndoorWorld::IndoorWorld(void){
 }
 
 IndoorWorld::~IndoorWorld(void){
-	delete[] line;	//free(line);
+	delete bgTex;
+	delete[] star;
+	delete[] line;
+	
+	delete &mob;
+	delete &npc;
+	delete &build;
+	delete &object;
+	delete &entity;
 }
 
 void IndoorWorld::generate(unsigned int width){		// Generates a flat area of width 'width'
@@ -895,6 +911,18 @@ Arena::Arena(World *leave,Player *p){
 	
 	inBattle = true;
 	pxy = p->loc;
+}
+
+Arena::~Arena(void){
+	delete bgTex;
+	delete[] star;
+	delete[] line;
+	
+	delete &mob;
+	delete &npc;
+	delete &build;
+	delete &object;
+	delete &entity;
 }
 
 World *Arena::exitArena(Player *p){
