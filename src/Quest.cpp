@@ -7,25 +7,22 @@
 #define END		}),
 
 const Quest QuestList[TOTAL_QUESTS]={
-//	Quest("Test","A test quest",(struct item_t){1,TEST_ITEM}),
-
 // Get quest list
 #include "../config/quest_list.txt"
-
 };
 
 
 Quest::Quest(const char *t,const char *d,struct item_t r){
-	title = new char[strlen(t)+1];	//(char *)calloc(safe_strlen(t),sizeof(char));
-	desc = new char[strlen(d)+1];		//(char *)calloc(safe_strlen(d),sizeof(char));
+	title = new char[strlen(t)+1];
+	desc = new char[strlen(d)+1];
 	strcpy(title,t);
 	strcpy(desc,d);
 	memcpy(&reward,&r,sizeof(struct item_t));
 }
 
 Quest::~Quest(){
-	delete[] title;	//free(title);
-	delete[] desc;	//free(desc);
+	delete[] title;
+	delete[] desc;
 	memset(&reward,0,sizeof(struct item_t));
 }
 

@@ -205,6 +205,7 @@ private:
 	World	*exit;
 public:
 	Arena(World *leave,Player *p);
+	~Arena(void);
 	World *exitArena(Player *p);
 };
 

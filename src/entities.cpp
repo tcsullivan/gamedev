@@ -10,6 +10,39 @@ extern Player *player;
 
 extern const char *itemName;
 
+void getRandomName(Entity *e){
+	int tempNum,max=0;
+	char buf,*bufs;
+	
+	rewind(names);
+	
+	bufs = new char[16];	//(char *)malloc(16);
+	
+	for(;!feof(names);max++){
+		fgets(bufs,16,(FILE*)names);
+	}
+	
+	tempNum = rand() % max;
+	rewind(names);
+	
+	for(int i=0;i<tempNum;i++){
+		fgets(bufs,16,(FILE*)names);
+	}
+	
+	switch(fgetc(names)){
+	case 'm': e->gender = MALE;  break;
+	case 'f': e->gender = FEMALE;break;
+	default : break;
+	}
+	
+	if((fgets(bufs,16,(FILE*)names)) != NULL){
+		bufs[strlen(bufs)-1] = '\0';
+		strcpy(e->name,bufs);
+	}
+	
+	delete[] bufs;
+}
+
 void Entity::spawn(float x, float y){	//spawns the entity you pass to it based off of coords and global entity settings
 	loc.x = x;
 	loc.y = y;
@@ -33,8 +66,8 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 		}
 	}
 	
-	name = new char[16];	//(char*)malloc(16);
-	getName();
+	name = new char[16];
+	getRandomName(this);
 }
 
 Player::Player(){ //sets all of the player specific traits on object creation
@@ -208,38 +241,6 @@ NOPE:
 	if(near){
 		ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
 	}
-}
-
-void Entity::getName(){
-	rewind(names);
-	char buf,*bufs = new char[16];	//(char *)malloc(16);
-	int tempNum,max = 0;
-	for(;!feof(names);max++){
-		fgets(bufs,16,(FILE*)names);
-	}
-	tempNum = rand()%max;
-	rewind(names);
-	for(int i=0;i<tempNum;i++){
-		fgets(bufs,16,(FILE*)names);
-	}
-	switch(fgetc(names)){
-	case 'm':
-		gender = MALE;
-		//std::puts("Male");
-		break;
-	case 'f':
-		gender = FEMALE;
-		//std::puts("Female");
-		break;
-	default:
-		break;
-	}
-	if((fgets(bufs,16,(FILE*)names)) != NULL){
-		//std::puts(bufs);
-		bufs[strlen(bufs)-1] = '\0';
-		strcpy(name,bufs);
-	}
-	delete[] bufs;	//free(bufs);
 }
 
 void Player::interact(){ //the function that will cause the player to search for things to interact with

@@ -74,14 +74,13 @@ private:
 	unsigned int size;		// Size of 'item' array
 	item_t *inv;
 	int os = 0;
-	//struct item_t *item;	// An array of the items contained in this inventory.
 public:
 	unsigned int sel;
 	bool invOpen = false;
 	bool invOpening = false;
 
 	Inventory(unsigned int s);	// Creates an inventory of size 's'
-	~Inventory(void);			// Free's 'item'
+	~Inventory(void);			// Free's allocated memory
 	
 	int addItem(ITEM_ID id,unsigned char count);	// Add 'count' items with an id of 'id' to the inventory
 	int takeItem(ITEM_ID id,unsigned char count);	// Take 'count' items with an id of 'id' from the inventory

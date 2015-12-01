@@ -21,8 +21,8 @@ Item::Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const
 	maxStackSize = m;
 	count = 0;
 
-	name 		= new char[strlen(n)+1];	//(char*)calloc(strlen(n ),sizeof(char));
-	textureLoc 	= new char[strlen(tl)+1];	//(char*)calloc(strlen(tl),sizeof(char));
+	name 		= new char[strlen(n)+1];
+	textureLoc 	= new char[strlen(tl)+1];
 
 	strcpy(name,n);
 	strcpy(textureLoc,tl);
@@ -33,14 +33,13 @@ Item::Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const
 Inventory::Inventory(unsigned int s){
 	sel=0;
 	size=s;
-	inv = new struct item_t[size];	//(struct item_t *)calloc(size,sizeof(struct item_t));
+	inv = new struct item_t[size];
 	memset(inv,0,size*sizeof(struct item_t));
 	tossd=false;
 }
 
 Inventory::~Inventory(void){
 	delete[] inv;
-	//free(item);
 }
 
 void Inventory::setSelection(unsigned int s){
