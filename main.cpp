@@ -483,7 +483,6 @@ void mainLoop(void){
 		currentTime=millis();
 		prevPrevTime=currentTime;
 	}	
-	
 	/*
 	 *	Update timing values. This is crucial to calling logic and updating the window (basically
 	 *	the entire game).
@@ -496,8 +495,7 @@ void mainLoop(void){
 	/*
 	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
 	*/
-	
-	if(prevPrevTime + MSEC_PER_TICK >= currentTime){
+	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
 		logic();
 		prevPrevTime = currentTime;
 	}
@@ -511,7 +509,6 @@ void mainLoop(void){
 	/*
 	 * 	Update debug variables if necessary
 	*/
-	
 	if(++debugDiv==20){
 		debugDiv=0;
 		
@@ -522,7 +519,6 @@ void mainLoop(void){
 	}
 
 	render();	// Call the render loop
-	
 }
 
 extern bool fadeEnable;
@@ -773,7 +769,6 @@ void render(){
 	/*
 	 *	Here we draw a black overlay if it's been requested.
 	*/
-
 	if(fadeIntensity){
 		glColor4ub(0,0,0,fadeIntensity);
 		glRectf(offset.x-SCREEN_WIDTH /2,
@@ -784,7 +779,6 @@ void render(){
 			ui::importantText("The screen is black.");
 		}
 	}else if(ui::fontSize != 16) ui::setFontSize(16);
-
 	/**************************
 	****  END RENDERING   ****
 	**************************/
@@ -805,7 +799,6 @@ void render(){
 }
 
 void logic(){
-
 	/*
 	 *	NPCSelected is used to insure that only one NPC is made interactable with the mouse
 	 *	if, for example, multiple entities are occupying one space.
@@ -816,14 +809,12 @@ void logic(){
 	/*
 	 *	Handle user input (keyboard & mouse).
 	*/
-
 	ui::handleEvents();
 
 	/*
 	 *	Run the world's detect function. This handles the physics of the player and any entities
 	 *	that exist in this world.
 	*/
-
 	currentWorld->detect(player);
 	if(player->loc.y<.02)gameRunning=false;
 
@@ -833,7 +824,6 @@ void logic(){
 	 *	click detection is done as well for NPC/player interaction.
 	 *
 	*/
-
 	if((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) && !ui::dialogBoxExists)player->inv->useItem();
 
 	for(auto &n : currentWorld->npc){
@@ -907,7 +897,6 @@ void logic(){
 			}else n->near=false;
 		}
 	}
-
 	for(auto &m : currentWorld->mob){
 		if(m->alive){
 
@@ -929,7 +918,6 @@ void logic(){
 			}
 		}
 	}
-
 	unsigned int i = 0;
 	for(auto &o : currentWorld->object){
 		if(o->alive){
@@ -960,7 +948,6 @@ void logic(){
 	/*
 	 *	Switch between day and night (SUNNY and DARK) if necessary.
 	*/
-
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
 		if(weather==SUNNY){
 			weather=DARK;
@@ -978,7 +965,6 @@ void logic(){
 	/*
 	 *	Transition to and from black if necessary.
 	*/
-
 	if(fadeEnable){
 			 if(fadeIntensity < 160)fadeIntensity+=5;
 		else if(fadeIntensity < 255)fadeIntensity+=1;

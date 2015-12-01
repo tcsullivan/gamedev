@@ -662,7 +662,7 @@ void World::singleDetect(Entity *e){
 		
 		}else{
 			
-			if(e->vel.y > -2)e->vel.y-=.001 * deltaTime;
+			if(e->vel.y > -2)e->vel.y-=.003 * deltaTime;
 			
 		}
 		

@@ -75,7 +75,7 @@ Texturec::Texturec(uint amt, ...){
 
 void Texturec::bind(unsigned int bn){
 	texState = bn;
-	glBindTexture(GL_TEXTURE_2D, image[texState]);
+	glBindTexture(GL_TEXTURE_2D, (unsigned int)image[(int)texState]);
 }
 
 void Texturec::bindNext(){

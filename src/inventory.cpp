@@ -98,23 +98,23 @@ void Inventory::draw(void){
 		//dfp[a] = 0;
 		a++;
 	}a=0;
-	if(invOpening && lop % 1 == 0){
+	if(invOpening){
 		end = 0;
 		for(auto &d : dfp){
 			if(a != 0){
-				if(dfp[a-1]>25)d+=25;
+				if(dfp[a-1]>50)d+=1.65*deltaTime;
 			}else{
-				d += 25;
+				d += 1.65*deltaTime;
 			}
 			if(d >= range)
 				d = range;
 			a++;
 		}a=0;
 		if(end < numSlot)invOpen=true;
-	}else if(!invOpening && lop % 1 == 0){
-		for(auto &d : boost::adaptors::reverse(dfp)){
+	}else if(!invOpening){
+		for(auto &d : dfp){
 			if(d > 0){
-				d-=25;
+				d-=1.65*deltaTime;
 			}else end++;
 		}
 		if(end >= numSlot)invOpen=false;
