@@ -76,11 +76,8 @@ void initEverything(void){
 	playerSpawnHill=new World();
 	
 	playerSpawnHill->setBackground(BG_FOREST);
-<<<<<<< Updated upstream
 	playerSpawnHill->generateFunc(1280,playerSpawnHillFunc);
-	//playerSpawnHill->generate(1920);
-=======
->>>>>>> Stashed changes
+
 
 	/*
 	 *	Setup the current world, making the player initially spawn in `test`.
