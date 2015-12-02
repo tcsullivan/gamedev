@@ -341,17 +341,18 @@ void NPC::interact(){ //have the npc's interact back to the player
 
 extern void waitForDialog(void);
 void Object::interact(void){
-	if(questObject){
-		char opt[]=":Yes:No";
-		ui::dialogBox("You",opt,pickupDialog);
-		do{
-			if(ui::dialogOptChosen == 1 && this->alive == true){
-				player->inv->addItem((ITEM_ID)(identifier), (char)1);
-				this->alive = false;
-			}
-		}while(ui::dialogBoxExists);
+	if(questObject && alive){
+		
+		ui::dialogBox("You",":Yes:No",pickupDialog);		
+		while(ui::dialogBoxExists);
+
+		if(ui::dialogOptChosen == 1 && alive){
+			player->inv->addItem((ITEM_ID)(identifier), (char)1);
+			alive = false;
+			return;
+		}	
 	}else{
-		this->alive = false;
+		alive = false;
 		player->inv->addItem((ITEM_ID)(identifier), (char)1);
 	}
 }

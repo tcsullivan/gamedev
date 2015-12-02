@@ -348,3 +348,10 @@
 	- began writing songs for game soundtrack
 
 	~ About 4280 lines of code + documentation written ( +7ish pages of story on gdoc)
+
+12/1/2015:
+==========
+
+	- ran game through valgrind, fixed almost all memory leaks/errors
+	- smoothed out game animations
+	- broke the game
