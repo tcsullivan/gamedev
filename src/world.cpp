@@ -586,7 +586,8 @@ LOOP2:
 }
 
 void World::singleDetect(Entity *e){
-	unsigned int i,j;
+	int i;
+	unsigned int j;
 	
 	/*
 	 *	Kill any dead entities.
@@ -596,33 +597,46 @@ void World::singleDetect(Entity *e){
 		
 		for(i=0;i<entity.size();i++){
 			if(entity[i]==e){
-				entity.erase(entity.begin()+i);
 				switch(e->type){
 				case STRUCTURET:
 					for(j=0;j<build.size();j++){
 						if(build[j]==e){
+							delete build[j];
 							build.erase(build.begin()+j);
-							return;
+							break;
 						}
 					}
 					break;
 				case NPCT:
 					for(j=0;j<npc.size();j++){
 						if(npc[j]==e){
+							delete npc[j];
 							npc.erase(npc.begin()+j);
-							return;
+							break;
 						}
 					}
 					break;
 				case MOBT:
 					for(j=0;j<mob.size();j++){
 						if(mob[j]==e){
+							delete mob[j];
 							mob.erase(mob.begin()+j);
-							return;
+							break;
+						}
+					}
+					break;
+				case OBJECTT:
+					for(j=0;j<object.size();j++){
+						if(object[j]==e){
+							delete object[j];
+							object.erase(object.begin()+j);
+							break;
 						}
 					}
 					break;
 				}
+				std::cout<<"Killed an entity..."<<std::endl;
+				entity.erase(entity.begin()+i);
 				return;
 			}
 		}
@@ -646,6 +660,8 @@ void World::singleDetect(Entity *e){
 		*/
 		
 		i=(e->loc.x + e->width / 2 - x_start) / HLINE;
+		if(i < 0) i=0;
+		if(i > lineCount-1) i=lineCount-1;
 		
 		/*
 		 *	If the entity is under the world/line, pop it back to the surface.
@@ -672,7 +688,10 @@ void World::singleDetect(Entity *e){
 				
 				do{
 					e->loc.x+=.001 * e->vel.x>0?-1:1;
+					
 					i=(e->loc.x - e->width / 2 - x_start) / HLINE;
+					if(i < 0){ e->alive = false; return; }
+					if(i > lineCount-1){ e->alive = false; return; }
 				}while(line[i].y>e->loc.y+ e->height);
 				
 			}

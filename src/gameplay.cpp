@@ -16,11 +16,12 @@ int giveTestQuest(NPC *speaker){
 	unsigned char i;
 	
 	ui::dialogBox(speaker->name,":Yes:No","Here, have a quest!");
+	
 	ui::waitForDialog();
 	
 	if(ui::dialogOptChosen == 1){
-	
-		ui::dialogBox(speaker->name,NULL,"Have a good day! :)");
+		
+		ui::dialogBox(speaker->name,"","Have a good day! :)");
 		ui::waitForDialog();
 
 		player->qh.assign("Test");

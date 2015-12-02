@@ -7,6 +7,10 @@
 extern Player *player;
 extern GLuint invUI;
 
+static Item item[5]= {
+	#include "../config/items.h"
+};
+
 void itemDraw(Player *p,ITEM_ID id);
 
 char *getItemTexturePath(ITEM_ID id){
@@ -27,7 +31,7 @@ Item::Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const
 	strcpy(name,n);
 	strcpy(textureLoc,tl);
 
-	tex= new Texturec(1,textureLoc);
+	//tex= new Texturec(1,textureLoc);
 }
 
 Inventory::Inventory(unsigned int s){
@@ -52,13 +56,14 @@ int Inventory::addItem(ITEM_ID id,unsigned char count){
 	os++;
 
 
-	#ifdef DEBUG
-	DEBUG_printf("Gave player %u more %s(s)(%d).\n",count,item[id].name,item[id].id);
-	#endif // DEBUG
+#ifdef DEBUG
+	DEBUG_printf("Gave player %u more %s(s)(ID: %d).\n",count,item[id].name,item[id].id);
+#endif // DEBUG
 
-	/*#ifdef DEBUG
+/*#ifdef DEBUG
 	DEBUG_printf("Failed to add non-existant item with id %u.\n",id);
-	#endif // DEBUG*/
+#endif // DEBUG*/
+
 	return 0;
 }
 

@@ -398,20 +398,30 @@ namespace ui {
 		*/
 		
 		while(dialogOptCount){
-			if(dialogOptText[dialogOptCount])
+			if(dialogOptText[dialogOptCount]){
 				delete[] dialogOptText[dialogOptCount];	//free(dialogOptText[dialogOptCount]);
+				dialogOptText[dialogOptCount] = NULL;
+			}
 			dialogOptCount--;
 		};
+
 		dialogOptChosen=0;
 		dialogOptCount=0;
 		
-		soptbuf = new char[strlen(opt)+1];
-		
-		sopt=strtok(soptbuf,":");
-		while(sopt != NULL){
-			dialogOptText[dialogOptCount] = new char[strlen(sopt)+1];	//(char *)malloc(strlen(sopt));
-			strcpy(dialogOptText[dialogOptCount++],sopt);
-			sopt=strtok(NULL,":");
+		if(opt){
+			
+			soptbuf = new char[strlen(opt)+1];
+			strcpy(soptbuf,opt);
+			
+			sopt=strtok(soptbuf,":");
+			while(sopt != NULL){
+				dialogOptText[dialogOptCount] = new char[strlen(sopt)+1];	//(char *)malloc(strlen(sopt));
+				strcpy(dialogOptText[dialogOptCount++],sopt);
+				sopt=strtok(NULL,":");
+			}
+			
+			delete[] soptbuf;
+
 		}
 		
 		/*

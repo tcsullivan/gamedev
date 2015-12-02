@@ -483,14 +483,13 @@ void mainLoop(void){
 	
 	static unsigned int prevTime    = 0,	// Used for timing operations
 						currentTime = 0,	//
-						prevPrevTime= 0;	// shit
-						
-	unsigned int i;							// Used for `for` loops
+						prevPrevTime= 0;	//
 	
 	if(!currentTime){						// Initialize currentTime if it hasn't been
 		currentTime=millis();
 		prevPrevTime=currentTime;
 	}	
+	
 	/*
 	 *	Update timing values. This is crucial to calling logic and updating the window (basically
 	 *	the entire game).
@@ -503,7 +502,9 @@ void mainLoop(void){
 	/*
 	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
 	*/
+	
 	ui::handleEvents();
+	
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
 		logic();
 		prevPrevTime = currentTime;
@@ -518,6 +519,7 @@ void mainLoop(void){
 	/*
 	 * 	Update debug variables if necessary
 	*/
+	
 	if(++debugDiv==20){
 		debugDiv=0;
 		
@@ -770,9 +772,9 @@ void render(){
 	glColor3ub(255,255,255);
 
 	glBegin(GL_TRIANGLES);
-		glVertex2i(ui::mouse.x			 ,ui::mouse.y		  );
+		glVertex2i(ui::mouse.x			,ui::mouse.y		  );
 		glVertex2i(ui::mouse.x+HLINE*3.5,ui::mouse.y		  );
-		glVertex2i(ui::mouse.x			 ,ui::mouse.y-HLINE*3.5);
+		glVertex2i(ui::mouse.x			,ui::mouse.y-HLINE*3.5);
 	glEnd();
 
 	/*
@@ -818,6 +820,7 @@ void logic(){
 	/*
 	 *	Handle user input (keyboard & mouse).
 	*/
+	
 	//ui::handleEvents();
 
 	/*
@@ -927,7 +930,6 @@ void logic(){
 			}
 		}
 	}
-	unsigned int i = 0;
 	for(auto &o : currentWorld->object){
 		if(o->alive){
 			if(ui::mouse.x >= o->loc.x 				&&
@@ -948,10 +950,6 @@ void logic(){
 				}
 			}
 		}
-		if(!(o->alive)){
-			currentWorld->object.erase(currentWorld->object.begin()+i);
-		}
-		i++;
 	}
 
 	/*
