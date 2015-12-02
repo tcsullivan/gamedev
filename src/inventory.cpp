@@ -7,9 +7,11 @@
 extern Player *player;
 extern GLuint invUI;
 
-static Item item[5]= {
+static const Item item[ITEM_COUNT]= {
 	#include "../config/items.h"
 };
+
+static GLuint itemtex[ITEM_COUNT];
 
 void itemDraw(Player *p,ITEM_ID id);
 
@@ -40,6 +42,9 @@ Inventory::Inventory(unsigned int s){
 	inv = new struct item_t[size];
 	memset(inv,0,size*sizeof(struct item_t));
 	tossd=false;
+	for(int i = 0;i<ITEM_COUNT;i++){
+		itemtex[i]=Texture::loadTexture(getItemTexturePath((ITEM_ID)i));
+	}
 }
 
 Inventory::~Inventory(void){
@@ -54,11 +59,10 @@ int Inventory::addItem(ITEM_ID id,unsigned char count){
 	inv[os].id = id;
 	inv[os].count = count;
 	os++;
-
-
 #ifdef DEBUG
 	DEBUG_printf("Gave player %u more %s(s)(ID: %d).\n",count,item[id].name,item[id].id);
 #endif // DEBUG
+
 
 /*#ifdef DEBUG
 	DEBUG_printf("Failed to add non-existant item with id %u.\n",id);
@@ -131,7 +135,7 @@ void Inventory::draw(void){
 			curCoord[a].y += float((dfp[a]) * sin(angle*PI/180));
 			r.end = curCoord[a];
 
-			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)range));
+			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)range)*0.3f);
  			glBegin(GL_QUADS);
 				glVertex2i(r.end.x,		r.end.y);
 				glVertex2i(r.end.x+45,	r.end.y);
@@ -140,7 +144,8 @@ void Inventory::draw(void){
 			glEnd();
 
 			if(inv[a].count > 0){
-				glBindTexture(GL_TEXTURE_2D, item[inv[a].id].text);			
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, itemtex[inv[a].id]);			
 				glColor4f(1.0f, 1.0f, 1.0f, (float)dfp[a]/(float)range);
 	 			glBegin(GL_QUADS);
 					glTexCoord2i(0,1);glVertex2i(r.end.x,		r.end.y);
@@ -148,43 +153,11 @@ void Inventory::draw(void){
 					glTexCoord2i(1,0);glVertex2i(r.end.x+45,	r.end.y+45);
 					glTexCoord2i(0,0);glVertex2i(r.end.x,		r.end.y+45);
 				glEnd();
+				glDisable(GL_TEXTURE_2D);
 			}
 			a++;
 		}
 	}
-
-
-	/*else if(!invOpen){
-		for(auto &d : dfp){
-			d = 0;
-		}
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, invUI);
-		glBegin(GL_QUADS);
-			glTexCoord2i(0,1);glVertex2i(offset.x-SCREEN_WIDTH/2,			0);
-			glTexCoord2i(1,1);glVertex2i(offset.x-SCREEN_WIDTH/2+261,		0);
-			glTexCoord2i(1,0);glVertex2i(offset.x-SCREEN_WIDTH/2+261,	   57);
-			glTexCoord2i(0,0);glVertex2i(offset.x-SCREEN_WIDTH/2,		   57);
-		glEnd();
-		glDisable(GL_TEXTURE_2D);
-		while(i<size && inv[i].count > 0 && i<5){
-			y = 6;
-			xoff = (offset.x - (SCREEN_WIDTH /2)) + (51*i) + 6;
-			glEnable(GL_TEXTURE_2D);
-			item[inv[i].id].tex->bind(0);
-			if(sel==i)glColor3ub(255,0,255);
-			else      glColor3ub(255,255,255);
-			glBegin(GL_QUADS);
-				glTexCoord2i(0,1);glVertex2i(xoff,		y);
-				glTexCoord2i(1,1);glVertex2i(xoff+45,	y);
-				glTexCoord2i(1,0);glVertex2i(xoff+45,	y+45);
-				glTexCoord2i(0,0);glVertex2i(xoff,		y+45);
-			glEnd();
-			glDisable(GL_TEXTURE_2D);
-			i++;
-		}
-	}*/
-	
 	if(inv[sel].count)itemDraw(player,inv[sel].id);
 	lop++;
 }
@@ -198,7 +171,7 @@ void itemDraw(Player *p,ITEM_ID id){
 	static vec2 p1,p2;
 	if(!id)return;
 	glEnable(GL_TEXTURE_2D);
-	item[id].tex->bind(0);
+	glBindTexture(GL_TEXTURE_2D,itemtex[id]);
 	if(!yes){
 		p1 = {p->loc.x+p->width/2,
 			  p->loc.y+p->width/2+HLINE*3};

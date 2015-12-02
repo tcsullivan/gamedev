@@ -21,7 +21,7 @@
 */
 
 enum ITEM_ID {
-	DEBUG_ITEM = 69,
+	DEBUG_ITEM = 0,
 	TEST_ITEM = 1,
 	PLAYER_BAG = 2,
 	FLASHLIGHT = 3,
