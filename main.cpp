@@ -413,7 +413,7 @@ int main(int argc, char *argv[]){
 	 *	src/gameplay.cpp
 	 * 
 	*/
-	fadeIntensity = 254;
+	fadeIntensity = 250;
 	initEverything();
 	
 	/*
@@ -809,6 +809,8 @@ void render(){
 	SDL_GL_SwapWindow(window);
 }
 
+static volatile bool objectInteracting = false;
+
 void logic(){
 	/*
 	 *	NPCSelected is used to insure that only one NPC is made interactable with the mouse
@@ -930,28 +932,31 @@ void logic(){
 			}
 		}
 	}
-	for(auto &o : currentWorld->object){
-		if(o->alive){
-			if(ui::mouse.x >= o->loc.x 				&&
-			   ui::mouse.x <= o->loc.x + o->width 	&&
-			   ui::mouse.y >= o->loc.y				&&
-			   ui::mouse.y <= o->loc.y + o->width	){
-				if(pow((o->loc.x - player->loc.x),2) + pow((o->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
+	if(!objectInteracting){
+		for(auto &o : currentWorld->object){
+			if(o->alive){
+				if(ui::mouse.x >= o->loc.x 				&&
+				   ui::mouse.x <= o->loc.x + o->width 	&&
+				   ui::mouse.y >= o->loc.y				&&
+				   ui::mouse.y <= o->loc.y + o->width	){
+					if(pow((o->loc.x - player->loc.x),2) + pow((o->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
 
-					/*
-					 *	Check for a right click, and allow the Object to interact with the
-					 *	player if one was made.
-					*/
+						/*
+						 *	Check for a right click, and allow the Object to interact with the
+						 *	player if one was made.
+						*/
 
-					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-						std::thread thr(o->runInteract());
-						thr.detach();
+						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+							objectInteracting=true;
+							o->interact();
+							objectInteracting=false;
+						}
 					}
 				}
 			}
 		}
 	}
-
+	
 	/*
 	 *	Switch between day and night (SUNNY and DARK) if necessary.
 	*/
@@ -973,11 +978,11 @@ void logic(){
 	 *	Transition to and from black if necessary.
 	*/
 	if(fadeEnable){
-			 if(fadeIntensity < 160)fadeIntensity+=5;
-		else if(fadeIntensity < 255)fadeIntensity+=1;
+			 if(fadeIntensity < 160)fadeIntensity+=10;
+		else if(fadeIntensity < 255)fadeIntensity+=5;
 	}else{
-			 if(fadeIntensity > 150)fadeIntensity-=1;
-		else if(fadeIntensity)		fadeIntensity-=5;
+			 if(fadeIntensity > 150)fadeIntensity-=5;
+		else if(fadeIntensity > 0)	fadeIntensity-=10;
 	}
 
 	/*

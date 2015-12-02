@@ -514,12 +514,14 @@ namespace ui {
 		}
 	}
 	void handleEvents(void){
-		unsigned char i;
 		static bool left=false,right=false;
 		static vec2 premouse={0,0};
+		unsigned char i;
 		SDL_Event e;
+		
 		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
 		mouse.y=(offset.y+SCREEN_HEIGHT/2)-premouse.y;
+		
 		while(SDL_PollEvent(&e)){
 			switch(e.type){
 			case SDL_QUIT:
@@ -602,9 +604,7 @@ DONE:
 						player->ground=false;
 					}
 				}
-				if(SDL_KEY==SDLK_q){
-					player->inv->itemToss();
-				}
+
 				if(SDL_KEY==SDLK_LSHIFT)player->speed = debug?4:3;							// Sprint
 				if(SDL_KEY==SDLK_LCTRL)player->speed = .5;
 			}
@@ -631,8 +631,6 @@ DONE:
 				break;
 			}
 		}
-		
-		if(player->inv->tossd)player->inv->itemToss();
 		
 		if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary
 			for(i=0;i<AIpreaddr.size();i++){

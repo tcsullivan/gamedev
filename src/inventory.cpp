@@ -41,7 +41,6 @@ Inventory::Inventory(unsigned int s){
 	size=s;
 	inv = new struct item_t[size];
 	memset(inv,0,size*sizeof(struct item_t));
-	tossd=false;
 	for(int i = 0;i<ITEM_COUNT;i++){
 		itemtex[i]=Texture::loadTexture(getItemTexturePath((ITEM_ID)i));
 	}
@@ -162,29 +161,16 @@ void Inventory::draw(void){
 	lop++;
 }
 
-static vec2 item_coord = {0,0};
-static vec2 item_velcd = {0,0};
-static bool item_tossd = false;
-static bool yes=false;
-
 void itemDraw(Player *p,ITEM_ID id){
-	static vec2 p1,p2;
 	if(!id)return;
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,itemtex[id]);
-	if(!yes){
-		p1 = {p->loc.x+p->width/2,
-			  p->loc.y+p->width/2+HLINE*3};
-		p2 = {(float)(p1.x+p->width*(p->left?-.5:.5)),
-			  p->loc.y+HLINE*3};
-	}
-	if(p->inv->tossd) yes=true;
 	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2f(item_coord.x+p->loc.x,						item_coord.y+p->loc.y);
-		glTexCoord2i(1,1);glVertex2f(item_coord.x+item[id].width+p->loc.x,		item_coord.y+p->loc.y);
-		glTexCoord2i(1,0);glVertex2f(item_coord.x+item[id].width+p->loc.x,		item_coord.y+item[id].height+p->loc.y);
-		glTexCoord2i(0,0);glVertex2f(item_coord.x+p->loc.x,						item_coord.y+item[id].height+p->loc.y);
+		glTexCoord2i(0,1);glVertex2f(p->loc.x,				 p->loc.y);
+		glTexCoord2i(1,1);glVertex2f(p->loc.x+item[id].width,p->loc.y);
+		glTexCoord2i(1,0);glVertex2f(p->loc.x+item[id].width,p->loc.y+item[id].height);
+		glTexCoord2i(0,0);glVertex2f(p->loc.x,				 p->loc.y+item[id].height);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 }
@@ -202,31 +188,3 @@ int Inventory::useItem(void){
 	return 0;
 }
 
-int Inventory::itemToss(void){
-	if(!item_tossd && item[sel].count && item[sel].id){
-		item_tossd = true;
-		item_coord.x = HLINE;
-		item_velcd.x = 0;
-		item_velcd.y = 3;
-		tossd = true;
-		return 1;
-	}else if(item_tossd){
-		if(item_coord.y<0){
-			memset(&item_coord,0,sizeof(vec2));
-			memset(&item_velcd,0,sizeof(vec2));
-			item_tossd = false;
-			
-			takeItem(item[sel].id,1);
-			
-			tossd = yes = false;
-			
-			return 0;
-		}else{
-			item_coord.x += item_velcd.x;
-			item_coord.y += item_velcd.y;
-			//item_velcd.x -= .005;
-			item_velcd.y -= .1;
-			return 1;
-		}
-	}
-}

@@ -145,9 +145,6 @@ public:
 	~Object();
 	
 	void interact(void);
-	std::thread runInteract() {
-          return std::thread([=] { interact(); });
-    }
 };
 #endif // ENTITIES_H
 

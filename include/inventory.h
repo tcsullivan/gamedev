@@ -81,9 +81,6 @@ public:
 	int takeItem(ITEM_ID id,unsigned char count);	// Take 'count' items with an id of 'id' from the inventory
 	int useItem(void);
 	
-	bool tossd;
-	int itemToss(void);
-	
 	void setSelection(unsigned int s);
 	
 	void draw(void);	// Draws a text list of items in this inventory (should only be called for the player for now)
