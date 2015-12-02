@@ -18,13 +18,19 @@ bool worldInside = false;		// True if player is inside a structure
 
 WEATHER weather = SUNNY;
 
-const char *bgPaths[6]={
-	"assets/bg.png",				// Daytime background
+const char *bgPaths[2][6]={
+	{"assets/bg.png",				// Daytime background
 	"assets/bgn.png",				// Nighttime background
 	"assets/bgFarMountain.png",		// Furthest layer
 	"assets/forestTileBack.png",	// Closer layer
 	"assets/forestTileMid.png",		// Near layer
-	"assets/forestTileFront.png"	// Closest layer
+	"assets/forestTileFront.png"},	// Closest layer
+	{"assets/bgWoodTile.png",
+	 NULL,
+	 NULL,
+	 NULL,
+	 NULL,
+	 NULL}
 };
 
 const float bgDraw[3][3]={
@@ -45,14 +51,11 @@ float worldGetYBase(World *w){
 
 void World::setBackground(WORLD_BG_TYPE bgt){
 	switch(bgt){
-	default:
-		bgTex = new Texturec(6,bgPaths[0],
-							   bgPaths[1],
-							   bgPaths[2],
-							   bgPaths[3],
-							   bgPaths[4],
-							   bgPaths[5]
-							   );
+	case BG_FOREST:
+		bgTex = new Texturec(6,bgPaths[0]);
+		break;
+	case BG_WOODHOUSE:
+		bgTex = new Texturec(1,bgPaths[1]);
 		break;
 	}
 }
@@ -768,7 +771,7 @@ void World::addMob(int t,float x,float y){
 	entity.push_back(mob.back());
 }
 
-void World::addMob(int t,float x,float y,void (*hey)()){
+void World::addMob(int t,float x,float y,void (*hey)(Mob *)){
 	mob.push_back(new Mob(t));
 	mob.back()->spawn(x,y);
 	mob.back()->hey = hey;
@@ -910,13 +913,27 @@ void IndoorWorld::generate(unsigned int width){		// Generates a flat area of wid
 void IndoorWorld::draw(Player *p){
 	int i,ie,v_offset;
 	
+	glEnable(GL_TEXTURE_2D);
+	bgTex->bind(0);
+	glColor4ub(255,255,255,255);
+	glBegin(GL_QUADS);
+		for(i = x_start - SCREEN_WIDTH / 2;i < -x_start + SCREEN_WIDTH / 2; i += 1024){
+			glTexCoord2i(1,1);glVertex2i(i     ,0);
+			glTexCoord2i(0,1);glVertex2i(i+1024,0);
+			glTexCoord2i(0,0);glVertex2i(i+1024,1024);
+			glTexCoord2i(1,0);glVertex2i(i     ,1024);
+		}
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+	
 	v_offset=(p->loc.x-x_start)/HLINE;					// Calculate the player's offset in the array 'line' using the player's location 'vec'
 	i=v_offset-SCREEN_WIDTH/2;							// um
 	if(i<0)i=0;											// If the player is past the start of that world 'i' should start at the beginning
 														// of the world
 	ie=v_offset+SCREEN_WIDTH/2;							// Set how many lines should be drawn (the drawing for loop loops from 'i' to 'ie')
 	if(ie>lineCount)ie=lineCount;						// If the player is past the end of that world 'ie' should contain the end of that world
-	glClearColor(.3,.1,0,0);
+	//glClearColor(.3,.1,0,0);
+	
 	glBegin(GL_QUADS);
 		for(i=i;i<ie-GEN_INC;i++){						// For lines in array 'line' from 'i' to 'ie'
 			safeSetColor(150,100,50);

@@ -23,6 +23,9 @@ namespace Texture{
 			}
 		}
 
+		if(!fileName)
+			return 0;
+
 		if(!(image = IMG_Load(fileName)))
 			return 0;
 #ifdef DEBUG
@@ -71,6 +74,14 @@ Texturec::Texturec(uint amt, ...){
 		image[i] = Texture::loadTexture(va_arg(fNames, char *));
 	}
 	va_end(fNames);
+}
+
+Texturec::Texturec(uint amt,const char **paths){
+	texState = 0;
+	image = new GLuint[amt];
+	for(int i = 0; i < amt; i++){
+		image[i] = Texture::loadTexture(paths[i]);
+	}
 }
 
 Texturec::~Texturec(){
