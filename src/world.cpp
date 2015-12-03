@@ -64,6 +64,8 @@ void World::load(FILE *s){
 
 World::World(void){
 	
+	bgm = NULL;
+	
 	/*
 	 *	Nullify pointers to other worlds.
 	*/
@@ -280,6 +282,28 @@ void World::update(Player *p,unsigned int delta){
 			if(e->vel.x < 0)e->left = true;
 	   else if(e->vel.x > 0)e->left = false;
 	}
+}
+
+void World::setBGM(const char *path){
+	if(!bgm) delete[] bgm;
+	if(!path){
+		bgm = new char[strlen(path) + 1];
+		strcpy(bgm,path);
+		bgmObj = Mix_LoadMUS(bgm);
+		if(!bgmObj){
+			std::cout<<"Failed to load song file "<<path<<": "<<Mix_GetError()<<std::endl;
+		}
+	}
+}
+
+void World::bgmPlay(void){
+	Mix_VolumeMusic(15);
+	Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
+}
+
+void World::bgmStop(void){
+	Mix_FreeMusic(bgmObj);
+	bgmObj = NULL;
 }
 
 int worldShade = 0;

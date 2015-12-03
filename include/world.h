@@ -83,6 +83,9 @@ protected:
 	
 	Texturec *bgTex;
 	
+	Mix_Music *bgmObj;
+	char *bgm;
+	
 public:
 
 	/*
@@ -133,6 +136,14 @@ public:
 	*/
 	
 	void setBackground(WORLD_BG_TYPE bgt);
+	
+	/*
+	 *	Start/stop background music. 
+	*/
+	
+	void setBGM(const char *path);
+	void bgmPlay(void);
+	void bgmStop(void);
 	
 	/*
 	 *	Looks for the furthest back layer in this world and adds a new layer of width `width` behind it.

@@ -426,7 +426,7 @@ int main(/*int argc, char *argv[]*/){
 	horn  = Mix_LoadWAV("assets/air-horn-club-sample_1.wav");	//
 	
 	Mix_VolumeMusic(15);		// Set the volume
-	Mix_PlayMusic( music, -1 );	// Play music forever
+	//Mix_PlayMusic( music, -1 );	// Play music forever
 
 	/*
 	 *	Load sprites used in the inventory menu. See src/inventory.cpp
@@ -482,6 +482,7 @@ void mainLoop(void){
 	static unsigned int prevTime    = 0,	// Used for timing operations
 						currentTime = 0,	//
 						prevPrevTime= 0;	//
+	World *prev;
 	
 	if(!currentTime){						// Initialize currentTime if it hasn't been
 		currentTime=millis();
@@ -500,8 +501,15 @@ void mainLoop(void){
 	/*
 	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
 	*/
-	
+
+	prev = currentWorld;
 	ui::handleEvents();
+	
+	if(prev != currentWorld){
+		prev->bgmStop();
+		currentWorld->bgmPlay();
+	}
+	
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
 		logic();
 		prevPrevTime = currentTime;

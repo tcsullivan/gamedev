@@ -77,6 +77,7 @@ void initEverything(void){
 	
 	playerSpawnHill=new World();
 	playerSpawnHill->setBackground(BG_FOREST);
+	playerSpawnHill->setBGM("assets/music/embark.wav");
 	
 	/*if((load=fopen("world.dat","rb"))){
 		playerSpawnHill->load(load);
@@ -135,6 +136,7 @@ void initEverything(void){
 	
 	playerSpawnHill->npc[0]->addAIFunc(giveTestQuest,false);
 	
+	currentWorld->bgmPlay();
 	atexit(destroyEverything);
 }
 
