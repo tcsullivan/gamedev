@@ -164,7 +164,7 @@ void Inventory::draw(void){
 			a++;
 		}
 	}else if(invHover){
-		static int highlight = 0;
+		static unsigned int highlight = 0;
 		std::cout << ui::mouse.x << "," << mouseStart.x  << "," << mouseSel << std::endl;
 		if(!mouseSel){
 			mouseStart.x = ui::mouse.x;
@@ -183,7 +183,7 @@ void Inventory::draw(void){
 			}
 			if(ui::mouse.x < mouseStart.x){
 				highlight = (mouseStart.x - ui::mouse.x)/45;
-				if(highlight<0)highlight=0;
+				//if(highlight<0)highlight=0;
 				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 					sel = highlight;
 					mouseSel=false;
