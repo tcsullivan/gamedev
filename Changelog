@@ -355,3 +355,12 @@
 	- ran game through valgrind, fixed almost all memory leaks/errors
 	- smoothed out game animations
 	- broke the game
+
+12/2/2015:
+==========
+
+	- fixed many item related segfaults :)
+	- removed std::thread calls
+	- improved world background drawing; added that to IndoorWorld's
+	- improved inventory functionality
+	- fixed issues with cutscenes

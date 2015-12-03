@@ -34,7 +34,7 @@ int giveTestQuest(NPC *speaker){
 
 static Arena *a;
 
-void CUTSCENEEE(void){
+void CUTSCENEEE(Mob *callee){
 	player->vel.x = 0;
 	
 	ui::dialogBox(player->name,":K.","No way I\'m gettin\' up this hill.");
@@ -46,6 +46,15 @@ void CUTSCENEEE(void){
 	/*player->right = true;
 	player->left  = false;
 	player->loc.x += HLINE * 5;*/
+}
+
+void CUTSCENEEE2(Mob *callee){
+	player->vel.x = 0;
+	ui::dialogBox(player->name,":Yeah.",
+	"What the fuck is this dead end supposed \
+	to mean, and why this place smells like soap.");
+	ui::waitForDialog();
+	callee->alive = false;
 }
 
 float playerSpawnHillFunc(float x){
@@ -99,7 +108,9 @@ void initEverything(void){
 	*/
 	
 	iw=new IndoorWorld();
+	iw->setBackground(BG_WOODHOUSE);
 	iw->generate(200);
+	iw->addMob(MS_TRIGGER,0,0,CUTSCENEEE2);
 	
 	/*
 	 *	Spawn some entities.

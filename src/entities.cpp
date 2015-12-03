@@ -120,10 +120,12 @@ Structures::Structures(){ //sets the structure type
 	tex = new Texturec(1,"assets/house1.png");
 	
 	inWorld = NULL;
+	name = NULL;
 }
 Structures::~Structures(){
 	delete tex;
-	delete[] name;
+	if(name)
+		delete[] name;
 }
 
 Mob::Mob(int sub){
@@ -175,7 +177,6 @@ Object::Object(ITEM_ID id, bool qo, const char *pd){
 }
 Object::~Object(){
 	delete[] pickupDialog;
-	
 	delete tex;
 	delete[] name;
 }
@@ -278,10 +279,6 @@ void Player::interact(){ //the function that will cause the player to search for
  *	NPC::wander, this makes the npcs wander around the near area
  *
  *	timeRun					This variable is the amount of gameloop ticks the entity will wander for
- *
- *	*v 						This is a pointer to whatever vec2 value is passed to it, usually the value
- *							passed is the entities vec2 for coordinates. Since the value is a pointer
- *							the memory address passed to it is directly modified.
 */
 
 void NPC::wander(int timeRun){
@@ -336,7 +333,6 @@ void NPC::interact(){ //have the npc's interact back to the player
 		canMove=true;
 	}
 }
-
 
 void Object::interact(void){
 	if(questObject && alive){
@@ -434,7 +430,7 @@ void Mob::wander(int timeRun){
 		   player->loc.x + player->width / 2 < loc.x + width ){
 			if(player->left)player->loc.x = loc.x + width;
 			else if(player->right) player->loc.x = loc.x - player->width;
-			hey();
+			hey(this);
 		}
 		break;
 	default:

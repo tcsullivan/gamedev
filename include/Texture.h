@@ -16,6 +16,7 @@ public:
 	GLuint *image;
 	
 	Texturec(uint amt, ...);
+	Texturec(uint amt,const char **paths);
 	~Texturec();
 	
 	void bindNext();

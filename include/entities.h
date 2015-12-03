@@ -125,7 +125,7 @@ public:
 class Mob : public Entity{
 public:
 	double init_y;
-	void (*hey)();
+	void (*hey)(Mob *callee);
 	
 	Mob(int);
 	Mob(int,unsigned int);

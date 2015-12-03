@@ -12,7 +12,8 @@
 #define DAY_CYCLE 3000
 
 typedef enum {
-	BG_FOREST
+	BG_FOREST,
+	BG_WOODHOUSE
 } WORLD_BG_TYPE;
 
 typedef enum {
@@ -106,7 +107,7 @@ public:
 	
 	void addStructure(_TYPE t,float x,float y,World *outside,World *inside);
 	void addMob(int t,float x,float y);
-	void addMob(int t,float x,float y,void (*hey)());
+	void addMob(int t,float x,float y,void (*hey)(Mob *));
 	void addNPC(float x,float y);
 	void addObject(ITEM_ID, bool, const char *, float, float);
 	
