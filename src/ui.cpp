@@ -626,8 +626,11 @@ DONE:
 				if(SDL_KEY==SDLK_e){
 					if(heyOhLetsGo == 0){
 						heyOhLetsGo = loops;
-					}else if(loops - heyOhLetsGo >= 5 && !(player->inv->invOpen)){
+						player->inv->mouseSel = false;
+					}
+					if(loops - heyOhLetsGo >= 2 && !(player->inv->invOpen) && !(player->inv->selected)){
 						player->inv->invHover=true;
+						//heyOhLetsGo = 0;
 					}
 				}
 				break;
@@ -647,8 +650,15 @@ DONE:
 						player->inv->invHover = false;
 						heyOhLetsGo = 0;
 					}else{
-						player->inv->invOpening ^= true;
-						heyOhLetsGo = 0;
+						if(player->inv->selected == false){
+							player->inv->invOpening ^= true;
+							player->inv->mouseSel = false;
+							heyOhLetsGo = 0;
+						}else{
+							player->inv->selected = false;
+							player->inv->mouseSel = false;
+							heyOhLetsGo = 0;
+						}
 					}
 				}
 				if(SDL_KEY==SDLK_RIGHT){player->inv->sel+=1;}
