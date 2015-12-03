@@ -12,7 +12,7 @@ extern const char *itemName;
 
 void getRandomName(Entity *e){
 	int tempNum,max=0;
-	char buf,*bufs;
+	char *bufs;
 	
 	rewind(names);
 	
@@ -358,38 +358,35 @@ void Object::interact(void){
  *							void spawn points for large amounts of entities. This would allow for the spawn
  *							point to have non-normal traits so it could be invisible or invincible...
 */
-unsigned int Structures::spawn(_TYPE t, float x, float y){ //spawns a structure based off of type and coords
+
+unsigned int Structures::spawn(_TYPE t, float x, float y){
 	loc.x = x;
 	loc.y = y;
 	type = t;
 	
 	alive = true;
 
-	/*VILLAGE*/
-	switch(type){
-	case STRUCTURET:
-		width =  50 * HLINE;
-		height = 40 * HLINE;
+	width =  50 * HLINE;
+	height = 40 * HLINE;
 
+	/*
+	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
+	 *	will spawn bewteen 2 and 7 villagers for the starting hut.
+	*/
+	
+	unsigned int tempN = (getRand() % 5 + 2);
+	
+	while(--tempN){
+		
 		/*
-		 *	tempN is the amount of entities that will be spawned in the village. Currently the village
-		 *	will spawn bewteen 2 and 7 villagers for the starting hut.
+		 *	This is where the entities actually spawn. A new entity is created
+		 *	with type NPC.
 		*/
 		
-		unsigned int tempN = (getRand() % 5 + 2);
+		currentWorld->addNPC(loc.x + (tempN - 5),100);
 		
-		for(int i=0;i<tempN;i++){
-			
-			/*
-			 *	This is where the entities actually spawn. A new entity is created
-			 *	with type NPC by using polymorphism.
-			*/
-			
-			currentWorld->addNPC(loc.x+(i-5),100);
-			
-		}
-		break;
 	}
+
 	return 0;
 }
 

@@ -220,7 +220,7 @@ static unsigned int fadeIntensity = 0;
  * MAIN ************************************************************************
  *******************************************************************************/
 
-int main(int argc, char *argv[]){
+int main(/*int argc, char *argv[]*/){
 	gameRunning=false;
 
 	/*!
@@ -708,7 +708,7 @@ void render(){
 		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
 		glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 5);
 		glColor4f(1.0f, 1.0f, 1.0f, .5f);
-		for(auto r = 0; r < fray.size(); r++){
+		for(unsigned int r = 0; r < fray.size(); r++){
 			glBegin(GL_TRIANGLES);
 				glVertex2f(fray[r].start.x, fray[r].start.y);
 				glVertex2f(fray[r].end.x, fray[r].end.y);

@@ -66,11 +66,11 @@ namespace Texture{
 }
 
 Texturec::Texturec(uint amt, ...){
+	va_list fNames;
 	texState = 0;
 	image = new GLuint[amt];
-	va_list fNames;
 	va_start(fNames, amt);
-	for(int i = 0; i < amt; i++){
+	for(unsigned int i = 0; i < amt; i++){
 		image[i] = Texture::loadTexture(va_arg(fNames, char *));
 	}
 	va_end(fNames);
@@ -79,7 +79,7 @@ Texturec::Texturec(uint amt, ...){
 Texturec::Texturec(uint amt,const char **paths){
 	texState = 0;
 	image = new GLuint[amt];
-	for(int i = 0; i < amt; i++){
+	for(unsigned int i = 0; i < amt; i++){
 		image[i] = Texture::loadTexture(paths[i]);
 	}
 }

@@ -118,7 +118,7 @@ public:
 	*/
 						
 	World(void);
-	~World(void);				// Frees the 'line' array.
+	virtual ~World(void);				// Frees the 'line' array.
 	
 	/*
 	 *	Generate a world of width `width`. This function is virtual so that other world
@@ -183,6 +183,8 @@ public:
 	
 	int getTheWidth(void);
 	
+	void save(FILE *);
+	void load(FILE *);
 };
 
 /*

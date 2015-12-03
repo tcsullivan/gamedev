@@ -48,7 +48,6 @@ public:
 	char* textureLoc;
 	Texturec *tex;
 	GLuint text;
-	int count;
 
 	Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const char *tl);
 	GLuint rtex(){

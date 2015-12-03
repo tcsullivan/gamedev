@@ -40,13 +40,7 @@ const float bgDraw[3][3]={
 };
 
 float worldGetYBase(World *w){
-	/*float base = 0;
-	World *ptr = w;
-	while(ptr->infront){
-		base+=DRAW_Y_OFFSET;
-		ptr=ptr->infront;
-	}*/
-	return /*base*/ GEN_MIN;
+	return w?GEN_MIN:0;
 }
 
 void World::setBackground(WORLD_BG_TYPE bgt){
@@ -60,7 +54,16 @@ void World::setBackground(WORLD_BG_TYPE bgt){
 	}
 }
 
+void World::save(FILE *s){
+	fclose(s);
+}
+
+void World::load(FILE *s){
+	fclose(s);
+}
+
 World::World(void){
+	
 	/*
 	 *	Nullify pointers to other worlds.
 	*/
@@ -70,8 +73,12 @@ World::World(void){
 	toLeft	=
 	toRight	= NULL;
 	
-	star = new vec2[100];				//(vec2 *)calloc(100,sizeof(vec2));
-	memset(star,0,100*sizeof(vec2));
+	/*
+	 *	Allocate and clear an array for star coordinates.
+	*/
+	
+	star = new vec2[100];
+	memset(star,0,100 * sizeof(vec2));
 }
 
 void World::deleteEntities(void){
@@ -118,35 +125,38 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	 * 
 	*/
 	
-	if((lineCount = width + GEN_INC) <= 0)
+	if(width <= 0)
 		abort();
+		
+	lineCount = width + GEN_INC;
 	
 	/*
 	 *	Allocate enough memory for the world to be stored.
 	*/
 	
-	line = new struct line_t[lineCount]; //(struct line_t *)calloc(lineCount,sizeof(struct line_t));
-	memset(line,0,lineCount*sizeof(struct line_t));
+	line = new struct line_t[lineCount];
+	memset(line,0,lineCount * sizeof(struct line_t));
 	
 	/*
 	 *	Set an initial y to base generation off of, as generation references previous lines.
 	*/
 	
-	line[0].y=GEN_INIT;
+	line[0].y = GEN_INIT;
 	
 	/*
 	 *	Populate every GEN_INCth line structure. The remaining lines will be based off of these.
 	*/
 	
-	for(i=GEN_INC;i<lineCount;i+=GEN_INC){
+	for(i = GEN_INC;i < lineCount;i += GEN_INC){
 		
 		/*
 		 *	Generate a y value, ensuring it stays within a reasonable range.
 		*/
 		
-		line[i].y=rand() % 8 - 4 + line[i-GEN_INC].y;		// Add +/- 4 to the previous line
-			 if(line[i].y < GEN_MIN)line[i].y =  GEN_MIN;	// Minimum bound
-		else if(line[i].y > GEN_MAX)line[i].y =  GEN_MAX;	// Maximum bound
+		line[i].y = rand() % 8 - 4 + line[i - GEN_INC].y;	// Add +/- 4 to the previous line
+		
+			 if(line[i].y < GEN_MIN)line[i].y = GEN_MIN;	// Minimum bound
+		else if(line[i].y > GEN_MAX)line[i].y = GEN_MAX;	// Maximum bound
 		
 	}
 	
@@ -154,7 +164,7 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	 *	Generate values for the remaining lines here.
 	*/
 	
-	for(i=0;i<lineCount-GEN_INC;i++){
+	for(i = 0;i < lineCount - GEN_INC;i++){
 		
 		/*
 		 *	Every GEN_INCth line calculate the slope between the current line and the one
@@ -163,35 +173,31 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 		 * 
 		*/
 		
-		if(!(i%GEN_INC)){
+		if(!(i % GEN_INC))
 			
-			inc=(line[i + GEN_INC].y - line[i].y) / (float)GEN_INC;
+			inc = (line[i + GEN_INC].y - line[i].y) / (float)GEN_INC;
 			
-		}else{
+		/*
+		 *	Add the increment to create the smooth slope.
+		*/
 			
-			/*
-			 *	Add the increment to create the smooth slope.
-			*/
-			
-			line[i].y=line[i - 1].y + inc;
-			
-		}
+		else line[i].y = line[i - 1].y + inc;
 		
 		/*
 		 *	Generate a color value for the line. This will be referenced in World->draw(),
 		 *	by setting an RGB value of color (red), color - 50 (green), color - 100 (blue).
 		*/
 		
-		line[i].color=rand() % 20 + 100; // 100 to 120
+		line[i].color = rand() % 20 + 100; // 100 to 120
 
 		/*
 		 *	Each line has two 'blades' of grass, here we generate random heights for them.
 		*/
 		
-		line[i].gh[0]=(getRand() % 16) / 3.5 + 2;	// Not sure what the range resolves to here...
-		line[i].gh[1]=(getRand() % 16) / 3.5 + 2;	//
+		line[i].gh[0] = (getRand() % 16) / 3.5 + 2;	// Not sure what the range resolves to here...
+		line[i].gh[1] = (getRand() % 16) / 3.5 + 2;	//
 		
-		line[i].gs=true;							// Show the blades of grass (modified by the player)
+		line[i].gs = true;							// Show the blades of grass (modified by the player)
 		
 	}
 	
@@ -199,47 +205,80 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	 *	Calculate the x coordinate to start drawing this world from so that it is centered at (0,0).
 	*/
 	
-	x_start=0 - getWidth(this) / 2;
+	x_start = 0 - getWidth(this) / 2;
 	
-	for(int i=0;i<100;i++){
-		star[i].x=getRand()%getTheWidth()-getTheWidth()/2;
-		star[i].y=getRand()%SCREEN_HEIGHT+100;
+	/*
+	 *	Assign coordinates for the stars, seen at nighttime.
+	*/
+	
+	for(i = 0;i < 100;i++){
+		star[i].x = getRand() % getTheWidth() - getTheWidth() / 2;
+		star[i].y = getRand() % SCREEN_HEIGHT + 100;
 	}
 }
 
 void World::generateFunc(unsigned int width,float(*func)(float)){
 	unsigned int i;
+	
+	/*
+	 *	Check for a valid width.
+	*/
+	
 	if((lineCount = width) <= 0)
 		abort();
-	line = new struct line_t[lineCount];	//(struct line_t *)calloc(lineCount,sizeof(struct line_t));
-	memset(line,0,lineCount*sizeof(struct line_t));
-	for(i=0;i<lineCount;i++){
-		line[i].y=func(i);
-		if(line[i].y<0)line[i].y=0;
-		if(line[i].y>2000)line[i].y=2000;
-		line[i].color=rand() % 20 + 100;
-		line[i].gh[0]=(getRand() % 16) / 3.5 + 2;
-		line[i].gh[1]=(getRand() % 16) / 3.5 + 2;
-		line[i].gs=true;
-	}
-	x_start=0 - getWidth(this) / 2;
 	
-	for(int i=0;i<100;i++){
-		star[i].x=getRand()%getTheWidth()-getTheWidth()/2;
-		star[i].y=getRand()%SCREEN_HEIGHT+100;
+	/*
+	 *	Allocate memory for the line array.
+	*/
+	
+	line = new struct line_t[lineCount];
+	memset(line,0,lineCount*sizeof(struct line_t));
+	
+	/*
+	 *	Populate entries in the line array, using `func` to get y values.
+	*/
+	
+	for(i = 0;i < lineCount;i++){
+		line[i].y = func(i);
+		
+		if(line[i].y <    0)line[i].y = 0;		// Minimum bound
+		if(line[i].y > 2000)line[i].y = 2000;	// Maximum bound
+		
+		line[i].color = rand() % 20 + 100;
+		
+		line[i].gh[0] = (getRand() % 16) / 3.5 + 2;
+		line[i].gh[1] = (getRand() % 16) / 3.5 + 2;
+		
+		line[i].gs = true;
+	}
+	
+	x_start = 0 - getWidth(this) / 2;
+	
+	for(i = 0;i < 100;i++){
+		star[i].x = getRand() % getTheWidth() - getTheWidth() / 2;
+		star[i].y = getRand() % SCREEN_HEIGHT + 100;
 	}
 }
 
 void World::update(Player *p,unsigned int delta){
-	p->loc.y+= p->vel.y			 *delta;
-	p->loc.x+=(p->vel.x*p->speed)*delta;
+	
+	/*
+	 *	Update the player's coordinates.
+	*/
+	
+	p->loc.y += p->vel.y			 * delta;
+	p->loc.x +=(p->vel.x * p->speed) * delta;
+
+	/*
+	 *	Update coordinates of all entities except for structures.
+	*/
 
 	for(auto &e : entity){
 		if(e->type != STRUCTURET)
 			e->loc.x += e->vel.x * delta;
 			e->loc.y += e->vel.y * delta;
 			if(e->vel.x < 0)e->left = true;
-		else if(e->vel.x > 0)e->left = false;
+	   else if(e->vel.x > 0)e->left = false;
 	}
 }
 
@@ -252,7 +291,8 @@ void World::draw(Player *p){
 	static float yoff=DRAW_Y_OFFSET;	// Initialize stuff
 	static int shade,bgshade;
 	static World *current;
-	int i,is,ie,v_offset,cx_start,width;
+	unsigned int i,ie;
+	int is,v_offset,cx_start,width;
 	struct line_t *cline;
 	
 	bgshade = worldShade << 1; // *2
@@ -290,8 +330,8 @@ void World::draw(Player *p){
 	 *	Draws stars if it is an appropriate time of day for them.
 	*/
 
-	if(((weather==DARK )&(tickCount%DAY_CYCLE)<DAY_CYCLE/2)   ||
-	   ((weather==SUNNY)&(tickCount%DAY_CYCLE)>DAY_CYCLE*.75) ){
+	if((((weather==DARK )&(tickCount%DAY_CYCLE))<DAY_CYCLE/2)   ||
+	   (((weather==SUNNY)&(tickCount%DAY_CYCLE))>DAY_CYCLE*.75) ){
 		   
 		if(tickCount % DAY_CYCLE){	// The above if statement doesn't check for exact midnight.
 				
@@ -530,7 +570,7 @@ LOOP2:
 		 *	Calculate the line that the player is on
 		*/
 		
-		int ph = (p->loc.x + p->width / 2 - x_start) / HLINE;
+		unsigned int ph = (p->loc.x + p->width / 2 - x_start) / HLINE;
 		
 		/*
 		 *	If the player is on the ground, flatten the grass where the player is standing
@@ -587,8 +627,8 @@ LOOP2:
 }
 
 void World::singleDetect(Entity *e){
-	int i;
-	unsigned int j;
+	unsigned int i,j;
+	int l;
 	
 	/*
 	 *	Kill any dead entities.
@@ -635,17 +675,16 @@ void World::singleDetect(Entity *e){
 						}
 					}
 					break;
+				case PLAYERT:
+					std::cout<<"RIP "<<e->name<<"."<<std::endl;
+					exit(0);
+					break;
 				}
 				std::cout<<"Killed an entity..."<<std::endl;
 				entity.erase(entity.begin()+i);
 				return;
 			}
 		}
-
-		std::cout<<"RIP "<<e->name<<"."<<std::endl;
-		exit(0);
-
-		return;
 	}
 	
 	/*
@@ -660,8 +699,9 @@ void World::singleDetect(Entity *e){
 		 *	Calculate the line that this entity is currently standing on.
 		*/
 		
-		i=(e->loc.x + e->width / 2 - x_start) / HLINE;
-		if(i < 0) i=0;
+		l=(e->loc.x + e->width / 2 - x_start) / HLINE;
+		if(l < 0) l=0;
+		i = l;
 		if(i > lineCount-1) i=lineCount-1;
 		
 		/*
@@ -690,8 +730,9 @@ void World::singleDetect(Entity *e){
 				do{
 					e->loc.x+=.001 * e->vel.x>0?-1:1;
 					
-					i=(e->loc.x - e->width / 2 - x_start) / HLINE;
-					if(i < 0){ e->alive = false; return; }
+					l=(e->loc.x - e->width / 2 - x_start) / HLINE;
+					if(l < 0){ e->alive = false; return; }
+					i = l;
 					if(i > lineCount-1){ e->alive = false; return; }
 				}while(line[i].y>e->loc.y+ e->height);
 				
@@ -909,40 +950,62 @@ void IndoorWorld::generate(unsigned int width){		// Generates a flat area of wid
 }
 
 void IndoorWorld::draw(Player *p){
-	int i,ie,v_offset;
+	unsigned int i,ie;
+	int j,x,v_offset;
+	
+	/*
+	 *	Draw the background.
+	*/
 	
 	glEnable(GL_TEXTURE_2D);
+	
 	bgTex->bind(0);
 	glColor4ub(255,255,255,255);
-	glBegin(GL_QUADS);
-		for(i = x_start - SCREEN_WIDTH / 2;i < -x_start + SCREEN_WIDTH / 2; i += 1024){
-			glTexCoord2i(1,1);glVertex2i(i     ,0);
-			glTexCoord2i(0,1);glVertex2i(i+1024,0);
-			glTexCoord2i(0,0);glVertex2i(i+1024,1024);
-			glTexCoord2i(1,0);glVertex2i(i     ,1024);
+	
+	glBegin(GL_QUADS);	
+		for(j = x_start - SCREEN_WIDTH / 2;j < -x_start + SCREEN_WIDTH / 2; j += 512){
+			glTexCoord2i(1,1);glVertex2i(j    ,0);
+			glTexCoord2i(0,1);glVertex2i(j+512,0);
+			glTexCoord2i(0,0);glVertex2i(j+512,512);
+			glTexCoord2i(1,0);glVertex2i(j    ,512);
 		}
 	glEnd();
+	
 	glDisable(GL_TEXTURE_2D);
 	
-	v_offset=(p->loc.x-x_start)/HLINE;					// Calculate the player's offset in the array 'line' using the player's location 'vec'
-	i=v_offset-SCREEN_WIDTH/2;							// um
-	if(i<0)i=0;											// If the player is past the start of that world 'i' should start at the beginning
-														// of the world
-	ie=v_offset+SCREEN_WIDTH/2;							// Set how many lines should be drawn (the drawing for loop loops from 'i' to 'ie')
-	if(ie>lineCount)ie=lineCount;						// If the player is past the end of that world 'ie' should contain the end of that world
-	//glClearColor(.3,.1,0,0);
+	/*
+	 *	Calculate the starting and ending points to draw the ground from.
+	*/
+	
+	v_offset = (p->loc.x - x_start) / HLINE;
+	j = v_offset - (SCREEN_WIDTH / 2 / HLINE) - GEN_INC;
+	if(j < 0)j = 0;
+	i = j;
+	
+	ie = v_offset + (SCREEN_WIDTH / 2 / HLINE) - GEN_INC;
+	if(ie > lineCount)ie = lineCount;
+	
+	/*
+	 *	Draw the ground.
+	*/
 	
 	glBegin(GL_QUADS);
-		for(i=i;i<ie-GEN_INC;i++){						// For lines in array 'line' from 'i' to 'ie'
+		for(;i < ie - GEN_INC;i++){
 			safeSetColor(150,100,50);
-			glVertex2i(x_start+i*HLINE      ,line[i].y);	// Draw the base floor
-			glVertex2i(x_start+i*HLINE+HLINE,line[i].y);
-			glVertex2i(x_start+i*HLINE+HLINE,line[i].y-50);
-			glVertex2i(x_start+i*HLINE		,line[i].y-50);
+			
+			x = x_start + i * HLINE;
+			glVertex2i(x		,line[i].y);
+			glVertex2i(x + HLINE,line[i].y);
+			glVertex2i(x + HLINE,line[i].y - 50);
+			glVertex2i(x		,line[i].y - 50);
 		}
 	glEnd();
-	for(i=0;i<entity.size();i++)
-		entity[i]->draw();
+	
+	/*
+	 *	Draw all entities.
+	*/
+	
+	for(auto &e : entity) e->draw();
 	p->draw();
 }
 

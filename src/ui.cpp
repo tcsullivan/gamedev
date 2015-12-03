@@ -243,7 +243,7 @@ namespace ui {
 	*/
 	
 	float putString(const float x,const float y,const char *s){
-		unsigned int i=0,j;
+		unsigned int i=0;
 		float xo=x,yo=y;
 		vec2 add;
 		
@@ -271,7 +271,7 @@ namespace ui {
 	
 	float putStringCentered(const float x,const float y,const char *s){
 		unsigned int i = 0;
-		float width = 0, prev = 0;
+		float width = 0;
 		
 		do{
 			if(s[i]=='\n'){			//	Handle newlines
@@ -299,7 +299,6 @@ namespace ui {
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
 		static char *ret = NULL;
-		unsigned int i;
 		
 		/*
 		 *	Create a well-sized buffer if we haven't yet.
@@ -623,7 +622,7 @@ DONE:
 			}
 				if(SDL_KEY==SDLK_p)toggleBlack();
 				if(SDL_KEY==SDLK_F3)debug^=true;
-				if(SDL_KEY==SDLK_b & SDL_KEY==SDLK_F3)posFlag^=true;
+				if(((SDL_KEY==SDLK_b) & (SDL_KEY==SDLK_F3)))posFlag^=true;
 				if(SDL_KEY==SDLK_e){
 					if(heyOhLetsGo == 0){
 						heyOhLetsGo = loops;

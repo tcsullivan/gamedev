@@ -87,6 +87,8 @@ public:
 	
 	virtual void wander(int){}
 	virtual void interact(){}
+	
+	virtual ~Entity(){}
 };
 
 class Player : public Entity {

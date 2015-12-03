@@ -16,8 +16,9 @@ static GLuint itemtex[ITEM_COUNT];
 void itemDraw(Player *p,ITEM_ID id);
 
 void initInventorySprites(void){
-	for(int i = 0;i<ITEM_COUNT;i++){
-		itemtex[i]=Texture::loadTexture(getItemTexturePath((ITEM_ID)i));
+	unsigned int i;
+	for(i = 0;i < ITEM_COUNT;i++){
+		itemtex[i] = Texture::loadTexture(getItemTexturePath((ITEM_ID)i));
 	}
 }
 
@@ -31,7 +32,6 @@ Item::Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const
 	width = w;
 	height = h;
 	maxStackSize = m;
-	count = 0;
 
 	name 		= new char[strlen(n)+1];
 	textureLoc 	= new char[strlen(tl)+1];
@@ -58,34 +58,34 @@ void Inventory::setSelection(unsigned int s){
 }
 
 int Inventory::addItem(ITEM_ID id,unsigned char count){
-	std::cout << id << "," << inv[os].id << std::endl;
-	for(int i = 0; i < size; i++){
+	//std::cout << id << "," << inv[os].id << std::endl;
+	
+	for(unsigned int i = 0; i < size; i++){
 		if(id == inv[i].id){
 			inv[i].count += count;
 			break;
-		}else if(id ){
+		}else if(id){
 			inv[os].id = id;
 			inv[os].count = count;
 			os++;
 			break;
 		}
 	}
+
 #ifdef DEBUG
 	DEBUG_printf("Gave player %u more %s(s)(ID: %d).\n",count,item[id].name,item[id].id);
 #endif // DEBUG
+
 	return 0;
 }
 
 int Inventory::takeItem(ITEM_ID id,unsigned char count){
-	unsigned int i;
-	for(i=0;i<size;i++){
-		if(inv[i].id==id){
+	for(unsigned int i = 0;i < size;i++){
+		if(inv[i].id == id){
 #ifdef DEBUG
 			DEBUG_printf("Took %u of player's %s(s).\n",count,item[i].name);
 #endif // DEBUG
 			inv[i].count-=count;
-			if(item[i].count<0)
-				return item[i].count*-1;
 			return 0;
 		}
 	}
@@ -93,10 +93,8 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 }
 
 void Inventory::draw(void){
-	unsigned int i=0;
 	static unsigned int lop = 0;
-	float y,xoff;
-	static int numSlot = 7;
+	static unsigned int numSlot = 7;
 	static std::vector<int>dfp(numSlot);
 	static std::vector<Ray>iray(numSlot);
 	static std::vector<vec2>curCoord(numSlot);

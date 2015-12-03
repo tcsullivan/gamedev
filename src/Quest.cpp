@@ -67,7 +67,6 @@ int QuestHandler::drop(const char *t){
 
 int QuestHandler::finish(const char *t,void *completer){
 	unsigned char i;
-	unsigned int r;
 	for(i=0;i<current.size();i++){
 		if(!strcmp(current[i]->title,t)){
 #ifdef DEBUG

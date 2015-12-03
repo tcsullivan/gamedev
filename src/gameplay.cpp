@@ -13,10 +13,7 @@ int compTestQuest(NPC *speaker){
 }
 
 int giveTestQuest(NPC *speaker){
-	unsigned char i;
-	
 	ui::dialogBox(speaker->name,":Yes:No","Here, have a quest!");
-	
 	ui::waitForDialog();
 	
 	if(ui::dialogOptChosen == 1){
@@ -32,20 +29,17 @@ int giveTestQuest(NPC *speaker){
 	return 0;
 }
 
-static Arena *a;
-
 void CUTSCENEEE(Mob *callee){
 	player->vel.x = 0;
 	
 	ui::dialogBox(player->name,":K.","No way I\'m gettin\' up this hill.");
 	ui::waitForDialog();
 
-	a = new Arena(currentWorld,player);
-	currentWorld = a;
-	
-	/*player->right = true;
+	player->right = true;
 	player->left  = false;
-	player->loc.x += HLINE * 5;*/
+	player->loc.x += HLINE * 5;
+	
+	callee->alive = false;
 }
 
 void CUTSCENEEE2(Mob *callee){
@@ -68,7 +62,7 @@ static IndoorWorld *iw;
 void destroyEverything(void);
 
 void initEverything(void){
-	unsigned int i;
+	//FILE *load;
 	
 	/*
 	 *	World creation:
@@ -83,9 +77,14 @@ void initEverything(void){
 	test->addLayer(400);
 	
 	playerSpawnHill=new World();
-	
 	playerSpawnHill->setBackground(BG_FOREST);
-	playerSpawnHill->generateFunc(1280,playerSpawnHillFunc);
+	
+	/*if((load=fopen("world.dat","rb"))){
+		playerSpawnHill->load(load);
+		fclose(load);
+	}else{*/
+		playerSpawnHill->generateFunc(1280,playerSpawnHillFunc);
+	//}
 
 	/*
 	 *	Setup the current world, making the player initially spawn in `test`.
@@ -142,6 +141,12 @@ extern std::vector<int (*)(NPC *)> AIpreload;
 extern std::vector<NPC *> AIpreaddr;
 
 void destroyEverything(void){
+	//FILE *save;
+	
+	/*save = fopen("world.dat","wb");
+	playerSpawnHill->save(save);
+	fclose(save);*/
+	
 	delete test;
 	delete playerSpawnHill;
 	
