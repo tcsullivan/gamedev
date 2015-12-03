@@ -120,11 +120,13 @@ Structures::Structures(){ //sets the structure type
 	tex = new Texturec(1,"assets/house1.png");
 	
 	inWorld = NULL;
+	name = NULL;
 }
 Structures::~Structures(){
-	delete inv;
+	//delete inv;
 	delete tex;
-	delete[] name;
+	if(name)
+		delete[] name;
 }
 
 Mob::Mob(int sub){
@@ -177,7 +179,7 @@ Object::Object(ITEM_ID id, bool qo, const char *pd){
 Object::~Object(){
 	delete[] pickupDialog;
 	
-	delete inv;
+	//delete inv;
 	delete tex;
 	delete[] name;
 }

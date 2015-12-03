@@ -48,6 +48,7 @@ static char *dialogBoxText			= NULL;
 static char *dialogOptText[4];
 static float dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
+static bool typeOutDone = true;
 
 extern void mainLoop(void);
 
@@ -318,18 +319,23 @@ namespace ui {
 			size=strlen(str);		//	Set the new target string size
 			linc=0;					//	Reset the incrementers
 			sinc=1;
+			typeOutDone = false;
 		}
 		
 		/*
 		 *	Draw the next letter if necessary.
 		*/
 		
-		if(++sinc==2){
+		if(typeOutDone)
+			return str;
+		else if(++sinc==2){
 			sinc=0;
 			
 			strncpy(ret+linc,str+linc,1);	//	Get next character
 			
-			if(linc<size)linc++;
+			if(linc<size)
+				linc++;
+			else typeOutDone = true;
 		}
 		
 		return ret;		//	The buffered string.
@@ -533,6 +539,12 @@ namespace ui {
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if((e.button.button&SDL_BUTTON_RIGHT)&&dialogBoxExists){
+				
+					if(!typeOutDone){
+						typeOutDone = true;
+						break;
+					}
+				
 					for(i=0;i<dialogOptCount;i++){
 						if(mouse.x > dialogOptLoc[i][0] &&
 						   mouse.x < dialogOptLoc[i][2] &&

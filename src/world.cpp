@@ -95,11 +95,9 @@ void World::deleteEntities(void){
 }
 
 World::~World(void){
-	
-	if(behind){
+	if(behind)
 		delete behind;
-	}
-
+	
 	delete bgTex;
 	delete[] star;
 	delete[] line;
