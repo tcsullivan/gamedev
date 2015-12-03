@@ -434,10 +434,8 @@ int main(int argc, char *argv[]){
 
 	invUI = Texture::loadTexture("assets/invUI.png"	);
 	
-	//std::cout << "Before invSprites\n";
-	//initInventorySprites();
-	//std::cout << "After invSprites\n";
-
+	initInventorySprites();
+	
 	/**************************
 	****     GAMELOOP      ****
 	**************************/

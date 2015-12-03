@@ -39,8 +39,6 @@ enum ITEM_TYPE{
 class Item{
 protected:
 public:
-	friend class Inventory;
-	friend unsigned int initInventorySprites(void);
 	ITEM_ID id;				// ID of the item
 	char *name;
 	ITEM_TYPE type;			// What category the item falls under
@@ -92,6 +90,7 @@ public:
 };
 
 void itemUse(void *p);
+void initInventorySprites(void);
 char *getItemTexturePath(ITEM_ID id);
 
 #endif // INVENTORY_H
