@@ -122,7 +122,6 @@ Structures::Structures(){ //sets the structure type
 	inWorld = NULL;
 }
 Structures::~Structures(){
-	delete inv;
 	delete tex;
 	delete[] name;
 }
@@ -177,7 +176,6 @@ Object::Object(ITEM_ID id, bool qo, const char *pd){
 Object::~Object(){
 	delete[] pickupDialog;
 	
-	delete inv;
 	delete tex;
 	delete[] name;
 }
@@ -339,7 +337,8 @@ void NPC::interact(){ //have the npc's interact back to the player
 	}
 }
 
-void Object::interact(void){	
+
+void Object::interact(void){
 	if(questObject && alive){
 		ui::dialogBox("You",":Yes:No",pickupDialog);		
 		ui::waitForDialog();

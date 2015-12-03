@@ -55,18 +55,21 @@ void Inventory::setSelection(unsigned int s){
 }
 
 int Inventory::addItem(ITEM_ID id,unsigned char count){
-	inv[os].id = id;
-	inv[os].count = count;
-	os++;
+	std::cout << id << "," << inv[os].id << std::endl;
+	for(int i = 0; i < size; i++){
+		if(id == inv[i].id){
+			inv[i].count += count;
+			break;
+		}else if(id ){
+			inv[os].id = id;
+			inv[os].count = count;
+			os++;
+			break;
+		}
+	}
 #ifdef DEBUG
 	DEBUG_printf("Gave player %u more %s(s)(ID: %d).\n",count,item[id].name,item[id].id);
 #endif // DEBUG
-
-
-/*#ifdef DEBUG
-	DEBUG_printf("Failed to add non-existant item with id %u.\n",id);
-#endif // DEBUG*/
-
 	return 0;
 }
 
@@ -87,7 +90,7 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 }
 
 void Inventory::draw(void){
-	ui::putText(offset.x-SCREEN_WIDTH/2,480,"%d",sel);
+	std::cout << invHover << std::endl;
 	unsigned int i=0;
 	static unsigned int lop = 0;
 	float y,xoff;
@@ -96,12 +99,14 @@ void Inventory::draw(void){
 	static std::vector<Ray>iray(numSlot);
 	static std::vector<vec2>curCoord(numSlot);
 	static int range = 200;
+	static int itemWide = 45;
 	float angleB = (float)180/(float)numSlot;
 	float angle = float(angleB/2.0f);
 	unsigned int a = 0;
 	unsigned int end = 0;
 	for(auto &r : iray){
-		r.start = player->loc;
+		r.start.x = player->loc.x + (player->width/2);
+		r.start.y = player->loc.y + (player->height/2);
 		curCoord[a] = r.start;
 		//dfp[a] = 0;
 		a++;
@@ -127,32 +132,33 @@ void Inventory::draw(void){
 		}
 		if(end >= numSlot)invOpen=false;
 	}
-	if(invOpen){
+	if(invOpen || invHover){
 		for(auto &r : iray){
 			angle=180-(angleB*a) - angleB/2.0f;
 			curCoord[a].x += float((dfp[a]) * cos(angle*PI/180));
 			curCoord[a].y += float((dfp[a]) * sin(angle*PI/180));
 			r.end = curCoord[a];
 
-			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)range)*0.3f);
+			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)range)*invHover ? 0.2f : 0.5f);
  			glBegin(GL_QUADS);
-				glVertex2i(r.end.x,		r.end.y);
-				glVertex2i(r.end.x+45,	r.end.y);
-				glVertex2i(r.end.x+45,	r.end.y+45);
-				glVertex2i(r.end.x,		r.end.y+45);
+				glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
+				glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
+				glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2)+itemWide);
+				glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2)+itemWide);
 			glEnd();
 
 			if(inv[a].count > 0){
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, itemtex[inv[a].id]);			
-				glColor4f(1.0f, 1.0f, 1.0f, (float)dfp[a]/(float)range);
+				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)range)*invHover ? 0.5f : 1.0f);
 	 			glBegin(GL_QUADS);
-					glTexCoord2i(0,1);glVertex2i(r.end.x,		r.end.y);
-					glTexCoord2i(1,1);glVertex2i(r.end.x+45,	r.end.y);
-					glTexCoord2i(1,0);glVertex2i(r.end.x+45,	r.end.y+45);
-					glTexCoord2i(0,0);glVertex2i(r.end.x,		r.end.y+45);
+					glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
+					glTexCoord2i(1,1);glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
+					glTexCoord2i(1,0);glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2)+itemWide);
+					glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2)+itemWide);
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
+				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/1.75),"%d",inv[a].count);
 			}
 			a++;
 		}

@@ -73,6 +73,7 @@ public:
 	unsigned int sel;
 	bool invOpen = false;
 	bool invOpening = false;
+	bool invHover = false;
 
 	Inventory(unsigned int s);	// Creates an inventory of size 's'
 	~Inventory(void);			// Free's allocated memory

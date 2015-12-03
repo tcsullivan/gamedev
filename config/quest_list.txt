@@ -1,1 +1,1 @@
-TITLE "Test" DESC "A test quest" REWARD 1 x TEST_ITEM END
+TITLE "Test" DESC "A test quest" REWARD 1 x SWORD_WOOD END

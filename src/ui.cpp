@@ -516,6 +516,7 @@ namespace ui {
 	void handleEvents(void){
 		static bool left=false,right=false;
 		static vec2 premouse={0,0};
+		static int heyOhLetsGo = 0;
 		unsigned char i;
 		SDL_Event e;
 		
@@ -611,6 +612,13 @@ DONE:
 				if(SDL_KEY==SDLK_p)toggleBlack();
 				if(SDL_KEY==SDLK_F3)debug^=true;
 				if(SDL_KEY==SDLK_b & SDL_KEY==SDLK_F3)posFlag^=true;
+				if(SDL_KEY==SDLK_e){
+					if(heyOhLetsGo == 0){
+						heyOhLetsGo = loops;
+					}else if(loops - heyOhLetsGo >= 5 && !(player->inv->invOpen)){
+						player->inv->invHover=true;
+					}
+				}
 				break;
 			/*
 				KEYUP
@@ -623,7 +631,15 @@ DONE:
 				if(SDL_KEY==SDLK_LCTRL)player->speed = 1;
 				if(SDL_KEY==SDLK_h)player->health-=5;
 				if(SDL_KEY==SDLK_f)player->light ^= true;
-				if(SDL_KEY==SDLK_e)player->inv->invOpening ^= true;
+				if(SDL_KEY==SDLK_e){
+					if(player->inv->invHover){
+						player->inv->invHover = false;
+						heyOhLetsGo = 0;
+					}else{
+						player->inv->invOpening ^= true;
+						heyOhLetsGo = 0;
+					}
+				}
 				if(SDL_KEY==SDLK_RIGHT){player->inv->sel+=1;}
 				if(SDL_KEY==SDLK_LEFT){if(player->inv->sel!=0)player->inv->sel-=1;}
 				break;

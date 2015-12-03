@@ -108,6 +108,7 @@ void initEverything(void){
 	playerSpawnHill->addStructure(STRUCTURET,(rand()%120*HLINE),10,test,iw);
 	playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);
 	
+	playerSpawnHill->addObject(SWORD_WOOD, false, "", 480,200);
 	playerSpawnHill->addObject(SWORD_WOOD, false, "", 500,200);
 	playerSpawnHill->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",600,200);
 	

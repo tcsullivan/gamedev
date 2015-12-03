@@ -504,7 +504,6 @@ void mainLoop(void){
 	*/
 	
 	ui::handleEvents();
-	
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
 		logic();
 		prevPrevTime = currentTime;
@@ -529,7 +528,7 @@ void mainLoop(void){
 		debugY = player->loc.y;
 	}
 
-	render();	// Call the render loop
+	render();	// Call the render loop;
 }
 
 extern bool fadeEnable;
@@ -951,8 +950,10 @@ void logic(){
 							o->interact();
 							objectInteracting=false;
 						}
+
 					}
 				}
+
 			}
 		}
 	}
