@@ -354,15 +354,15 @@ namespace ui {
 		 *	Create a wimpy buffer.
 		*/
 		
-		buf = new char[128];	//(char *)calloc(128,sizeof(char));
-		memset(buf,0,128*sizeof(char));
+		buf = new char[512];	//(char *)calloc(128,sizeof(char));
+		memset(buf,0,512*sizeof(char));
 		
 		/*
 		 *	Handle the formatted string, printing it to the buffer.
 		*/
 		
 		va_start(args,str);
-		vsnprintf(buf,128,str,args);
+		vsnprintf(buf,512,str,args);
 		va_end(args);
 		
 		/*

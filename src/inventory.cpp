@@ -15,6 +15,12 @@ static GLuint itemtex[ITEM_COUNT];
 
 void itemDraw(Player *p,ITEM_ID id);
 
+void initInventorySprites(void){
+	for(int i = 0;i<ITEM_COUNT;i++){
+		itemtex[i]=Texture::loadTexture(getItemTexturePath((ITEM_ID)i));
+	}
+}
+
 char *getItemTexturePath(ITEM_ID id){
 	return item[id].textureLoc;
 }
@@ -41,9 +47,6 @@ Inventory::Inventory(unsigned int s){
 	size=s;
 	inv = new struct item_t[size];
 	memset(inv,0,size*sizeof(struct item_t));
-	for(int i = 0;i<ITEM_COUNT;i++){
-		itemtex[i]=Texture::loadTexture(getItemTexturePath((ITEM_ID)i));
-	}
 }
 
 Inventory::~Inventory(void){
@@ -90,7 +93,6 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 }
 
 void Inventory::draw(void){
-	std::cout << invHover << std::endl;
 	unsigned int i=0;
 	static unsigned int lop = 0;
 	float y,xoff;
