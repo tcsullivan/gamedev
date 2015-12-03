@@ -51,8 +51,7 @@ void CUTSCENEEE(Mob *callee){
 void CUTSCENEEE2(Mob *callee){
 	player->vel.x = 0;
 	ui::dialogBox(player->name,":Yeah.",
-	"What the fuck is this dead end supposed \
-	to mean, and why this place smells like soap.");
+	"What the fuck is this dead end supposed to mean, and why does this place smell like soap?");
 	ui::waitForDialog();
 	callee->alive = false;
 }
@@ -120,8 +119,10 @@ void initEverything(void){
 	playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);
 	
 	playerSpawnHill->addObject(SWORD_WOOD, false, "", 480,200);
-	playerSpawnHill->addObject(SWORD_WOOD, false, "", 500,200);
-	playerSpawnHill->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",600,200);
+	playerSpawnHill->addObject(FLASHLIGHT, false, "", 500,200);
+	playerSpawnHill->addObject(PLAYER_BAG, false, "", 520,200);
+	playerSpawnHill->addObject(TEST_ITEM, false, "", 540,200);
+	//playerSpawnHill->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",600,200);
 	
 	test->addMob(MS_RABBIT,200,100);
 	test->addMob(MS_BIRD,-500,500);
