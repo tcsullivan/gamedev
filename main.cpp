@@ -212,7 +212,8 @@ static unsigned int fadeIntensity = 0;
  * MAIN ************************************************************************
  *******************************************************************************/
 
-int main(/*int argc, char *argv[]*/){
+int main(int argc, char *argv[]){
+	*argv = (char *)argc;
 	gameRunning=false;
 
 	/*!

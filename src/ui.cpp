@@ -475,16 +475,18 @@ namespace ui {
 			putString(x+HLINE,y-fontSize-HLINE,rtext);
 			
 			for(i=0;i<dialogOptCount;i++){
-				if(mouse.x > dialogOptLoc[i][0] &&
-						   mouse.x < dialogOptLoc[i][2] &&
-						   mouse.y > dialogOptLoc[i][1] &&
-						   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
-					  setFontColor(255,255,0);
-				}else setFontColor(255,255,255);
+				setFontColor(255,255,255);
 				dialogOptLoc[i][1]=y-SCREEN_HEIGHT/4+(fontSize+HLINE)*(i+1);
 				dialogOptLoc[i][2]=
 				putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
 				dialogOptLoc[i][0]=offset.x-dialogOptLoc[i][2]/2;
+				if(mouse.x > dialogOptLoc[i][0] &&
+				   mouse.x < dialogOptLoc[i][0] + dialogOptLoc[i][2] &&
+				   mouse.y > dialogOptLoc[i][1] &&
+				   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
+					  setFontColor(255,255,0);
+					  putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+				}
 			}
 			setFontColor(255,255,255);
 		}
@@ -506,23 +508,28 @@ namespace ui {
 		}
 		
 		/*
-		 * Lists all of the quests the player has
+		 *	Lists all of the quests the player is currently taking.
 		*/
 		
-		hub.y-=fontSize*1.15;
-		
-		putString(hub.x,hub.y,"Current Quests:");
-
-		for(auto &c : player->qh.current){
-			hub.y-=fontSize*1.15;
-			putString(hub.x,hub.y,c->title);
+		if(player->inv->invOpen){
+			hub.y = player->loc.y + fontSize * 10;
+			hub.x = player->loc.x;
+			
+			putStringCentered(hub.x,hub.y,"Current Quests:");
+			
+			for(auto &c : player->qh.current){
+				hub.y -= fontSize * 1.15;
+				putString(hub.x,hub.y,c->title);
+			}	
 		}
+
+		
 	}
 	void handleEvents(void){
-		static bool left=false,right=false;
 		static vec2 premouse={0,0};
 		static int heyOhLetsGo = 0;
 		unsigned char i;
+		World *tmp;
 		SDL_Event e;
 		
 		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
@@ -563,106 +570,128 @@ DONE:
 				KEYDOWN
 			*/
 			case SDL_KEYDOWN:
-			if(SDL_KEY==SDLK_ESCAPE)gameRunning=false;							// Exit the game with ESC
-			if(!dialogBoxExists&&!fadeEnable){
-				if(SDL_KEY==SDLK_a){												// Move left
-					left=true;
-					player->vel.x=-.15;
-					player->left = true;
-					player->right = false;
-					currentWorld=currentWorld->goWorldLeft(player);
-				}
-				if(SDL_KEY==SDLK_d){												// Move right
-					right=true;
-					player->vel.x=.15;
-					player->right = true;
-					player->left = false;
-					currentWorld=currentWorld->goWorldRight(player);
-				}
-				if(SDL_KEY==SDLK_s && player->ground==2){
-					player->ground=false;
-					player->loc.y-=HLINE*1.5;
-				}
-				if(SDL_KEY==SDLK_w){
-					if(inBattle){
-						currentWorld=((Arena *)currentWorld)->exitArena(player);
-					}else currentWorld=currentWorld->goInsideStructure(player);
-				}
-				if(SDL_KEY==SDLK_SPACE){											// Jump
-					if(player->ground){
-						player->vel.y=.4;
-						player->loc.y+=HLINE*2;
-						player->ground=false;
-					}
-				}
-				World *tmp;
-				if(SDL_KEY==SDLK_i){
-					tmp=currentWorld;
-					currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
-					if(tmp!=currentWorld){
-						currentWorld->detect(player);
-						player->vel.y=.2;
-						player->loc.y+=HLINE*5;
-						player->ground=false;
-					}
-				}
-				if(SDL_KEY==SDLK_k){
-					tmp=currentWorld;
-					currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
-					if(tmp!=currentWorld){
-						player->loc.y=0;
-						currentWorld->behind->detect(player);
-						player->vel.y=.2;
-						player->ground=false;
-					}
-				}
-
-				if(SDL_KEY==SDLK_LSHIFT)player->speed = debug?4:3;							// Sprint
-				if(SDL_KEY==SDLK_LCTRL)player->speed = .5;
-			}
-				if(SDL_KEY==SDLK_p)toggleBlack();
-				if(SDL_KEY==SDLK_F3)debug^=true;
-				if(((SDL_KEY==SDLK_b) & (SDL_KEY==SDLK_F3)))posFlag^=true;
-				if(SDL_KEY==SDLK_e){
-					if(heyOhLetsGo == 0){
-						heyOhLetsGo = loops;
-						player->inv->mouseSel = false;
-					}
-					if(loops - heyOhLetsGo >= 2 && !(player->inv->invOpen) && !(player->inv->selected)){
-						player->inv->invHover=true;
-						//heyOhLetsGo = 0;
+				if(!dialogBoxExists&&!fadeEnable){
+					switch(SDL_KEY){
+					case SDLK_ESCAPE:
+						gameRunning=false;
+						break;
+					case SDLK_a:
+						player->vel.x=-.15;
+						player->left = true;
+						player->right = false;
+						currentWorld=currentWorld->goWorldLeft(player);
+						break;
+					case SDLK_d:
+						player->vel.x=.15;
+						player->right = true;
+						player->left = false;
+						currentWorld=currentWorld->goWorldRight(player);
+						break;
+					case SDLK_s:
+						if(player->ground == 2){
+							player->ground=false;
+							player->loc.y-=HLINE*1.5;
+						}
+						break;
+					case SDLK_w:
+						if(inBattle)
+							 currentWorld=((Arena *)currentWorld)->exitArena(player);
+						else currentWorld=currentWorld->goInsideStructure(player);
+						break;
+					case SDLK_SPACE:
+						if(player->ground){
+							player->vel.y=.4;
+							player->loc.y+=HLINE*2;
+							player->ground=false;
+						}
+						break;
+					case SDLK_i:
+						tmp=currentWorld;
+						currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
+						if(tmp!=currentWorld){
+							currentWorld->detect(player);
+							player->vel.y=.2;
+							player->loc.y+=HLINE*5;
+							player->ground=false;
+						}
+						break;
+					case SDLK_k:
+						tmp=currentWorld;
+						currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
+						if(tmp!=currentWorld){
+							player->loc.y=0;
+							currentWorld->behind->detect(player);
+							player->vel.y=.2;
+							player->ground=false;
+						}
+						break;
+					case SDLK_LSHIFT:
+						player->speed = debug ? 4 : 3;
+						break;
+					case SDLK_LCTRL:
+						player->speed = .5;
+						break;
+					case SDLK_p:
+						toggleBlack();
+						break;
+					case SDLK_F3:
+						debug ^= true;
+						break;
+					case SDLK_b:
+						if(debug)posFlag ^= true;
+						break;
+					case SDLK_e:
+						if(!heyOhLetsGo){
+							heyOhLetsGo = loops;
+							player->inv->mouseSel = false;
+						}
+						if(loops - heyOhLetsGo >= 2 && !(player->inv->invOpen) && !(player->inv->selected))
+							player->inv->invHover=true;
+						break;
+					default:
+						break;
 					}
 				}
 				break;
 			/*
-				KEYUP
-			*/	
+			 *	KEYUP
+			*/
+			
 			case SDL_KEYUP:
-				if(SDL_KEY==SDLK_a){left=false;}// Stop the player if movement keys are released
-				if(SDL_KEY==SDLK_d){right=false;}
-				if(!left&&!right)player->vel.x=0;
-				if(SDL_KEY==SDLK_LSHIFT)player->speed = 1;
-				if(SDL_KEY==SDLK_LCTRL)player->speed = 1;
-				if(SDL_KEY==SDLK_h)player->health-=5;
-				if(SDL_KEY==SDLK_f)player->light ^= true;
-				if(SDL_KEY==SDLK_e){
+				switch(SDL_KEY){
+				case SDLK_a:
+					player->left = false;
+					break;
+				case SDLK_d:
+					player->right = false;
+					break;
+				case SDLK_LSHIFT:
+				case SDLK_LCTRL:
+					player->speed = 1;
+					break;
+				case SDLK_e:
 					if(player->inv->invHover){
 						player->inv->invHover = false;
-						heyOhLetsGo = 0;
 					}else{
-						if(player->inv->selected == false){
-							player->inv->invOpening ^= true;
-							player->inv->mouseSel = false;
-							heyOhLetsGo = 0;
-						}else{
-							player->inv->selected = false;
-							player->inv->mouseSel = false;
-							heyOhLetsGo = 0;
-						}
+						if(!player->inv->selected)player->inv->invOpening ^= true;
+						else player->inv->selected = false;
+						player->inv->mouseSel = false;
 					}
+					heyOhLetsGo = 0;
+					break;
+				case SDLK_LEFT:
+					if(player->inv->sel)player->inv->sel--;
+					break;
+				case SDLK_RIGHT:
+					player->inv->sel++;
+					break;
+				default:
+					break;
 				}
-				if(SDL_KEY==SDLK_RIGHT){player->inv->sel+=1;}
-				if(SDL_KEY==SDLK_LEFT){if(player->inv->sel!=0)player->inv->sel-=1;}
+				
+				if(!player->left&&!player->right)
+					player->vel.x=0;
+					
 				break;
 			default:
 				break;
@@ -670,7 +699,7 @@ DONE:
 		}
 		
 		if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary
-			for(i=0;i<AIpreaddr.size();i++){
+			while(!AIpreaddr.empty()){
 				AIpreaddr.front()->addAIFunc(AIpreload.front(),false);
 				AIpreaddr.erase(AIpreaddr.begin());
 				AIpreload.erase(AIpreload.begin());
