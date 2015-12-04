@@ -91,5 +91,7 @@ public:
 void itemUse(void *p);
 void initInventorySprites(void);
 char *getItemTexturePath(ITEM_ID id);
+int getItemWidth(ITEM_ID);
+int getItemHeight(ITEM_ID);
 
 #endif // INVENTORY_H

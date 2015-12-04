@@ -68,6 +68,11 @@ namespace ui {
 	*/
 	
 	vec2 mouse;
+
+	/*
+	 *	Variety of keydown bools
+	*/
+	bool edown;
 	
 	/*
 	 *	Debugging flags.
@@ -624,6 +629,7 @@ DONE:
 				if(SDL_KEY==SDLK_F3)debug^=true;
 				if(((SDL_KEY==SDLK_b) & (SDL_KEY==SDLK_F3)))posFlag^=true;
 				if(SDL_KEY==SDLK_e){
+					edown=true;
 					if(heyOhLetsGo == 0){
 						heyOhLetsGo = loops;
 						player->inv->mouseSel = false;
@@ -646,6 +652,7 @@ DONE:
 				if(SDL_KEY==SDLK_h)player->health-=5;
 				if(SDL_KEY==SDLK_f)player->light ^= true;
 				if(SDL_KEY==SDLK_e){
+					edown=false;
 					if(player->inv->invHover){
 						player->inv->invHover = false;
 						heyOhLetsGo = 0;

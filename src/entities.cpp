@@ -169,8 +169,8 @@ Object::Object(ITEM_ID id, bool qo, const char *pd){
 	type = OBJECTT;
 	alive = true;
 	near = false;
-	width  = HLINE * 8;
-	height = HLINE * 8;
+	width  = getItemWidth(id);
+	height = getItemHeight(id);
 
 	maxHealth = health = 1;
 	tex = new Texturec(1,getItemTexturePath(id));

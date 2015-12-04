@@ -214,7 +214,6 @@ static unsigned int fadeIntensity = 0;
 
 int main(/*int argc, char *argv[]*/){
 	gameRunning=false;
-
 	/*!
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
 	 *	make openGL calls. Exit if there was an error.

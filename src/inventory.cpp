@@ -26,6 +26,14 @@ char *getItemTexturePath(ITEM_ID id){
 	return item[id].textureLoc;
 }
 
+int getItemWidth(ITEM_ID id){
+	return item[id].width;
+}
+
+int getItemHeight(ITEM_ID id){
+	return item[id].height;
+}
+
 Item::Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const char *tl){
 	id = i;
 	type = t;
@@ -179,7 +187,7 @@ void Inventory::draw(void){
 				highlight=sel+thing;
 				if(highlight>numSlot-1)highlight=numSlot-1;
 				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
-					highlight>numSlot-1 ? sel=numSlot-1 : sel = highlight;
+					sel = highlight;
 					mouseSel=false;
 					invHover=false;
 					selected = true;
@@ -205,10 +213,10 @@ void Inventory::draw(void){
 
 			glColor4f(0.0f, 0.0f, 0.0f, a == highlight ? 0.5f : 0.1f);
  			glBegin(GL_QUADS);
-				glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
-				glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
-				glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2)+itemWide);
-				glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2)+itemWide);
+				glVertex2i(r.end.x-(itemWide/2),	r.end.y-(itemWide/2));
+				glVertex2i(r.end.x+(itemWide/2),	r.end.y-(itemWide/2));
+				glVertex2i(r.end.x+(itemWide/2),	r.end.y+(itemWide/2));
+				glVertex2i(r.end.x-(itemWide/2),	r.end.y+(itemWide/2));
 			glEnd();
 
 			if(inv[a].count > 0){
@@ -216,16 +224,24 @@ void Inventory::draw(void){
 				glBindTexture(GL_TEXTURE_2D, itemtex[inv[a].id]);			
 				glColor4f(1.0f, 1.0f, 1.0f, a == highlight ? 0.8f : 0.2f);
 	 			glBegin(GL_QUADS);
-					glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
-					glTexCoord2i(1,1);glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
-					glTexCoord2i(1,0);glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2)+itemWide);
-					glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2)+itemWide);
+	 				if(item[inv[a].id].height > item[inv[a].id].width){
+						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y-(itemWide/2));
+						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y-(itemWide/2));
+						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y+(itemWide/2));
+						glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y+(itemWide/2));
+					}else{
+						glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),	r.end.y-(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
+						glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),	r.end.y-(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
+						glTexCoord2i(1,0);glVertex2i(r.end.x+(itemWide/2),	r.end.y+(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
+						glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),	r.end.y+(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
+					}
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
 				//ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/1.75),"%d",inv[a].count);
 			}
 			a++;
 		}
+		if(inv[highlight].count > 0)ui::putStringCentered(player->loc.x+player->width/2, player->loc.y + range*.75,item[inv[highlight].id].name);
 	}
 	if(inv[sel].count)itemDraw(player,inv[sel].id);
 	lop++;
