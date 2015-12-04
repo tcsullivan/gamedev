@@ -51,7 +51,7 @@ void CUTSCENEEE(Mob *callee){
 void CUTSCENEEE2(Mob *callee){
 	player->vel.x = 0;
 	ui::dialogBox(player->name,":Yeah.",
-	"What the fuck is this dead end supposed to mean, and why does this place smell like soap?");
+	"What the fuck is this dead end supposed to mean, and why this place smell like soap.");
 	ui::waitForDialog();
 	callee->alive = false;
 }
