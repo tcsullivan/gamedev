@@ -64,7 +64,7 @@ int Inventory::addItem(ITEM_ID id,unsigned char count){
 		if(id == inv[i].id){
 			inv[i].count += count;
 			break;
-		}else if(id){
+		}else{
 			inv[os].id = id;
 			inv[os].count = count;
 			os++;
@@ -159,32 +159,37 @@ void Inventory::draw(void){
 					glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2)+itemWide);
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
-				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/1.75),"%d",inv[a].count);
+				ui::putText(r.end.x-(itemWide/2),r.end.y-(itemWide*.9),"%s",item[inv[a].id].name);
+				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",inv[a].count);
 			}
 			a++;
 		}
 	}else if(invHover){
 		static unsigned int highlight = 0;
-		std::cout << ui::mouse.x << "," << mouseStart.x  << "," << mouseSel << std::endl;
+		static unsigned int thing = 0;
+
 		if(!mouseSel){
-			mouseStart.x = ui::mouse.x;
+			mouseStart.x = ui::mouse.x - offset.x;
 			highlight = sel;
+			thing = sel;
 			mouseSel=true;
 		}else{
-			if(ui::mouse.x >= mouseStart.x){
-				highlight = (ui::mouse.x - mouseStart.x)/45;
-				if(highlight>numSlot)highlight=numSlot;
-				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-					sel = highlight;
+			if((ui::mouse.x - offset.x) >= mouseStart.x){
+				thing = ((ui::mouse.x - offset.x) - mouseStart.x)/80;
+				highlight=sel+thing;
+				if(highlight>numSlot-1)highlight=numSlot-1;
+				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+					highlight>numSlot-1 ? sel=numSlot-1 : sel = highlight;
 					mouseSel=false;
 					invHover=false;
 					selected = true;
 				}
 			}
-			if(ui::mouse.x < mouseStart.x){
-				highlight = (mouseStart.x - ui::mouse.x)/45;
-				//if(highlight<0)highlight=0;
-				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+			if((ui::mouse.x - offset.x) < mouseStart.x){
+				thing = (mouseStart.x - (ui::mouse.x - offset.x))/80;
+				if((int)sel-(int)thing<0)highlight=0;
+				else highlight=sel-thing; 
+				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 					sel = highlight;
 					mouseSel=false;
 					invHover=false;
@@ -198,7 +203,7 @@ void Inventory::draw(void){
 			curCoord[a].y += float(range) * sin(angle*PI/180);
 			r.end = curCoord[a];
 
-			glColor4f(0.0f, 0.0f, 0.0f, 0.1f);
+			glColor4f(0.0f, 0.0f, 0.0f, a == highlight ? 0.5f : 0.1f);
  			glBegin(GL_QUADS);
 				glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
 				glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
@@ -209,7 +214,7 @@ void Inventory::draw(void){
 			if(inv[a].count > 0){
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, itemtex[inv[a].id]);			
-				glColor4f(1.0f, 1.0f, 1.0f, a == highlight ? 0.4f : 0.2f);
+				glColor4f(1.0f, 1.0f, 1.0f, a == highlight ? 0.8f : 0.2f);
 	 			glBegin(GL_QUADS);
 					glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
 					glTexCoord2i(1,1);glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
@@ -217,7 +222,7 @@ void Inventory::draw(void){
 					glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2)+itemWide);
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
-				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/1.75),"%d",inv[a].count);
+				//ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/1.75),"%d",inv[a].count);
 			}
 			a++;
 		}
@@ -242,13 +247,15 @@ void itemDraw(Player *p,ITEM_ID id){
 
 int Inventory::useItem(void){
 	ITEM_ID id = item[inv[sel].id].id;
-	switch(id){
-	case FLASHLIGHT:
-		player->light ^= true;
-		break;
-	default:
-		//ui::dialogBox(item[id].name,NULL,"You cannot use this item.");
-		break;
+	if(!invHover){
+		switch(id){
+		case FLASHLIGHT:
+			player->light ^= true;
+			break;
+		default:
+			//ui::dialogBox(item[id].name,NULL,"You cannot use this item.");
+			break;
+		}
 	}
 	return 0;
 }
