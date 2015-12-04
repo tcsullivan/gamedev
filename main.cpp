@@ -124,14 +124,6 @@ GLuint shaderProgram;
 FILE *names;
 
 /*
- *	These variables are used by SDL_mixer to create sound.
- *	horn is not currently used, although it may be set.
-*/
-
-Mix_Music *music;
-Mix_Chunk *horn;
-
-/*
  *	loops is used for texture animation. It is believed to be passed to entity
  *	draw functions, although it may be externally referenced instead.
 */
@@ -415,18 +407,6 @@ int main(/*int argc, char *argv[]*/){
 	*/
 	fadeIntensity = 250;
 	initEverything();
-	
-	/*
-	 *	Open a test background music file and sound. The background music is then played indefinitely
-	 *	while the sound is never referenced again.
-	 * 
-	*/
-	
-	music = Mix_LoadMUS("assets/BennyHillTheme.wav");			// as in gamedev/assets/<sound>
-	horn  = Mix_LoadWAV("assets/air-horn-club-sample_1.wav");	//
-	
-	Mix_VolumeMusic(15);		// Set the volume
-	//Mix_PlayMusic( music, -1 );	// Play music forever
 
 	/*
 	 *	Load sprites used in the inventory menu. See src/inventory.cpp
@@ -454,9 +434,6 @@ int main(/*int argc, char *argv[]*/){
     */
     
     Mix_HaltMusic();
-    Mix_FreeMusic(music);
-    
-    Mix_FreeChunk(horn);
     
     fclose(names);
     
@@ -901,10 +878,8 @@ void logic(){
 
 					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 
-						if(!ui::dialogBoxExists){
+						if(!ui::dialogBoxExists)
 							n->interact();
-							Mix_PlayChannel( -1, horn, 0);	// Audio feedback
-						}
 
 					}
 				}

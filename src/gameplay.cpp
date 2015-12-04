@@ -71,6 +71,7 @@ void initEverything(void){
 	
 	test->generate(SCREEN_WIDTH*2);
 	test->setBackground(BG_FOREST);
+	test->setBGM("assets/music/embark.wav");
 	
 	test->addHole(100,150);
 	test->addLayer(400);
@@ -115,7 +116,7 @@ void initEverything(void){
 	 *	Spawn some entities.
 	*/
 
-	playerSpawnHill->addStructure(STRUCTURET,(rand()%120*HLINE),10,test,iw);
+	playerSpawnHill->addStructure(STRUCTURET,(rand()%120*HLINE),100,test,iw);
 	playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);
 	
 	playerSpawnHill->addObject(SWORD_WOOD, false, "", 480,200);

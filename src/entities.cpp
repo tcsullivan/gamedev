@@ -376,14 +376,14 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){
 	
 	unsigned int tempN = (getRand() % 5 + 2);
 	
-	while(--tempN){
+	for(unsigned int i = 0;i < tempN;i++){
 		
 		/*
 		 *	This is where the entities actually spawn. A new entity is created
 		 *	with type NPC.
 		*/
 		
-		currentWorld->addNPC(loc.x + (tempN - 5),100);
+		currentWorld->addNPC(loc.x + i * HLINE ,100);
 		
 	}
 
