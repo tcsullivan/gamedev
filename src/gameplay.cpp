@@ -29,15 +29,21 @@ int giveTestQuest(NPC *speaker){
 	return 0;
 }
 
+//static World *a;
+
 void CUTSCENEEE(Mob *callee){
 	player->vel.x = 0;
 	
-	ui::dialogBox(player->name,":K.","No way I\'m gettin\' up this hill.");
+	ui::dialogBox(player->name,":K then","No way I\'m gettin\' up this hill.");
 	ui::waitForDialog();
 
-	player->right = true;
+	//a = new World();//Arena(currentWorld,player);
+	//a->generate(300);
+	currentWorld = currentWorld->toRight;
+
+	/*player->right = true;
 	player->left  = false;
-	player->loc.x += HLINE * 5;
+	player->loc.x += HLINE * 5;*/
 	
 	callee->alive = false;
 }

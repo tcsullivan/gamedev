@@ -1,3 +1,10 @@
+/** @file world.h
+ * @brief The world system.
+ * 
+ * This file contains the classes and variables necessary to create an in-game
+ * world.
+ */
+
 #ifndef WORLD_H
 #define WORLD_H
 
@@ -11,55 +18,68 @@
 
 #define DAY_CYCLE 3000
 
+/**
+ * The background type enum.
+ * This enum contains all different possibilities for world backgrounds; used
+ * in World::setBackground() to select the appropriate images.
+ */
+
 typedef enum {
-	BG_FOREST,
-	BG_WOODHOUSE
+	BG_FOREST,		/**< A forest theme. */
+	BG_WOODHOUSE	/**< An indoor wooden house theme. */
 } WORLD_BG_TYPE;
 
+/**
+ * The weather type enum.
+ * This enum contains every type of weather currently implemented in the game.
+ * Weather is set by the world somewhere.
+ */
+
 typedef enum {
-	SUNNY = 0,
-	DARK,
-	RAIN
+	SUNNY = 0,	/**< Sunny/daytime */
+	DARK,		/**< Nighttime */
+	RAIN		/**< Rain (not implemented :) )*/
 } WEATHER;
 
+/**
+ * The line structure.
+ * This structure is used to store the world's ground, stored in vertical
+ * lines. Dirt color and grass properties are also kept track of here.
+ */
+
 struct line_t {
-	bool gs;
-	float y,gh[2];
-	unsigned char color;
+	float y;				/**< Height of this vertical line */
+	bool gs;				/**< Show grass */
+	float gh[2];			/**< Height of glass (2 blades per line) */
+	unsigned char color;	/**< Lightness of dirt (brown) */
 } __attribute__ ((packed));
 
-/*
- *	World - creates and handles an area of land
-*/
+/**
+ * The world class. This class does everything a world should do.
+ */
 
 class World {
 protected:
 	
-	/*
-	 *	struct line_t
-	 * 
-	 *	The world is stored in an array of lines. Example:
-	 * 
-	 *		 	||       
-	 *			|||  || |
-	 *	 		|||||||||
-	 * line no. 123456789...
-	 * 
+	/**
+	 * The line array.
+	 * This array is created through 'new' in World::generate(), with an amount
+	 * of elements provided by the function.
 	 */
 	 
 	struct line_t *line;
 	
-	/*
-	 *	Contains the starting x-coordinate to draw the world at. This should be equal to
-	 *	- getWidth() (see world.cpp) / 2
-	*/
+	/**
+	 * Starting x coordinate.
+	 * This x value is the point at which line[0] should reside, can be used to
+	 * calculate the width of the world.
+	 */
 	
 	int x_start;
 	
-	/*
-	 *	Runs world detection for a single entity. This function is used in World->detect()
-	 *	to detect the player and all entities in the world.
-	*/
+	/**
+	 * 
+	 */
 	
 	void singleDetect(Entity *e);
 	

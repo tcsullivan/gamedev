@@ -364,3 +364,10 @@
 	- improved world background drawing; added that to IndoorWorld's
 	- improved inventory functionality
 	- fixed issues with cutscenes
+
+12/3/2015:
+==========
+
+	- improved inventory draw
+	- fixed most segfaults, including those when exiting
+	- added -Wall,-Wextra, and -Werror to enforce better/safer coding

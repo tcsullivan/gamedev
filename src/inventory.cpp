@@ -148,7 +148,7 @@ void Inventory::draw(void){
 			curCoord[a].y += float((dfp[a]) * sin(angle*PI/180));
 			r.end = curCoord[a];
 
-			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)range)*0.4f);
+			glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)range)*0.4f);
  			glBegin(GL_QUADS);
 				glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
 				glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
@@ -161,16 +161,30 @@ void Inventory::draw(void){
 				glBindTexture(GL_TEXTURE_2D, itemtex[inv[a].id]);			
 				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)range)*0.8f);
 	 			glBegin(GL_QUADS);
-					glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
-					glTexCoord2i(1,1);glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
-					glTexCoord2i(1,0);glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2)+itemWide);
-					glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2)+itemWide);
-				glEnd();
+					if(item[inv[a].id].height > item[inv[a].id].width){
+						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y-(itemWide/2));
+						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y-(itemWide/2));
+						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y+(itemWide/2));
+						glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y+(itemWide/2));
+					}else{
+						glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),	r.end.y-(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
+						glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),	r.end.y-(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
+						glTexCoord2i(1,0);glVertex2i(r.end.x+(itemWide/2),	r.end.y+(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
+						glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),	r.end.y+(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
+					}				glEnd();
 				glDisable(GL_TEXTURE_2D);
 				ui::putText(r.end.x-(itemWide/2),r.end.y-(itemWide*.9),"%s",item[inv[a].id].name);
 				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",inv[a].count);
 			}
 			a++;
+			if(sel==a){
+	 			glBegin(GL_LINES);
+	 				glColor4f(1.0f, 0.0f, 0.0f, 0.0f);
+					glVertex2i(r.start.x,r.start.y);
+					glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
+					glVertex2i(r.end.x+20, r.end.y-20);
+				glEnd();
+			}
 		}
 	}else if(invHover){
 		static unsigned int highlight = 0;

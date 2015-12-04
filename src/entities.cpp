@@ -205,7 +205,7 @@ void Entity::draw(void){		//draws the entities
 	if(type == PLAYERT){
 		static int texState = 0;
 		static bool up = true;
-		if(loops % (int)((float)5 / (float)speed) == 0){
+		if(loops % (int)((float)2 / (float)speed) == 0){
 			if(up){
 				texState+=1;
 				if(texState==2)up=false;

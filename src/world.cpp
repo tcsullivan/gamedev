@@ -321,8 +321,8 @@ void World::draw(Player *p){
 	static float yoff=DRAW_Y_OFFSET;	// Initialize stuff
 	static int shade,bgshade;
 	static World *current;
-	unsigned int i,ie;
-	int is,v_offset,cx_start,width;
+	unsigned int i;
+	int is,ie,v_offset,cx_start,width;
 	struct line_t *cline;
 	
 	bgshade = worldShade << 1; // *2
@@ -467,7 +467,8 @@ LOOP2:
 	// ie -> i end
 	
 	ie=v_offset + (SCREEN_WIDTH / 2 / HLINE) + GEN_INC + HLINE; 
-	if(ie>current->lineCount)ie=current->lineCount;				// Maximum bound
+	if(ie>(int)current->lineCount)ie=current->lineCount;		// Maximum bound
+	else if(ie < GEN_INC)ie = GEN_INC;
 	
 	/*
 	 *	Make more direct variables for quicker referencing.
@@ -499,7 +500,7 @@ LOOP2:
 
 	bool hey=false;
 	glBegin(GL_QUADS);
-		for(i=is;i<ie-GEN_INC;i++){
+		for(i=is;i<(unsigned)ie-GEN_INC;i++){
 			cline[i].y+=(yoff-DRAW_Y_OFFSET);															// Add the y offset
 			if(!cline[i].y){
 				cline[i].y+=50;
@@ -526,7 +527,7 @@ LOOP2:
 	
 	float cgh[2];
 	glBegin(GL_QUADS);
-		for(i=is;i<ie-GEN_INC;i++){
+		for(i=is;i<(unsigned)ie-GEN_INC;i++){
 			
 			/*
 			 *	Load the current line's grass values
@@ -1043,15 +1044,15 @@ extern bool inBattle;
 
 Arena::Arena(World *leave,Player *p){
 	generate(300);
-	door.y = line[299].y;
-	door.x = 100;
+	//door.y = line[299].y;
+	//door.x = 100;
 	exit = leave;
 	
-	npc.push_back(new NPC());
+	/*npc.push_back(new NPC());
 	entity.push_back(npc.back());
 	entity.back()->spawn(door.x,door.y);
 	entity.back()->width = HLINE * 12;
-	entity.back()->height = HLINE * 16;
+	entity.back()->height = HLINE * 16;*/
 	
 	inBattle = true;
 	pxy = p->loc;
