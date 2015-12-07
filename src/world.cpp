@@ -666,11 +666,11 @@ void World::singleDetect(Entity *e){
 	*/
 	
 	if(!e->alive||e->health<=0){
-		
 		for(i=0;i<entity.size();i++){
 			if(entity[i]==e){
 				switch(e->type){
 				case STRUCTURET:
+					std::cout<<"Killed a building..."<<std::endl;
 					for(j=0;j<build.size();j++){
 						if(build[j]==e){
 							delete build[j];
@@ -680,6 +680,7 @@ void World::singleDetect(Entity *e){
 					}
 					break;
 				case NPCT:
+					std::cout<<"Killed an NPC..."<<std::endl;
 					for(j=0;j<npc.size();j++){
 						if(npc[j]==e){
 							delete npc[j];
@@ -689,6 +690,7 @@ void World::singleDetect(Entity *e){
 					}
 					break;
 				case MOBT:
+					std::cout<<"Killed a mob..."<<std::endl;
 					for(j=0;j<mob.size();j++){
 						if(mob[j]==e){
 							delete mob[j];
@@ -698,6 +700,7 @@ void World::singleDetect(Entity *e){
 					}
 					break;
 				case OBJECTT:
+					std::cout<<"Killed an object..."<<std::endl;
 					for(j=0;j<object.size();j++){
 						if(object[j]==e){
 							delete object[j];
@@ -711,7 +714,6 @@ void World::singleDetect(Entity *e){
 					exit(0);
 					break;
 				}
-				std::cout<<"Killed an entity..."<<std::endl;
 				entity.erase(entity.begin()+i);
 				return;
 			}

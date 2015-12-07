@@ -12,8 +12,7 @@ static const Item item[ITEM_COUNT]= {
 };
 
 static GLuint itemtex[ITEM_COUNT];
-
-void itemDraw(Player *p,ITEM_ID id);
+void itemDraw(Player *p,ITEM_ID id, ITEM_TYPE type);
 
 void initInventorySprites(void){
 	unsigned int i;
@@ -69,16 +68,14 @@ int Inventory::addItem(ITEM_ID id,unsigned char count){
 	//std::cout << id << "," << inv[os].id << std::endl;
 	
 	for(unsigned int i = 0; i < size; i++){
-		if(id == inv[i].id){
+		if(inv[i].id == id){
 			inv[i].count += count;
-			break;
-		}else{
-			inv[os].id = id;
-			inv[os].count = count;
-			os++;
-			break;
+			return 0;
 		}
 	}
+	inv[os].id = id;
+	inv[os].count += count;
+	os++;
 
 #ifdef DEBUG
 	DEBUG_printf("Gave player %u more %s(s)(ID: %d).\n",count,item[id].name,item[id].id);
@@ -148,7 +145,7 @@ void Inventory::draw(void){
 			curCoord[a].y += float((dfp[a]) * sin(angle*PI/180));
 			r.end = curCoord[a];
 
-			glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)range)*0.4f);
+			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)range)*0.5f);
  			glBegin(GL_QUADS);
 				glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
 				glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
@@ -258,12 +255,24 @@ void Inventory::draw(void){
 		}
 		if(inv[highlight].count > 0)ui::putStringCentered(player->loc.x+player->width/2, player->loc.y + range*.75,item[inv[highlight].id].name);
 	}
-	if(inv[sel].count)itemDraw(player,inv[sel].id);
+	if(inv[sel].count)itemDraw(player,inv[sel].id,item[inv[sel].id].type);
 	lop++;
 }
 
-void itemDraw(Player *p,ITEM_ID id){
+void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
+	static float angle = 0.0f;
+	glPushMatrix();
 	if(!id)return;
+	switch(type){
+	case SWORD:
+		angle = 15.0f;
+		break;
+	default:
+		angle = 0.0f;
+	}
+	//glTranslatef(player->loc.x*2,player->loc.y*2,0);
+	glTranslatef(0-player->loc.x*2,0,0);
+	glRotatef(angle, 0.0f, 1.0f, 0.0f);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,itemtex[id]);
 	glColor4ub(255,255,255,255);
@@ -274,11 +283,20 @@ void itemDraw(Player *p,ITEM_ID id){
 		glTexCoord2i(0,0);glVertex2f(p->loc.x,				 p->loc.y+item[id].height);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
+	glTranslatef(player->loc.x*2,0,0);
+	glPopMatrix();
 }
 
 int Inventory::useItem(void){
-	ITEM_ID id = item[inv[sel].id].id;
+	ITEM_ID id = 	 item[inv[sel].id].id;
+	ITEM_TYPE type = item[inv[sel].id].type;
 	if(!invHover){
+		switch(type){
+		case SWORD:
+
+			break;
+		default:break;
+		}
 		switch(id){
 		case FLASHLIGHT:
 			player->light ^= true;

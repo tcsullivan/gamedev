@@ -1,0 +1,145 @@
+\hypertarget{main_8cpp}{}\section{main.\+cpp File Reference}
+\label{main_8cpp}\index{main.\+cpp@{main.\+cpp}}
+
+
+The file that links everything together for the game to run. The main game loop contains all of the global variables the game uses, and it runs the main game loop, the render loop, and the logic loop that control all of the entities.  
+
+
+{\ttfamily \#include $<$cstdio$>$}\\*
+{\ttfamily \#include $<$chrono$>$}\\*
+{\ttfamily \#include $<$common.\+h$>$}\\*
+{\ttfamily \#include $<$world.\+h$>$}\\*
+{\ttfamily \#include $<$ui.\+h$>$}\\*
+{\ttfamily \#include $<$entities.\+h$>$}\\*
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{main_8cpp_a4a0c770328891d8916c1142a26481e4a}{}\#define {\bfseries T\+I\+C\+K\+S\+\_\+\+P\+E\+R\+\_\+\+S\+E\+C}~20\label{main_8cpp_a4a0c770328891d8916c1142a26481e4a}
+
+\item 
+\hypertarget{main_8cpp_a3ac3c588b407d69920af6496f3aaeaf9}{}\#define {\bfseries M\+S\+E\+C\+\_\+\+P\+E\+R\+\_\+\+T\+I\+C\+K}~(1000/T\+I\+C\+K\+S\+\_\+\+P\+E\+R\+\_\+\+S\+E\+C)\label{main_8cpp_a3ac3c588b407d69920af6496f3aaeaf9}
+
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{main_8cpp_af1feec528aef91d55552ce7e325e0f74}{}void {\bfseries init\+Everything} (void)\label{main_8cpp_af1feec528aef91d55552ce7e325e0f74}
+
+\item 
+\hypertarget{main_8cpp_a68636a939ce1a8c8736e1671d6f2c921}{}void {\bfseries logic} (void)\label{main_8cpp_a68636a939ce1a8c8736e1671d6f2c921}
+
+\item 
+\hypertarget{main_8cpp_a6765cdcebe5c8445969d5f76345df457}{}void {\bfseries render} (void)\label{main_8cpp_a6765cdcebe5c8445969d5f76345df457}
+
+\item 
+\hypertarget{main_8cpp_a52387bf053883d1a8feeee2dd2cdd4f3}{}void {\bfseries main\+Loop} (void)\label{main_8cpp_a52387bf053883d1a8feeee2dd2cdd4f3}
+
+\item 
+\hypertarget{main_8cpp_a3f4650350f7c52cdb50175e55058c604}{}std\+::string {\bfseries read\+File} (const char $\ast$file\+Path)\label{main_8cpp_a3f4650350f7c52cdb50175e55058c604}
+
+\item 
+unsigned int \hyperlink{main_8cpp_a941a22cb7e0f6429fe40f91e83ead3d9}{millis} (void)
+\item 
+int \hyperlink{main_8cpp_ae66f6b31b5ad750f1fe042a706a4e3d4}{main} ()
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{main_8cpp_aaa8e409e04dcf575ef63fd5fb3db06f9}{}S\+D\+L\+\_\+\+Window $\ast$ {\bfseries window} = N\+U\+L\+L\label{main_8cpp_aaa8e409e04dcf575ef63fd5fb3db06f9}
+
+\item 
+\hypertarget{main_8cpp_a7b5f505ee07aa2fc132a1f04ce33162c}{}S\+D\+L\+\_\+\+G\+L\+Context {\bfseries main\+G\+L\+Context} = N\+U\+L\+L\label{main_8cpp_a7b5f505ee07aa2fc132a1f04ce33162c}
+
+\item 
+\hypertarget{main_8cpp_a9b008924a50085448a0761c7e841acfc}{}G\+Luint {\bfseries bg\+Day}\label{main_8cpp_a9b008924a50085448a0761c7e841acfc}
+
+\item 
+\hypertarget{main_8cpp_a3837f6d6b1701e98578f3ba0ee9d90e7}{}G\+Luint {\bfseries bg\+Night}\label{main_8cpp_a3837f6d6b1701e98578f3ba0ee9d90e7}
+
+\item 
+\hypertarget{main_8cpp_afce018081a460f35ddd04033a081ac83}{}G\+Luint {\bfseries bg\+Mtn}\label{main_8cpp_afce018081a460f35ddd04033a081ac83}
+
+\item 
+\hypertarget{main_8cpp_a34e3cb52ded6aaf845074c0303a84c33}{}G\+Luint {\bfseries bg\+Trees\+Front}\label{main_8cpp_a34e3cb52ded6aaf845074c0303a84c33}
+
+\item 
+\hypertarget{main_8cpp_aa36d4c9de8b002fe641f043ecb819656}{}G\+Luint {\bfseries bg\+Trees\+Mid}\label{main_8cpp_aa36d4c9de8b002fe641f043ecb819656}
+
+\item 
+\hypertarget{main_8cpp_a48a7f2abfb80ba87a38600885fc24904}{}G\+Luint {\bfseries bg\+Trees\+Far}\label{main_8cpp_a48a7f2abfb80ba87a38600885fc24904}
+
+\item 
+\hypertarget{main_8cpp_a2bf73692c7682fcae9cdc62fb1778e9f}{}G\+Luint {\bfseries inv\+U\+I}\label{main_8cpp_a2bf73692c7682fcae9cdc62fb1778e9f}
+
+\item 
+\hypertarget{main_8cpp_aaa52a27abaaf72231a84c99f2bfa4283}{}bool {\bfseries game\+Running}\label{main_8cpp_aaa52a27abaaf72231a84c99f2bfa4283}
+
+\item 
+\hypertarget{main_8cpp_adc1a7b3846cdf41f82a17950d107bfb2}{}float {\bfseries hand\+Angle}\label{main_8cpp_adc1a7b3846cdf41f82a17950d107bfb2}
+
+\item 
+\hypertarget{main_8cpp_ab0d5cf0befa2a1b6fd9eed35c5f6eb54}{}\hyperlink{classWorld}{World} $\ast$ {\bfseries current\+World} =N\+U\+L\+L\label{main_8cpp_ab0d5cf0befa2a1b6fd9eed35c5f6eb54}
+
+\item 
+\hypertarget{main_8cpp_a96781128d3743da3d17e0fdd91afba7b}{}\hyperlink{classPlayer}{Player} $\ast$ {\bfseries player}\label{main_8cpp_a96781128d3743da3d17e0fdd91afba7b}
+
+\item 
+\hypertarget{main_8cpp_a8bace7920d06b121b855a75639a7f625}{}bool {\bfseries world\+Inside}\label{main_8cpp_a8bace7920d06b121b855a75639a7f625}
+
+\item 
+\hypertarget{main_8cpp_a50403f70d039eb253c1be121d72a9c5a}{}unsigned int {\bfseries tick\+Count} = 0\label{main_8cpp_a50403f70d039eb253c1be121d72a9c5a}
+
+\item 
+\hypertarget{main_8cpp_af54c40bfc9df47f871a2f1988b5698a6}{}unsigned int {\bfseries delta\+Time} = 0\label{main_8cpp_af54c40bfc9df47f871a2f1988b5698a6}
+
+\item 
+\hypertarget{main_8cpp_a836dcec716beba7d9709b49832064b6a}{}G\+Luint {\bfseries frag\+Shader}\label{main_8cpp_a836dcec716beba7d9709b49832064b6a}
+
+\item 
+\hypertarget{main_8cpp_a1e91db27f0eca4f48996febd1ec5fd23}{}G\+Luint {\bfseries shader\+Program}\label{main_8cpp_a1e91db27f0eca4f48996febd1ec5fd23}
+
+\item 
+\hypertarget{main_8cpp_aa3a0cfcda8346bb1599fb41cda621f16}{}F\+I\+L\+E $\ast$ {\bfseries names}\label{main_8cpp_aa3a0cfcda8346bb1599fb41cda621f16}
+
+\item 
+\hypertarget{main_8cpp_aecf0a8f9c4e7b09fcbcfd911ae015533}{}unsigned int {\bfseries loops} = 0\label{main_8cpp_aecf0a8f9c4e7b09fcbcfd911ae015533}
+
+\item 
+\hypertarget{main_8cpp_a1f883088bca4920bd59729925f82fdcb}{}\hyperlink{structvec2}{vec2} {\bfseries offset}\label{main_8cpp_a1f883088bca4920bd59729925f82fdcb}
+
+\item 
+\hypertarget{main_8cpp_a01f16482fbffb67b04283fda27a35b0f}{}\hyperlink{world_8h_a7e5783b78992864281462a5380a28924}{W\+E\+A\+T\+H\+E\+R} {\bfseries weather}\label{main_8cpp_a01f16482fbffb67b04283fda27a35b0f}
+
+\item 
+\hypertarget{main_8cpp_a4b1577e5b7bc2e8dc302c02dfe2e6526}{}bool {\bfseries fade\+Enable}\label{main_8cpp_a4b1577e5b7bc2e8dc302c02dfe2e6526}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The file that links everything together for the game to run. The main game loop contains all of the global variables the game uses, and it runs the main game loop, the render loop, and the logic loop that control all of the entities. 
+
+
+
+\subsection{Function Documentation}
+\hypertarget{main_8cpp_ae66f6b31b5ad750f1fe042a706a4e3d4}{}\index{main.\+cpp@{main.\+cpp}!main@{main}}
+\index{main@{main}!main.\+cpp@{main.\+cpp}}
+\subsubsection[{main()}]{\setlength{\rightskip}{0pt plus 5cm}int main (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{main_8cpp_ae66f6b31b5ad750f1fe042a706a4e3d4}
+(Attempt to) Initialize S\+D\+L libraries so that we can use S\+D\+L facilities and eventually make open\+G\+L calls. Exit if there was an error.
+
+` (Attempt to) Initialize S\+D\+L\+\_\+image libraries with I\+M\+G\+\_\+\+I\+N\+I\+T\+\_\+\+P\+N\+G so that we can load P\+N\+G textures for the entities and stuff.
+
+(Attempt to) Initialize S\+D\+L\+\_\+mixer libraries for loading and playing music/sound files.\hypertarget{main_8cpp_a941a22cb7e0f6429fe40f91e83ead3d9}{}\index{main.\+cpp@{main.\+cpp}!millis@{millis}}
+\index{millis@{millis}!main.\+cpp@{main.\+cpp}}
+\subsubsection[{millis(void)}]{\setlength{\rightskip}{0pt plus 5cm}unsigned int millis (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}\label{main_8cpp_a941a22cb7e0f6429fe40f91e83ead3d9}
+millis
+
+We\textquotesingle{}ve encountered many problems when attempting to create delays for triggering the logic function. As a result, we decided on using the timing libraries given by $<$chrono$>$ in the standard C++ library. This function simply returns the amount of milliseconds that have passed sine the epoch. 

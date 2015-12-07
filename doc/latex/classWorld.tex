@@ -1,0 +1,166 @@
+\hypertarget{classWorld}{}\section{World Class Reference}
+\label{classWorld}\index{World@{World}}
+
+
+{\ttfamily \#include $<$world.\+h$>$}
+
+Inheritance diagram for World\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classWorld}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classWorld_aa02f54d5e38bf0e4c67b210ba4e27761}{}void {\bfseries add\+Structure} (\+\_\+\+T\+Y\+P\+E t, float x, float \hyperlink{world_8h_aa4f0d3eebc3c443f9be81bf48561a217}{y}, \hyperlink{classWorld}{World} $\ast$outside, \hyperlink{classWorld}{World} $\ast$inside)\label{classWorld_aa02f54d5e38bf0e4c67b210ba4e27761}
+
+\item 
+\hypertarget{classWorld_a631df20b433c01a9f9a215fd6dba0663}{}void {\bfseries add\+Mob} (int t, float x, float \hyperlink{world_8h_aa4f0d3eebc3c443f9be81bf48561a217}{y})\label{classWorld_a631df20b433c01a9f9a215fd6dba0663}
+
+\item 
+\hypertarget{classWorld_a52f1073c5ff06ff1a9290fb46037ba17}{}void {\bfseries add\+Mob} (int t, float x, float \hyperlink{world_8h_aa4f0d3eebc3c443f9be81bf48561a217}{y}, void($\ast$hey)(\hyperlink{classMob}{Mob} $\ast$))\label{classWorld_a52f1073c5ff06ff1a9290fb46037ba17}
+
+\item 
+\hypertarget{classWorld_a47b64d285af2fa0ab3e3b5e25b838be1}{}void {\bfseries add\+N\+P\+C} (float x, float \hyperlink{world_8h_aa4f0d3eebc3c443f9be81bf48561a217}{y})\label{classWorld_a47b64d285af2fa0ab3e3b5e25b838be1}
+
+\item 
+\hypertarget{classWorld_a38a1489059711bc5173b4e45c9424ac2}{}void {\bfseries add\+Object} (I\+T\+E\+M\+\_\+\+I\+D, bool, const char $\ast$, float, float)\label{classWorld_a38a1489059711bc5173b4e45c9424ac2}
+
+\item 
+\hypertarget{classWorld_a8920a4df8c88a4e3c2718253e0ce0a9d}{}void {\bfseries update} (\hyperlink{classPlayer}{Player} $\ast$p, unsigned int delta)\label{classWorld_a8920a4df8c88a4e3c2718253e0ce0a9d}
+
+\item 
+\hypertarget{classWorld_a21279facd50bb40e28868fe20133392c}{}virtual void {\bfseries generate} (unsigned int width)\label{classWorld_a21279facd50bb40e28868fe20133392c}
+
+\item 
+\hypertarget{classWorld_a52f34574219e97541783d8949ccfad63}{}void {\bfseries generate\+Func} (unsigned int width, float($\ast$func)(float))\label{classWorld_a52f34574219e97541783d8949ccfad63}
+
+\item 
+\hypertarget{classWorld_a7700979d3d1674dc3d746dff87e522ed}{}void {\bfseries set\+Background} (\hyperlink{world_8h_a0678a0e576121a23798fdbd5964143c5}{W\+O\+R\+L\+D\+\_\+\+B\+G\+\_\+\+T\+Y\+P\+E} bgt)\label{classWorld_a7700979d3d1674dc3d746dff87e522ed}
+
+\item 
+\hypertarget{classWorld_a2a90eea0f52e3ca5df95b8526450bb64}{}void {\bfseries set\+B\+G\+M} (const char $\ast$path)\label{classWorld_a2a90eea0f52e3ca5df95b8526450bb64}
+
+\item 
+\hypertarget{classWorld_a837cda808f18afd4f4296c4ebb08507f}{}void {\bfseries bgm\+Play} (void)\label{classWorld_a837cda808f18afd4f4296c4ebb08507f}
+
+\item 
+\hypertarget{classWorld_ab0b3691cd6afd82c7f5fc8a625a8746e}{}void {\bfseries bgm\+Stop} (void)\label{classWorld_ab0b3691cd6afd82c7f5fc8a625a8746e}
+
+\item 
+\hypertarget{classWorld_aa66f71e6886ac0dade68556163017041}{}void {\bfseries add\+Layer} (unsigned int width)\label{classWorld_aa66f71e6886ac0dade68556163017041}
+
+\item 
+\hypertarget{classWorld_af52317a2706b62f472457a926c231f46}{}virtual void {\bfseries draw} (\hyperlink{classPlayer}{Player} $\ast$p)\label{classWorld_af52317a2706b62f472457a926c231f46}
+
+\item 
+\hypertarget{classWorld_a4749d1dbffaed4e4487cc5f4086e481e}{}void {\bfseries detect} (\hyperlink{classPlayer}{Player} $\ast$p)\label{classWorld_a4749d1dbffaed4e4487cc5f4086e481e}
+
+\item 
+\hypertarget{classWorld_accb9975a135094ecebbe88739b72ab1b}{}\hyperlink{classWorld}{World} $\ast$ {\bfseries go\+World\+Left} (\hyperlink{classPlayer}{Player} $\ast$p)\label{classWorld_accb9975a135094ecebbe88739b72ab1b}
+
+\item 
+\hypertarget{classWorld_a184a431e5695fbdba411ba2baa5aee0b}{}\hyperlink{classWorld}{World} $\ast$ {\bfseries go\+World\+Right} (\hyperlink{classPlayer}{Player} $\ast$p)\label{classWorld_a184a431e5695fbdba411ba2baa5aee0b}
+
+\item 
+\hypertarget{classWorld_a46221c8af2234749e3416a45d560ec1c}{}\hyperlink{classWorld}{World} $\ast$ {\bfseries go\+World\+Back} (\hyperlink{classPlayer}{Player} $\ast$p)\label{classWorld_a46221c8af2234749e3416a45d560ec1c}
+
+\item 
+\hypertarget{classWorld_a6c94d42ed4f963acaf902b9e0f0e6969}{}\hyperlink{classWorld}{World} $\ast$ {\bfseries go\+World\+Front} (\hyperlink{classPlayer}{Player} $\ast$p)\label{classWorld_a6c94d42ed4f963acaf902b9e0f0e6969}
+
+\item 
+\hypertarget{classWorld_ae8f0c71e69ef6f760cef8fc5b1b4f272}{}\hyperlink{classWorld}{World} $\ast$ {\bfseries go\+Inside\+Structure} (\hyperlink{classPlayer}{Player} $\ast$p)\label{classWorld_ae8f0c71e69ef6f760cef8fc5b1b4f272}
+
+\item 
+\hypertarget{classWorld_ab437e9250306323c6e931bb8658485cf}{}void {\bfseries add\+Hole} (unsigned int start, unsigned int end)\label{classWorld_ab437e9250306323c6e931bb8658485cf}
+
+\item 
+\hypertarget{classWorld_ab6979295419240f841da48903c7c554d}{}int {\bfseries get\+The\+Width} (void)\label{classWorld_ab6979295419240f841da48903c7c554d}
+
+\item 
+\hypertarget{classWorld_abdd6f140f62255b402d649616304fe09}{}void {\bfseries save} (F\+I\+L\+E $\ast$)\label{classWorld_abdd6f140f62255b402d649616304fe09}
+
+\item 
+\hypertarget{classWorld_a394c5b449ab36f75a0c6748ec2c34955}{}void {\bfseries load} (F\+I\+L\+E $\ast$)\label{classWorld_a394c5b449ab36f75a0c6748ec2c34955}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classWorld_aaa256245e0bc49ec2fa55f5d48e1959f}{}\hyperlink{classWorld}{World} $\ast$ {\bfseries to\+Left}\label{classWorld_aaa256245e0bc49ec2fa55f5d48e1959f}
+
+\item 
+\hypertarget{classWorld_aa40d02c50a3eedb2f329077f3d6d44e6}{}\hyperlink{classWorld}{World} $\ast$ {\bfseries to\+Right}\label{classWorld_aa40d02c50a3eedb2f329077f3d6d44e6}
+
+\item 
+\hypertarget{classWorld_af9aed08dfdf0d280f3e13a21a0090f2c}{}\hyperlink{classWorld}{World} $\ast$ {\bfseries behind}\label{classWorld_af9aed08dfdf0d280f3e13a21a0090f2c}
+
+\item 
+\hypertarget{classWorld_a1c1ad92a3d0296c5796a8544537ece13}{}\hyperlink{classWorld}{World} $\ast$ {\bfseries infront}\label{classWorld_a1c1ad92a3d0296c5796a8544537ece13}
+
+\item 
+\hypertarget{classWorld_a844d733d29d8367c3896bff7a1fad82d}{}std\+::vector$<$ \hyperlink{classNPC}{N\+P\+C} $\ast$ $>$ {\bfseries npc}\label{classWorld_a844d733d29d8367c3896bff7a1fad82d}
+
+\item 
+\hypertarget{classWorld_ab5120be97f20e7ee24e056127ff3164c}{}std\+::vector$<$ \hyperlink{classStructures}{Structures} $\ast$ $>$ {\bfseries build}\label{classWorld_ab5120be97f20e7ee24e056127ff3164c}
+
+\item 
+\hypertarget{classWorld_ab45f9d6909b887f01c76bfe6120ccdd9}{}std\+::vector$<$ \hyperlink{classMob}{Mob} $\ast$ $>$ {\bfseries mob}\label{classWorld_ab45f9d6909b887f01c76bfe6120ccdd9}
+
+\item 
+\hypertarget{classWorld_afb74ee60415875384d8af0e065d9feb3}{}std\+::vector$<$ \hyperlink{classEntity}{Entity} $\ast$ $>$ {\bfseries entity}\label{classWorld_afb74ee60415875384d8af0e065d9feb3}
+
+\item 
+\hypertarget{classWorld_a3ec7a136f45a7283a0a15224819fe330}{}std\+::vector$<$ \hyperlink{classObject}{Object} $\ast$ $>$ {\bfseries object}\label{classWorld_a3ec7a136f45a7283a0a15224819fe330}
+
+\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classWorld_a0af69654347b29787877b77020fa0a5a}{}void {\bfseries single\+Detect} (\hyperlink{classEntity}{Entity} $\ast$e)\label{classWorld_a0af69654347b29787877b77020fa0a5a}
+
+\item 
+\hypertarget{classWorld_a1c1e6ea7fd0d84660d2791a256aba382}{}void {\bfseries delete\+Entities} (void)\label{classWorld_a1c1e6ea7fd0d84660d2791a256aba382}
+
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structline__t}{line\+\_\+t} $\ast$ \hyperlink{classWorld_afd9945f6ede5eabc3ff9243ce2b31247}{line}
+\item 
+int \hyperlink{classWorld_a645767ccf316a9b4469db773ac111ae4}{x\+\_\+start}
+\item 
+\hypertarget{classWorld_a432e07fd7f7504aaa6ff29408afe0678}{}unsigned int {\bfseries line\+Count}\label{classWorld_a432e07fd7f7504aaa6ff29408afe0678}
+
+\item 
+\hypertarget{classWorld_a4f8b12f8eda220060ec01c0e9a6b9325}{}\hyperlink{structvec2}{vec2} $\ast$ {\bfseries star}\label{classWorld_a4f8b12f8eda220060ec01c0e9a6b9325}
+
+\item 
+\hypertarget{classWorld_accebca6a747c3db27916770507aee04c}{}\hyperlink{classTexturec}{Texturec} $\ast$ {\bfseries bg\+Tex}\label{classWorld_accebca6a747c3db27916770507aee04c}
+
+\item 
+\hypertarget{classWorld_a7ca21c1e62a53cf7024801623aa46325}{}Mix\+\_\+\+Music $\ast$ {\bfseries bgm\+Obj}\label{classWorld_a7ca21c1e62a53cf7024801623aa46325}
+
+\item 
+\hypertarget{classWorld_ad8269981b3846aa44b721cdeda30911c}{}char $\ast$ {\bfseries bgm}\label{classWorld_ad8269981b3846aa44b721cdeda30911c}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The world class. This class does everything a world should do. 
+
+\subsection{Member Data Documentation}
+\hypertarget{classWorld_afd9945f6ede5eabc3ff9243ce2b31247}{}\index{World@{World}!line@{line}}
+\index{line@{line}!World@{World}}
+\subsubsection[{line}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf line\+\_\+t}$\ast$ World\+::line\hspace{0.3cm}{\ttfamily [protected]}}\label{classWorld_afd9945f6ede5eabc3ff9243ce2b31247}
+The line array. This array is created through \textquotesingle{}new\textquotesingle{} in World\+::generate(), with an amount of elements provided by the function. \hypertarget{classWorld_a645767ccf316a9b4469db773ac111ae4}{}\index{World@{World}!x\+\_\+start@{x\+\_\+start}}
+\index{x\+\_\+start@{x\+\_\+start}!World@{World}}
+\subsubsection[{x\+\_\+start}]{\setlength{\rightskip}{0pt plus 5cm}int World\+::x\+\_\+start\hspace{0.3cm}{\ttfamily [protected]}}\label{classWorld_a645767ccf316a9b4469db773ac111ae4}
+Starting x coordinate. This x value is the point at which line\mbox{[}0\mbox{]} should reside, can be used to calculate the width of the world. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{world_8h}{world.\+h}\item 
+src/world.\+cpp\end{DoxyCompactItemize}

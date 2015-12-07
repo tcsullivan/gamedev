@@ -1,0 +1,117 @@
+\hypertarget{world_8h}{}\section{include/world.h File Reference}
+\label{world_8h}\index{include/world.\+h@{include/world.\+h}}
+
+
+The world system.  
+
+
+{\ttfamily \#include $<$common.\+h$>$}\\*
+{\ttfamily \#include $<$entities.\+h$>$}\\*
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structline__t}{line\+\_\+t}
+\item 
+class \hyperlink{classWorld}{World}
+\item 
+class \hyperlink{classIndoorWorld}{Indoor\+World}
+\item 
+class \hyperlink{classArena}{Arena}
+\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{world_8h_abe6612844622bc702d7bf4d4a02772d1}{}\#define {\bfseries G\+E\+N\+\_\+\+I\+N\+C}~10\label{world_8h_abe6612844622bc702d7bf4d4a02772d1}
+
+\item 
+\hypertarget{world_8h_afe31ec7e8b74045491fa2488e73bc13e}{}\#define {\bfseries D\+A\+Y\+\_\+\+C\+Y\+C\+L\+E}~3000\label{world_8h_afe31ec7e8b74045491fa2488e73bc13e}
+
+\end{DoxyCompactItemize}
+\subsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{world_8h_a0678a0e576121a23798fdbd5964143c5}{W\+O\+R\+L\+D\+\_\+\+B\+G\+\_\+\+T\+Y\+P\+E} \{ \hyperlink{world_8h_a0678a0e576121a23798fdbd5964143c5a53c9e606f96cd2e762bac6c048d2dddb}{B\+G\+\_\+\+F\+O\+R\+E\+S\+T}, 
+\hyperlink{world_8h_a0678a0e576121a23798fdbd5964143c5ae678da5bb217c4bb81b5ac0de53ad9cb}{B\+G\+\_\+\+W\+O\+O\+D\+H\+O\+U\+S\+E}
+ \}
+\item 
+enum \hyperlink{world_8h_a7e5783b78992864281462a5380a28924}{W\+E\+A\+T\+H\+E\+R} \{ \hyperlink{world_8h_a7e5783b78992864281462a5380a28924a970420c889e8f3dfb76298adc94c98f0}{S\+U\+N\+N\+Y} = 0, 
+\hyperlink{world_8h_a7e5783b78992864281462a5380a28924a5564de0baf1f25257db17367eba68edd}{D\+A\+R\+K}, 
+\hyperlink{world_8h_a7e5783b78992864281462a5380a28924a5b1b71f2b77a08a17c728a6f854a7bfe}{R\+A\+I\+N}
+ \}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{world_8h_a990bc0622ea3942233d5274c40fb475d}{}struct \hyperlink{structline__t}{line\+\_\+t} {\bfseries \+\_\+\+\_\+attribute\+\_\+\+\_\+} ((packed))\label{world_8h_a990bc0622ea3942233d5274c40fb475d}
+
+\item 
+\hypertarget{world_8h_ab59186fdb5f2b79a00393a6acd285411}{}float {\bfseries world\+Get\+Y\+Base} (\hyperlink{classWorld}{World} $\ast$w)\label{world_8h_ab59186fdb5f2b79a00393a6acd285411}
+
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+float \hyperlink{world_8h_aa4f0d3eebc3c443f9be81bf48561a217}{y}
+\item 
+bool \hyperlink{world_8h_aabefe07939b18f14fedbb9c9a14d02d5}{gs}
+\item 
+float \hyperlink{world_8h_aa523d841be6ccb88f26cd56294adcd01}{gh} \mbox{[}2\mbox{]}
+\item 
+unsigned char \hyperlink{world_8h_af61b66b2d9004f4975ae5f51c2177f3d}{color}
+\item 
+\hypertarget{world_8h_a786ac58c78359cc826132c8a25d120fd}{}class \hyperlink{classWorld}{World} {\bfseries \+\_\+\+\_\+attribute\+\_\+\+\_\+}\label{world_8h_a786ac58c78359cc826132c8a25d120fd}
+
+\item 
+\hypertarget{world_8h_ac88924e2aeaca61e7a5caa46a9cd0982}{}int {\bfseries world\+Shade}\label{world_8h_ac88924e2aeaca61e7a5caa46a9cd0982}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The world system. 
+
+This file contains the classes and variables necessary to create an in-\/game world. 
+
+\subsection{Enumeration Type Documentation}
+\hypertarget{world_8h_a7e5783b78992864281462a5380a28924}{}\index{world.\+h@{world.\+h}!W\+E\+A\+T\+H\+E\+R@{W\+E\+A\+T\+H\+E\+R}}
+\index{W\+E\+A\+T\+H\+E\+R@{W\+E\+A\+T\+H\+E\+R}!world.\+h@{world.\+h}}
+\subsubsection[{W\+E\+A\+T\+H\+E\+R}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf W\+E\+A\+T\+H\+E\+R}}\label{world_8h_a7e5783b78992864281462a5380a28924}
+The weather type enum. This enum contains every type of weather currently implemented in the game. Weather is set by the world somewhere. \begin{Desc}
+\item[Enumerator]\par
+\begin{description}
+\index{S\+U\+N\+N\+Y@{S\+U\+N\+N\+Y}!world.\+h@{world.\+h}}\index{world.\+h@{world.\+h}!S\+U\+N\+N\+Y@{S\+U\+N\+N\+Y}}\item[{\em 
+\hypertarget{world_8h_a7e5783b78992864281462a5380a28924a970420c889e8f3dfb76298adc94c98f0}{}S\+U\+N\+N\+Y\label{world_8h_a7e5783b78992864281462a5380a28924a970420c889e8f3dfb76298adc94c98f0}
+}]Sunny/daytime \index{D\+A\+R\+K@{D\+A\+R\+K}!world.\+h@{world.\+h}}\index{world.\+h@{world.\+h}!D\+A\+R\+K@{D\+A\+R\+K}}\item[{\em 
+\hypertarget{world_8h_a7e5783b78992864281462a5380a28924a5564de0baf1f25257db17367eba68edd}{}D\+A\+R\+K\label{world_8h_a7e5783b78992864281462a5380a28924a5564de0baf1f25257db17367eba68edd}
+}]Nighttime \index{R\+A\+I\+N@{R\+A\+I\+N}!world.\+h@{world.\+h}}\index{world.\+h@{world.\+h}!R\+A\+I\+N@{R\+A\+I\+N}}\item[{\em 
+\hypertarget{world_8h_a7e5783b78992864281462a5380a28924a5b1b71f2b77a08a17c728a6f854a7bfe}{}R\+A\+I\+N\label{world_8h_a7e5783b78992864281462a5380a28924a5b1b71f2b77a08a17c728a6f854a7bfe}
+}]Rain (not implemented \+:) ) \end{description}
+\end{Desc}
+\hypertarget{world_8h_a0678a0e576121a23798fdbd5964143c5}{}\index{world.\+h@{world.\+h}!W\+O\+R\+L\+D\+\_\+\+B\+G\+\_\+\+T\+Y\+P\+E@{W\+O\+R\+L\+D\+\_\+\+B\+G\+\_\+\+T\+Y\+P\+E}}
+\index{W\+O\+R\+L\+D\+\_\+\+B\+G\+\_\+\+T\+Y\+P\+E@{W\+O\+R\+L\+D\+\_\+\+B\+G\+\_\+\+T\+Y\+P\+E}!world.\+h@{world.\+h}}
+\subsubsection[{W\+O\+R\+L\+D\+\_\+\+B\+G\+\_\+\+T\+Y\+P\+E}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf W\+O\+R\+L\+D\+\_\+\+B\+G\+\_\+\+T\+Y\+P\+E}}\label{world_8h_a0678a0e576121a23798fdbd5964143c5}
+The background type enum. This enum contains all different possibilities for world backgrounds; used in World\+::set\+Background() to select the appropriate images. \begin{Desc}
+\item[Enumerator]\par
+\begin{description}
+\index{B\+G\+\_\+\+F\+O\+R\+E\+S\+T@{B\+G\+\_\+\+F\+O\+R\+E\+S\+T}!world.\+h@{world.\+h}}\index{world.\+h@{world.\+h}!B\+G\+\_\+\+F\+O\+R\+E\+S\+T@{B\+G\+\_\+\+F\+O\+R\+E\+S\+T}}\item[{\em 
+\hypertarget{world_8h_a0678a0e576121a23798fdbd5964143c5a53c9e606f96cd2e762bac6c048d2dddb}{}B\+G\+\_\+\+F\+O\+R\+E\+S\+T\label{world_8h_a0678a0e576121a23798fdbd5964143c5a53c9e606f96cd2e762bac6c048d2dddb}
+}]A forest theme. \index{B\+G\+\_\+\+W\+O\+O\+D\+H\+O\+U\+S\+E@{B\+G\+\_\+\+W\+O\+O\+D\+H\+O\+U\+S\+E}!world.\+h@{world.\+h}}\index{world.\+h@{world.\+h}!B\+G\+\_\+\+W\+O\+O\+D\+H\+O\+U\+S\+E@{B\+G\+\_\+\+W\+O\+O\+D\+H\+O\+U\+S\+E}}\item[{\em 
+\hypertarget{world_8h_a0678a0e576121a23798fdbd5964143c5ae678da5bb217c4bb81b5ac0de53ad9cb}{}B\+G\+\_\+\+W\+O\+O\+D\+H\+O\+U\+S\+E\label{world_8h_a0678a0e576121a23798fdbd5964143c5ae678da5bb217c4bb81b5ac0de53ad9cb}
+}]An indoor wooden house theme. \end{description}
+\end{Desc}
+
+
+\subsection{Variable Documentation}
+\hypertarget{world_8h_af61b66b2d9004f4975ae5f51c2177f3d}{}\index{world.\+h@{world.\+h}!color@{color}}
+\index{color@{color}!world.\+h@{world.\+h}}
+\subsubsection[{color}]{\setlength{\rightskip}{0pt plus 5cm}unsigned char color}\label{world_8h_af61b66b2d9004f4975ae5f51c2177f3d}
+Lightness of dirt (brown) \hypertarget{world_8h_aa523d841be6ccb88f26cd56294adcd01}{}\index{world.\+h@{world.\+h}!gh@{gh}}
+\index{gh@{gh}!world.\+h@{world.\+h}}
+\subsubsection[{gh}]{\setlength{\rightskip}{0pt plus 5cm}float gh\mbox{[}2\mbox{]}}\label{world_8h_aa523d841be6ccb88f26cd56294adcd01}
+Height of glass (2 blades per line) \hypertarget{world_8h_aabefe07939b18f14fedbb9c9a14d02d5}{}\index{world.\+h@{world.\+h}!gs@{gs}}
+\index{gs@{gs}!world.\+h@{world.\+h}}
+\subsubsection[{gs}]{\setlength{\rightskip}{0pt plus 5cm}bool gs}\label{world_8h_aabefe07939b18f14fedbb9c9a14d02d5}
+Show grass \hypertarget{world_8h_aa4f0d3eebc3c443f9be81bf48561a217}{}\index{world.\+h@{world.\+h}!y@{y}}
+\index{y@{y}!world.\+h@{world.\+h}}
+\subsubsection[{y}]{\setlength{\rightskip}{0pt plus 5cm}float y}\label{world_8h_aa4f0d3eebc3c443f9be81bf48561a217}
+Height of this vertical line 

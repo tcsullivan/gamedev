@@ -36,7 +36,7 @@ void getRandomName(Entity *e){
 	}
 	
 	if((fgets(bufs,16,(FILE*)names)) != NULL){
-		bufs[strlen(bufs)-1] = '\0';
+		bufs[strlen(bufs)] = '\0';
 		strcpy(e->name,bufs);
 	}
 	
@@ -183,17 +183,17 @@ Object::~Object(){
 
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
+	glColor3ub(255,255,255);
 	if(type==NPCT){
 		if(NPCp(this)->aiFunc.size()){
 			glColor3ub(255,255,0);
 			glRectf(loc.x+width/3,loc.y+height,loc.x+width*2/3,loc.y+height+width/3);
-		}if(gender == MALE){
+		}
+		if(gender == MALE){
 			glColor3ub(255,255,255);
 		}else if(gender == FEMALE){
 			glColor3ub(255,105,180);
 		}
-	}else{
-		glColor3ub(255,255,255);
 	}
 	if(left){
 		glScalef(-1.0f,1.0f,1.0f);
@@ -202,58 +202,44 @@ void Entity::draw(void){		//draws the entities
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glEnable(GL_TEXTURE_2D);
-	if(type == PLAYERT){
+	switch(type){
+	case PLAYERT:
 		static int texState = 0;
 		static bool up = true;
 		if(loops % (int)((float)4/(float)speed) == 0){
 			if(up){
-				texState+=1;
-				if(texState==2)up=false;
+				if(++texState==2)up=false;
 				tex->bindNext();
-			}else if(!up){
-				texState-=1;
-				if(texState==0)up=true;
+			}else{
+				if(!--texState)up=true;
 				tex->bindPrev();
 			}
 		}
-		if(ground == 0){
+		if(!ground){
 			tex->bind(0);
-		}else if(vel.x != 0){
-			switch(texState){
-				case 0:
-					tex->bind(0);
-				break;
-				case 1:
-					tex->bind(1);
-				break;
-				case 2:
-					tex->bind(2);
-				break;
-			}
+		}else if(vel.x){
+			tex->bind(texState);
 		}else{
 			tex->bind(1);
 		}
-	}else if(type == MOBT){
+		break;
+	case MOBT:
 		switch(subtype){
 			case MS_RABBIT:
-				if(ground == 0){
-					tex->bind(1);
-				}else if(ground == 1){
-					tex->bind(0);
-				}
-				break;
-			case MS_BIRD:
-				tex->bind(0);
+				tex->bind(!ground);
 				break;
 			case MS_TRIGGER:
 				goto NOPE;
 				break;
+			case MS_BIRD:
 			default:
 				tex->bind(0);
 				break;
 		}
-	}else{
+		break;
+	default:
 		tex->bind(0);
+		break;
 	}
 	glColor3ub(255,255,255);
 	glBegin(GL_QUADS);
@@ -266,9 +252,7 @@ NOPE:
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	if(near){
-		ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
-	}
+	if(near)ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
 }
 
 void Player::interact(){ //the function that will cause the player to search for things to interact with
