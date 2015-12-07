@@ -118,11 +118,9 @@ Inheritance diagram for World\+:\begin{figure}[H]
 \subsection*{Protected Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classWorld_a0af69654347b29787877b77020fa0a5a}{}void {\bfseries single\+Detect} (\hyperlink{classEntity}{Entity} $\ast$e)\label{classWorld_a0af69654347b29787877b77020fa0a5a}
-
+void \hyperlink{classWorld_a0af69654347b29787877b77020fa0a5a}{single\+Detect} (\hyperlink{classEntity}{Entity} $\ast$e)
 \item 
-\hypertarget{classWorld_a1c1e6ea7fd0d84660d2791a256aba382}{}void {\bfseries delete\+Entities} (void)\label{classWorld_a1c1e6ea7fd0d84660d2791a256aba382}
-
+void \hyperlink{classWorld_a1c1e6ea7fd0d84660d2791a256aba382}{delete\+Entities} (void)
 \end{DoxyCompactItemize}
 \subsection*{Protected Attributes}
 \begin{DoxyCompactItemize}
@@ -131,11 +129,9 @@ struct \hyperlink{structline__t}{line\+\_\+t} $\ast$ \hyperlink{classWorld_afd99
 \item 
 int \hyperlink{classWorld_a645767ccf316a9b4469db773ac111ae4}{x\+\_\+start}
 \item 
-\hypertarget{classWorld_a432e07fd7f7504aaa6ff29408afe0678}{}unsigned int {\bfseries line\+Count}\label{classWorld_a432e07fd7f7504aaa6ff29408afe0678}
-
+unsigned int \hyperlink{classWorld_a432e07fd7f7504aaa6ff29408afe0678}{line\+Count}
 \item 
-\hypertarget{classWorld_a4f8b12f8eda220060ec01c0e9a6b9325}{}\hyperlink{structvec2}{vec2} $\ast$ {\bfseries star}\label{classWorld_a4f8b12f8eda220060ec01c0e9a6b9325}
-
+\hyperlink{structvec2}{vec2} $\ast$ \hyperlink{classWorld_a4f8b12f8eda220060ec01c0e9a6b9325}{star}
 \item 
 \hypertarget{classWorld_accebca6a747c3db27916770507aee04c}{}\hyperlink{classTexturec}{Texturec} $\ast$ {\bfseries bg\+Tex}\label{classWorld_accebca6a747c3db27916770507aee04c}
 
@@ -151,11 +147,34 @@ int \hyperlink{classWorld_a645767ccf316a9b4469db773ac111ae4}{x\+\_\+start}
 \subsection{Detailed Description}
 The world class. This class does everything a world should do. 
 
+\subsection{Member Function Documentation}
+\hypertarget{classWorld_a1c1e6ea7fd0d84660d2791a256aba382}{}\index{World@{World}!delete\+Entities@{delete\+Entities}}
+\index{delete\+Entities@{delete\+Entities}!World@{World}}
+\subsubsection[{delete\+Entities}]{\setlength{\rightskip}{0pt plus 5cm}void World\+::delete\+Entities (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [protected]}}\label{classWorld_a1c1e6ea7fd0d84660d2791a256aba382}
+Empties all entity vectors. Each entity vector is iterated through, calling delete for each entry. Once all specific vectors are cleared, the general entity vector is emptied of the pointers to those other vectors. This function should only be called in \hyperlink{classWorld}{World}\textquotesingle{}s destructor, as there shouldn\textquotesingle{}t be another reason to call this function. \hypertarget{classWorld_a0af69654347b29787877b77020fa0a5a}{}\index{World@{World}!single\+Detect@{single\+Detect}}
+\index{single\+Detect@{single\+Detect}!World@{World}}
+\subsubsection[{single\+Detect}]{\setlength{\rightskip}{0pt plus 5cm}void World\+::single\+Detect (
+\begin{DoxyParamCaption}
+\item[{{\bf Entity} $\ast$}]{e}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [protected]}}\label{classWorld_a0af69654347b29787877b77020fa0a5a}
+Handle physics for a single entity. This function handles gravity and death for an entity. The public version of this, World\+::detect(), handles all entities in the world as well as the player. \hyperlink{classWorld_a0af69654347b29787877b77020fa0a5a}{World\+::single\+Detect()} should never be used outside of World\+::detect(), which is why it is declared private. 
+
 \subsection{Member Data Documentation}
 \hypertarget{classWorld_afd9945f6ede5eabc3ff9243ce2b31247}{}\index{World@{World}!line@{line}}
 \index{line@{line}!World@{World}}
 \subsubsection[{line}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf line\+\_\+t}$\ast$ World\+::line\hspace{0.3cm}{\ttfamily [protected]}}\label{classWorld_afd9945f6ede5eabc3ff9243ce2b31247}
-The line array. This array is created through \textquotesingle{}new\textquotesingle{} in World\+::generate(), with an amount of elements provided by the function. \hypertarget{classWorld_a645767ccf316a9b4469db773ac111ae4}{}\index{World@{World}!x\+\_\+start@{x\+\_\+start}}
+The line array. This array is created through \textquotesingle{}new\textquotesingle{} in World\+::generate(), with an amount of elements provided by the function. \hypertarget{classWorld_a432e07fd7f7504aaa6ff29408afe0678}{}\index{World@{World}!line\+Count@{line\+Count}}
+\index{line\+Count@{line\+Count}!World@{World}}
+\subsubsection[{line\+Count}]{\setlength{\rightskip}{0pt plus 5cm}unsigned int World\+::line\+Count\hspace{0.3cm}{\ttfamily [protected]}}\label{classWorld_a432e07fd7f7504aaa6ff29408afe0678}
+Number of lines in the world. While this number is helpful for knowing the world\textquotesingle{}s width, it is kept private for security reasons. To compensate for this, World\+::get\+The\+Width() is provided (see below). \hypertarget{classWorld_a4f8b12f8eda220060ec01c0e9a6b9325}{}\index{World@{World}!star@{star}}
+\index{star@{star}!World@{World}}
+\subsubsection[{star}]{\setlength{\rightskip}{0pt plus 5cm}{\bf vec2}$\ast$ World\+::star\hspace{0.3cm}{\ttfamily [protected]}}\label{classWorld_a4f8b12f8eda220060ec01c0e9a6b9325}
+An array of star coordinates. \hypertarget{classWorld_a645767ccf316a9b4469db773ac111ae4}{}\index{World@{World}!x\+\_\+start@{x\+\_\+start}}
 \index{x\+\_\+start@{x\+\_\+start}!World@{World}}
 \subsubsection[{x\+\_\+start}]{\setlength{\rightskip}{0pt plus 5cm}int World\+::x\+\_\+start\hspace{0.3cm}{\ttfamily [protected]}}\label{classWorld_a645767ccf316a9b4469db773ac111ae4}
 Starting x coordinate. This x value is the point at which line\mbox{[}0\mbox{]} should reside, can be used to calculate the width of the world. 

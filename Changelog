@@ -371,3 +371,12 @@
 	- improved inventory draw
 	- fixed most segfaults, including those when exiting
 	- added -Wall,-Wextra, and -Werror to enforce better/safer coding
+
+12/4/2015,
+12/7/2015:
+==========
+
+	- re-did fullscreen text (importantText)
+	- began doxygening headers
+	- fixed entity name reading
+	- fixed entity sprites
