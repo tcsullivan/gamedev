@@ -171,7 +171,8 @@ void Inventory::draw(void){
 						glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),	r.end.y-(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
 						glTexCoord2i(1,0);glVertex2i(r.end.x+(itemWide/2),	r.end.y+(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
 						glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),	r.end.y+(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
-					}				glEnd();
+					}
+				glEnd();
 				glDisable(GL_TEXTURE_2D);
 				ui::putText(r.end.x-(itemWide/2),r.end.y-(itemWide*.9),"%s",item[inv[a].id].name);
 				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",inv[a].count);
