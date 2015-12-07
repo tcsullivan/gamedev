@@ -29,21 +29,15 @@ int giveTestQuest(NPC *speaker){
 	return 0;
 }
 
-//static World *a;
-
 void CUTSCENEEE(Mob *callee){
 	player->vel.x = 0;
 	
 	ui::dialogBox(player->name,":K then","No way I\'m gettin\' up this hill.");
 	ui::waitForDialog();
 
-	//a = new World();//Arena(currentWorld,player);
-	//a->generate(300);
-	currentWorld = currentWorld->toRight;
-
-	/*player->right = true;
+	player->right = true;
 	player->left  = false;
-	player->loc.x += HLINE * 5;*/
+	player->loc.x += HLINE * 5;
 	
 	callee->alive = false;
 }
@@ -52,6 +46,13 @@ void CUTSCENEEE2(Mob *callee){
 	player->vel.x = 0;
 	ui::dialogBox(player->name,":Yeah.",
 	"What the fuck is this dead end supposed to mean, and why this place smell like soap.");
+	ui::waitForDialog();
+	callee->alive = false;
+}
+
+void story(Mob *callee){
+	player->vel.x = 0;
+	ui::importantText("It was a dark and stormy night...");
 	ui::waitForDialog();
 	callee->alive = false;
 }
@@ -122,6 +123,8 @@ void initEverything(void){
 	 *	Spawn some entities.
 	*/
 
+	playerSpawnHill->addMob(MS_TRIGGER,player->loc.x,0,story);
+
 	playerSpawnHill->addStructure(STRUCTURET,(rand()%120*HLINE),100,test,iw);
 	playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);
 	
@@ -129,17 +132,9 @@ void initEverything(void){
 	playerSpawnHill->addObject(FLASHLIGHT, false, "", 500,200);
 	playerSpawnHill->addObject(PLAYER_BAG, false, "", 520,200);
 	playerSpawnHill->addObject(TEST_ITEM, false, "", 540,200);
-	//playerSpawnHill->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",600,200);
 	
 	test->addMob(MS_RABBIT,200,100);
 	test->addMob(MS_BIRD,-500,500);
-
-	/*currentWorld->addObject(DEBUG_ITEM, 500,200);
-	currentWorld->addObject(TEST_ITEM,  550,200);
-	currentWorld->addObject(PLAYER_BAG, 600,200);
-	currentWorld->addObject(SWORD_WOOD, 650,200);
-	currentWorld->addObject(FLASHLIGHT, true, "This looks important, do you want to pick it up?",700,200);
-	*/
 	
 	playerSpawnHill->npc[0]->addAIFunc(giveTestQuest,false);
 	
@@ -169,30 +164,3 @@ void destroyEverything(void){
 	
 	//delete iw;	// segfaults
 }
-
-/*void story(void){
-	for(int i=0;i<600;i++){
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),offset.y-SCREEN_HEIGHT/2,offset.y+SCREEN_HEIGHT/2,-1,1);
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glEnable(GL_STENCIL_TEST);
-		glPushMatrix();
-
-		glPushAttrib( GL_DEPTH_BUFFER_BIT | GL_LIGHTING_BIT );
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		glColor4f(0.0f,0.0f,0.0f,0.0f);
-		glRectf(-SCREEN_WIDTH/2,0,SCREEN_WIDTH/2,SCREEN_HEIGHT);
-		glColor4f(1.0f,1.0f,1.0f,1.0f);
-		ui::importantText("Oh hello, where are you?");
-		//ui::setFontSize(16);
-		//ui::putText(54,540,"BITC.");
-
-		glPopMatrix();
-		SDL_GL_SwapWindow(window);
-	}
-}*/

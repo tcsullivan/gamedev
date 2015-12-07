@@ -36,8 +36,10 @@ void getRandomName(Entity *e){
 	}
 	
 	if((fgets(bufs,16,(FILE*)names)) != NULL){
-		bufs[strlen(bufs)-1] = '\0';
+		bufs[strlen(bufs)] = '\0';
 		strcpy(e->name,bufs);
+		if(e->name[strlen(e->name)-1] == '\n')
+			e->name[strlen(e->name)-1] = '\0';
 	}
 	
 	delete[] bufs;

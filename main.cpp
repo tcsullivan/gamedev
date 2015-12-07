@@ -206,7 +206,9 @@ unsigned int millis(void){
 #endif
 
 extern WEATHER weather;
-static unsigned int fadeIntensity = 0;
+
+extern bool fadeEnable;
+extern unsigned int fadeIntensity;
 
 /*******************************************************************************
  * MAIN ************************************************************************
@@ -514,8 +516,6 @@ void mainLoop(void){
 	render();	// Call the render loop;
 }
 
-extern bool fadeEnable;
-
 void render(){
 	
 	 /*
@@ -703,10 +703,22 @@ void render(){
 		glUseProgramObjectARB(0);
 	}
 	player->inv->draw();
-
+	
+	/*
+	 *	Here we draw a black overlay if it's been requested.
+	*/
+	
+	if(fadeIntensity){
+		glColor4ub(0,0,0,fadeIntensity);
+		glRectf(offset.x-SCREEN_WIDTH /2,
+				offset.y-SCREEN_HEIGHT/2,
+				offset.x+SCREEN_WIDTH /2,
+				offset.y+SCREEN_HEIGHT/2);
+	}else if(ui::fontSize != 16) ui::setFontSize(16);
+	
 	/*
 	 *	Draw UI elements. This includes the player's health bar and the dialog box.
-	*/
+	*/	
 	
 	ui::draw();
 
@@ -758,20 +770,7 @@ void render(){
 		glVertex2i(ui::mouse.x+HLINE*3.5,ui::mouse.y		  );
 		glVertex2i(ui::mouse.x			,ui::mouse.y-HLINE*3.5);
 	glEnd();
-
-	/*
-	 *	Here we draw a black overlay if it's been requested.
-	*/
-	if(fadeIntensity){
-		glColor4ub(0,0,0,fadeIntensity);
-		glRectf(offset.x-SCREEN_WIDTH /2,
-				offset.y-SCREEN_HEIGHT/2,
-				offset.x+SCREEN_WIDTH /2,
-				offset.y+SCREEN_HEIGHT/2);
-		if(fadeIntensity == 255){
-			ui::importantText("The screen is black.");
-		}
-	}else if(ui::fontSize != 16) ui::setFontSize(16);
+	
 	/**************************
 	****  END RENDERING   ****
 	**************************/
