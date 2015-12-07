@@ -44,11 +44,13 @@ static unsigned char fontColor[3] = {255,255,255};
  *	Variables for dialog boxes / options.
 */
 
-static char *dialogBoxText			= NULL;
+static char dialogBoxText[512];
 static char *dialogOptText[4];
 static float dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
 static bool typeOutDone = true;
+
+static bool dialogImportant = false;
 
 extern void mainLoop(void);
 
@@ -57,7 +59,7 @@ extern void mainLoop(void);
 */
 
 bool fadeEnable = false;
-
+unsigned int fadeIntensity = 0;
 
 bool inBattle = false;
 
@@ -387,7 +389,6 @@ namespace ui {
 		 *	Set up the text buffer.
 		*/
 		
-		if(!dialogBoxText) dialogBoxText = new char[512];	//(char *)malloc(512);
 		memset(dialogBoxText,0,512);
 		
 		/*
@@ -439,6 +440,7 @@ namespace ui {
 		*/
 		
 		dialogBoxExists = true;
+		dialogImportant = false;
 		
 	}
 	void waitForDialog(void){
@@ -448,19 +450,18 @@ namespace ui {
 	}
 	void importantText(const char *text,...){
 		va_list textArgs;
-		char *ttext,*rtext;
-		if(!player->ground)return;
+		
+		//if(!player->ground)return;
+		
+		memset(dialogBoxText,0,512);
+				
 		va_start(textArgs,text);
-		ttext = new char[512];	//(char *)calloc(512,sizeof(char));
-		memset(ttext,0,512*sizeof(char));
-		vsnprintf(ttext,512,text,textArgs);
+		vsnprintf(dialogBoxText,512,text,textArgs);
 		va_end(textArgs);
-		setFontSize(24);
-		rtext=typeOut(ttext);
-		putString(offset.x-SCREEN_WIDTH/2,
-				  offset.y+fontSize,
-				  rtext);
-		delete[] ttext;	//free(ttext);
+				  
+		dialogBoxExists = true;
+		dialogImportant = true;
+		toggleBlack();
 	}
 	void draw(void){
 		unsigned char i;
@@ -469,66 +470,77 @@ namespace ui {
 		
 		if(dialogBoxExists){
 			
-			glColor3ub(0,0,0);
-			x=offset.x-SCREEN_WIDTH/2+HLINE*8;
-			y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
-			
-			glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
-			
 			rtext=typeOut(dialogBoxText);
 			
-			putString(x+HLINE,y-fontSize-HLINE,rtext);
-			
-			for(i=0;i<dialogOptCount;i++){
+			if(dialogImportant){
 				setFontColor(255,255,255);
-				dialogOptLoc[i][1]=y-SCREEN_HEIGHT/4+(fontSize+HLINE)*(i+1);
-				dialogOptLoc[i][2]=
-				putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
-				dialogOptLoc[i][0]=offset.x-dialogOptLoc[i][2]/2;
-				if(mouse.x > dialogOptLoc[i][0] &&
-				   mouse.x < dialogOptLoc[i][0] + dialogOptLoc[i][2] &&
-				   mouse.y > dialogOptLoc[i][1] &&
-				   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
-					  setFontColor(255,255,0);
-					  putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+				if(fadeIntensity == 255){
+					setFontSize(24);
+					putStringCentered(offset.x,offset.y,rtext);
 				}
+			}else{
+			
+				glColor3ub(0,0,0);
+			
+				x=offset.x-SCREEN_WIDTH/2+HLINE*8;
+				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
+			
+				glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
+			
+				rtext=typeOut(dialogBoxText);
+			
+				putString(x+HLINE,y-fontSize-HLINE,rtext);
+			
+				for(i=0;i<dialogOptCount;i++){
+					setFontColor(255,255,255);
+					dialogOptLoc[i][1]=y-SCREEN_HEIGHT/4+(fontSize+HLINE)*(i+1);
+					dialogOptLoc[i][2]=
+					putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+					dialogOptLoc[i][0]=offset.x-dialogOptLoc[i][2]/2;
+					if(mouse.x > dialogOptLoc[i][0] &&
+					   mouse.x < dialogOptLoc[i][0] + dialogOptLoc[i][2] &&
+					   mouse.y > dialogOptLoc[i][1] &&
+					   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
+						  setFontColor(255,255,0);
+						  putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+					}
+				}
+				setFontColor(255,255,255);
 			}
-			setFontColor(255,255,255);
-		}
+		}else if(!dialogImportant){
 		
-		vec2 hub = {
-			(SCREEN_WIDTH/2+offset.x)-fontSize*10,
-			(offset.y+SCREEN_HEIGHT/2)-fontSize
-		};
-		
-		putText(hub.x,hub.y,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
-											(unsigned)player->maxHealth);
-		if(player->alive){
-			glColor3ub(255,0,0);
-			hub.y-=fontSize*1.15;
-			glRectf(hub.x,
-					hub.y,
-					hub.x+(player->health/player->maxHealth)*130,
-					hub.y+12);
-		}
-		
-		/*
-		 *	Lists all of the quests the player is currently taking.
-		*/
-		
-		if(player->inv->invOpen){
-			hub.y = player->loc.y + fontSize * 8;
-			hub.x = player->loc.x;
+			vec2 hub = {
+				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
+				(offset.y+SCREEN_HEIGHT/2)-fontSize
+			};
 			
-			putStringCentered(hub.x,hub.y,"Current Quests:");
+			putText(hub.x,hub.y,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
+												(unsigned)player->maxHealth);
+			if(player->alive){
+				glColor3ub(255,0,0);
+				hub.y-=fontSize*1.15;
+				glRectf(hub.x,
+						hub.y,
+						hub.x+(player->health/player->maxHealth)*130,
+						hub.y+12);
+			}
 			
-			for(auto &c : player->qh.current){
-				hub.y -= fontSize * 1.15;
-				putString(hub.x,hub.y,c->title);
-			}	
+			/*
+			 *	Lists all of the quests the player is currently taking.
+			*/
+			
+			if(player->inv->invOpen){
+				hub.y = player->loc.y + fontSize * 8;
+				hub.x = player->loc.x;
+				
+				putStringCentered(hub.x,hub.y,"Current Quests:");
+				
+				for(auto &c : player->qh.current){
+					hub.y -= fontSize * 1.15;
+					putString(hub.x,hub.y,c->title);
+				}	
+			}
 		}
-
-		
 	}
 	void handleEvents(void){
 		static vec2 premouse={0,0};
@@ -567,15 +579,22 @@ namespace ui {
 						}
 					}
 DONE:
-					dialogBoxExists=false;
-					//dialogBoxText=NULL;
+					if(dialogImportant){
+						dialogImportant = false;
+						setFontSize(16);
+						toggleBlack();
+					}
+					dialogBoxExists = false;
 				}
 				break;
 			/*
 				KEYDOWN
 			*/
 			case SDL_KEYDOWN:
-				if(!dialogBoxExists&&!fadeEnable){
+				if(SDL_KEY == SDLK_ESCAPE){
+					gameRunning = false;
+					break;
+				}else if(!dialogBoxExists){//&&!fadeEnable){
 					switch(SDL_KEY){
 					case SDLK_ESCAPE:
 						gameRunning=false;
@@ -635,9 +654,6 @@ DONE:
 						break;
 					case SDLK_LCTRL:
 						player->speed = .5;
-						break;
-					case SDLK_p:
-						toggleBlack();
 						break;
 					case SDLK_F3:
 						debug ^= true;
