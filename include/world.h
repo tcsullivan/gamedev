@@ -8,13 +8,18 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include <common.h>		// For HLINE, vec2, OpenGL utilities, etc.
+#include <common.h>
 #include <entities.h>
 
-#define GEN_INC 10		// Defines at what interval y values should be calculated for the array 'line'.
-						// As explained in World(), the last few lines in the array 'line' are incorrectly calculated
-						// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
-						// and detect().
+/**
+ * Defines at what interval y values should be calculated for the array 'line'.
+ */
+
+#define GEN_INC 10
+
+/**
+ * Defines how many game ticks it takes for a day to elapse.
+ */
 
 #define DAY_CYCLE 3000
 
@@ -78,40 +83,65 @@ protected:
 	int x_start;
 	
 	/**
-	 * 
+	 * Handle physics for a single entity.
+	 * This function handles gravity and death for an entity. The public version
+	 * of this, World::detect(), handles all entities in the world as well as
+	 * the player. World::singleDetect() should never be used outside of
+	 * World::detect(), which is why it is declared private.
 	 */
 	
 	void singleDetect(Entity *e);
 	
-	/*
-	 *	Deletes all entities in the world.
-	*/
+	/**
+	 * Empties all entity vectors.
+	 * Each entity vector is iterated through, calling delete for each entry.
+	 * Once all specific vectors are cleared, the general entity vector is
+	 * emptied of the pointers to those other vectors. This function should only
+	 * be called in World's destructor, as there shouldn't be another reason to
+	 * call this function.
+	 */
 	
 	void deleteEntities(void);
 	
-	/*
-	 *	The size of the line array. This is set once by World->generate().
-	*/
+	/**
+	 * Number of lines in the world.
+	 * While this number is helpful for knowing the world's width, it is kept
+	 * private for security reasons. To compensate for this,
+	 * World::getTheWidth() is provided (see below).
+	 */
 	
 	unsigned int lineCount;
 	
-	/*
-	 *	Contains the background image layers (including the background image).
-	*/
+	/**
+	 * An array of star coordinates.
+	 */
 	
 	vec2 *star;
 	
+	/**
+	 * The Texturec object that holds the background sprites for this world.
+	 */
+	
 	Texturec *bgTex;
 	
+	/**
+	 * The Mix_Music object that holds the background soundtrack for the world.
+	 */
+	
 	Mix_Music *bgmObj;
+	
+	/**
+	 * The file path of the song wished to be loaded by bgmObj.
+	 */
+	
 	char *bgm;
 	
 public:
 
-	/*
-	 *	These pointers keep track of worlds that are adjacent to this one. Used in ui.cpp
-	 *	for world jumping.
-	*/
+	/**
+	 * These pointers keep track of worlds that are adjacent to this one. Used in
+	 * ui.cpp for world jumping.
+	 */
 
 	World *toLeft,
 		  *toRight,
@@ -119,8 +149,10 @@ public:
 		  *infront;
 	
 	/*
-	 *	Entity arrays.
-	*/
+	 * These vectors contain the NPCs, Mobs, Structures and Objects that are
+	 * loaded inside the world, with the Entity vector containing pointers to
+	 * the contents of all the others.
+	 */
 	
 	std::vector<NPC			*>	npc;
 	std::vector<Structures	*>	build;
