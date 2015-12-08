@@ -480,11 +480,20 @@ namespace ui {
 				}
 			}else{
 			
-				glColor3ub(0,0,0);
-			
 				x=offset.x-SCREEN_WIDTH/2+HLINE*8;
 				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
 			
+			
+				glColor3ub(255,255,255);
+				glBegin(GL_LINE_STRIP);
+					glVertex2f(x-1						,y+1);
+					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y+1);
+					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y-1-SCREEN_HEIGHT/4);
+					glVertex2f(x-1						,y-1-SCREEN_HEIGHT/4);
+					glVertex2f(x-1						,y+2);
+				glEnd();
+			
+				glColor3ub(0,0,0);
 				glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
 			
 				rtext=typeOut(dialogBoxText);
@@ -543,6 +552,7 @@ namespace ui {
 		}
 	}
 	void handleEvents(void){
+		static bool left=true,right=false;
 		static vec2 premouse={0,0};
 		static int heyOhLetsGo = 0;
 		unsigned char i;
@@ -603,12 +613,16 @@ DONE:
 						player->vel.x=-.15;
 						player->left = true;
 						player->right = false;
+						left = true;
+						right = false;
 						currentWorld=currentWorld->goWorldLeft(player);
 						break;
 					case SDLK_d:
 						player->vel.x=.15;
 						player->right = true;
 						player->left = false;
+						left = false;
+						right = true;
 						currentWorld=currentWorld->goWorldRight(player);
 						break;
 					case SDLK_s:
@@ -682,10 +696,10 @@ DONE:
 			case SDL_KEYUP:
 				switch(SDL_KEY){
 				case SDLK_a:
-					player->left = false;
+					left = false;
 					break;
 				case SDLK_d:
-					player->right = false;
+					right = false;
 					break;
 				case SDLK_LSHIFT:
 					player->speed = 1;
@@ -714,7 +728,7 @@ DONE:
 					break;
 				}
 				
-				if(!player->left&&!player->right)
+				if(!left&&!right)
 					player->vel.x=0;
 					
 				break;

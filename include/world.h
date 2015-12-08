@@ -8,13 +8,18 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include <common.h>		// For HLINE, vec2, OpenGL utilities, etc.
+#include <common.h>
 #include <entities.h>
 
-#define GEN_INC 10		// Defines at what interval y values should be calculated for the array 'line'.
-						// As explained in World(), the last few lines in the array 'line' are incorrectly calculated
-						// or not calculated at all, so GEN_INC is also used to decrease 'lineCount' in functions like draw()
-						// and detect().
+/**
+ * Defines at what interval y values should be calculated for the array 'line'.
+ */
+
+#define GEN_INC 10
+
+/**
+ * Defines how many game ticks it takes for a day to elapse.
+ */
 
 #define DAY_CYCLE 3000
 
@@ -113,17 +118,30 @@ protected:
 	
 	vec2 *star;
 	
+	/**
+	 * The Texturec object that holds the background sprites for this world.
+	 */
+	
 	Texturec *bgTex;
 	
+	/**
+	 * The Mix_Music object that holds the background soundtrack for the world.
+	 */
+	
 	Mix_Music *bgmObj;
+	
+	/**
+	 * The file path of the song wished to be loaded by bgmObj.
+	 */
+	
 	char *bgm;
 	
 public:
 
-	/*
-	 *	These pointers keep track of worlds that are adjacent to this one. Used in ui.cpp
-	 *	for world jumping.
-	*/
+	/**
+	 * These pointers keep track of worlds that are adjacent to this one. Used in
+	 * ui.cpp for world jumping.
+	 */
 
 	World *toLeft,
 		  *toRight,
@@ -131,8 +149,10 @@ public:
 		  *infront;
 	
 	/*
-	 *	Entity arrays.
-	*/
+	 * These vectors contain the NPCs, Mobs, Structures and Objects that are
+	 * loaded inside the world, with the Entity vector containing pointers to
+	 * the contents of all the others.
+	 */
 	
 	std::vector<NPC			*>	npc;
 	std::vector<Structures	*>	build;
