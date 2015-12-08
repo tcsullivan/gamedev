@@ -277,10 +277,9 @@ void World::update(Player *p,unsigned int delta){
 	*/
 
 	for(auto &e : entity){
-		if(e->type != STRUCTURET){
-			if(e->canMove)
-				e->loc.x += e->vel.x * delta;
-			e->loc.y += e->vel.y * delta;
+		e->loc.y += e->vel.y * delta;
+		if(e->type != STRUCTURET && e->canMove){
+			e->loc.x += e->vel.x * delta;
 			if(e->vel.x < 0)e->left = true;
 	   else if(e->vel.x > 0)e->left = false;
 		}

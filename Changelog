@@ -380,3 +380,11 @@
 	- began doxygening headers
 	- fixed entity name reading
 	- fixed entity sprites
+
+12/8/2015:
+==========
+
+	- continued to document header files through doxygen
+	- added border to dialogBox
+	- fix entity movement handling; npcs stop when you talk to them
+	- added sword animation?
