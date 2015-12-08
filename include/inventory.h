@@ -73,7 +73,7 @@ public:
 	bool invHover = false;
 	bool selected = false;
 	bool mouseSel = false;
-
+	bool usingi = false;
 
 	Inventory(unsigned int s);	// Creates an inventory of size 's'
 	~Inventory(void);			// Free's allocated memory
@@ -81,6 +81,7 @@ public:
 	int addItem(ITEM_ID id,unsigned char count);	// Add 'count' items with an id of 'id' to the inventory
 	int takeItem(ITEM_ID id,unsigned char count);	// Take 'count' items with an id of 'id' from the inventory
 	int useItem(void);
+	bool detectCollision(vec2,vec2);
 	
 	void setSelection(unsigned int s);
 	

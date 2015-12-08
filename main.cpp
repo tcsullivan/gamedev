@@ -230,10 +230,10 @@ int main(/*int argc, char *argv[]*/){
 	// Run SDL_Quit when main returns
 	atexit(SDL_Quit);
 
-	/**`
+	/*!
 	 *	(Attempt to) Initialize SDL_image libraries with IMG_INIT_PNG so that we can load PNG
 	 *	textures for the entities and stuff.
-	**/
+	*/
 
 	if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)){
 		std::cout << "Could not init image libraries! Error: " << IMG_GetError() << std::endl;
@@ -243,10 +243,10 @@ int main(/*int argc, char *argv[]*/){
 	// Run IMG_Quit when main returns
 	atexit(IMG_Quit);
 
-	/**
+	/*!
 	 *	(Attempt to) Initialize SDL_mixer libraries for loading and playing music/sound files.
 	 *
-	**/
+	*/
 
 	if(Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
 		std::cout << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
@@ -703,6 +703,11 @@ void render(){
 		glUseProgramObjectARB(0);
 	}
 	player->inv->draw();
+
+	if(player->inv->usingi && player->inv->detectCollision(vec2{currentWorld->npc[0]->loc.x, currentWorld->npc[0]->loc.y},vec2{currentWorld->npc[0]->loc.x+currentWorld->npc[0]->width,currentWorld->npc[0]->loc.y+currentWorld->npc[0]->height})){
+		currentWorld->npc[0]->alive = false;
+	}
+
 	
 	/*
 	 *	Here we draw a black overlay if it's been requested.
@@ -819,7 +824,10 @@ void logic(){
 	 *	click detection is done as well for NPC/player interaction.
 	 *
 	*/
-	if((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) && !ui::dialogBoxExists)player->inv->useItem();
+	if((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) && !ui::dialogBoxExists)player->inv->usingi = true;
+	if(player->inv->usingi){
+		player->inv->useItem();
+	}
 
 	for(auto &n : currentWorld->npc){
 		if(n->alive){
@@ -831,7 +839,6 @@ void logic(){
 			*/
 
 			if(n->canMove) n->wander((rand() % 120 + 30));
-
 			/*
 			 *	Don't bother handling the NPC if another has already been handled.
 			*/

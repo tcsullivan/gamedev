@@ -6,6 +6,9 @@
 
 extern Player *player;
 extern GLuint invUI;
+static float hangle = 0.0f;
+static bool up = true;
+static float xc,yc;
 
 static const Item item[ITEM_COUNT]= {
 	#include "../config/items.h"
@@ -260,27 +263,30 @@ void Inventory::draw(void){
 }
 
 void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
-	static float angle = 0.0f;
 	glPushMatrix();
 	if(!id)return;
 	switch(type){
 	case SWORD:
-		angle = 15.0f;
+		if(hangle < 15){
+			hangle = 15.0f;
+			p->inv->usingi = false;
+			up = false;
+		}
 		break;
 	default:
-		angle = 0.0f;
+		hangle = 0.0f;
 	}
-	//glTranslatef(player->loc.x*2,player->loc.y*2,0);
-	glTranslatef(0-player->loc.x*2,0,0);
-	glRotatef(angle, 0.0f, 1.0f, 0.0f);
+	glTranslatef(player->loc.x,player->loc.y+player->height/3,0);
+	glRotatef(hangle, 0.0f, 0.0f, 1.0f);
+	glTranslatef(-player->loc.x,-player->loc.y-player->height/3,0);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,itemtex[id]);
 	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2f(p->loc.x,				 p->loc.y);
-		glTexCoord2i(1,1);glVertex2f(p->loc.x+item[id].width,p->loc.y);
-		glTexCoord2i(1,0);glVertex2f(p->loc.x+item[id].width,p->loc.y+item[id].height);
-		glTexCoord2i(0,0);glVertex2f(p->loc.x,				 p->loc.y+item[id].height);
+		glTexCoord2i(0,1);glVertex2f(p->loc.x,				 p->loc.y+p->height/3);
+		glTexCoord2i(1,1);glVertex2f(p->loc.x+item[id].width,p->loc.y+p->height/3);
+		glTexCoord2i(1,0);glVertex2f(p->loc.x+item[id].width,p->loc.y+p->height/3+item[id].height);
+		glTexCoord2i(0,0);glVertex2f(p->loc.x,				 p->loc.y+p->height/3+item[id].height);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	glTranslatef(player->loc.x*2,0,0);
@@ -288,24 +294,44 @@ void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
 }
 
 int Inventory::useItem(void){
-	ITEM_ID id = 	 item[inv[sel].id].id;
 	ITEM_TYPE type = item[inv[sel].id].type;
 	if(!invHover){
 		switch(type){
 		case SWORD:
-
-			break;
-		default:break;
-		}
-		switch(id){
-		case FLASHLIGHT:
-			player->light ^= true;
+			if(hangle==15)up=true;
+			if(up)hangle+=15;
+			if(hangle>=90)hangle=14;
 			break;
 		default:
-			//ui::dialogBox(item[id].name,NULL,"You cannot use this item.");
 			break;
 		}
 	}
 	return 0;
+}
+
+bool Inventory::detectCollision(vec2 one, vec2 two){
+	float i = 0.0f;
+	if(item[inv[sel].id].type == SWORD){
+		while(i<item[inv[sel].id].height){
+			xc = player->loc.x; yc = player->loc.y+player->height/3;
+			xc += float(i) * cos((hangle+90)*PI/180);
+			yc += float(i) * sin((hangle+90)*PI/180);
+
+			/*glColor4f(1.0f,1.0f,1.0f,1.0f);
+			glBegin(GL_LINES);
+				glVertex2f(player->loc.x,player->loc.y+player->height/3);
+				glVertex2f(xc,yc);
+			glEnd();*/
+
+			if(xc >= one.x && xc <= two.x){
+				if(yc >= one.y && yc <= two.y){
+					return true;
+				}
+			}
+
+			i+=HLINE;
+		}
+	}
+	return false;
 }
 
