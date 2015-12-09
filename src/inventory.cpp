@@ -9,6 +9,7 @@ extern GLuint invUI;
 static float hangle = 0.0f;
 static bool up = true;
 static float xc,yc;
+static vec2 itemLoc;
 
 static const Item item[ITEM_COUNT]= {
 	#include "../config/items.h"
@@ -263,30 +264,41 @@ void Inventory::draw(void){
 }
 
 void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
+	itemLoc.y = p->loc.y+(p->height/3);
+	itemLoc.x = p->left?p->loc.x:p->loc.x+p->width;
 	glPushMatrix();
 	if(!id)return;
 	switch(type){
 	case SWORD:
-		if(hangle < 15){
-			hangle = 15.0f;
-			p->inv->usingi = false;
-			up = false;
+		if(p->left){
+			if(hangle < 15){
+				hangle=15.0f;
+				p->inv->usingi = false;
+				up = false;
+			}
+		}else{
+			if(hangle > -15){
+				hangle=-15.0f;
+				p->inv->usingi = false;
+				up = false;
+			}
 		}
 		break;
 	default:
 		hangle = 0.0f;
 	}
-	glTranslatef(player->loc.x,player->loc.y+player->height/3,0);
+
+	glTranslatef(itemLoc.x,itemLoc.y,0);
 	glRotatef(hangle, 0.0f, 0.0f, 1.0f);
-	glTranslatef(-player->loc.x,-player->loc.y-player->height/3,0);
+	glTranslatef(-itemLoc.x,-itemLoc.y,0);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,itemtex[id]);
 	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2f(p->loc.x,				 p->loc.y+p->height/3);
-		glTexCoord2i(1,1);glVertex2f(p->loc.x+item[id].width,p->loc.y+p->height/3);
-		glTexCoord2i(1,0);glVertex2f(p->loc.x+item[id].width,p->loc.y+p->height/3+item[id].height);
-		glTexCoord2i(0,0);glVertex2f(p->loc.x,				 p->loc.y+p->height/3+item[id].height);
+		glTexCoord2i(0,1);glVertex2f(itemLoc.x,				 itemLoc.y);
+		glTexCoord2i(1,1);glVertex2f(itemLoc.x+item[id].width,itemLoc.y);
+		glTexCoord2i(1,0);glVertex2f(itemLoc.x+item[id].width,itemLoc.y+item[id].height);
+		glTexCoord2i(0,0);glVertex2f(itemLoc.x,				 itemLoc.y+item[id].height);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	glTranslatef(player->loc.x*2,0,0);
@@ -298,9 +310,15 @@ int Inventory::useItem(void){
 	if(!invHover){
 		switch(type){
 		case SWORD:
+		if(!player->left){
+			if(hangle==-15)up=true;
+			if(up)hangle-=15;
+			if(hangle<=-90)hangle=-14;
+		}else{
 			if(hangle==15)up=true;
 			if(up)hangle+=15;
 			if(hangle>=90)hangle=14;
+		}
 			break;
 		default:
 			break;
@@ -313,7 +331,7 @@ bool Inventory::detectCollision(vec2 one, vec2 two){
 	float i = 0.0f;
 	if(item[inv[sel].id].type == SWORD){
 		while(i<item[inv[sel].id].height){
-			xc = player->loc.x; yc = player->loc.y+player->height/3;
+			xc = itemLoc.x; yc = itemLoc.y;
 			xc += float(i) * cos((hangle+90)*PI/180);
 			yc += float(i) * sin((hangle+90)*PI/180);
 
