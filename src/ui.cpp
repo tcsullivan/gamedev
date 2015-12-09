@@ -50,8 +50,6 @@ static float dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
 static bool typeOutDone = true;
 
-static bool dialogImportant = false;
-
 Mix_Chunk *dialogClick;
 
 extern void mainLoop(void);
@@ -91,7 +89,8 @@ namespace ui {
 	 *	Dialog stuff that needs to be 'public'.
 	*/
 	
-	bool dialogBoxExists=false;
+	bool dialogBoxExists = false;
+	bool dialogImportant = false;
 	unsigned char dialogOptChosen = 0;
 	
 	/*

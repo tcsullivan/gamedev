@@ -285,6 +285,12 @@ void World::update(Player *p,unsigned int delta){
 	   else if(e->vel.x > 0)e->left = false;
 		}
 	}
+	
+	if(ui::dialogImportant){
+		Mix_FadeOutMusic(2000);
+	}else if(!Mix_PlayingMusic()){
+		Mix_FadeInMusic(bgmObj,-1,2000);
+	}
 }
 
 void World::setBGM(const char *path){

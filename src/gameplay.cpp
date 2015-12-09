@@ -52,6 +52,7 @@ void CUTSCENEEE2(Mob *callee){
 
 void story(Mob *callee){
 	player->vel.x = 0;
+	Mix_FadeOutMusic(0);
 	ui::importantText("It was a dark and stormy night...");
 	ui::waitForDialog();
 	ui::importantText("...and Clyne wanted to hear what the click track sounds like.");
