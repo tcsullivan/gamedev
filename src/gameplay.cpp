@@ -64,7 +64,7 @@ void story(Mob *callee){
 	ui::waitForDialog();
 	ui::importantText("times.");
 	ui::waitForDialog();
-	ui::importantText("Clyne is quite satisfied.");
+	ui::importantText("Clyne is a faggot.");
 	ui::waitForDialog();
 	callee->alive = false;
 }

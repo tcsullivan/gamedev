@@ -116,6 +116,8 @@ unsigned int deltaTime = 0;
 GLuint fragShader;
 GLuint shaderProgram;
 
+Mix_Chunk *crickets;
+
 /*
  *	names is used to open a file containing all possible NPC names. It is externally
  *	referenced in src/entities.cpp for getting random names.
@@ -401,6 +403,9 @@ int main(/*int argc, char *argv[]*/){
 	*/
 	
 	names = fopen("assets/names_en-us", "r+");
+
+	crickets=Mix_LoadWAV("assets/sounds/crickets.wav");
+	Mix_Volume(3,25);
 	
 	/*
 	 *	Create all the worlds, entities, mobs, and the player. This function is defined in
@@ -950,8 +955,10 @@ void logic(){
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
 		if(weather==SUNNY){
 			weather=DARK;
+			Mix_PlayChannel(3,crickets,0);
 		}else{
 			weather=SUNNY;
+			Mix_Pause(3);
 		}
 	}
 

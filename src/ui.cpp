@@ -525,8 +525,7 @@ namespace ui {
 				Mix_PlayChannel(1,dialogClick,0);
 			}
 			
-		}else if(!dialogImportant){
-		
+		}else if(!dialogImportant && !fadeIntensity){
 			vec2 hub = {
 				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
 				(offset.y+SCREEN_HEIGHT/2)-fontSize
