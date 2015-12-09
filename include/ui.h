@@ -27,7 +27,7 @@ namespace ui {
 	extern unsigned int fontSize;
 	extern bool			 dialogBoxExists;
 	extern unsigned char dialogOptChosen;
-	extern bool edown;
+	extern bool dialogImportant;
 
 	/*
 	 *	Initializes the FreeType system.
