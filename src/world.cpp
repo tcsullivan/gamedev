@@ -272,6 +272,9 @@ void World::update(Player *p,unsigned int delta){
 	
 	p->loc.y += p->vel.y			 * delta;
 	p->loc.x +=(p->vel.x * p->speed) * delta;
+	if(p->inv->usingi){
+		p->inv->useItem();
+	}
 
 	/*
 	 *	Update coordinates of all entities except for structures.

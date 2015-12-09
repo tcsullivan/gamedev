@@ -829,11 +829,6 @@ void logic(){
 	 *	click detection is done as well for NPC/player interaction.
 	 *
 	*/
-	if((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) && !ui::dialogBoxExists)player->inv->usingi = true;
-	if(player->inv->usingi){
-		player->inv->useItem();
-	}
-
 	for(auto &n : currentWorld->npc){
 		if(n->alive){
 			/*

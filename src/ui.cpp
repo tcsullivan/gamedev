@@ -612,6 +612,9 @@ DONE:
 				if((e.button.button&SDL_BUTTON_RIGHT)&&dialogBoxExists){
 					dialogAdvance();
 				}
+				if((e.button.button&SDL_BUTTON_LEFT)&&!dialogBoxExists){
+					player->inv->usingi = true;
+				}
 				break;
 			/*
 				KEYDOWN
