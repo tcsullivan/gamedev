@@ -208,6 +208,8 @@ unsigned int millis(void){
 extern WEATHER weather;
 
 extern bool fadeEnable;
+extern bool fadeWhite;
+extern bool fadeFast;
 extern unsigned int fadeIntensity;
 
 /*******************************************************************************
@@ -709,7 +711,10 @@ void render(){
 	*/
 	
 	if(fadeIntensity){
-		glColor4ub(0,0,0,fadeIntensity);
+		if(fadeWhite)
+			glColor4ub(255,255,255,fadeIntensity);
+		else
+			glColor4ub(0,0,0,fadeIntensity);
 		glRectf(offset.x-SCREEN_WIDTH /2,
 				offset.y-SCREEN_HEIGHT/2,
 				offset.x+SCREEN_WIDTH /2,
@@ -965,11 +970,11 @@ void logic(){
 	 *	Transition to and from black if necessary.
 	*/
 	if(fadeEnable){
-			 if(fadeIntensity < 160)fadeIntensity+=10;
-		else if(fadeIntensity < 255)fadeIntensity+=5;
+			 if(fadeIntensity < 150)fadeIntensity+=fadeFast?30:10;
+		else if(fadeIntensity < 255)fadeIntensity+=fadeFast?15:5;
 	}else{
-			 if(fadeIntensity > 150)fadeIntensity-=5;
-		else if(fadeIntensity > 0)	fadeIntensity-=10;
+			 if(fadeIntensity > 150)fadeIntensity-=fadeFast?15:5;
+		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?30:10;
 	}
 
 	/*
