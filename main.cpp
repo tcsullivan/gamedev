@@ -703,11 +703,6 @@ void render(){
 		glUseProgramObjectARB(0);
 	}
 	player->inv->draw();
-
-	if(player->inv->usingi && player->inv->detectCollision(vec2{currentWorld->npc[0]->loc.x, currentWorld->npc[0]->loc.y},vec2{currentWorld->npc[0]->loc.x+currentWorld->npc[0]->width,currentWorld->npc[0]->loc.y+currentWorld->npc[0]->height})){
-		currentWorld->npc[0]->alive = false;
-	}
-
 	
 	/*
 	 *	Here we draw a black overlay if it's been requested.
@@ -839,6 +834,10 @@ void logic(){
 			*/
 
 			if(n->canMove) n->wander((rand() % 120 + 30));
+
+			if(player->inv->usingi && player->inv->detectCollision(vec2{n->loc.x, n->loc.y},vec2{n->loc.x+n->width,n->loc.y+n->height})){
+				n->alive=false;
+			}
 			/*
 			 *	Don't bother handling the NPC if another has already been handled.
 			*/
