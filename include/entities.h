@@ -79,6 +79,7 @@ public:
 	
 	Texturec *tex;
 
+	unsigned int randDialog;
 
 	void draw(void);
 	void spawn(float, float);
