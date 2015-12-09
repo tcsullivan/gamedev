@@ -52,6 +52,8 @@ static bool typeOutDone = true;
 
 static bool dialogImportant = false;
 
+Mix_Chunk *dialogClick;
+
 extern void mainLoop(void);
 
 /*
@@ -111,6 +113,8 @@ namespace ui {
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
+		dialogClick = Mix_LoadWAV("assets/click.wav");
+		Mix_Volume(1,50);
 	}
 	
 	/*
@@ -516,6 +520,11 @@ namespace ui {
 				}
 				setFontColor(255,255,255);
 			}
+			
+			if(strcmp(rtext,dialogBoxText)){
+				Mix_PlayChannel(1,dialogClick,0);
+			}
+			
 		}else if(!dialogImportant){
 		
 			vec2 hub = {

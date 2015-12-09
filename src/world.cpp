@@ -299,7 +299,7 @@ static Mix_Music *bgmC;
 
 void World::bgmPlay(void){
 	if(bgmObj && bgmC != bgmObj){
-		Mix_VolumeMusic(15);
+		Mix_VolumeMusic(50);
 		Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
 		bgmC = bgmObj;
 	}

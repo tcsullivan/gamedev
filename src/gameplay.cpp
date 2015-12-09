@@ -39,7 +39,7 @@ void CUTSCENEEE(Mob *callee){
 	player->left  = false;
 	player->loc.x += HLINE * 5;
 	
-	callee->alive = false;
+	callee->alive = true;
 }
 
 void CUTSCENEEE2(Mob *callee){
@@ -53,6 +53,18 @@ void CUTSCENEEE2(Mob *callee){
 void story(Mob *callee){
 	player->vel.x = 0;
 	ui::importantText("It was a dark and stormy night...");
+	ui::waitForDialog();
+	ui::importantText("...and Clyne wanted to hear what the click track sounds like.");
+	ui::waitForDialog();
+	ui::importantText("So Clyne made a really long piece of dialog so that the sound");
+	ui::waitForDialog();
+	ui::importantText("plays");
+	ui::waitForDialog();
+	ui::importantText("multiple");
+	ui::waitForDialog();
+	ui::importantText("times.");
+	ui::waitForDialog();
+	ui::importantText("Clyne is quite satisfied.");
 	ui::waitForDialog();
 	callee->alive = false;
 }
