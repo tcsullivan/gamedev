@@ -313,6 +313,10 @@ void NPC::interact(){ //have the npc's interact back to the player
 	if(aiFunc.size()){
 		func=aiFunc.front();
 		canMove=false;
+		
+		left = (player->loc.x < loc.x);
+		right = !left;
+		
 		if(!func(this)){
 			if(aiFunc.size())aiFunc.erase(aiFunc.begin());
 		}
