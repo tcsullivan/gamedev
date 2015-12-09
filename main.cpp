@@ -210,6 +210,8 @@ unsigned int millis(void){
 extern WEATHER weather;
 
 extern bool fadeEnable;
+extern bool fadeWhite;
+extern bool fadeFast;
 extern unsigned int fadeIntensity;
 
 /*******************************************************************************
@@ -405,7 +407,7 @@ int main(/*int argc, char *argv[]*/){
 	names = fopen("assets/names_en-us", "r+");
 
 	crickets=Mix_LoadWAV("assets/sounds/crickets.wav");
-	Mix_Volume(3,25);
+	//Mix_Volume(2,25);
 	
 	/*
 	 *	Create all the worlds, entities, mobs, and the player. This function is defined in
@@ -714,7 +716,10 @@ void render(){
 	*/
 	
 	if(fadeIntensity){
-		glColor4ub(0,0,0,fadeIntensity);
+		if(fadeWhite)
+			glColor4ub(255,255,255,fadeIntensity);
+		else
+			glColor4ub(0,0,0,fadeIntensity);
 		glRectf(offset.x-SCREEN_WIDTH /2,
 				offset.y-SCREEN_HEIGHT/2,
 				offset.x+SCREEN_WIDTH /2,
@@ -955,10 +960,10 @@ void logic(){
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
 		if(weather==SUNNY){
 			weather=DARK;
-			Mix_PlayChannel(3,crickets,0);
+			Mix_PlayChannel(2,crickets,0);
 		}else{
 			weather=SUNNY;
-			Mix_Pause(3);
+			Mix_Pause(2);
 		}
 	}
 
@@ -972,11 +977,11 @@ void logic(){
 	 *	Transition to and from black if necessary.
 	*/
 	if(fadeEnable){
-			 if(fadeIntensity < 160)fadeIntensity+=10;
-		else if(fadeIntensity < 255)fadeIntensity+=5;
+			 if(fadeIntensity < 150)fadeIntensity+=fadeFast?30:10;
+		else if(fadeIntensity < 255)fadeIntensity+=fadeFast?15:5;
 	}else{
-			 if(fadeIntensity > 150)fadeIntensity-=5;
-		else if(fadeIntensity > 0)	fadeIntensity-=10;
+			 if(fadeIntensity > 150)fadeIntensity-=fadeFast?15:5;
+		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?30:10;
 	}
 
 	/*

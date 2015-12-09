@@ -1,4 +1,5 @@
 #include <world.h>
+#include <ui.h>
 
 #define getWidth(w) ((w->lineCount-GEN_INC)*HLINE)	// Calculates the width of world 'w'
 
@@ -923,6 +924,9 @@ World *World::goInsideStructure(Player *p){
 			if(p->loc.x            > b->loc.x            &&
 			   p->loc.x + p->width < b->loc.x + b->width ){
 				thing.push_back(this);
+				ui::toggleBlackFast();
+				ui::waitForCover();
+				ui::toggleBlackFast();
 				return (World *)b->inside;
 			}
 		}
@@ -932,6 +936,9 @@ World *World::goInsideStructure(Player *p){
 				World *tmp = (World *)thing.back();
 				p->loc.x = b->loc.x + (b->width / 2) - (p->width / 2);
 				thing.erase(thing.end()-1);
+				ui::toggleBlackFast();
+				ui::waitForCover();
+				ui::toggleBlackFast();
 				return tmp;
 			}
 		}

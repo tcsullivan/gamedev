@@ -61,6 +61,8 @@ extern void mainLoop(void);
 */
 
 bool fadeEnable = false;
+bool fadeWhite = false;
+bool fadeFast = false;
 unsigned int fadeIntensity = 0;
 
 bool inBattle = false;
@@ -452,6 +454,11 @@ namespace ui {
 			mainLoop();
 		}while(ui::dialogBoxExists);
 	}
+	void waitForCover(void){
+		do{
+			mainLoop();
+		}while(fadeIntensity != 255);
+	}
 	void importantText(const char *text,...){
 		va_list textArgs;
 		
@@ -559,11 +566,34 @@ namespace ui {
 			}
 		}
 	}
+	void dialogAdvance(void){
+		unsigned char i;
+		if(!typeOutDone){
+			typeOutDone = true;
+			return;
+		}
+
+		for(i=0;i<dialogOptCount;i++){
+			if(mouse.x > dialogOptLoc[i][0] &&
+			   mouse.x < dialogOptLoc[i][2] &&
+			   mouse.y > dialogOptLoc[i][1] &&
+			   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
+				dialogOptChosen = i + 1;
+				goto DONE;
+			}
+		}
+DONE:
+		if(dialogImportant){
+			dialogImportant = false;
+			setFontSize(16);
+			toggleBlack();
+		}
+		dialogBoxExists = false;
+	}
 	void handleEvents(void){
 		static bool left=true,right=false;
 		static vec2 premouse={0,0};
 		static int heyOhLetsGo = 0;
-		unsigned char i;
 		World *tmp;
 		SDL_Event e;
 		
@@ -581,28 +611,7 @@ namespace ui {
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if((e.button.button&SDL_BUTTON_RIGHT)&&dialogBoxExists){
-				
-					if(!typeOutDone){
-						typeOutDone = true;
-						break;
-					}
-				
-					for(i=0;i<dialogOptCount;i++){
-						if(mouse.x > dialogOptLoc[i][0] &&
-						   mouse.x < dialogOptLoc[i][2] &&
-						   mouse.y > dialogOptLoc[i][1] &&
-						   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
-							dialogOptChosen = i + 1;
-							goto DONE;
-						}
-					}
-DONE:
-					if(dialogImportant){
-						dialogImportant = false;
-						setFontSize(16);
-						toggleBlack();
-					}
-					dialogBoxExists = false;
+					dialogAdvance();
 				}
 				break;
 			/*
@@ -611,12 +620,18 @@ DONE:
 			case SDL_KEYDOWN:
 				if(SDL_KEY == SDLK_ESCAPE){
 					gameRunning = false;
+					return;
+				}else if(SDL_KEY == SDLK_SPACE){
+					if(dialogBoxExists)
+						dialogAdvance();
+					else if(player->ground){
+						player->vel.y=.4;
+						player->loc.y+=HLINE*2;
+						player->ground=false;
+					}
 					break;
 				}else if(!dialogBoxExists){//&&!fadeEnable){
 					switch(SDL_KEY){
-					case SDLK_ESCAPE:
-						gameRunning=false;
-						break;
 					case SDLK_a:
 						player->vel.x=-.15;
 						player->left = true;
@@ -643,13 +658,6 @@ DONE:
 						if(inBattle)
 							 currentWorld=((Arena *)currentWorld)->exitArena(player);
 						else currentWorld=currentWorld->goInsideStructure(player);
-						break;
-					case SDLK_SPACE:
-						if(player->ground){
-							player->vel.y=.4;
-							player->loc.y+=HLINE*2;
-							player->ground=false;
-						}
 						break;
 					case SDLK_i:
 						tmp=currentWorld;
@@ -756,5 +764,17 @@ DONE:
 	
 	void toggleBlack(void){
 		fadeEnable ^= true;
+		fadeWhite = false;
+		fadeFast = false;
+	}
+	void toggleBlackFast(void){
+		fadeEnable ^= true;
+		fadeWhite = false;
+		fadeFast = true;
+	}
+	void toggleWhite(void){
+		fadeEnable ^= true;
+		fadeWhite = true;
+		fadeFast = false;
 	}
 }
