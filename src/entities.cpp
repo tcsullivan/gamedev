@@ -103,7 +103,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 	
-	randDialog = rand() % 10;
+	randDialog = rand() % 10 - 1;
 }
 NPC::~NPC(){
 	while(!aiFunc.empty()){
@@ -309,10 +309,10 @@ void NPC::addAIFunc(int (*func)(NPC *),bool preload){
 	else aiFunc.push_back(func);
 }
 
-const char *randomDialog[10] = {
+const char *randomDialog[] = {
 	"What a beautiful day it is.",
 	"Have you ever went fast? I have.",
-	"I heard if you complete a quest, you'll get a special reward."
+	"I heard if you complete a quest, you'll get a special reward.",
 	"How much wood could a woodchuck chuck if a woodchuck could chuck wood?",
 	"I don\'t think anyone has ever been able to climb up that hill.",
 	"If you ever see a hole in the ground, watch out; it could mean the end for you.",

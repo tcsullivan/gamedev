@@ -675,9 +675,9 @@ DONE:
 						tmp=currentWorld;
 						currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
 						if(tmp!=currentWorld){
-							player->loc.y=0;
 							currentWorld->behind->detect(player);
 							player->vel.y=.2;
+							player->loc.y+=HLINE*5;
 							player->ground=false;
 						}
 						break;
