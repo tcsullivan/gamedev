@@ -55,18 +55,6 @@ void story(Mob *callee){
 	Mix_FadeOutMusic(0);
 	ui::importantText("It was a dark and stormy night...");
 	ui::waitForDialog();
-	ui::importantText("...and Clyne wanted to hear what the click track sounds like.");
-	ui::waitForDialog();
-	ui::importantText("So Clyne made a really long piece of dialog so that the sound");
-	ui::waitForDialog();
-	ui::importantText("plays");
-	ui::waitForDialog();
-	ui::importantText("multiple");
-	ui::waitForDialog();
-	ui::importantText("times.");
-	ui::waitForDialog();
-	ui::importantText("Clyne is a faggot.");
-	ui::waitForDialog();
 	callee->alive = false;
 }
 
@@ -129,6 +117,7 @@ void initEverything(void){
 	
 	iw=new IndoorWorld();
 	iw->setBackground(BG_WOODHOUSE);
+	iw->setBGM(NULL);
 	iw->generate(200);
 	iw->addMob(MS_TRIGGER,0,0,CUTSCENEEE2);
 	

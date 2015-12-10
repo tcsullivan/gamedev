@@ -41,7 +41,13 @@ const float bgDraw[3][3]={
 };
 
 float worldGetYBase(World *w){
-	return w?GEN_MIN:0;
+	World *tmp = w;
+	float base = GEN_MIN;
+	while(tmp->infront){
+		tmp = tmp->infront;
+		base -= DRAW_Y_OFFSET;
+	}
+	return base;
 }
 
 void World::setBackground(WORLD_BG_TYPE bgt){
@@ -298,11 +304,14 @@ void World::update(Player *p,unsigned int delta){
 
 void World::setBGM(const char *path){
 	if(!bgm) delete[] bgm;
-	//if(!path){
+	if(path != NULL){
 		bgm = new char[strlen(path) + 1];
 		strcpy(bgm,path);
 		bgmObj = Mix_LoadMUS(bgm);
-	//}else std::cout<<path;
+	}else{
+		bgm = new char[1];
+		bgm[0] = '\0';
+	}
 }
 
 static Mix_Music *bgmC;
@@ -312,6 +321,8 @@ void World::bgmPlay(void){
 		Mix_VolumeMusic(50);
 		Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
 		bgmC = bgmObj;
+	}else{
+		Mix_FadeOutMusic(800);
 	}
 }
 
@@ -331,17 +342,26 @@ extern unsigned int tickCount;
 void World::draw(Player *p){
 	static float yoff=DRAW_Y_OFFSET;	// Initialize stuff
 	static int shade,bgshade;
-	static World *current;
+	static World *current=this;
 	unsigned int i;
 	int is,ie,v_offset,cx_start,width;
 	struct line_t *cline;
+	float base;
 	
 	bgshade = worldShade << 1; // *2
-	width = (-x_start) << 1;
+	base = worldGetYBase(this);
 	
 	/*
 	 *	Draw the background images in the appropriate order.
 	*/
+	
+LLLOOP:
+	if(current->infront){
+		current=current->infront;
+		goto LLLOOP;
+	}
+	cx_start = current->x_start;
+	width = (-x_start) << 1;
 	
 	glEnable(GL_TEXTURE_2D);
 	
@@ -349,20 +369,20 @@ void World::draw(Player *p){
 	safeSetColorA(255,255,255,255 - worldShade * 4);
 	
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,0);glVertex2i( x_start,SCREEN_HEIGHT);
-		glTexCoord2i(1,0);glVertex2i(-x_start,SCREEN_HEIGHT);
-		glTexCoord2i(1,1);glVertex2i(-x_start,0);
-		glTexCoord2i(0,1);glVertex2i( x_start,0);
+		glTexCoord2i(0,0);glVertex2i( cx_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,0);glVertex2i(-cx_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,1);glVertex2i(-cx_start,0);
+		glTexCoord2i(0,1);glVertex2i( cx_start,0);
 	glEnd();
 	
 	bgTex->bindNext();
 	safeSetColorA(255,255,255,worldShade * 4);
 	
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,0);glVertex2i( x_start,SCREEN_HEIGHT);
-		glTexCoord2i(1,0);glVertex2i(-x_start,SCREEN_HEIGHT);
-		glTexCoord2i(1,1);glVertex2i(-x_start,0);
-		glTexCoord2i(0,1);glVertex2i( x_start,0);
+		glTexCoord2i(0,0);glVertex2i( cx_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,0);glVertex2i(-cx_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,1);glVertex2i(-cx_start,0);
+		glTexCoord2i(0,1);glVertex2i( cx_start,0);
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);
@@ -399,10 +419,10 @@ void World::draw(Player *p){
 	
 	glBegin(GL_QUADS);
 		for(int i = 0; i <= width/1920; i++){
-			glTexCoord2i(0,1);glVertex2i(width/-2+(1920*i    )+offset.x*.85,GEN_MIN);
-			glTexCoord2i(1,1);glVertex2i(width/-2+(1920*(i+1))+offset.x*.85,GEN_MIN);
-			glTexCoord2i(1,0);glVertex2i(width/-2+(1920*(i+1))+offset.x*.85,GEN_MIN+1080);
-			glTexCoord2i(0,0);glVertex2i(width/-2+(1920*i    )+offset.x*.85,GEN_MIN+1080);
+			glTexCoord2i(0,1);glVertex2i(width/-2+(1920*i    )+offset.x*.85,base);
+			glTexCoord2i(1,1);glVertex2i(width/-2+(1920*(i+1))+offset.x*.85,base);
+			glTexCoord2i(1,0);glVertex2i(width/-2+(1920*(i+1))+offset.x*.85,base+1080);
+			glTexCoord2i(0,0);glVertex2i(width/-2+(1920*i    )+offset.x*.85,base+1080);
 		}
 	glEnd();
 	
@@ -415,11 +435,11 @@ void World::draw(Player *p){
 		safeSetColorA(bgDraw[i][0]-bgshade,bgDraw[i][0]-bgshade,bgDraw[i][0]-bgshade,bgDraw[i][1]);
 	
 		glBegin(GL_QUADS);
-			for(int j = x_start; j <= -x_start; j += 600){
-				glTexCoord2i(0,1);glVertex2i( j     +offset.x*bgDraw[i][2],GEN_MIN);
-				glTexCoord2i(1,1);glVertex2i((j+600)+offset.x*bgDraw[i][2],GEN_MIN);
-				glTexCoord2i(1,0);glVertex2i((j+600)+offset.x*bgDraw[i][2],GEN_MIN+400);
-				glTexCoord2i(0,0);glVertex2i( j     +offset.x*bgDraw[i][2],GEN_MIN+400);
+			for(int j = cx_start; j <= -cx_start; j += 600){
+				glTexCoord2i(0,1);glVertex2i( j     +offset.x*bgDraw[i][2],base);
+				glTexCoord2i(1,1);glVertex2i((j+600)+offset.x*bgDraw[i][2],base);
+				glTexCoord2i(1,0);glVertex2i((j+600)+offset.x*bgDraw[i][2],base+400);
+				glTexCoord2i(0,0);glVertex2i( j     +offset.x*bgDraw[i][2],base+400);
 			}
 		glEnd();
 	}
@@ -500,9 +520,10 @@ LOOP2:
 	*/
 	
 	for(auto &b : current->build){
-		b->loc.y+=(yoff-DRAW_Y_OFFSET);
+		//b->loc.y+=(yoff-DRAW_Y_OFFSET);
 		b->draw();
-		b->loc.y-=(yoff-DRAW_Y_OFFSET);
+		//b->loc.y-=(yoff-DRAW_Y_OFFSET);
+		std::cout<<b->loc.x<<" "<<b->loc.y<<std::endl;
 	}
 	
 	/*
@@ -514,7 +535,7 @@ LOOP2:
 		for(i=is;i<(unsigned)ie-GEN_INC;i++){
 			cline[i].y+=(yoff-DRAW_Y_OFFSET);															// Add the y offset
 			if(!cline[i].y){
-				cline[i].y+=50;
+				cline[i].y=base;
 				hey=true;
 				safeSetColor(cline[i].color-100+shade,cline[i].color-150+shade,cline[i].color-200+shade);
 			}else{
@@ -789,7 +810,12 @@ void World::singleDetect(Entity *e){
 		
 		}else{
 			
-			if(e->vel.y > -2)e->vel.y-=.003 * deltaTime;
+			if(e->type == STRUCTURET && e->loc.y > 2000){
+				e->loc.y = line[i].y;
+				e->vel.y = 0;
+				e->ground = true;
+				return;
+			}else if(e->vel.y > -2)e->vel.y-=.003 * deltaTime;
 			
 		}
 		
@@ -812,6 +838,7 @@ void World::singleDetect(Entity *e){
 }
 
 void World::detect(Player *p){
+	World *hey = this;
 	
 	/*
 	 *	Handle the player. 
@@ -823,8 +850,13 @@ void World::detect(Player *p){
 	 *	Handle all remaining entities in this world. 
 	*/
 	
-	for(auto &e : entity)
-		singleDetect(e);
+LOOOOP:
+	for(auto &e : hey->entity)
+		hey->singleDetect(e);
+	if(hey->infront){
+		hey = hey->infront;
+		goto LOOOOP;
+	}
 }
 
 void World::addStructure(_TYPE t,float x,float y,World *outside,World *inside){
@@ -835,18 +867,6 @@ void World::addStructure(_TYPE t,float x,float y,World *outside,World *inside){
 	
 	entity.push_back(build.back());
 }
-
-/*template<class T>
-void World::getEntityLocation(std::vector<T*>&vecBuf, unsigned int n){
-	T bufVar = vecBuf.at(n);
-	unsigned int i = 0;
-	for(auto &e : entity){
-		if(entity.at(i) == bufVar){
-			entity.erase(entity.begin()+i);
-		}
-		i++;
-	}
-}*/
 	
 void World::addMob(int t,float x,float y){
 	mob.push_back(new Mob(t));
@@ -897,6 +917,9 @@ void World::addLayer(unsigned int width){
 	behind=new World();
 	behind->generate(width);
 	behind->infront=this;
+	behind->star=star;
+	behind->bgmObj=bgmObj;
+	behind->bgTex=bgTex;
 }
 
 World *World::goWorldLeft(Player *p){
