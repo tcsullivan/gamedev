@@ -54,11 +54,17 @@ typedef struct {
 	vec2 end;
 } Ray;
 
+typedef struct{
+	float red;
+	float green;
+	float blue;
+} Color;
+
 /**
  * Define the game's name (displayed in the window title).
  */
 
-#define GAME_NAME		"Independent Study v.0.4 alpha"
+#define GAME_NAME		"Independent Study v.0.5 alpha - NOW WITH SOUND!"
 
 /**
  * The desired width of the game window.

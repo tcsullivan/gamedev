@@ -159,12 +159,14 @@ public:
 	std::vector<Mob			*>	mob;
 	std::vector<Entity		*>	entity;
 	std::vector<Object		*>	object;
+	std::vector<Particles	*>	particles;
 	
 	void addStructure(_TYPE t,float x,float y,World *outside,World *inside);
 	void addMob(int t,float x,float y);
 	void addMob(int t,float x,float y,void (*hey)(Mob *));
 	void addNPC(float x,float y);
 	void addObject(ITEM_ID, bool, const char *, float, float);
+	void addParticle(float x, float y, float w, float h, Color color);
 	
 	void update(Player *p,unsigned int delta);
 	

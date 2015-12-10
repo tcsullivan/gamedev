@@ -7,7 +7,7 @@
 extern Player *player;
 extern GLuint invUI;
 static float hangle = 0.0f;
-static bool up = true;
+static bool swing = false;
 static float xc,yc;
 static vec2 itemLoc;
 Mix_Chunk* swordSwing;
@@ -278,13 +278,13 @@ void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
 			if(hangle < 15){
 				hangle=15.0f;
 				p->inv->usingi = false;
-				up = false;
+				//swing=false;
 			}
 		}else{
 			if(hangle > -15){
 				hangle=-15.0f;
 				p->inv->usingi = false;
-				up = false;
+				//swing=false;
 			}
 		}
 		break;
@@ -310,19 +310,31 @@ void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
 }
 
 int Inventory::useItem(void){
+	static bool up = false;
 	ITEM_TYPE type = item[inv[sel].id].type;
 	if(!invHover){
 		switch(type){
 		case SWORD:
-		if(!player->left){
-			if(hangle==-15){up=true;Mix_PlayChannel(2,swordSwing,0);}
-			if(up)hangle-=15;
-			if(hangle<=-90)hangle=-14;
-		}else{
-			if(hangle==15){up=true;Mix_PlayChannel(2,swordSwing,0);}
-			if(up)hangle+=15;
-			if(hangle>=90)hangle=14;
-		}
+			if(swing){
+				if(!player->left){
+					/*if(hangle==-15){up=true;Mix_PlayChannel(2,swordSwing,0);}
+					if(up)hangle-=.75*deltaTime;
+					if(hangle<=-90)hangle=-14;*/
+				}else{
+					if(hangle<90&&!up)hangle+=.75*deltaTime;
+					if(hangle>=90&&!up)up=true;
+					if(up)hangle-=.75*deltaTime;
+					if(up&&hangle<=15){
+						up=false;
+						swing=false;
+						hangle=15;
+						return 0;
+					}
+				}
+			}else if(!swing){
+				swing=true;
+				Mix_PlayChannel(2,swordSwing,0);
+			}
 			break;
 		default:
 			break;

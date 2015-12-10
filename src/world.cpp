@@ -600,7 +600,8 @@ LOOP2:
 			o->draw();
 			o->loc.y-=(yoff-DRAW_Y_OFFSET);
 		}
-	}
+	}for(auto &o : particles){o->draw();}
+
 	
 	/*
 	 *	If we're drawing the closest/last world, handle and draw the player.
@@ -874,6 +875,10 @@ void World::addObject(ITEM_ID i, bool q, const char *p, float x, float y){
 	object.back()->spawn(x,y);
 
 	entity.push_back(object.back());
+}
+
+void World::addParticle(float x, float y, float w, float h, Color color){
+	particles.push_back(new Particles(x,y,w,h,color));
 }
 
 /*void World::removeObject(Object i){

@@ -319,7 +319,8 @@ const char *randomDialog[10] = {
 	"Did you know this game has over 4000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
 	"HELP MY CAPS LOCK IS STUCK",
 	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
-	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment."
+	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
+	"Frig."
 };
 
 void NPC::interact(){ //have the npc's interact back to the player

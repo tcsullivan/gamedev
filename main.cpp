@@ -515,7 +515,6 @@ void mainLoop(void){
 		debugDiv=0;
 		
 		fps=1000/deltaTime;
-		
 	}else if(!(debugDiv%10)){
 		debugY = player->loc.y;
 	}
@@ -841,7 +840,8 @@ void logic(){
 			if(n->canMove) n->wander((rand() % 120 + 30));
 
 			if(player->inv->usingi && player->inv->detectCollision(vec2{n->loc.x, n->loc.y},vec2{n->loc.x+n->width,n->loc.y+n->height})){
-				n->alive=false;
+				n->health -= 25;
+				currentWorld->addParticle(n->loc.x, n->loc.y, HLINE*3, HLINE*3, {255,0,0});
 			}
 			/*
 			 *	Don't bother handling the NPC if another has already been handled.

@@ -34,6 +34,25 @@ enum MOB_SUB {
 	MS_TRIGGER
 };
 
+struct Particles{
+	vec2 loc;
+	float width;
+	float height;
+	Color color;
+	Particles(float x, float y, float w, float h, Color c){
+		loc.x = (x);
+		loc.y = (y);
+		width = (w);
+		height = (h);
+		color.red = (c.red);
+		color.green = (c.green);
+		color.blue = (c.blue);
+	}
+	void draw(){
+		std::cout << "Drawing Particles\n";
+	}
+};
+
 class Entity{
 public:
 	Inventory *inv;
