@@ -48,6 +48,7 @@ static char dialogBoxText[512];
 static char *dialogOptText[4];
 static float dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
+static bool dialogPassive = false;
 static bool typeOutDone = true;
 
 Mix_Chunk *dialogClick;
@@ -346,7 +347,8 @@ namespace ui {
 			
 			if(linc<size)
 				linc++;
-			else typeOutDone = true;
+			else
+				typeOutDone = true;
 		}
 		
 		return ret;		//	The buffered string.
@@ -385,10 +387,12 @@ namespace ui {
 		
 		return width;
 	}
-	void dialogBox(const char *name,const char *opt,const char *text,...){
+	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...){
 		va_list dialogArgs;
 		unsigned int len;
 		char *sopt,*soptbuf;
+		
+		dialogPassive = passive;
 		
 		/*
 		 *	Set up the text buffer.
@@ -422,7 +426,7 @@ namespace ui {
 		};
 
 		dialogOptChosen=0;
-		dialogOptCount=0;
+		memset(&dialogOptLoc,0,sizeof(float)*12);
 		
 		if(opt){
 			
@@ -632,7 +636,8 @@ DONE:
 						player->ground=false;
 					}
 					break;
-				}else if(!dialogBoxExists){//&&!fadeEnable){
+				}else if(!dialogBoxExists || dialogPassive){
+					tmp = currentWorld;
 					switch(SDL_KEY){
 					case SDLK_a:
 						player->vel.x=-.15;
@@ -641,6 +646,8 @@ DONE:
 						left = true;
 						right = false;
 						currentWorld=currentWorld->goWorldLeft(player);
+						if(tmp!=currentWorld)
+							dialogBoxExists = false;
 						break;
 					case SDLK_d:
 						player->vel.x=.15;
@@ -649,6 +656,8 @@ DONE:
 						left = false;
 						right = true;
 						currentWorld=currentWorld->goWorldRight(player);
+						if(tmp!=currentWorld)
+							dialogBoxExists = false;
 						break;
 					case SDLK_s:
 						if(player->ground == 2){
@@ -662,7 +671,6 @@ DONE:
 						else currentWorld=currentWorld->goInsideStructure(player);
 						break;
 					case SDLK_i:
-						tmp=currentWorld;
 						currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
 						if(tmp!=currentWorld){
 							currentWorld->detect(player);
@@ -672,7 +680,6 @@ DONE:
 						}
 						break;
 					case SDLK_k:
-						tmp=currentWorld;
 						currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
 						if(tmp!=currentWorld){
 							currentWorld->behind->detect(player);
@@ -682,7 +689,13 @@ DONE:
 						}
 						break;
 					case SDLK_LSHIFT:
-						player->speed = debug ? 4.0f : 3.0f;
+						if(debug){
+							Mix_Chunk *sanic;
+							sanic = Mix_LoadWAV("assets/sounds/sanic.wav");
+							Mix_PlayChannel(1,sanic,-1);
+							player->speed = 4.0f;
+						}else
+							player->speed = 2.0f;
 						break;
 					case SDLK_LCTRL:
 						player->speed = .5;
@@ -720,6 +733,9 @@ DONE:
 					right = false;
 					break;
 				case SDLK_LSHIFT:
+					if(player->speed == 4){
+						Mix_FadeOutChannel(1,2000);
+					}
 					player->speed = 1;
 					break;
 				case SDLK_LCTRL:

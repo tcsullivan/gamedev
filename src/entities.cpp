@@ -148,7 +148,7 @@ Mob::Mob(int sub){
 		height = HLINE * 8;
 		tex = new Texturec(1, "assets/robin.png");
 	case MS_TRIGGER:
-		width = HLINE * 8;
+		width = HLINE * 20;
 		height = 2000;
 		tex = new Texturec(0);
 		break;
@@ -337,7 +337,7 @@ void NPC::interact(){ //have the npc's interact back to the player
 			if(aiFunc.size())aiFunc.erase(aiFunc.begin());
 		}
 	}else{
-		ui::dialogBox(name,NULL,randomDialog[randDialog]);
+		ui::dialogBox(name,NULL,false,randomDialog[randDialog]);
 	}
 	ui::waitForDialog();
 	canMove=true;
@@ -345,7 +345,7 @@ void NPC::interact(){ //have the npc's interact back to the player
 
 void Object::interact(void){
 	if(questObject && alive){
-		ui::dialogBox(player->name,":Yes:No",pickupDialog);		
+		ui::dialogBox(player->name,":Yes:No",false,pickupDialog);		
 		ui::waitForDialog();
 		if(ui::dialogOptChosen == 1){
 			player->inv->addItem((ITEM_ID)(identifier), (char)1);
@@ -434,8 +434,6 @@ void Mob::wander(int timeRun){
 	case MS_TRIGGER:
 		if(player->loc.x + player->width / 2 > loc.x		 &&
 		   player->loc.x + player->width / 2 < loc.x + width ){
-			if(player->left)player->loc.x = loc.x + width;
-			else if(player->right) player->loc.x = loc.x - player->width;
 			hey(this);
 		}
 		break;

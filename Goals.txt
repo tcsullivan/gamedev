@@ -27,7 +27,7 @@ Summary:
 idea of a parallaxed background was applied, with up to four layers of tiled background material.
 Combinations of background layers were sorted and added to the World class with a World::setBackground()
 function. The inventory was created, with an animated inventory view based off of the player finished
-by the end of the month.
+by the end of the month. ...
 
 End of December:
 ================

@@ -1,55 +1,25 @@
 #include <common.h>
+#include <entities.h>
 #include <world.h>
 #include <ui.h>
-#include <entities.h>
 
 extern World	*currentWorld;
 extern Player	*player;
 
-int compTestQuest(NPC *speaker){
-	ui::dialogBox(speaker->name,NULL,"Ooo, that's a nice quest you got there. Lemme finish that for you ;).");
-	player->qh.finish("Test",player);
-	return 0;
-}
-
-int giveTestQuest(NPC *speaker){
-	ui::dialogBox(speaker->name,":Yes:No","Here, have a quest!");
-	ui::waitForDialog();
-	
-	if(ui::dialogOptChosen == 1){
-		
-		ui::dialogBox(speaker->name,"","Have a good day! :)");
-		ui::waitForDialog();
-
-		player->qh.assign("Test");
-		currentWorld->npc[1]->addAIFunc(compTestQuest,true);
-		
-	}else return 1;
-	
-	return 0;
-}
-
-void CUTSCENEEE(Mob *callee){
-	player->vel.x = 0;
-	
-	ui::dialogBox(player->name,":K then","No way I\'m gettin\' up this hill.");
-	ui::waitForDialog();
-
-	player->right = true;
-	player->left  = false;
-	player->loc.x += HLINE * 5;
-	
-	callee->alive = true;
-}
-
-void CUTSCENEEE2(Mob *callee){
-	player->vel.x = 0;
-	ui::dialogBox(player->name,":Yeah.",
-	"What the fuck is this dead end supposed to mean, and why this place smell like soap.");
-	ui::waitForDialog();
-	callee->alive = false;
-}
-
+/*
+ * 	int (npc*)
+ * 
+ *	dialog
+ *	wait...
+ * 
+ * 	switch optchosen
+ * 
+ * 	qh.assign
+ *	addAIFunc?
+ * 
+ * 	return 1 = repeat
+ */
+ 
 void story(Mob *callee){
 	player->vel.x = 0;
 	Mix_FadeOutMusic(0);
@@ -58,89 +28,105 @@ void story(Mob *callee){
 	callee->alive = false;
 }
 
-float playerSpawnHillFunc(float x){
-	return (float)(pow(2,(-x+200)/5) + 80);
+float gen_worldSpawnHill1(float x){
+	return (float)(pow(2,(-x+200)/5) + GEN_MIN);
 }
 
-static World *test;
-static World *playerSpawnHill;
-static IndoorWorld *iw;
+float gen_worldSpawnHill3(float x){
+	float tmp = 60*atan(-(x/30-20))+GEN_MIN*2;
+	return tmp>GEN_MIN?tmp:GEN_MIN;
+}
+
+/*
+ *	Thing-thangs
+ */
+
+void worldSpawnHill1_hillBlock(Mob *callee){
+	player->vel.x = 0;
+	player->loc.x = callee->loc.x + callee->width;
+	ui::dialogBox(player->name,NULL,false,"This hill seems to steep to climb up...");
+	callee->alive = true;
+}
+
+void worldSpawnHill2_infoSprint(Mob *callee){
+	ui::dialogBox("B-) ",NULL,true,"Press \'Shift\' to run!");
+	callee->alive = false;
+}
+
+void worldSpawnHill3_itemGet(Mob *callee){
+	ui::dialogBox("B-) ",NULL,true,"Right click to pick up items!");
+	callee->alive = false;
+}
+
+void worldSpawnHill3_itemSee(Mob *callee){
+	ui::dialogBox("B-) ",NULL,true,"Press \'e\' to open your inventory!");
+	callee->alive = false;
+}
+
+void worldSpawnHill3_leave(Mob *callee){
+	ui::dialogBox("B-) ",NULL,true,"Now jump in this hole, and let your journey begin :)");
+	callee->alive = false;
+}
+
+/*
+ *	new world 
+ *	gen
+ * 	setbackground
+ * 	setbgm
+ * 	add...
+ * 
+ */
+
+/*
+ *	World definitions
+ */
+
+static World *worldSpawnHill1;
+static World *worldSpawnHill2;
+static World *worldSpawnHill3;
+
+/*
+ *	initEverything() start
+ */
 
 void destroyEverything(void);
-
 void initEverything(void){
-	//FILE *load;
-	
-	/*
-	 *	World creation:
-	*/
-	
-	test=new World();
-	
-	test->generate(SCREEN_WIDTH*2);
-	test->setBackground(BG_FOREST);
-	test->setBGM("assets/music/embark.wav");
-	
-	test->addHole(100,150);
-	test->addLayer(400);
-	
-	playerSpawnHill=new World();
-	playerSpawnHill->setBackground(BG_FOREST);
-	playerSpawnHill->setBGM("assets/music/embark.wav");
-	
-	/*if((load=fopen("world.dat","rb"))){
-		playerSpawnHill->load(load);
-		fclose(load);
-	}else{*/
-		playerSpawnHill->generateFunc(1280,playerSpawnHillFunc);
-	//}
 
-	/*
-	 *	Setup the current world, making the player initially spawn in `test`.
-	*/
-	
-	currentWorld=playerSpawnHill;
-	
-	playerSpawnHill->toRight=test;
-	test->toLeft=playerSpawnHill;
-	
-	/*
-	 *	Create the player.
-	*/
-	
-	player=new Player();
-	player->spawn(-1000,200);
-	
-	/*
-	 *	Create a structure (this will create villagers when spawned).
-	*/
-	
-	iw=new IndoorWorld();
-	iw->setBackground(BG_WOODHOUSE);
-	iw->setBGM(NULL);
-	iw->generate(200);
-	iw->addMob(MS_TRIGGER,0,0,CUTSCENEEE2);
-	
-	/*
-	 *	Spawn some entities.
-	*/
+	worldSpawnHill1 = new World();
+	worldSpawnHill1->generateFunc(400,gen_worldSpawnHill1);
+	worldSpawnHill1->setBackground(BG_FOREST);
+	worldSpawnHill1->setBGM("assets/music/embark.wav");
+	worldSpawnHill1->addMob(MS_TRIGGER,0,0,worldSpawnHill1_hillBlock);
 
-	playerSpawnHill->addMob(MS_TRIGGER,player->loc.x,0,story);
-
-	playerSpawnHill->addStructure(STRUCTURET,(rand()%120*HLINE),100,test,iw);
-	playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);
+	worldSpawnHill2 = new World();
+	worldSpawnHill2->generate(700);
+	worldSpawnHill2->setBackground(BG_FOREST);
+	worldSpawnHill2->setBGM("assets/music/embark.wav");
+	worldSpawnHill2->addMob(MS_TRIGGER,-400,0,worldSpawnHill2_infoSprint);
 	
-	playerSpawnHill->addObject(SWORD_WOOD, false, "", 480,200);
-	playerSpawnHill->addObject(FLASHLIGHT, false, "", 500,200);
-	playerSpawnHill->addObject(PLAYER_BAG, false, "", 520,200);
-	playerSpawnHill->addObject(TEST_ITEM, false, "", 540,200);
+	worldSpawnHill3 = new World();
+	worldSpawnHill3->generateFunc(1000,gen_worldSpawnHill3);
+	worldSpawnHill3->setBackground(BG_FOREST);
+	worldSpawnHill3->setBGM("assets/music/embark.wav");
+	worldSpawnHill3->addMob(MS_TRIGGER,-500,0,worldSpawnHill3_itemGet);
+	worldSpawnHill3->addMob(MS_TRIGGER,0,0,worldSpawnHill3_itemSee);
+	worldSpawnHill3->addObject(TEST_ITEM,false,"",-200,300);
+	worldSpawnHill3->addMob(MS_TRIGGER,400,0,worldSpawnHill3_leave);
+	worldSpawnHill3->addHole(800,1000);
 	
-	test->addMob(MS_RABBIT,200,100);
-	test->addMob(MS_BIRD,-500,500);
+	worldSpawnHill1->toRight = worldSpawnHill2;
+	worldSpawnHill2->toLeft = worldSpawnHill1;
 	
-	playerSpawnHill->npc[0]->addAIFunc(giveTestQuest,false);
+	worldSpawnHill2->toRight = worldSpawnHill3;
+	worldSpawnHill3->toLeft = worldSpawnHill2;
 	
-	currentWorld->bgmPlay();
+	currentWorld = worldSpawnHill1;
+	
+	player = new Player();
+	player->spawn(200,100);
+	
+	currentWorld->bgmPlay(NULL);
+	
 	atexit(destroyEverything);
 }
 
@@ -148,21 +134,8 @@ extern std::vector<int (*)(NPC *)> AIpreload;
 extern std::vector<NPC *> AIpreaddr;
 
 void destroyEverything(void){
-	//FILE *save;
-	
-	/*save = fopen("world.dat","wb");
-	playerSpawnHill->save(save);
-	fclose(save);*/
-	
-	delete test;
-	delete playerSpawnHill;
-	
-	while(!AIpreload.empty()){
+	while(!AIpreload.empty())
 		AIpreload.pop_back();
-	}
-	while(!AIpreaddr.empty()){
+	while(!AIpreaddr.empty())
 		AIpreaddr.pop_back();
-	}
-	
-	//delete iw;	// segfaults
 }
