@@ -151,6 +151,10 @@ Mob::Mob(int sub){
 		width = HLINE * 20;
 		height = 2000;
 		tex = new Texturec(0);
+	case MS_DOOR:
+		width = HLINE * 10;
+		height = HLINE * 16;
+		tex = new Texturec(1,"assets/door.png");
 		break;
 	}
 	
@@ -236,6 +240,7 @@ void Entity::draw(void){		//draws the entities
 				goto NOPE;
 				break;
 			case MS_BIRD:
+			case MS_DOOR:
 			default:
 				tex->bind(0);
 				break;
@@ -437,6 +442,7 @@ void Mob::wander(int timeRun){
 			hey(this);
 		}
 		break;
+	case MS_DOOR:
 	default:
 		break;
 	}

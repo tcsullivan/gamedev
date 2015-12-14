@@ -231,6 +231,9 @@ public:
 	World *goWorldRight(Player *p);					
 	World *goWorldBack(Player *p);
 	World *goWorldFront(Player *p);
+
+	bool isWorldLeft(void);
+	bool isWorldRight(void);
 	
 	/*
 	 *	Called to enter/exit a structure.
@@ -277,7 +280,6 @@ public:
 class Arena : public World {
 private:
 	vec2	 pxy;
-	vec2	 door;
 	World	*exit;
 public:
 	Arena(World *leave,Player *p);

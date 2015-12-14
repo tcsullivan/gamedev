@@ -48,9 +48,17 @@ void worldSpawnHill1_hillBlock(Mob *callee){
 	callee->alive = true;
 }
 
+static Arena *a;
 void worldSpawnHill2_infoSprint(Mob *callee){
-	ui::dialogBox("B-) ",NULL,true,"Press \'Shift\' to run!");
 	callee->alive = false;
+	a = new Arena(currentWorld,player);
+	a->setBackground(BG_FOREST);
+	a->setBGM("assets/music/embark.wav");
+	ui::toggleWhiteFast();
+	ui::waitForCover();
+	currentWorld = a;
+	ui::toggleWhiteFast();
+	//ui::dialogBox("B-) ",NULL,true,"Press \'Shift\' to run!");
 }
 
 void worldSpawnHill3_itemGet(Mob *callee){
