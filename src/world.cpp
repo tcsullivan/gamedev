@@ -109,11 +109,10 @@ void World::deleteEntities(void){
 	while(!entity.empty()){
 		entity.pop_back();
 	}
-
 	while(!particles.empty()){
 		delete particles.back();
 		particles.pop_back();
-	}//particles.clear();
+	}
 }
 
 World::~World(void){

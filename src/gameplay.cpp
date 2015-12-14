@@ -142,7 +142,6 @@ void initEverything(void){
 
 
 	currentWorld = worldSpawnHill1;
-	worldSpawnHill2->addStructure(STRUCTURET,FOUNTAIN,(rand()%120*HLINE)+100*HLINE,100,worldSpawnHill2,worldSpawnHill2);
 	
 	player = new Player();
 	player->spawn(200,100);
