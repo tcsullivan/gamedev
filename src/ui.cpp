@@ -682,7 +682,7 @@ DONE:
 						}
 						break;
 					case SDLK_LSHIFT:
-						player->speed = debug ? 4.0f : 3.0f;
+						player->speed = debug ? 4.0f : 1.75f;
 						break;
 					case SDLK_LCTRL:
 						player->speed = .5;

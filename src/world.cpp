@@ -108,7 +108,14 @@ void World::deleteEntities(void){
 		delete object.back();
 		object.pop_back();
 	}
-	while(!entity.empty()) entity.pop_back();
+	while(!entity.empty()){
+		entity.pop_back();
+	}
+
+	while(!particles.empty()){
+		delete particles.back();
+		particles.pop_back();
+	}//particles.clear();
 }
 
 World::~World(void){
@@ -294,6 +301,28 @@ void World::update(Player *p,unsigned int delta){
 	   else if(e->vel.x > 0)e->left = false;
 		}
 	}
+	uint oh = 0;
+	for(auto &pa : particles){
+		if(pa->kill(deltaTime)){
+			delete pa;
+			particles.erase(particles.begin()+oh);
+		}else if(pa->canMove){
+			pa->loc.y += pa->vely * deltaTime;
+			pa->loc.x += pa->velx * deltaTime;
+
+			for(auto &b : build){
+				if(b->bsubtype==FOUNTAIN){
+					if(pa->loc.x >= b->loc.x && pa->loc.x <= b->loc.x+b->width){
+						if(pa->loc.y <= b->loc.y + b->height*.25){
+							delete pa;
+							particles.erase(particles.begin()+oh);
+						}
+					}
+				}
+			}
+		}
+		oh++;
+	}oh=0;
 	
 	if(ui::dialogImportant){
 		Mix_FadeOutMusic(2000);
@@ -523,7 +552,7 @@ LOOP2:
 		//b->loc.y+=(yoff-DRAW_Y_OFFSET);
 		b->draw();
 		//b->loc.y-=(yoff-DRAW_Y_OFFSET);
-		std::cout<<b->loc.x<<" "<<b->loc.y<<std::endl;
+		//std::cout<<b->loc.x<<" "<<b->loc.y<<std::endl;
 	}
 	
 	/*
@@ -604,7 +633,7 @@ LOOP2:
 	/*
 	 *	Draw non-structure entities.
 	*/
-		
+	for(auto &part : particles){part->draw();}
 	for(auto &n : current->npc){
 		n->loc.y+=(yoff-DRAW_Y_OFFSET);
 		n->draw();
@@ -621,7 +650,7 @@ LOOP2:
 			o->draw();
 			o->loc.y-=(yoff-DRAW_Y_OFFSET);
 		}
-	}for(auto &o : particles){o->draw();}
+	}
 
 	
 	/*
@@ -851,23 +880,52 @@ void World::detect(Player *p){
 	*/
 	
 LOOOOP:
+	static int what = 0;
 	for(auto &e : hey->entity)
 		hey->singleDetect(e);
+	for(auto &part : particles){
+		int l;
+		unsigned int i;
+		l=(part->loc.x + part->width / 2 - x_start) / HLINE;
+		if(l < 0) l=0;
+		i = l;
+		if(i > lineCount-1) i=lineCount-1;
+		if(part->loc.y < line[i].y){
+			part->loc.y = line[i].y;
+			part->vely = 0;
+			part->velx = 0;
+			part->canMove = false;
+		}else{
+			if(part->vely > -2)part->vely-=.003 * deltaTime;
+		}
+		what++;
+	}what=0;
 	if(hey->infront){
 		hey = hey->infront;
 		goto LOOOOP;
 	}
 }
-
-void World::addStructure(_TYPE t,float x,float y,World *outside,World *inside){
+void World::addStructure(_TYPE t,BUILD_SUB sub, float x,float y,World *outside,World *inside){
 	build.push_back(new Structures());
-	build.back()->spawn(t,x,y);
+	build.back()->spawn(t,sub,x,y);
 	build.back()->inWorld=outside;
 	build.back()->inside=(void *)inside;
 	
 	entity.push_back(build.back());
 }
 	
+void World::addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside,World *inside){
+	std::cout << npcMin << ", " << npcMax << std::endl;
+	int xwasd;
+	for(int i = 0; i < bCount; i++){
+		xwasd = (rand()%(int)x+1000*HLINE);
+		HERE:
+		for(auto &bu : build){
+			if(xwasd > bu->loc.x && xwasd < bu->loc.x+bu->width)goto HERE;
+		}
+		addStructure(t,HOUSE,xwasd,y,outside,inside);
+	}
+}
 void World::addMob(int t,float x,float y){
 	mob.push_back(new Mob(t));
 	mob.back()->spawn(x,y);
@@ -897,8 +955,9 @@ void World::addObject(ITEM_ID i, bool q, const char *p, float x, float y){
 	entity.push_back(object.back());
 }
 
-void World::addParticle(float x, float y, float w, float h, Color color){
-	particles.push_back(new Particles(x,y,w,h,color));
+void World::addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d){
+	particles.push_back(new Particles(x,y,w,h,vx,vy,color,d));
+	particles.back()->canMove = true;
 }
 
 /*void World::removeObject(Object i){

@@ -26,7 +26,7 @@ void initInventorySprites(void){
 	}
 
 	swordSwing = Mix_LoadWAV("assets/sounds/shortSwing.wav");
-	Mix_Volume(2,75);
+	Mix_Volume(2,100);
 }
 
 char *getItemTexturePath(ITEM_ID id){
@@ -317,10 +317,14 @@ int Inventory::useItem(void){
 		case SWORD:
 			if(swing){
 				if(!player->left){
-					/*if(hangle==-15){up=true;Mix_PlayChannel(2,swordSwing,0);}
+					if(hangle==-15){up=true;Mix_PlayChannel(2,swordSwing,0);}
 					if(up)hangle-=.75*deltaTime;
-					if(hangle<=-90)hangle=-14;*/
+					if(hangle<=-90)hangle=-14;
 				}else{
+					if(hangle==15){up=true;Mix_PlayChannel(2,swordSwing,0);}
+					if(up)hangle+=.75*deltaTime;
+					if(hangle>=90)hangle=14;
+					/*
 					if(hangle<90&&!up)hangle+=.75*deltaTime;
 					if(hangle>=90&&!up)up=true;
 					if(up)hangle-=.75*deltaTime;
@@ -329,7 +333,7 @@ int Inventory::useItem(void){
 						swing=false;
 						hangle=15;
 						return 0;
-					}
+					}*/
 				}
 			}else if(!swing){
 				swing=true;

@@ -127,7 +127,11 @@ void initEverything(void){
 
 	playerSpawnHill->addMob(MS_TRIGGER,player->loc.x,0,story);
 
-	playerSpawnHill->addStructure(STRUCTURET,(rand()%120*HLINE),100,test,iw);
+	playerSpawnHill->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,test,iw);
+	playerSpawnHill->addStructure(STRUCTURET,FOUNTAIN,(rand()%120*HLINE)+100*HLINE,100,test,iw);
+	//playerSpawnHill->addStructure(STRUCTURET,HOUSE2,(rand()%120*HLINE)+300*HLINE,100,test,iw);
+
+	//playerSpawnHill->addVillage(5,1,4,STRUCTURET,rand()%500+120,(float)200,playerSpawnHill,iw);
 	playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);
 	
 	playerSpawnHill->addObject(SWORD_WOOD, false, "", 480,200);
