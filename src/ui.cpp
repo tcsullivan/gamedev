@@ -65,6 +65,7 @@ bool fadeFast = false;
 unsigned int fadeIntensity = 0;
 
 bool inBattle = false;
+Mix_Chunk *battleStart;
 
 namespace ui {
 	
@@ -460,7 +461,8 @@ namespace ui {
 	void waitForCover(void){
 		do{
 			mainLoop();
-		}while(fadeIntensity != 255);
+		}while(fadeIntensity < 255);
+		fadeIntensity = 255;
 	}
 	void importantText(const char *text,...){
 		va_list textArgs;
@@ -598,6 +600,7 @@ DONE:
 		static vec2 premouse={0,0};
 		static int heyOhLetsGo = 0;
 		World *tmp;
+		vec2 oldpos,tmppos;
 		SDL_Event e;
 		
 		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
@@ -628,9 +631,9 @@ DONE:
 					gameRunning = false;
 					return;
 				}else if(SDL_KEY == SDLK_SPACE){
-					if(dialogBoxExists)
+					/*if(dialogBoxExists)
 						dialogAdvance();
-					else if(player->ground){
+					else */if(player->ground){
 						player->vel.y=.4;
 						player->loc.y+=HLINE*2;
 						player->ground=false;
@@ -640,35 +643,65 @@ DONE:
 					tmp = currentWorld;
 					switch(SDL_KEY){
 					case SDLK_a:
+						if(fadeEnable)break;
 						player->vel.x=-.15;
 						player->left = true;
 						player->right = false;
 						left = true;
 						right = false;
-						currentWorld=currentWorld->goWorldLeft(player);
-						if(tmp!=currentWorld)
-							dialogBoxExists = false;
+						if(currentWorld->isWorldLeft()){
+							memcpy(&oldpos,&player->loc,sizeof(vec2));
+							tmp = currentWorld->goWorldLeft(player);
+							if(currentWorld != tmp){
+								memcpy(&tmppos,&player->loc,sizeof(vec2));
+								memcpy(&player->loc,&oldpos,sizeof(vec2));
+								toggleBlackFast();
+								waitForCover();
+								memcpy(&player->loc,&tmppos,sizeof(vec2));
+								currentWorld = tmp;
+								toggleBlackFast();
+								dialogBoxExists = false;
+							}
+						}
 						break;
 					case SDLK_d:
+						if(fadeEnable)break;
 						player->vel.x=.15;
 						player->right = true;
 						player->left = false;
 						left = false;
 						right = true;
-						currentWorld=currentWorld->goWorldRight(player);
-						if(tmp!=currentWorld)
-							dialogBoxExists = false;
-						break;
-					case SDLK_s:
-						if(player->ground == 2){
-							player->ground=false;
-							player->loc.y-=HLINE*1.5;
+						if(currentWorld->isWorldRight()){
+							memcpy(&oldpos,&player->loc,sizeof(vec2));
+							tmp = currentWorld->goWorldRight(player);
+							if(currentWorld != tmp){
+								memcpy(&tmppos,&player->loc,sizeof(vec2));
+								memcpy(&player->loc,&oldpos,sizeof(vec2));
+								toggleBlackFast();
+								waitForCover();
+								memcpy(&player->loc,&tmppos,sizeof(vec2));
+								currentWorld = tmp;
+								toggleBlackFast();
+								dialogBoxExists = false;
+							}
 						}
 						break;
+					case SDLK_s:
+						/*if(player->ground == 2){
+							player->ground=false;
+							player->loc.y-=HLINE*1.5;
+						}*/
+						break;
 					case SDLK_w:
-						if(inBattle)
-							 currentWorld=((Arena *)currentWorld)->exitArena(player);
-						else currentWorld=currentWorld->goInsideStructure(player);
+						if(inBattle){
+							tmp = currentWorld;
+							currentWorld = ((Arena *)currentWorld)->exitArena(player);
+							if(tmp != currentWorld){
+								//delete &tmp;
+								toggleBlackFast();
+							}
+						}else
+							currentWorld=currentWorld->goInsideStructure(player);
 						break;
 					case SDLK_i:
 						currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
@@ -717,6 +750,13 @@ DONE:
 						break;
 					default:
 						break;
+					}
+					if(tmp != currentWorld){
+						std::swap(tmp,currentWorld);
+						toggleBlackFast();
+						waitForCover();
+						std::swap(tmp,currentWorld);
+						toggleBlackFast();
 					}
 				}
 				break;
@@ -794,5 +834,12 @@ DONE:
 		fadeEnable ^= true;
 		fadeWhite = true;
 		fadeFast = false;
+	}
+	void toggleWhiteFast(void){
+		fadeEnable ^= true;
+		fadeWhite = true;
+		fadeFast = true;
+		battleStart = Mix_LoadWAV("assets/sounds/frig.wav");
+		Mix_PlayChannel(1,battleStart,0);
 	}
 }

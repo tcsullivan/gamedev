@@ -380,7 +380,7 @@ LLLOOP:
 		current=current->infront;
 		goto LLLOOP;
 	}
-	cx_start = current->x_start;
+	cx_start = current->x_start * 1.5;
 	width = (-x_start) << 1;
 	
 	glEnable(GL_TEXTURE_2D);
@@ -465,6 +465,9 @@ LLLOOP:
 	}
 	
 	glDisable(GL_TEXTURE_2D);
+	
+	glColor3ub(0,0,0);
+	glRectf(cx_start,GEN_MIN,-cx_start,0);
 	
 	/*
 	 *	World drawing is done recursively, meaning that this function jumps
@@ -1005,6 +1008,14 @@ World *World::goWorldFront(Player *p){
 	return this;
 }
 
+bool World::isWorldLeft(void){
+	return toLeft ? true : false;
+}
+
+bool World::isWorldRight(void){
+	return toRight ? true : false;
+}
+
 std::vector<void *>thing;
 World *World::goInsideStructure(Player *p){
 	if(!thing.size()){
@@ -1142,18 +1153,13 @@ extern bool inBattle;
 
 Arena::Arena(World *leave,Player *p){
 	generate(300);
-	//door.y = line[299].y;
-	//door.x = 100;
-	exit = leave;
-	
-	/*npc.push_back(new NPC());
-	entity.push_back(npc.back());
-	entity.back()->spawn(door.x,door.y);
-	entity.back()->width = HLINE * 12;
-	entity.back()->height = HLINE * 16;*/
-	
+	addMob(MS_DOOR,100,100);
 	inBattle = true;
+	exit = leave;
 	pxy = p->loc;
+	
+	star = new vec2[100];
+	memset(star,0,100 * sizeof(vec2));
 }
 
 Arena::~Arena(void){
@@ -1165,11 +1171,11 @@ Arena::~Arena(void){
 }
 
 World *Arena::exitArena(Player *p){
-	npc[0]->loc.x = door.x;
-	npc[0]->loc.y = door.y;
-	if(p->loc.x + p->width / 2 > door.x				 &&
-	   p->loc.x + p->width / 2 < door.x + HLINE * 12 ){
+	if(p->loc.x + p->width / 2 > mob[0]->loc.x				&&
+	   p->loc.x + p->width / 2 < mob[0]->loc.x + HLINE * 12 ){
 		inBattle = false;
+		ui::toggleBlackFast();
+		ui::waitForCover();
 		p->loc = pxy;
 		return exit;
 	}else{

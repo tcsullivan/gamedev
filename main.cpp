@@ -212,7 +212,7 @@ extern WEATHER weather;
 extern bool fadeEnable;
 extern bool fadeWhite;
 extern bool fadeFast;
-extern unsigned int fadeIntensity;
+extern int  fadeIntensity;
 
 /*******************************************************************************
  * MAIN ************************************************************************
@@ -716,9 +716,9 @@ void render(){
 	
 	if(fadeIntensity){
 		if(fadeWhite)
-			glColor4ub(255,255,255,fadeIntensity);
+			safeSetColorA(255,255,255,fadeIntensity);
 		else
-			glColor4ub(0,0,0,fadeIntensity);
+			safeSetColorA(0,0,0,fadeIntensity);
 		glRectf(offset.x-SCREEN_WIDTH /2,
 				offset.y-SCREEN_HEIGHT/2,
 				offset.x+SCREEN_WIDTH /2,
@@ -920,6 +920,8 @@ void logic(){
 			case MS_TRIGGER:
 				m->wander(0);
 				break;
+			case MS_DOOR:
+				break;
 			default:
 				std::cout<<"Unhandled mob of subtype "<<m->subtype<<"."<<std::endl;
 				break;
@@ -965,7 +967,6 @@ void logic(){
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
 		if(weather==SUNNY){
 			weather=DARK;
-			Mix_PlayChannel(2,crickets,0);
 		}else{
 			weather=SUNNY;
 			Mix_Pause(2);
@@ -981,12 +982,15 @@ void logic(){
 	/*
 	 *	Transition to and from black if necessary.
 	*/
+	
 	if(fadeEnable){
-			 if(fadeIntensity < 150)fadeIntensity+=fadeFast?30:10;
-		else if(fadeIntensity < 255)fadeIntensity+=fadeFast?15:5;
+			 if(fadeIntensity < 150)fadeIntensity+=fadeFast?40:10;
+		else if(fadeIntensity < 255)fadeIntensity+=fadeFast?20:5;
+		else fadeIntensity = 255;
 	}else{
-			 if(fadeIntensity > 150)fadeIntensity-=fadeFast?15:5;
-		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?30:10;
+			 if(fadeIntensity > 150)fadeIntensity-=fadeFast?20:5;
+		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?40:10;
+		else fadeIntensity = 0;
 	}
 
 	/*

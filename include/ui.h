@@ -87,6 +87,7 @@ namespace ui {
 	void toggleBlack(void);
 	void toggleBlackFast(void);
 	void toggleWhite(void);
+	void toggleWhiteFast(void);
 	void waitForCover(void);
 	
 }
