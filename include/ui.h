@@ -60,7 +60,7 @@ namespace ui {
 	 *	limited until a right click is given, closing the box.
 	*/
 	
-	void dialogBox(const char *name,const char *opt,const char *text,...);
+	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...);
 	void waitForDialog(void);
 	
 	/*

@@ -3,8 +3,6 @@
 
 #define getWidth(w) ((w->lineCount-GEN_INC)*HLINE)	// Calculates the width of world 'w'
 
-#define GEN_MIN  80
-#define GEN_MAX  110
 #define GEN_INIT 60
 
 #define GRASS_HEIGHT 4 			// Defines how long the grass layer of a line should be in multiples of HLINE.
@@ -119,9 +117,13 @@ void World::deleteEntities(void){
 }
 
 World::~World(void){
-	if(behind)
+	if(behind != NULL)
 		delete behind;
 	
+	if(bgmObj)
+		Mix_FreeMusic(bgmObj);
+	if(bgm)
+		delete[] bgm;
 	delete bgTex;
 	delete[] star;
 	delete[] line;
@@ -343,24 +345,13 @@ void World::setBGM(const char *path){
 	}
 }
 
-static Mix_Music *bgmC;
-
-void World::bgmPlay(void){
-	if(bgmObj && bgmC != bgmObj){
+void World::bgmPlay(World *prev){	
+	if(!prev || strcmp(bgm,prev->bgm)){
 		Mix_VolumeMusic(50);
 		Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
-		bgmC = bgmObj;
-	}else{
+	}/*else{
 		Mix_FadeOutMusic(800);
-	}
-}
-
-void World::bgmStop(void){
-	if(bgmObj){
-		if(bgmC != bgmObj){
-			Mix_FreeMusic(bgmObj);
-		}
-	}
+	}*/
 }
 
 int worldShade = 0;
@@ -549,10 +540,7 @@ LOOP2:
 	*/
 	
 	for(auto &b : current->build){
-		//b->loc.y+=(yoff-DRAW_Y_OFFSET);
 		b->draw();
-		//b->loc.y-=(yoff-DRAW_Y_OFFSET);
-		//std::cout<<b->loc.x<<" "<<b->loc.y<<std::endl;
 	}
 	
 	/*
@@ -809,29 +797,33 @@ void World::singleDetect(Entity *e){
 			 *	Check that the entity isn't trying to run through a wall.
 			*/
 			
-			if(e->loc.y + e->height > line[i-(int)e->width/2/HLINE].y &&
-			   e->loc.y + e->height > line[i+(int)e->width/2/HLINE].y ){
+			//if(e->loc.y + e->height > line[i-(int)e->width/2/HLINE].y &&
+			 //  e->loc.y + e->height > line[i+(int)e->width/2/HLINE].y ){
 			
 				e->loc.y=line[i].y - .001 * deltaTime;
 				e->ground=true;
 				e->vel.y=0;
 				
-			}else{
+			//}else{
 				
 				/*
 				 *	Push the entity out of the wall if it's trying to go through it.
 				*/
 				
-				do{
+				/*do{
 					e->loc.x+=.001 * e->vel.x>0?-1:1;
 					
 					l=(e->loc.x - e->width / 2 - x_start) / HLINE;
-					if(l < 0){ e->alive = false; return; }
+					if(l < 0){
+						std::cout<<"push kill lol "<<e->type<<std::endl;
+						e->alive = false; return; }
 					i = l;
-					if(i > lineCount-1){ e->alive = false; return; }
+					if(i > lineCount-1){
+						std::cout<<"push kill lol "<<e->type<<std::endl;
+						e->alive = false; return; }
 				}while(line[i].y>e->loc.y+ e->height);
 				
-			}
+			}*/
 		
 		/*
 		 *	Handle gravity if the entity is above the line.
@@ -845,7 +837,7 @@ void World::singleDetect(Entity *e){
 				e->ground = true;
 				return;
 			}else if(e->vel.y > -2)e->vel.y-=.003 * deltaTime;
-			
+					
 		}
 		
 		/*

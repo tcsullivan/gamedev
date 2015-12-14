@@ -17,6 +17,11 @@
 
 #define GEN_INC 10
 
+
+#define GEN_MIN  80
+#define GEN_MAX  110
+
+
 /**
  * Defines how many game ticks it takes for a day to elapse.
  */
@@ -197,8 +202,7 @@ public:
 	*/
 	
 	void setBGM(const char *path);
-	void bgmPlay(void);
-	void bgmStop(void);
+	void bgmPlay(World *prev);
 	
 	/*
 	 *	Looks for the furthest back layer in this world and adds a new layer of width `width` behind it.

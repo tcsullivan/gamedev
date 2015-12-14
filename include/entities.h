@@ -16,7 +16,7 @@
 
 enum _TYPE { //these are the main types of entities
 	OBJECTT = -2,
-	STRUCTURET = -1,
+	STRUCTURET,
 	PLAYERT,
 	NPCT,
 	MOBT
@@ -72,9 +72,8 @@ public:
 	}
 	bool kill(float delta){
 		duration -= delta;
-		if(duration <= 0){
+		if(duration <= 0)
 			return true;
-		}
 		else return false;
 	}
 };

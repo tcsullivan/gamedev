@@ -256,6 +256,7 @@ int main(/*int argc, char *argv[]*/){
 		std::cout << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
 		return -1;
 	}
+	Mix_AllocateChannels(8);
 
 	// Run Mix_Quit when main returns
 	atexit(Mix_CloseAudio);
@@ -492,8 +493,7 @@ void mainLoop(void){
 	ui::handleEvents();
 	
 	if(prev != currentWorld){
-		prev->bgmStop();
-		currentWorld->bgmPlay();
+		currentWorld->bgmPlay(prev);
 	}
 	
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
