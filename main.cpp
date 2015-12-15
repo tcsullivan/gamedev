@@ -116,6 +116,8 @@ unsigned int deltaTime = 0;
 GLuint fragShader;
 GLuint shaderProgram;
 
+Mix_Chunk *crickets;
+
 /*
  *	names is used to open a file containing all possible NPC names. It is externally
  *	referenced in src/entities.cpp for getting random names.
@@ -208,6 +210,8 @@ unsigned int millis(void){
 extern WEATHER weather;
 
 extern bool fadeEnable;
+extern bool fadeWhite;
+extern bool fadeFast;
 extern unsigned int fadeIntensity;
 
 /*******************************************************************************
@@ -252,6 +256,7 @@ int main(/*int argc, char *argv[]*/){
 		std::cout << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
 		return -1;
 	}
+	Mix_AllocateChannels(8);
 
 	// Run Mix_Quit when main returns
 	atexit(Mix_CloseAudio);
@@ -401,6 +406,9 @@ int main(/*int argc, char *argv[]*/){
 	*/
 	
 	names = fopen("assets/names_en-us", "r+");
+
+	crickets=Mix_LoadWAV("assets/sounds/crickets.wav");
+	//Mix_Volume(2,25);
 	
 	/*
 	 *	Create all the worlds, entities, mobs, and the player. This function is defined in
@@ -485,8 +493,7 @@ void mainLoop(void){
 	ui::handleEvents();
 	
 	if(prev != currentWorld){
-		prev->bgmStop();
-		currentWorld->bgmPlay();
+		currentWorld->bgmPlay(prev);
 	}
 	
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
@@ -709,7 +716,10 @@ void render(){
 	*/
 	
 	if(fadeIntensity){
-		glColor4ub(0,0,0,fadeIntensity);
+		if(fadeWhite)
+			glColor4ub(255,255,255,fadeIntensity);
+		else
+			glColor4ub(0,0,0,fadeIntensity);
 		glRectf(offset.x-SCREEN_WIDTH /2,
 				offset.y-SCREEN_HEIGHT/2,
 				offset.x+SCREEN_WIDTH /2,
@@ -819,11 +829,6 @@ void logic(){
 	 *	click detection is done as well for NPC/player interaction.
 	 *
 	*/
-	if((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) && !ui::dialogBoxExists)player->inv->usingi = true;
-	if(player->inv->usingi){
-		player->inv->useItem();
-	}
-
 	for(auto &n : currentWorld->npc){
 		if(n->alive){
 			/*
@@ -950,8 +955,10 @@ void logic(){
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
 		if(weather==SUNNY){
 			weather=DARK;
+			Mix_PlayChannel(2,crickets,0);
 		}else{
 			weather=SUNNY;
+			Mix_Pause(2);
 		}
 	}
 
@@ -965,11 +972,11 @@ void logic(){
 	 *	Transition to and from black if necessary.
 	*/
 	if(fadeEnable){
-			 if(fadeIntensity < 160)fadeIntensity+=10;
-		else if(fadeIntensity < 255)fadeIntensity+=5;
+			 if(fadeIntensity < 150)fadeIntensity+=fadeFast?30:10;
+		else if(fadeIntensity < 255)fadeIntensity+=fadeFast?15:5;
 	}else{
-			 if(fadeIntensity > 150)fadeIntensity-=5;
-		else if(fadeIntensity > 0)	fadeIntensity-=10;
+			 if(fadeIntensity > 150)fadeIntensity-=fadeFast?15:5;
+		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?30:10;
 	}
 
 	/*

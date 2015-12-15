@@ -10,6 +10,7 @@ static float hangle = 0.0f;
 static bool up = true;
 static float xc,yc;
 static vec2 itemLoc;
+Mix_Chunk* swordSwing;
 
 static const Item item[ITEM_COUNT]= {
 	#include "../config/items.h"
@@ -23,6 +24,9 @@ void initInventorySprites(void){
 	for(i = 0;i < ITEM_COUNT;i++){
 		itemtex[i] = Texture::loadTexture(getItemTexturePath((ITEM_ID)i));
 	}
+
+	swordSwing = Mix_LoadWAV("assets/sounds/shortSwing.wav");
+	Mix_Volume(2,75);
 }
 
 char *getItemTexturePath(ITEM_ID id){
@@ -311,11 +315,11 @@ int Inventory::useItem(void){
 		switch(type){
 		case SWORD:
 		if(!player->left){
-			if(hangle==-15)up=true;
+			if(hangle==-15){up=true;Mix_PlayChannel(2,swordSwing,0);}
 			if(up)hangle-=15;
 			if(hangle<=-90)hangle=-14;
 		}else{
-			if(hangle==15)up=true;
+			if(hangle==15){up=true;Mix_PlayChannel(2,swordSwing,0);}
 			if(up)hangle+=15;
 			if(hangle>=90)hangle=14;
 		}

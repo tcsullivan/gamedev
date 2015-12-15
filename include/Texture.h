@@ -52,7 +52,7 @@ public:
 	 * Contains an array of the GLuints returned from Texture::loadTexture().
 	 */
 
-	GLuint *image;
+	GLuint *image = NULL;
 	
 	/**
 	 * Populates the image array from a list of strings, with each string as a

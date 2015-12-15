@@ -1,9 +1,8 @@
 #include <world.h>
+#include <ui.h>
 
 #define getWidth(w) ((w->lineCount-GEN_INC)*HLINE)	// Calculates the width of world 'w'
 
-#define GEN_MIN  80
-#define GEN_MAX  110
 #define GEN_INIT 60
 
 #define GRASS_HEIGHT 4 			// Defines how long the grass layer of a line should be in multiples of HLINE.
@@ -40,7 +39,13 @@ const float bgDraw[3][3]={
 };
 
 float worldGetYBase(World *w){
-	return w?GEN_MIN:0;
+	World *tmp = w;
+	float base = GEN_MIN;
+	while(tmp->infront){
+		tmp = tmp->infront;
+		base -= DRAW_Y_OFFSET;
+	}
+	return base;
 }
 
 void World::setBackground(WORLD_BG_TYPE bgt){
@@ -105,9 +110,13 @@ void World::deleteEntities(void){
 }
 
 World::~World(void){
-	if(behind)
+	if(behind != NULL)
 		delete behind;
 	
+	if(bgmObj)
+		Mix_FreeMusic(bgmObj);
+	if(bgm)
+		delete[] bgm;
 	delete bgTex;
 	delete[] star;
 	delete[] line;
@@ -271,6 +280,9 @@ void World::update(Player *p,unsigned int delta){
 	
 	p->loc.y += p->vel.y			 * delta;
 	p->loc.x +=(p->vel.x * p->speed) * delta;
+	if(p->inv->usingi){
+		p->inv->useItem();
+	}
 
 	/*
 	 *	Update coordinates of all entities except for structures.
@@ -284,33 +296,33 @@ void World::update(Player *p,unsigned int delta){
 	   else if(e->vel.x > 0)e->left = false;
 		}
 	}
+	
+	if(ui::dialogImportant){
+		Mix_FadeOutMusic(2000);
+	}else if(!Mix_PlayingMusic()){
+		Mix_FadeInMusic(bgmObj,-1,2000);
+	}
 }
 
 void World::setBGM(const char *path){
 	if(!bgm) delete[] bgm;
-	//if(!path){
+	if(path != NULL){
 		bgm = new char[strlen(path) + 1];
 		strcpy(bgm,path);
 		bgmObj = Mix_LoadMUS(bgm);
-	//}else std::cout<<path;
+	}else{
+		bgm = new char[1];
+		bgm[0] = '\0';
+	}
 }
 
-static Mix_Music *bgmC;
-
-void World::bgmPlay(void){
-	if(bgmObj && bgmC != bgmObj){
-		Mix_VolumeMusic(15);
+void World::bgmPlay(World *prev){	
+	if(!prev || strcmp(bgm,prev->bgm)){
+		Mix_VolumeMusic(50);
 		Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
-		bgmC = bgmObj;
-	}
-}
-
-void World::bgmStop(void){
-	if(bgmObj){
-		if(bgmC != bgmObj){
-			Mix_FreeMusic(bgmObj);
-		}
-	}
+	}/*else{
+		Mix_FadeOutMusic(800);
+	}*/
 }
 
 int worldShade = 0;
@@ -321,17 +333,26 @@ extern unsigned int tickCount;
 void World::draw(Player *p){
 	static float yoff=DRAW_Y_OFFSET;	// Initialize stuff
 	static int shade,bgshade;
-	static World *current;
+	static World *current=this;
 	unsigned int i;
 	int is,ie,v_offset,cx_start,width;
 	struct line_t *cline;
+	float base;
 	
 	bgshade = worldShade << 1; // *2
-	width = (-x_start) << 1;
+	base = worldGetYBase(this);
 	
 	/*
 	 *	Draw the background images in the appropriate order.
 	*/
+	
+LLLOOP:
+	if(current->infront){
+		current=current->infront;
+		goto LLLOOP;
+	}
+	cx_start = current->x_start;
+	width = (-x_start) << 1;
 	
 	glEnable(GL_TEXTURE_2D);
 	
@@ -339,20 +360,20 @@ void World::draw(Player *p){
 	safeSetColorA(255,255,255,255 - worldShade * 4);
 	
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,0);glVertex2i( x_start,SCREEN_HEIGHT);
-		glTexCoord2i(1,0);glVertex2i(-x_start,SCREEN_HEIGHT);
-		glTexCoord2i(1,1);glVertex2i(-x_start,0);
-		glTexCoord2i(0,1);glVertex2i( x_start,0);
+		glTexCoord2i(0,0);glVertex2i( cx_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,0);glVertex2i(-cx_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,1);glVertex2i(-cx_start,0);
+		glTexCoord2i(0,1);glVertex2i( cx_start,0);
 	glEnd();
 	
 	bgTex->bindNext();
 	safeSetColorA(255,255,255,worldShade * 4);
 	
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,0);glVertex2i( x_start,SCREEN_HEIGHT);
-		glTexCoord2i(1,0);glVertex2i(-x_start,SCREEN_HEIGHT);
-		glTexCoord2i(1,1);glVertex2i(-x_start,0);
-		glTexCoord2i(0,1);glVertex2i( x_start,0);
+		glTexCoord2i(0,0);glVertex2i( cx_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,0);glVertex2i(-cx_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,1);glVertex2i(-cx_start,0);
+		glTexCoord2i(0,1);glVertex2i( cx_start,0);
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);
@@ -389,10 +410,10 @@ void World::draw(Player *p){
 	
 	glBegin(GL_QUADS);
 		for(int i = 0; i <= width/1920; i++){
-			glTexCoord2i(0,1);glVertex2i(width/-2+(1920*i    )+offset.x*.85,GEN_MIN);
-			glTexCoord2i(1,1);glVertex2i(width/-2+(1920*(i+1))+offset.x*.85,GEN_MIN);
-			glTexCoord2i(1,0);glVertex2i(width/-2+(1920*(i+1))+offset.x*.85,GEN_MIN+1080);
-			glTexCoord2i(0,0);glVertex2i(width/-2+(1920*i    )+offset.x*.85,GEN_MIN+1080);
+			glTexCoord2i(0,1);glVertex2i(width/-2+(1920*i    )+offset.x*.85,base);
+			glTexCoord2i(1,1);glVertex2i(width/-2+(1920*(i+1))+offset.x*.85,base);
+			glTexCoord2i(1,0);glVertex2i(width/-2+(1920*(i+1))+offset.x*.85,base+1080);
+			glTexCoord2i(0,0);glVertex2i(width/-2+(1920*i    )+offset.x*.85,base+1080);
 		}
 	glEnd();
 	
@@ -405,11 +426,11 @@ void World::draw(Player *p){
 		safeSetColorA(bgDraw[i][0]-bgshade,bgDraw[i][0]-bgshade,bgDraw[i][0]-bgshade,bgDraw[i][1]);
 	
 		glBegin(GL_QUADS);
-			for(int j = x_start; j <= -x_start; j += 600){
-				glTexCoord2i(0,1);glVertex2i( j     +offset.x*bgDraw[i][2],GEN_MIN);
-				glTexCoord2i(1,1);glVertex2i((j+600)+offset.x*bgDraw[i][2],GEN_MIN);
-				glTexCoord2i(1,0);glVertex2i((j+600)+offset.x*bgDraw[i][2],GEN_MIN+400);
-				glTexCoord2i(0,0);glVertex2i( j     +offset.x*bgDraw[i][2],GEN_MIN+400);
+			for(int j = cx_start; j <= -cx_start; j += 600){
+				glTexCoord2i(0,1);glVertex2i( j     +offset.x*bgDraw[i][2],base);
+				glTexCoord2i(1,1);glVertex2i((j+600)+offset.x*bgDraw[i][2],base);
+				glTexCoord2i(1,0);glVertex2i((j+600)+offset.x*bgDraw[i][2],base+400);
+				glTexCoord2i(0,0);glVertex2i( j     +offset.x*bgDraw[i][2],base+400);
 			}
 		glEnd();
 	}
@@ -490,9 +511,7 @@ LOOP2:
 	*/
 	
 	for(auto &b : current->build){
-		b->loc.y+=(yoff-DRAW_Y_OFFSET);
 		b->draw();
-		b->loc.y-=(yoff-DRAW_Y_OFFSET);
 	}
 	
 	/*
@@ -504,7 +523,7 @@ LOOP2:
 		for(i=is;i<(unsigned)ie-GEN_INC;i++){
 			cline[i].y+=(yoff-DRAW_Y_OFFSET);															// Add the y offset
 			if(!cline[i].y){
-				cline[i].y+=50;
+				cline[i].y=base;
 				hey=true;
 				safeSetColor(cline[i].color-100+shade,cline[i].color-150+shade,cline[i].color-200+shade);
 			}else{
@@ -748,29 +767,33 @@ void World::singleDetect(Entity *e){
 			 *	Check that the entity isn't trying to run through a wall.
 			*/
 			
-			if(e->loc.y + e->height > line[i-(int)e->width/2/HLINE].y &&
-			   e->loc.y + e->height > line[i+(int)e->width/2/HLINE].y ){
+			//if(e->loc.y + e->height > line[i-(int)e->width/2/HLINE].y &&
+			 //  e->loc.y + e->height > line[i+(int)e->width/2/HLINE].y ){
 			
 				e->loc.y=line[i].y - .001 * deltaTime;
 				e->ground=true;
 				e->vel.y=0;
 				
-			}else{
+			//}else{
 				
 				/*
 				 *	Push the entity out of the wall if it's trying to go through it.
 				*/
 				
-				do{
+				/*do{
 					e->loc.x+=.001 * e->vel.x>0?-1:1;
 					
 					l=(e->loc.x - e->width / 2 - x_start) / HLINE;
-					if(l < 0){ e->alive = false; return; }
+					if(l < 0){
+						std::cout<<"push kill lol "<<e->type<<std::endl;
+						e->alive = false; return; }
 					i = l;
-					if(i > lineCount-1){ e->alive = false; return; }
+					if(i > lineCount-1){
+						std::cout<<"push kill lol "<<e->type<<std::endl;
+						e->alive = false; return; }
 				}while(line[i].y>e->loc.y+ e->height);
 				
-			}
+			}*/
 		
 		/*
 		 *	Handle gravity if the entity is above the line.
@@ -778,8 +801,13 @@ void World::singleDetect(Entity *e){
 		
 		}else{
 			
-			if(e->vel.y > -2)e->vel.y-=.003 * deltaTime;
-			
+			if(e->type == STRUCTURET && e->loc.y > 2000){
+				e->loc.y = line[i].y;
+				e->vel.y = 0;
+				e->ground = true;
+				return;
+			}else if(e->vel.y > -2)e->vel.y-=.003 * deltaTime;
+					
 		}
 		
 		/*
@@ -801,6 +829,7 @@ void World::singleDetect(Entity *e){
 }
 
 void World::detect(Player *p){
+	World *hey = this;
 	
 	/*
 	 *	Handle the player. 
@@ -812,8 +841,13 @@ void World::detect(Player *p){
 	 *	Handle all remaining entities in this world. 
 	*/
 	
-	for(auto &e : entity)
-		singleDetect(e);
+LOOOOP:
+	for(auto &e : hey->entity)
+		hey->singleDetect(e);
+	if(hey->infront){
+		hey = hey->infront;
+		goto LOOOOP;
+	}
 }
 
 void World::addStructure(_TYPE t,float x,float y,World *outside,World *inside){
@@ -824,18 +858,6 @@ void World::addStructure(_TYPE t,float x,float y,World *outside,World *inside){
 	
 	entity.push_back(build.back());
 }
-
-/*template<class T>
-void World::getEntityLocation(std::vector<T*>&vecBuf, unsigned int n){
-	T bufVar = vecBuf.at(n);
-	unsigned int i = 0;
-	for(auto &e : entity){
-		if(entity.at(i) == bufVar){
-			entity.erase(entity.begin()+i);
-		}
-		i++;
-	}
-}*/
 	
 void World::addMob(int t,float x,float y){
 	mob.push_back(new Mob(t));
@@ -882,6 +904,9 @@ void World::addLayer(unsigned int width){
 	behind=new World();
 	behind->generate(width);
 	behind->infront=this;
+	behind->star=star;
+	behind->bgmObj=bgmObj;
+	behind->bgTex=bgTex;
 }
 
 World *World::goWorldLeft(Player *p){
@@ -923,6 +948,9 @@ World *World::goInsideStructure(Player *p){
 			if(p->loc.x            > b->loc.x            &&
 			   p->loc.x + p->width < b->loc.x + b->width ){
 				thing.push_back(this);
+				ui::toggleBlackFast();
+				ui::waitForCover();
+				ui::toggleBlackFast();
 				return (World *)b->inside;
 			}
 		}
@@ -932,6 +960,9 @@ World *World::goInsideStructure(Player *p){
 				World *tmp = (World *)thing.back();
 				p->loc.x = b->loc.x + (b->width / 2) - (p->width / 2);
 				thing.erase(thing.end()-1);
+				ui::toggleBlackFast();
+				ui::waitForCover();
+				ui::toggleBlackFast();
 				return tmp;
 			}
 		}

@@ -16,7 +16,7 @@
 
 enum _TYPE { //these are the main types of entities
 	OBJECTT = -2,
-	STRUCTURET = -1,
+	STRUCTURET,
 	PLAYERT,
 	NPCT,
 	MOBT
@@ -79,6 +79,7 @@ public:
 	
 	Texturec *tex;
 
+	unsigned int randDialog;
 
 	void draw(void);
 	void spawn(float, float);

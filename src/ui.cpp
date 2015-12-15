@@ -48,9 +48,10 @@ static char dialogBoxText[512];
 static char *dialogOptText[4];
 static float dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
+static bool dialogPassive = false;
 static bool typeOutDone = true;
 
-static bool dialogImportant = false;
+Mix_Chunk *dialogClick;
 
 extern void mainLoop(void);
 
@@ -59,6 +60,8 @@ extern void mainLoop(void);
 */
 
 bool fadeEnable = false;
+bool fadeWhite = false;
+bool fadeFast = false;
 unsigned int fadeIntensity = 0;
 
 bool inBattle = false;
@@ -87,7 +90,8 @@ namespace ui {
 	 *	Dialog stuff that needs to be 'public'.
 	*/
 	
-	bool dialogBoxExists=false;
+	bool dialogBoxExists = false;
+	bool dialogImportant = false;
 	unsigned char dialogOptChosen = 0;
 	
 	/*
@@ -111,6 +115,8 @@ namespace ui {
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
+		dialogClick = Mix_LoadWAV("assets/click.wav");
+		Mix_Volume(1,50);
 	}
 	
 	/*
@@ -341,7 +347,8 @@ namespace ui {
 			
 			if(linc<size)
 				linc++;
-			else typeOutDone = true;
+			else
+				typeOutDone = true;
 		}
 		
 		return ret;		//	The buffered string.
@@ -380,10 +387,12 @@ namespace ui {
 		
 		return width;
 	}
-	void dialogBox(const char *name,const char *opt,const char *text,...){
+	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...){
 		va_list dialogArgs;
 		unsigned int len;
 		char *sopt,*soptbuf;
+		
+		dialogPassive = passive;
 		
 		/*
 		 *	Set up the text buffer.
@@ -417,7 +426,7 @@ namespace ui {
 		};
 
 		dialogOptChosen=0;
-		dialogOptCount=0;
+		memset(&dialogOptLoc,0,sizeof(float)*12);
 		
 		if(opt){
 			
@@ -447,6 +456,11 @@ namespace ui {
 		do{
 			mainLoop();
 		}while(ui::dialogBoxExists);
+	}
+	void waitForCover(void){
+		do{
+			mainLoop();
+		}while(fadeIntensity != 255);
 	}
 	void importantText(const char *text,...){
 		va_list textArgs;
@@ -516,8 +530,12 @@ namespace ui {
 				}
 				setFontColor(255,255,255);
 			}
-		}else if(!dialogImportant){
-		
+			
+			if(strcmp(rtext,dialogBoxText)){
+				Mix_PlayChannel(1,dialogClick,0);
+			}
+			
+		}else if(!dialogImportant && !fadeIntensity){
 			vec2 hub = {
 				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
 				(offset.y+SCREEN_HEIGHT/2)-fontSize
@@ -551,11 +569,34 @@ namespace ui {
 			}
 		}
 	}
+	void dialogAdvance(void){
+		unsigned char i;
+		if(!typeOutDone){
+			typeOutDone = true;
+			return;
+		}
+
+		for(i=0;i<dialogOptCount;i++){
+			if(mouse.x > dialogOptLoc[i][0] &&
+			   mouse.x < dialogOptLoc[i][2] &&
+			   mouse.y > dialogOptLoc[i][1] &&
+			   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
+				dialogOptChosen = i + 1;
+				goto DONE;
+			}
+		}
+DONE:
+		if(dialogImportant){
+			dialogImportant = false;
+			setFontSize(16);
+			toggleBlack();
+		}
+		dialogBoxExists = false;
+	}
 	void handleEvents(void){
 		static bool left=true,right=false;
 		static vec2 premouse={0,0};
 		static int heyOhLetsGo = 0;
-		unsigned char i;
 		World *tmp;
 		SDL_Event e;
 		
@@ -573,28 +614,10 @@ namespace ui {
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if((e.button.button&SDL_BUTTON_RIGHT)&&dialogBoxExists){
-				
-					if(!typeOutDone){
-						typeOutDone = true;
-						break;
-					}
-				
-					for(i=0;i<dialogOptCount;i++){
-						if(mouse.x > dialogOptLoc[i][0] &&
-						   mouse.x < dialogOptLoc[i][2] &&
-						   mouse.y > dialogOptLoc[i][1] &&
-						   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
-							dialogOptChosen = i + 1;
-							goto DONE;
-						}
-					}
-DONE:
-					if(dialogImportant){
-						dialogImportant = false;
-						setFontSize(16);
-						toggleBlack();
-					}
-					dialogBoxExists = false;
+					dialogAdvance();
+				}
+				if((e.button.button&SDL_BUTTON_LEFT)&&!dialogBoxExists){
+					player->inv->usingi = true;
 				}
 				break;
 			/*
@@ -603,12 +626,19 @@ DONE:
 			case SDL_KEYDOWN:
 				if(SDL_KEY == SDLK_ESCAPE){
 					gameRunning = false;
+					return;
+				}else if(SDL_KEY == SDLK_SPACE){
+					if(dialogBoxExists)
+						dialogAdvance();
+					else if(player->ground){
+						player->vel.y=.4;
+						player->loc.y+=HLINE*2;
+						player->ground=false;
+					}
 					break;
-				}else if(!dialogBoxExists){//&&!fadeEnable){
+				}else if(!dialogBoxExists || dialogPassive){
+					tmp = currentWorld;
 					switch(SDL_KEY){
-					case SDLK_ESCAPE:
-						gameRunning=false;
-						break;
 					case SDLK_a:
 						player->vel.x=-.15;
 						player->left = true;
@@ -616,6 +646,8 @@ DONE:
 						left = true;
 						right = false;
 						currentWorld=currentWorld->goWorldLeft(player);
+						if(tmp!=currentWorld)
+							dialogBoxExists = false;
 						break;
 					case SDLK_d:
 						player->vel.x=.15;
@@ -624,6 +656,8 @@ DONE:
 						left = false;
 						right = true;
 						currentWorld=currentWorld->goWorldRight(player);
+						if(tmp!=currentWorld)
+							dialogBoxExists = false;
 						break;
 					case SDLK_s:
 						if(player->ground == 2){
@@ -636,15 +670,7 @@ DONE:
 							 currentWorld=((Arena *)currentWorld)->exitArena(player);
 						else currentWorld=currentWorld->goInsideStructure(player);
 						break;
-					case SDLK_SPACE:
-						if(player->ground){
-							player->vel.y=.4;
-							player->loc.y+=HLINE*2;
-							player->ground=false;
-						}
-						break;
 					case SDLK_i:
-						tmp=currentWorld;
 						currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
 						if(tmp!=currentWorld){
 							currentWorld->detect(player);
@@ -654,17 +680,22 @@ DONE:
 						}
 						break;
 					case SDLK_k:
-						tmp=currentWorld;
 						currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
 						if(tmp!=currentWorld){
-							player->loc.y=0;
 							currentWorld->behind->detect(player);
 							player->vel.y=.2;
+							player->loc.y+=HLINE*5;
 							player->ground=false;
 						}
 						break;
 					case SDLK_LSHIFT:
-						player->speed = debug ? 4.0f : 3.0f;
+						if(debug){
+							Mix_Chunk *sanic;
+							sanic = Mix_LoadWAV("assets/sounds/sanic.wav");
+							Mix_PlayChannel(1,sanic,-1);
+							player->speed = 4.0f;
+						}else
+							player->speed = 2.0f;
 						break;
 					case SDLK_LCTRL:
 						player->speed = .5;
@@ -702,6 +733,9 @@ DONE:
 					right = false;
 					break;
 				case SDLK_LSHIFT:
+					if(player->speed == 4){
+						Mix_FadeOutChannel(1,2000);
+					}
 					player->speed = 1;
 					break;
 				case SDLK_LCTRL:
@@ -748,5 +782,17 @@ DONE:
 	
 	void toggleBlack(void){
 		fadeEnable ^= true;
+		fadeWhite = false;
+		fadeFast = false;
+	}
+	void toggleBlackFast(void){
+		fadeEnable ^= true;
+		fadeWhite = false;
+		fadeFast = true;
+	}
+	void toggleWhite(void){
+		fadeEnable ^= true;
+		fadeWhite = true;
+		fadeFast = false;
 	}
 }

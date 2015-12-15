@@ -387,4 +387,28 @@
 	- continued to document header files through doxygen
 	- added border to dialogBox
 	- fix entity movement handling; npcs stop when you talk to them
+<<<<<<< HEAD
 	- added sword animation?
+=======
+	- added sword animation?
+
+12/9/2015,
+12/10/2015:
+===========
+
+	- added sound effects
+	- fixed disappearing building
+	- began actually plotting areas
+	- fixed layer switching-ish
+	- added passive dialogs
+	- began working on particles stuffses
+	- improved village spawning
+
+12/11/2015:
+===========
+
+	- plotted out a tutorial-ish area in game
+	- imrpoved BGM handling
+	- continued work on particles, made a fountain
+	- added sanic
+>>>>>>> 43bbcf02fd5e4e69a9aa521fa4cd572cc8675cf3
