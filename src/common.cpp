@@ -1,7 +1,15 @@
 #include <common.h>
 #include <cstdio>
+#include <chrono>
 
-#define DEBUG
+#ifndef __WIN32__
+
+unsigned int millis(void){
+	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
+	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+}
+
+#endif // __WIN32__
 
 void DEBUG_prints(const char* file, int line, const char *s,...){
 	va_list args;

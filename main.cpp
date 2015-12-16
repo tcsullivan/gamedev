@@ -4,7 +4,6 @@
 */
 
 #include <cstdio> // fopen
-#include <chrono> // see millis()
 
 #include <common.h>
 #include <world.h>
@@ -187,25 +186,6 @@ std::string readFile(const char *filePath) {
 */
 
 vec2 offset;																			/*	OFFSET!!!!!!!!!!!!!!!!!!!! */
-
-/**
- *	millis
- *
- *	We've encountered many problems when attempting to create delays for triggering
- *	the logic function. As a result, we decided on using the timing libraries given
- *	by <chrono> in the standard C++ library. This function simply returns the amount
- *	of milliseconds that have passed sine the epoch.
- *
-**/
-
-#ifdef __WIN32__
-#define millis()	SDL_GetTicks()
-#else
-unsigned int millis(void){
-	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
-	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-}
-#endif
 
 extern WEATHER weather;
 

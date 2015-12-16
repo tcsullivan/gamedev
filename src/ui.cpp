@@ -464,6 +464,12 @@ namespace ui {
 		}while(fadeIntensity < 255);
 		fadeIntensity = 255;
 	}
+	void waitForNothing(unsigned int ms){
+		unsigned int target = millis() + ms;
+		do{
+			mainLoop();
+		}while(millis() < target);
+	}
 	void importantText(const char *text,...){
 		va_list textArgs;
 		

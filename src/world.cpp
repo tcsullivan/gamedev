@@ -17,13 +17,14 @@ bool worldInside = false;		// True if player is inside a structure
 
 WEATHER weather = SUNNY;
 
-const char *bgPaths[2][6]={
+const char *bgPaths[2][7]={
 	{"assets/bg.png",				// Daytime background
 	"assets/bgn.png",				// Nighttime background
 	"assets/bgFarMountain.png",		// Furthest layer
 	"assets/forestTileBack.png",	// Closer layer
 	"assets/forestTileMid.png",		// Near layer
-	"assets/forestTileFront.png"},	// Closest layer
+	"assets/forestTileFront.png",	// Closest layer
+	"assets/dirt.png"},				// Dirt
 	{"assets/bgWoodTile.png",
 	 NULL,
 	 NULL,
@@ -51,7 +52,7 @@ float worldGetYBase(World *w){
 void World::setBackground(WORLD_BG_TYPE bgt){
 	switch(bgt){
 	case BG_FOREST:
-		bgTex = new Texturec(6,bgPaths[0]);
+		bgTex = new Texturec(7,bgPaths[0]);
 		break;
 	case BG_WOODHOUSE:
 		bgTex = new Texturec(1,bgPaths[1]);
@@ -549,20 +550,25 @@ LOOP2:
 	*/
 
 	bool hey=false;
+	glEnable(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
+	bgTex->bindNext();
 	glBegin(GL_QUADS);
 		for(i=is;i<(unsigned)ie-GEN_INC;i++){
 			cline[i].y+=(yoff-DRAW_Y_OFFSET);															// Add the y offset
 			if(!cline[i].y){
 				cline[i].y=base;
 				hey=true;
-				safeSetColor(cline[i].color-100+shade,cline[i].color-150+shade,cline[i].color-200+shade);
+				//safeSetColor(cline[i].color-100+shade,cline[i].color-150+shade,cline[i].color-200+shade);
 			}else{
-				safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);	// Set the shaded dirt color
+				//safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);	// Set the shaded dirt color
 			}
-			glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
-			glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
-			glVertex2i(cx_start+i*HLINE+HLINE,0);
-			glVertex2i(cx_start+i*HLINE		 ,0);
+			glColor4ub(255,255,255,255);
+			glTexCoord2i(0,1);glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
+			glTexCoord2i(1,1);glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
+			glTexCoord2i(1,0);glVertex2i(cx_start+i*HLINE+HLINE,0);
+			glTexCoord2i(0,0);glVertex2i(cx_start+i*HLINE	   ,0);
 			cline[i].y-=(yoff-DRAW_Y_OFFSET);															// Restore the line's y value
 			if(hey){
 				hey=false;
@@ -570,6 +576,7 @@ LOOP2:
 			}
 		}
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
 	
 	/*
 	 *	Draw grass on every line.

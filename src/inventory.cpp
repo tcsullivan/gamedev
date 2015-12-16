@@ -299,10 +299,10 @@ void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
 	glBindTexture(GL_TEXTURE_2D,itemtex[id]);
 	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2f(itemLoc.x,				 itemLoc.y);
+		glTexCoord2i(0,1);glVertex2f(itemLoc.x,				  itemLoc.y);
 		glTexCoord2i(1,1);glVertex2f(itemLoc.x+item[id].width,itemLoc.y);
 		glTexCoord2i(1,0);glVertex2f(itemLoc.x+item[id].width,itemLoc.y+item[id].height);
-		glTexCoord2i(0,0);glVertex2f(itemLoc.x,				 itemLoc.y+item[id].height);
+		glTexCoord2i(0,0);glVertex2f(itemLoc.x,				  itemLoc.y+item[id].height);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	glTranslatef(player->loc.x*2,0,0);
@@ -341,6 +341,7 @@ int Inventory::useItem(void){
 			}
 			break;
 		default:
+			//hangle++;
 			break;
 		}
 	}
