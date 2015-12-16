@@ -344,13 +344,12 @@ void World::setBGM(const char *path){
 	}
 }
 
-void World::bgmPlay(World *prev){	
-	if(!prev || strcmp(bgm,prev->bgm)){
+void World::bgmPlay(World *prev){
+	if(prev && strcmp(bgm,prev->bgm)){
+		Mix_FadeOutMusic(800);
 		Mix_VolumeMusic(50);
 		Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
-	}/*else{
-		Mix_FadeOutMusic(800);
-	}*/
+	}
 }
 
 int worldShade = 0;
