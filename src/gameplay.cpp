@@ -109,13 +109,13 @@ void initEverything(void){
 	worldSpawnHill2 = new World();
 	worldSpawnHill2->generate(700);
 	worldSpawnHill2->setBackground(BG_FOREST);
-	worldSpawnHill2->setBGM("assets/music/embark.wav");
+	worldSpawnHill2->setBGM("assets/music/ozone.wav");
 	worldSpawnHill2->addMob(MS_TRIGGER,-400,0,worldSpawnHill2_infoSprint);
 
 	worldSpawnHill3 = new World();
 	worldSpawnHill3->generateFunc(1000,gen_worldSpawnHill3);
 	worldSpawnHill3->setBackground(BG_FOREST);
-	worldSpawnHill3->setBGM("assets/music/embark.wav");
+	worldSpawnHill3->setBGM("assets/music/ozone.wav");
 	worldSpawnHill3->addMob(MS_TRIGGER,-500,0,worldSpawnHill3_itemGet);
 	worldSpawnHill3->addMob(MS_TRIGGER,0,0,worldSpawnHill3_itemSee);
 	worldSpawnHill3->addObject(TEST_ITEM,false,"",-200,300);

@@ -207,7 +207,7 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 		 *	by setting an RGB value of color (red), color - 50 (green), color - 100 (blue).
 		*/
 		
-		line[i].color = rand() % 20 + 100; // 100 to 120
+		line[i].color = rand() % 32 / 8; // 100 to 120
 
 		/*
 		 *	Each line has two 'blades' of grass, here we generate random heights for them.
@@ -551,24 +551,23 @@ LOOP2:
 
 	bool hey=false;
 	glEnable(GL_TEXTURE_2D);
+	bgTex->bindNext();
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
-	bgTex->bindNext();
 	glBegin(GL_QUADS);
+		std::cout<<shade<<std::endl;
 		for(i=is;i<(unsigned)ie-GEN_INC;i++){
 			cline[i].y+=(yoff-DRAW_Y_OFFSET);															// Add the y offset
 			if(!cline[i].y){
 				cline[i].y=base;
 				hey=true;
-				//safeSetColor(cline[i].color-100+shade,cline[i].color-150+shade,cline[i].color-200+shade);
-			}else{
-				//safeSetColor(cline[i].color+shade,cline[i].color-50+shade,cline[i].color-100+shade);	// Set the shaded dirt color
-			}
-			glColor4ub(255,255,255,255);
-			glTexCoord2i(0,1);glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
-			glTexCoord2i(1,1);glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
-			glTexCoord2i(1,0);glVertex2i(cx_start+i*HLINE+HLINE,0);
-			glTexCoord2i(0,0);glVertex2i(cx_start+i*HLINE	   ,0);
+				glColor4ub(0,0,0,255);
+			}else
+				safeSetColorA(150+shade*2,150+shade*2,150+shade*2,255);
+			glTexCoord2i(0,0);glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
+			glTexCoord2i(1,0);glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
+			glTexCoord2i(1,(int)(cline[i].y/64)+cline[i].color);glVertex2i(cx_start+i*HLINE+HLINE,0);
+			glTexCoord2i(0,(int)(cline[i].y/64)+cline[i].color);glVertex2i(cx_start+i*HLINE	   ,0);
 			cline[i].y-=(yoff-DRAW_Y_OFFSET);															// Restore the line's y value
 			if(hey){
 				hey=false;
@@ -610,7 +609,7 @@ LOOP2:
 			
 			cline[i].y+=(yoff-DRAW_Y_OFFSET);
 			
-			safeSetColor(shade,150+shade,shade);
+			safeSetColor(shade,100+shade*1.5,shade);
 			
 			glVertex2i(cx_start+i*HLINE        ,cline[i].y+cgh[0]);
 			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y+cgh[0]);
