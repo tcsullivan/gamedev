@@ -155,8 +155,8 @@ Mob::Mob(int sub){
 		height = 2000;
 		tex = new Texturec(0);
 	case MS_DOOR:
-		width = HLINE * 10;
-		height = HLINE * 16;
+		width = HLINE * 12;
+		height = HLINE * 20;
 		tex = new Texturec(1,"assets/door.png");
 		break;
 	}
@@ -416,7 +416,10 @@ unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
 		 *	with type NPC.
 		*/
 		
+		//((World*)(inWorld))->addNPC(loc.x + i * HLINE ,100);
+		//inWorld->addNPC(loc.x + i * HLINE, 100);
 		currentWorld->addNPC(loc.x + i * HLINE ,100);
+
 		
 	}
 

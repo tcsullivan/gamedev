@@ -138,7 +138,7 @@ public:
 	virtual ~Entity(){}
 };
 
-class Player : public Entity {
+class Player : public Entity{
 public:
 	QuestHandler qh;
 	bool light = false;
@@ -147,7 +147,6 @@ public:
 	~Player();
 	void interact();
 };
-
 class NPC : public Entity{
 public:
 	std::vector<int (*)(NPC *)>aiFunc;

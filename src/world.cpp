@@ -903,7 +903,7 @@ void World::addStructure(_TYPE t,BUILD_SUB sub, float x,float y,World *outside,W
 	build.push_back(new Structures());
 	build.back()->spawn(t,sub,x,y);
 	build.back()->inWorld=outside;
-	build.back()->inside=(void *)inside;
+	build.back()->inside=inside;
 	
 	entity.push_back(build.back());
 }

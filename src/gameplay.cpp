@@ -133,7 +133,6 @@ void initEverything(void){
 
 	//playerSpawnHill->addMob(MS_TRIGGER,player->loc.x,0,story);
 
-	//worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill1,worldSpawnHill2);
 	//playerSpawnHill->addStructure(STRUCTURET,FOUNTAIN,(rand()%120*HLINE)+100*HLINE,100,test,iw);
 	//playerSpawnHill->addStructure(STRUCTURET,HOUSE2,(rand()%120*HLINE)+300*HLINE,100,test,iw);
 
@@ -143,6 +142,7 @@ void initEverything(void){
 
 	currentWorld = worldSpawnHill1;
 	
+	worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill1,worldSpawnHill2);
 	player = new Player();
 	player->spawn(200,100);
 	
