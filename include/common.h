@@ -160,4 +160,17 @@ void safeSetColor(int r,int g,int b);
 
 void safeSetColorA(int r,int g,int b,int a);
 
+/**
+ * We've encountered many problems when attempting to create delays for triggering
+ * the logic function. As a result, we decided on using the timing libraries given
+ * by <chrono> in the standard C++ library. This function simply returns the amount
+ * of milliseconds that have passed sine the epoch.
+ */
+
+#ifdef __WIN32__
+#define millis()	SDL_GetTicks()
+#else
+unsigned int millis(void);
+#endif // __WIN32__
+
 #endif // COMMON_H

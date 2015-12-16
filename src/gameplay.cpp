@@ -141,6 +141,7 @@ void initEverything(void){
 
 
 	currentWorld = worldSpawnHill1;
+	worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill1,worldSpawnHill2);
 	
 	worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill1,worldSpawnHill2);
 	player = new Player();
