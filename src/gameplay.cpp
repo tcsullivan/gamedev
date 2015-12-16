@@ -109,7 +109,7 @@ void initEverything(void){
 	worldSpawnHill2 = new World();
 	worldSpawnHill2->generate(700);
 	worldSpawnHill2->setBackground(BG_FOREST);
-	worldSpawnHill2->setBGM("assets/music/ozone.wav");
+	worldSpawnHill2->setBGM("assets/music/embark.wav");
 	worldSpawnHill2->addMob(MS_TRIGGER,-400,0,worldSpawnHill2_infoSprint);
 
 	worldSpawnHill3 = new World();
