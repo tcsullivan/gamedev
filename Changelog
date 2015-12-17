@@ -426,3 +426,12 @@
 
 	- began/continued work on original player sprite
 	- began working on dirt textures
+
+12/16/2015:
+===========
+
+	- added more soundtracks
+	- completed dirt texturizing, improved ground shading
+	- checking files for potential divide by 0 errors, due to random floating point errors
+		still have floating point errors
+	- restarted work on real shading (GLSL stuffs)

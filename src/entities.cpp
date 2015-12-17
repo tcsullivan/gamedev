@@ -107,7 +107,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 	
-	randDialog = rand() % 10 - 1;
+	randDialog = rand() % 12 - 1;
 }
 NPC::~NPC(){
 	while(!aiFunc.empty()){
@@ -218,7 +218,7 @@ void Entity::draw(void){		//draws the entities
 	case PLAYERT:
 		static int texState = 0;
 		static bool up = true;
-		if(loops % (int)((float)4/(float)speed) == 0){
+		if(speed && !(loops % (int)(4.0f/(float)speed))){
 			//currentWorld->addParticle(loc.x,loc.y-HLINE,HLINE,HLINE,0,0,{0.0f,.17f,0.0f},1000);
 			if(up){
 				if(++texState==2)up=false;
@@ -343,7 +343,8 @@ const char *randomDialog[] = {
 	"HELP MY CAPS LOCK IS STUCK",
 	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
 	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
-	"Frig."
+	"Frig.",
+	"The sine of theta equals the opposite over the hypotenuese."
 };
 
 void NPC::interact(){ //have the npc's interact back to the player

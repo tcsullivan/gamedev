@@ -494,7 +494,8 @@ void mainLoop(void){
 	if(++debugDiv==20){
 		debugDiv=0;
 		
-		fps=1000/deltaTime;
+		if(deltaTime)
+			fps=1000/deltaTime;
 	}else if(!(debugDiv%10)){
 		debugY = player->loc.y;
 	}
