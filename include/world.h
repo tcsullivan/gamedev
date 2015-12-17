@@ -166,8 +166,8 @@ public:
 	std::vector<Object		*>	object;
 	std::vector<Particles	*>	particles;
 	
-	void addStructure(_TYPE t,BUILD_SUB sub,float x,float y,World *outside,World *inside);
-	void addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside,World *inside);
+	void addStructure(_TYPE t,BUILD_SUB sub,float x,float y,World *inside);
+	void addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside);
 	void addMob(int t,float x,float y);
 	void addMob(int t,float x,float y,void (*hey)(Mob *));
 	void addNPC(float x,float y);

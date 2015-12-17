@@ -435,3 +435,12 @@
 	- checking files for potential divide by 0 errors, due to random floating point errors
 		still have floating point errors
 	- restarted work on real shading (GLSL stuffs)
+
+12/17/2015:
+===========
+
+	- continued work on player sprite
+	- continued work on GLSL shaders
+	- fixed NPC spawning world location stuff
+	- messed with threads/forks
+	- re-fixed/added indoor environment; fixed indoor background

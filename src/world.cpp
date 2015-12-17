@@ -555,7 +555,6 @@ LOOP2:
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
 	glBegin(GL_QUADS);
-		std::cout<<shade<<std::endl;
 		for(i=is;i<(unsigned)ie-GEN_INC;i++){
 			cline[i].y+=(yoff-DRAW_Y_OFFSET);															// Add the y offset
 			if(!cline[i].y){
@@ -904,16 +903,17 @@ LOOOOP:
 		goto LOOOOP;
 	}
 }
-void World::addStructure(_TYPE t,BUILD_SUB sub, float x,float y,World *outside,World *inside){
+void World::addStructure(_TYPE t,BUILD_SUB sub, float x,float y,World *inside){
 	build.push_back(new Structures());
-	build.back()->spawn(t,sub,x,y);
-	build.back()->inWorld=outside;
-	build.back()->inside=(void *)inside;
+	build.back()->spawn(t,sub,x,y,this);
+	build.back()->inWorld=this;
+	build.back()->inside = (World *)inside;
+	((IndoorWorld *)inside)->outside = this;
 	
 	entity.push_back(build.back());
 }
 	
-void World::addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside,World *inside){
+void World::addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside){
 	std::cout << npcMin << ", " << npcMax << std::endl;
 	int xwasd;
 	for(int i = 0; i < bCount; i++){
@@ -922,7 +922,7 @@ void World::addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float 
 		for(auto &bu : build){
 			if(xwasd > bu->loc.x && xwasd < bu->loc.x+bu->width)goto HERE;
 		}
-		addStructure(t,HOUSE,xwasd,y,outside,inside);
+		addStructure(t,HOUSE,xwasd,y,outside);
 	}
 }
 void World::addMob(int t,float x,float y){
@@ -1095,7 +1095,8 @@ void IndoorWorld::generate(unsigned int width){		// Generates a flat area of wid
 
 void IndoorWorld::draw(Player *p){
 	unsigned int i,ie;
-	int j,x,v_offset;
+	//int j,x,v_offset;
+	int x;
 	
 	/*
 	 *	Draw the background.
@@ -1104,15 +1105,17 @@ void IndoorWorld::draw(Player *p){
 	glEnable(GL_TEXTURE_2D);
 	
 	bgTex->bind(0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
 	glColor4ub(255,255,255,255);
 	
 	glBegin(GL_QUADS);	
-		for(j = x_start - SCREEN_WIDTH / 2;j < -x_start + SCREEN_WIDTH / 2; j += 512){
-			glTexCoord2i(1,1);glVertex2i(j    ,0);
-			glTexCoord2i(0,1);glVertex2i(j+512,0);
-			glTexCoord2i(0,0);glVertex2i(j+512,512);
-			glTexCoord2i(1,0);glVertex2i(j    ,512);
-		}
+		//for(j = x_start - SCREEN_WIDTH / 2;j < -x_start + SCREEN_WIDTH / 2; j += 512){
+			glTexCoord2i(0,1);							  glVertex2i( x_start - SCREEN_WIDTH / 2,0);
+			glTexCoord2i((-x_start*2+SCREEN_WIDTH)/512,1);glVertex2i(-x_start + SCREEN_WIDTH / 2,0);
+			glTexCoord2i((-x_start*2+SCREEN_WIDTH)/512,0);glVertex2i(-x_start + SCREEN_WIDTH / 2,SCREEN_HEIGHT);
+			glTexCoord2i(0,0);							  glVertex2i( x_start - SCREEN_WIDTH / 2,SCREEN_HEIGHT);
+		//}
 	glEnd();
 	
 	glDisable(GL_TEXTURE_2D);
@@ -1121,13 +1124,16 @@ void IndoorWorld::draw(Player *p){
 	 *	Calculate the starting and ending points to draw the ground from.
 	*/
 	
-	v_offset = (p->loc.x - x_start) / HLINE;
+	/*v_offset = (p->loc.x - x_start) / HLINE;
 	j = v_offset - (SCREEN_WIDTH / 2 / HLINE) - GEN_INC;
 	if(j < 0)j = 0;
 	i = j;
 	
 	ie = v_offset + (SCREEN_WIDTH / 2 / HLINE) - GEN_INC;
-	if(ie > lineCount)ie = lineCount;
+	if(ie > lineCount)ie = lineCount;*/
+	
+	i = 0;
+	ie = lineCount;
 	
 	/*
 	 *	Draw the ground.

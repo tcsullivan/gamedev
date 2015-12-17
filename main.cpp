@@ -4,6 +4,7 @@
 */
 
 #include <cstdio> // fopen
+#include <thread>
 
 #include <common.h>
 #include <world.h>
@@ -453,7 +454,7 @@ void mainLoop(void){
 	
 	if(!currentTime){						// Initialize currentTime if it hasn't been
 		currentTime=millis();
-		prevPrevTime=currentTime;
+		//prevPrevTime=currentTime;
 	}	
 	
 	/*

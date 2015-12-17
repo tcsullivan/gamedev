@@ -77,7 +77,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 
 Player::Player(){ //sets all of the player specific traits on object creation
 	width = HLINE * 10;
-	height = HLINE * 16;
+	height = HLINE * 15;
 	
 	type = PLAYERT; //set type to player
 	subtype = 0;	
@@ -393,7 +393,7 @@ void Object::interact(void){
  *							point to have non-normal traits so it could be invisible or invincible...
 */
 
-unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
+unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y, World *oi){
 	loc.x = x;
 	loc.y = y;
 	type = t;
@@ -403,6 +403,8 @@ unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
 	width =  50 * HLINE;
 	height = 40 * HLINE;
 	bsubtype = sub;
+
+	inWorld = oi;
 
 	/*
 	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
@@ -418,7 +420,7 @@ unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
 		 *	with type NPC.
 		*/
 		
-		currentWorld->addNPC(loc.x + i * HLINE ,100);
+		inWorld->addNPC(loc.x + i * HLINE ,100);
 		
 	}
 

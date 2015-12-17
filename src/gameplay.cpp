@@ -93,6 +93,8 @@ static World *worldSpawnHill1;
 static World *worldSpawnHill2;
 static World *worldSpawnHill3;
 
+static IndoorWorld *worldSpawnHill2_Building1;
+
 /*
  *	initEverything() start
  */
@@ -119,7 +121,7 @@ void initEverything(void){
 	worldSpawnHill3->addMob(MS_TRIGGER,-500,0,worldSpawnHill3_itemGet);
 	worldSpawnHill3->addMob(MS_TRIGGER,0,0,worldSpawnHill3_itemSee);
 	worldSpawnHill3->addObject(TEST_ITEM,false,"",-200,300);
-	worldSpawnHill3->addMob(MS_TRIGGER,400,0,worldSpawnHill3_leave);
+	worldSpawnHill3->addMob(MS_TRIGGER,650,0,worldSpawnHill3_leave);
 	worldSpawnHill3->addHole(800,1000);
 	
 	worldSpawnHill1->toRight = worldSpawnHill2;
@@ -140,14 +142,18 @@ void initEverything(void){
 	//playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);*/
 
 
-	currentWorld = worldSpawnHill1;
-	worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill1,worldSpawnHill2);
+	worldSpawnHill2_Building1 = new IndoorWorld();
+	worldSpawnHill2_Building1->generate(300);
+	worldSpawnHill2_Building1->setBackground(BG_WOODHOUSE);
+	worldSpawnHill2_Building1->setBGM("assets/music/theme_jazz.wav");
+
+	worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill2_Building1);
 	
 	player = new Player();
 	player->spawn(200,100);
-	
+
+	currentWorld = worldSpawnHill1;	
 	currentWorld->bgmPlay(NULL);
-	
 	atexit(destroyEverything);
 }
 
