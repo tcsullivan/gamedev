@@ -199,9 +199,14 @@ extern int  fadeIntensity;
  * MAIN ************************************************************************
  *******************************************************************************/
 
+#include <X11/Xlib.h>
+
 int main(/*int argc, char *argv[]*/){
 	//*argv = (char *)argc;
 	gameRunning=false;
+	
+	XInitThreads();
+	
 	/*!
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
 	 *	make openGL calls. Exit if there was an error.

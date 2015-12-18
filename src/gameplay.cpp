@@ -42,6 +42,7 @@ float gen_worldSpawnHill3(float x){
  */
 
 void worldSpawnHill1_hillBlock(Mob *callee){
+	std::cout<<"oi";
 	player->vel.x = 0;
 	player->loc.x = callee->loc.x + callee->width;
 	ui::dialogBox(player->name,NULL,false,"This hill seems to steep to climb up...");

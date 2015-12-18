@@ -17,7 +17,7 @@ all:
 	@rm -f out64/*.o
 	@cd src; $(MAKE) $(MFLAGS64)
 	@echo "  CXX  main.cpp"
-	@g++ $(FLAGS) -m64 -o main main.cpp out64/*.o $(LIBS)
+	@g++ $(FLAGS) -m64 -o main main.cpp out64/*.o $(LIBS) -lX11
 
 win32:
 	@g++ $(FLAGS) -o main main.cpp src/*.cpp $(WIN_LIBS)

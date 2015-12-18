@@ -1,6 +1,8 @@
 #include <entities.h>
 #include <ui.h>
 
+#include <unistd.h>
+
 extern FILE* names;
 extern unsigned int loops;
 
@@ -462,7 +464,11 @@ void Mob::wander(int timeRun){
 	case MS_TRIGGER:
 		if(player->loc.x + player->width / 2 > loc.x		 &&
 		   player->loc.x + player->width / 2 < loc.x + width ){
-			hey(this);
+			//if(!vfork()){
+				hey(this);
+				/*_exit(0);
+			}*/
+			
 		}
 		break;
 	case MS_DOOR:
