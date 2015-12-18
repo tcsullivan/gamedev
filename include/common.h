@@ -14,6 +14,7 @@
 #include <math.h>
 #include <string>
 #include <fstream>	
+#include <thread>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -34,7 +35,7 @@ typedef unsigned int uint;
  * This flag lets the compiler know that we want to use shaders.
  */
 
-#define SHADERSs
+#define SHADERS
 
 /**
  * This structure contains a set of coordinates for ease of coding.

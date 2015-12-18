@@ -595,7 +595,6 @@ void render(){
 	 *	Call the world's draw function, drawing the player, the world, the background, and entities. Also
 	 *	draw the player's inventory if it exists.
 	*/
-	glUseProgramObjectARB(shaderProgram);
 
 	player->near=true;			// Draw the player's name
 
@@ -676,12 +675,20 @@ void render(){
 		}
 		glUseProgramObjectARB(0);
 	}
+
+	glUseProgramObjectARB(shaderProgram);
+	glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 250,250);
+	glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,0,0);
+	glColor4f(0.0f,0.0f,0.0f,1.0f);
+	glRectf(-SCREEN_WIDTH/2,0,SCREEN_WIDTH/2,SCREEN_HEIGHT);
+	glUseProgramObjectARB(0);
+
 	player->inv->draw();
 	
 	/*
 	 *	Here we draw a black overlay if it's been requested.
 	*/
-	glUseProgramObjectARB(0);
+	//glUseProgramObjectARB(0);
 
 	
 	if(fadeIntensity){
@@ -772,6 +779,7 @@ void render(){
 static volatile bool objectInteracting = false;
 
 void logic(){
+
 	/*
 	 *	NPCSelected is used to insure that only one NPC is made interactable with the mouse
 	 *	if, for example, multiple entities are occupying one space.
