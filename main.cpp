@@ -198,14 +198,10 @@ extern int  fadeIntensity;
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
-
-#include <X11/Xlib.h>
-
+ 
 int main(/*int argc, char *argv[]*/){
 	//*argv = (char *)argc;
 	gameRunning=false;
-	
-	XInitThreads();
 	
 	/*!
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
@@ -905,6 +901,7 @@ void logic(){
 				m->wander((rand()%240 + 15));	// Make the mob wander :)
 				break;
 			case MS_TRIGGER:
+			case MS_PAGE:
 				m->wander(0);
 				break;
 			case MS_DOOR:

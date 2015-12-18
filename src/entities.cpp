@@ -1,7 +1,7 @@
 #include <entities.h>
 #include <ui.h>
 
-#include <unistd.h>
+//#include <unistd.h>
 
 extern FILE* names;
 extern unsigned int loops;
@@ -153,14 +153,21 @@ Mob::Mob(int sub){
 		width = HLINE * 8;
 		height = HLINE * 8;
 		tex = new Texturec(1, "assets/robin.png");
+		break;
 	case MS_TRIGGER:
 		width = HLINE * 20;
 		height = 2000;
 		tex = new Texturec(0);
+		break;
 	case MS_DOOR:
 		width = HLINE * 12;
 		height = HLINE * 19;
 		tex = new Texturec(1,"assets/door.png");
+		break;
+	case MS_PAGE:
+		width = HLINE * 6;
+		height = HLINE * 4;
+		tex = new Texturec(1,"assets/items/ITEM_PAGE.png");
 		break;
 	}
 	
@@ -248,6 +255,7 @@ void Entity::draw(void){		//draws the entities
 				break;
 			case MS_BIRD:
 			case MS_DOOR:
+			case MS_PAGE:
 			default:
 				tex->bind(0);
 				break;
@@ -471,7 +479,17 @@ void Mob::wander(int timeRun){
 			
 		}
 		break;
-	case MS_DOOR:
+	case MS_PAGE:
+		if(ui::mouse.x > loc.x		   &&
+		   ui::mouse.x < loc.x + width &&
+		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+			if(speed != 666){
+				speed = 666;
+				hey(this);
+				speed = 0;
+			}
+		}
+		break;
 	default:
 		break;
 	}

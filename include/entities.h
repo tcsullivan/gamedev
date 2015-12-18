@@ -32,7 +32,8 @@ enum MOB_SUB {
 	MS_RABBIT = 1,
 	MS_BIRD,
 	MS_TRIGGER,
-	MS_DOOR
+	MS_DOOR,
+	MS_PAGE
 };
 
 enum BUILD_SUB{

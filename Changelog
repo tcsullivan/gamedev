@@ -444,3 +444,11 @@
 	- fixed NPC spawning world location stuff
 	- messed with threads/forks
 	- re-fixed/added indoor environment; fixed indoor background
+
+12/18/2015:
+===========
+
+	- upgraded development utilities
+	- began working on pages, made sprite and handler
+	- GLSL shaders are better
+	- redid theme_jazz

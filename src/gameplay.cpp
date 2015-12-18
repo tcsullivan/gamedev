@@ -51,14 +51,27 @@ void worldSpawnHill1_hillBlock(Mob *callee){
 
 static Arena *a;
 void worldSpawnHill2_infoSprint(Mob *callee){
-	callee->alive = false;
-	a = new Arena(currentWorld,player);
-	a->setBackground(BG_FOREST);
-	a->setBGM("assets/music/embark.wav");
-	ui::toggleWhiteFast();
-	ui::waitForCover();
-	currentWorld = a;
-	ui::toggleWhiteFast();
+	
+	ui::dialogBox(player->name,":Nah:Sure",false,"This page would like to take you somewhere.");
+	ui::waitForDialog();
+	switch(ui::dialogOptChosen){
+	case 1:
+		ui::dialogBox(player->name,NULL,true,"Cool.");
+		callee->alive = false;
+		a = new Arena(currentWorld,player);
+		a->setBackground(BG_FOREST);
+		a->setBGM("assets/music/embark.wav");
+		ui::toggleWhiteFast();
+		ui::waitForCover();
+		currentWorld = a;
+		ui::toggleWhiteFast();
+		break;
+	case 2:
+	default:
+		ui::dialogBox(player->name,NULL,false,"Okay then.");
+		break;
+	}
+	
 	//ui::dialogBox("B-) ",NULL,true,"Press \'Shift\' to run!");
 }
 
@@ -113,7 +126,7 @@ void initEverything(void){
 	worldSpawnHill2->generate(700);
 	worldSpawnHill2->setBackground(BG_FOREST);
 	worldSpawnHill2->setBGM("assets/music/ozone.wav");
-	worldSpawnHill2->addMob(MS_TRIGGER,-400,0,worldSpawnHill2_infoSprint);
+	worldSpawnHill2->addMob(MS_PAGE,-400,0,worldSpawnHill2_infoSprint);
 
 	worldSpawnHill3 = new World();
 	worldSpawnHill3->generateFunc(1000,gen_worldSpawnHill3);
