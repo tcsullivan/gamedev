@@ -300,7 +300,8 @@ namespace ui {
 			}
 		}while(s[++i]);
 		
-		return putString(x-width/2,y,s);
+		putString(x-width/2,y,s);
+		return width;
 	}
 	
 	/*
@@ -487,7 +488,7 @@ namespace ui {
 	}
 	void draw(void){
 		unsigned char i;
-		float x,y;
+		float x,y,tmp;
 		char *rtext;
 		
 		if(dialogBoxExists){
@@ -524,12 +525,12 @@ namespace ui {
 			
 				for(i=0;i<dialogOptCount;i++){
 					setFontColor(255,255,255);
-					dialogOptLoc[i][1]=y-SCREEN_HEIGHT/4+(fontSize+HLINE)*(i+1);
-					dialogOptLoc[i][2]=
-					putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
-					dialogOptLoc[i][0]=offset.x-dialogOptLoc[i][2]/2;
+					tmp = putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+					dialogOptLoc[i][2] = offset.x + tmp;
+					dialogOptLoc[i][0] = offset.x - tmp;
+					dialogOptLoc[i][1] = y - SCREEN_HEIGHT / 4 + (fontSize + HLINE) * (i + 1);
 					if(mouse.x > dialogOptLoc[i][0] &&
-					   mouse.x < dialogOptLoc[i][0] + dialogOptLoc[i][2] &&
+					   mouse.x < dialogOptLoc[i][2] &&
 					   mouse.y > dialogOptLoc[i][1] &&
 					   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
 						  setFontColor(255,255,0);

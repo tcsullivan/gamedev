@@ -173,6 +173,12 @@ public:
 	void addNPC(float x,float y);
 	void addObject(ITEM_ID, bool, const char *, float, float);
 	void addParticle(float, float, float, float, float, float, Color color, int);
+
+	NPC *getAvailableNPC(void);
+	
+	/*
+	 *	Update coordinates of all entities.
+	 */
 	
 	void update(Player *p,unsigned int delta);
 	

@@ -452,3 +452,11 @@
 	- began working on pages, made sprite and handler
 	- GLSL shaders are better
 	- redid theme_jazz
+
+12/21/2015:
+===========
+
+	- fixed dialog options issues, finished basic pages
+	- added World::getAvailableNPC() for easy quest assigner assigning
+	- added the Condition class, so that events and actions can be remembered by NPCs
+	- added functionality for multiple lights (GLSL)

@@ -980,6 +980,14 @@ void World::addLayer(unsigned int width){
 	behind->bgTex=bgTex;
 }
 
+NPC *World::getAvailableNPC(void){
+	for(auto &n : npc){
+		if(n->aiFunc.empty())
+			return n;
+	}
+	return (NPC *)NULL;
+}
+
 World *World::goWorldLeft(Player *p){
 	if(toLeft&&p->loc.x<x_start+HLINE*15){
 		p->loc.x=toLeft->x_start+getWidth(toLeft)-HLINE*10;

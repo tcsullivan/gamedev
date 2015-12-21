@@ -1,9 +1,10 @@
 #include <entities.h>
 #include <ui.h>
 
+#include <istream>
 //#include <unistd.h>
 
-extern FILE* names;
+extern std::istream *names;
 extern unsigned int loops;
 
 extern World *currentWorld;
@@ -12,39 +13,30 @@ extern Player *player;
 
 extern const char *itemName;
 
-extern 
-
 void getRandomName(Entity *e){
-	int tempNum,max=0;
+	unsigned int tempNum,max=0;
 	char *bufs;
 	
-	rewind(names);
+	names->seekg(0,names->beg);
 	
-	bufs = new char[16];	//(char *)malloc(16);
+	bufs = new char[32];
 	
-	for(;!feof(names);max++){
-		fgets(bufs,16,(FILE*)names);
-	}
+	for(;!names->eof();max++)
+		names->getline(bufs,32);
 	
 	tempNum = rand() % max;
-	rewind(names);
+	names->seekg(0,names->beg);
 	
-	for(int i=0;i<tempNum;i++){
-		fgets(bufs,16,(FILE*)names);
-	}
+	for(unsigned int i=0;i<tempNum;i++)
+		names->getline(bufs,32);
 	
-	switch(fgetc(names)){
+	switch(bufs[0]){
+	default :
 	case 'm': e->gender = MALE;  break;
 	case 'f': e->gender = FEMALE;break;
-	default : break;
 	}
 	
-	if((fgets(bufs,16,(FILE*)names)) != NULL){
-		bufs[strlen(bufs)] = '\0';
-		strcpy(e->name,bufs);
-		if(e->name[strlen(e->name)-1] == '\n')
-			e->name[strlen(e->name)-1] = '\0';
-	}
+	strcpy(e->name,bufs+1);
 	
 	delete[] bufs;
 }
@@ -73,7 +65,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 		}
 	}
 	
-	name = new char[16];
+	name = new char[32];
 	getRandomName(this);
 }
 
@@ -480,8 +472,12 @@ void Mob::wander(int timeRun){
 		}
 		break;
 	case MS_PAGE:
-		if(ui::mouse.x > loc.x		   &&
-		   ui::mouse.x < loc.x + width &&
+		if(player->loc.x > loc.x - 100		 &&
+		   player->loc.x < loc.x + 100		 &&
+		   ui::mouse.x > loc.x				 &&
+		   ui::mouse.x < loc.x + width		 &&
+		   ui::mouse.y > loc.y - width / 2	 &&
+		   ui::mouse.y < loc.y + width * 1.5 &&
 		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 			if(speed != 666){
 				speed = 666;
