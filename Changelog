@@ -411,4 +411,19 @@
 	- imrpoved BGM handling
 	- continued work on particles, made a fountain
 	- added sanic
+<<<<<<< HEAD
 >>>>>>> 43bbcf02fd5e4e69a9aa521fa4cd572cc8675cf3
+=======
+	
+	~ Broke 5000 lines of code/doc, now with some file Doxygen'd
+
+12/14/2015:
+===========
+
+	- Re-implemented Arena
+		added door mob for exit
+		added white flash + sound transition
+	- fixed fading bugs
+	- continued fixing general game bugs
+	- fixed structure spawn issues
+>>>>>>> e67bfdde0b7e15ac6bc29993a92a89a844474554

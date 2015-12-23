@@ -212,7 +212,7 @@ extern WEATHER weather;
 extern bool fadeEnable;
 extern bool fadeWhite;
 extern bool fadeFast;
-extern unsigned int fadeIntensity;
+extern int  fadeIntensity;
 
 /*******************************************************************************
  * MAIN ************************************************************************
@@ -515,7 +515,6 @@ void mainLoop(void){
 		debugDiv=0;
 		
 		fps=1000/deltaTime;
-		
 	}else if(!(debugDiv%10)){
 		debugY = player->loc.y;
 	}
@@ -717,9 +716,9 @@ void render(){
 	
 	if(fadeIntensity){
 		if(fadeWhite)
-			glColor4ub(255,255,255,fadeIntensity);
+			safeSetColorA(255,255,255,fadeIntensity);
 		else
-			glColor4ub(0,0,0,fadeIntensity);
+			safeSetColorA(0,0,0,fadeIntensity);
 		glRectf(offset.x-SCREEN_WIDTH /2,
 				offset.y-SCREEN_HEIGHT/2,
 				offset.x+SCREEN_WIDTH /2,
@@ -839,9 +838,16 @@ void logic(){
 			*/
 
 			if(n->canMove) n->wander((rand() % 120 + 30));
-
-			if(player->inv->usingi && player->inv->detectCollision(vec2{n->loc.x, n->loc.y},vec2{n->loc.x+n->width,n->loc.y+n->height})){
-				n->alive=false;
+			if(!player->inv->usingi) n->hit = false;
+			if(player->inv->usingi && !n->hit && player->inv->detectCollision(vec2{n->loc.x, n->loc.y},vec2{n->loc.x+n->width,n->loc.y+n->height})){
+				n->health -= 25;
+				n->hit = true;
+				for(int r = 0; r < (rand()%5);r++)
+					currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%4)*.001-.002), {(rand()%75+10)/100.0f,0,0}, 10000);
+				if(n->health <= 0){
+					for(int r = 0; r < (rand()%30)+15;r++)
+						currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%10)*.01-.05), {(rand()%75)+10/100.0f,0,0}, 10000);
+				}
 			}
 			/*
 			 *	Don't bother handling the NPC if another has already been handled.
@@ -866,9 +872,7 @@ void logic(){
 				 *	considered legal. In other words, require the player to be close to
 				 *	the NPC in order to interact with it.
 				 *
-				 *	This uses the Pythagorean theorem to check for NPCs within a certain
-				 *	radius (40 HLINEs) of the player's coordinates.
-				 *
+				 *	This uses the Pythagorean theorem to check for NPCs within a certain			 *
 				*/
 
 				if(pow((n->loc.x - player->loc.x),2) + pow((n->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
@@ -916,6 +920,8 @@ void logic(){
 			case MS_TRIGGER:
 				m->wander(0);
 				break;
+			case MS_DOOR:
+				break;
 			default:
 				std::cout<<"Unhandled mob of subtype "<<m->subtype<<"."<<std::endl;
 				break;
@@ -928,7 +934,7 @@ void logic(){
 				if(ui::mouse.x >= o->loc.x 				&&
 				   ui::mouse.x <= o->loc.x + o->width 	&&
 				   ui::mouse.y >= o->loc.y				&&
-				   ui::mouse.y <= o->loc.y + o->width	){
+				   ui::mouse.y <= o->loc.y + o->height	){
 					if(pow((o->loc.x - player->loc.x),2) + pow((o->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
 
 						/*
@@ -948,6 +954,12 @@ void logic(){
 			}
 		}
 	}
+	for(auto &b : currentWorld->build){
+		if(b->bsubtype == FOUNTAIN){
+			for(int r = 0; r < (rand()%20)+10;r++)
+				currentWorld->addParticle(rand()%HLINE*3 + b->loc.x + b->width/2,b->loc.y + b->height, HLINE,HLINE, rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,((4+rand()%6)*.05), {0,0,1.0f}, 2500);
+		}
+	}
 	
 	/*
 	 *	Switch between day and night (SUNNY and DARK) if necessary.
@@ -955,7 +967,6 @@ void logic(){
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
 		if(weather==SUNNY){
 			weather=DARK;
-			Mix_PlayChannel(2,crickets,0);
 		}else{
 			weather=SUNNY;
 			Mix_Pause(2);
@@ -971,12 +982,15 @@ void logic(){
 	/*
 	 *	Transition to and from black if necessary.
 	*/
+	
 	if(fadeEnable){
-			 if(fadeIntensity < 150)fadeIntensity+=fadeFast?30:10;
-		else if(fadeIntensity < 255)fadeIntensity+=fadeFast?15:5;
+			 if(fadeIntensity < 150)fadeIntensity+=fadeFast?40:10;
+		else if(fadeIntensity < 255)fadeIntensity+=fadeFast?20:5;
+		else fadeIntensity = 255;
 	}else{
-			 if(fadeIntensity > 150)fadeIntensity-=fadeFast?15:5;
-		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?30:10;
+			 if(fadeIntensity > 150)fadeIntensity-=fadeFast?20:5;
+		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?40:10;
+		else fadeIntensity = 0;
 	}
 
 	/*

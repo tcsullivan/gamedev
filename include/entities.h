@@ -31,7 +31,52 @@ enum GENDER{
 enum MOB_SUB {
 	MS_RABBIT = 1,
 	MS_BIRD,
-	MS_TRIGGER
+	MS_TRIGGER,
+	MS_DOOR
+};
+
+enum BUILD_SUB{
+	TOWN_HALL = 1,
+	HOUSE,
+	HOUSE2,
+	HOUSE3,
+	HOUSE4,
+	FOUNTAIN
+};
+
+class Particles{
+public:
+	vec2 loc;
+	float width;
+	float height;
+	float velx;
+	float vely;
+	Color color;
+	int duration;
+	bool canMove;
+	Particles(float x, float y, float w, float h, float vx, float vy, Color c, int d){
+		loc.x = (x);
+		loc.y = (y);
+		width = (w);
+		height = (h);
+		velx = vx;
+		vely = vy;
+		color.red = (c.red);
+		color.green = (c.green);
+		color.blue = (c.blue);
+		duration = d;
+	}
+	~Particles(){}
+	void draw(){
+		glColor3f(color.red,color.green,color.blue);
+		glRectf(loc.x,loc.y,loc.x+width,loc.y+height);
+	}
+	bool kill(float delta){
+		duration -= delta;
+		if(duration <= 0)
+			return true;
+		else return false;
+	}
 };
 
 class Entity{
@@ -58,6 +103,7 @@ public:
 	bool canMove;			// Enables movement
 	bool right,left;		// Direction faced by Entity
 	bool alive;
+	bool hit;
 	unsigned char ground;	// Shows how the Entity is grounded (if it is)
 
 	/*
@@ -118,11 +164,12 @@ class Structures : public Entity{
 public:
 	void *inWorld;
 	void *inside;
+	BUILD_SUB bsubtype;
 	
 	Structures();
 	~Structures();
 	
-	unsigned int spawn(_TYPE, float, float);
+	unsigned int spawn(_TYPE, BUILD_SUB, float, float);
 };
 
 class Mob : public Entity{

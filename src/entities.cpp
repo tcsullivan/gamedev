@@ -10,6 +10,8 @@ extern Player *player;
 
 extern const char *itemName;
 
+extern 
+
 void getRandomName(Entity *e){
 	int tempNum,max=0;
 	char *bufs;
@@ -57,6 +59,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	near	= false;
 	canMove	= true;
 	ground	= false;
+	hit 	= false;
 	
 	ticksToUse = 0;
 	
@@ -116,12 +119,12 @@ NPC::~NPC(){
 }
 
 Structures::Structures(){ //sets the structure type
-	health = maxHealth = 1;
+	health = maxHealth = 25;
 	
 	alive = false;
 	near  = false;
 	
-	tex = new Texturec(1,"assets/house1.png");
+	tex = new Texturec(3,"assets/house1.png", "assets/house2.png", "assets/fountain1.png");
 	
 	inWorld = NULL;
 	name = NULL;
@@ -151,6 +154,10 @@ Mob::Mob(int sub){
 		width = HLINE * 20;
 		height = 2000;
 		tex = new Texturec(0);
+	case MS_DOOR:
+		width = HLINE * 10;
+		height = HLINE * 16;
+		tex = new Texturec(1,"assets/door.png");
 		break;
 	}
 	
@@ -211,6 +218,7 @@ void Entity::draw(void){		//draws the entities
 		static int texState = 0;
 		static bool up = true;
 		if(loops % (int)((float)4/(float)speed) == 0){
+			//currentWorld->addParticle(loc.x,loc.y-HLINE,HLINE,HLINE,0,0,{0.0f,.17f,0.0f},1000);
 			if(up){
 				if(++texState==2)up=false;
 				tex->bindNext();
@@ -236,10 +244,24 @@ void Entity::draw(void){		//draws the entities
 				goto NOPE;
 				break;
 			case MS_BIRD:
+			case MS_DOOR:
 			default:
 				tex->bind(0);
 				break;
 		}
+		break;
+	case STRUCTURET:
+		for(auto &strt : currentWorld->build){
+			if(this == strt){
+				if(strt->bsubtype == HOUSE){
+					tex->bind(0);
+				}else if(strt->bsubtype == HOUSE2){
+					tex->bind(1);
+				}else if(strt->bsubtype == FOUNTAIN){
+					tex->bind(2);
+				}
+			}
+		} 
 		break;
 	default:
 		tex->bind(0);
@@ -319,7 +341,8 @@ const char *randomDialog[] = {
 	"Did you know this game has over 4000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
 	"HELP MY CAPS LOCK IS STUCK",
 	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
-	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment."
+	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
+	"Frig."
 };
 
 void NPC::interact(){ //have the npc's interact back to the player
@@ -368,7 +391,7 @@ void Object::interact(void){
  *							point to have non-normal traits so it could be invisible or invincible...
 */
 
-unsigned int Structures::spawn(_TYPE t, float x, float y){
+unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
 	loc.x = x;
 	loc.y = y;
 	type = t;
@@ -377,6 +400,7 @@ unsigned int Structures::spawn(_TYPE t, float x, float y){
 
 	width =  50 * HLINE;
 	height = 40 * HLINE;
+	bsubtype = sub;
 
 	/*
 	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
@@ -437,6 +461,7 @@ void Mob::wander(int timeRun){
 			hey(this);
 		}
 		break;
+	case MS_DOOR:
 	default:
 		break;
 	}
