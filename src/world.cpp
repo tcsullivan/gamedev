@@ -50,6 +50,7 @@ float worldGetYBase(World *w){
 }
 
 void World::setBackground(WORLD_BG_TYPE bgt){
+	bgType = bgt;
 	switch(bgt){
 	case BG_FOREST:
 		bgTex = new Texturec(7,bgPaths[0]);
@@ -60,12 +61,28 @@ void World::setBackground(WORLD_BG_TYPE bgt){
 	}
 }
 
-void World::save(FILE *s){
-	fclose(s);
+void World::save(std::ofstream *o){
+	o->write((char *)&lineCount,            sizeof(unsigned int));
+	o->write((char *)&line     ,lineCount * sizeof(struct line_t));
+	o->write("GG"              ,2         * sizeof(char));
+	o->write((char *)&star     ,100       * sizeof(vec2));
 }
 
-void World::load(FILE *s){
-	fclose(s);
+void World::load(std::ifstream *i){
+	static char end[2];
+	
+	i->read((char *)&lineCount,sizeof(unsigned int));
+	line = new struct line_t[lineCount];
+	
+	i->read((char *)&line,lineCount * sizeof(struct line_t));
+	i->read(end          ,2         * sizeof(char));
+	if(strncmp(end,"GG",2)){
+		std::cout<<"world.dat corrupt"<<std::endl;
+		exit(EXIT_FAILURE);
+	}
+	i->read((char *)&star,100 * sizeof(vec2));
+	
+	x_start = 0 - getWidth(this) / 2;
 }
 
 World::World(void){
@@ -913,16 +930,20 @@ void World::addStructure(_TYPE t,BUILD_SUB sub, float x,float y,World *inside){
 	entity.push_back(build.back());
 }
 	
-void World::addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside){
+void World::addVillage(int bCount, int npcMin, int npcMax,_TYPE t,World *inside){
 	std::cout << npcMin << ", " << npcMax << std::endl;
-	int xwasd;
+	//int xwasd;
 	for(int i = 0; i < bCount; i++){
-		xwasd = (rand()%(int)x+1000*HLINE);
+		addStructure(t,HOUSE,x_start + (i * 300),100,inside);
+		/*std::cout<<"1\n";
 		HERE:
+		xwasd = (rand()%(int)x+1000*HLINE);
 		for(auto &bu : build){
 			if(xwasd > bu->loc.x && xwasd < bu->loc.x+bu->width)goto HERE;
 		}
-		addStructure(t,HOUSE,xwasd,y,outside);
+		std::cout<<"2\n";
+		addStructure(t,HOUSE,xwasd,y,inside);
+		std::cout<<"3\n";*/
 	}
 }
 void World::addMob(int t,float x,float y){

@@ -35,7 +35,7 @@ End of December:
 	- create first 'chapters' of story
 	- create very first areas in the game (code it) to get an
 	  idea of what's gonna go down
-	  
+
 January - March:
 ===============
 
@@ -45,7 +45,7 @@ January - March:
 February - End of March:
 ========================
 
-	- design sound effects / background music?
+	- design or focus on sound effects / background music?
 	
 March-ish:
 ======

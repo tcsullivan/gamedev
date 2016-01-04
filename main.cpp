@@ -480,6 +480,7 @@ void mainLoop(void){
 	
 	if(prev != currentWorld){
 		currentWorld->bgmPlay(prev);
+		ui::dialogBoxExists = false;
 	}
 	
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){

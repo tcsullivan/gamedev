@@ -115,15 +115,21 @@ static World *worldSpawnHill3;
 
 static IndoorWorld *worldSpawnHill2_Building1;
 
+static World *worldFirstVillage;
 /*
  *	initEverything() start
  */
 
 void destroyEverything(void);
 void initEverything(void){
-
+	//static std::ifstream i ("world.dat",std::ifstream::in | std::ifstream::binary);
+	
 	worldSpawnHill1 = new World();
-	worldSpawnHill1->generateFunc(400,gen_worldSpawnHill1);
+	/*if(!i.fail()){
+		worldSpawnHill1->load(&i);
+		i.close();
+	}else*/
+		worldSpawnHill1->generateFunc(400,gen_worldSpawnHill1);
 	worldSpawnHill1->setBackground(BG_FOREST);
 	worldSpawnHill1->setBGM("assets/music/embark.wav");
 	worldSpawnHill1->addMob(MS_TRIGGER,0,0,worldSpawnHill1_hillBlock);
@@ -138,12 +144,18 @@ void initEverything(void){
 	worldSpawnHill3->generateFunc(1000,gen_worldSpawnHill3);
 	worldSpawnHill3->setBackground(BG_FOREST);
 	worldSpawnHill3->setBGM("assets/music/ozone.wav");
-	worldSpawnHill3->addHole(800,1000);
+	
+	worldFirstVillage = new World();
+	worldFirstVillage->generate(1000);
+	worldFirstVillage->setBackground(BG_FOREST);
+	worldFirstVillage->setBGM("assets/music/embark.wav");
 	
 	worldSpawnHill1->toRight = worldSpawnHill2;
 	worldSpawnHill2->toLeft = worldSpawnHill1;
 	worldSpawnHill2->toRight = worldSpawnHill3;
 	worldSpawnHill3->toLeft = worldSpawnHill2;
+	worldSpawnHill3->toRight = worldFirstVillage;
+	worldFirstVillage->toLeft = worldSpawnHill3;
 
 	/*
 	 *	Spawn some entities.
@@ -166,6 +178,8 @@ void initEverything(void){
 	worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill2_Building1);
 	worldSpawnHill2->getAvailableNPC()->addAIFunc(worldSpawnHill2_Quest1,false);
 	
+	worldFirstVillage->addVillage(5,0,0,STRUCTURET,worldSpawnHill2_Building1);
+	
 	player = new Player();
 	player->spawn(200,100);
 
@@ -178,6 +192,11 @@ extern std::vector<int (*)(NPC *)> AIpreload;
 extern std::vector<NPC *> AIpreaddr;
 
 void destroyEverything(void){
+	static std::ofstream o;
+	o.open("world.dat",std::ifstream::binary);
+	worldSpawnHill1->save(&o);
+	o.close();
+	
 	while(!AIpreload.empty())
 		AIpreload.pop_back();
 	while(!AIpreaddr.empty())

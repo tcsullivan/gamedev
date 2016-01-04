@@ -101,7 +101,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 	
-	randDialog = rand() % 12 - 1;
+	randDialog = 6;//rand() % 12 - 1;
 }
 NPC::~NPC(){
 	while(!aiFunc.empty()){
@@ -341,7 +341,7 @@ const char *randomDialog[] = {
 	"How much wood could a woodchuck chuck if a woodchuck could chuck wood?",
 	"I don\'t think anyone has ever been able to climb up that hill.",
 	"If you ever see a hole in the ground, watch out; it could mean the end for you.",
-	"Did you know this game has over 4000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
+	"Did you know this game has over 5000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
 	"HELP MY CAPS LOCK IS STUCK",
 	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
 	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",

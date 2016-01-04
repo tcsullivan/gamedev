@@ -8,6 +8,9 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include <ostream>
+#include <istream>
+
 #include <common.h>
 #include <entities.h>
 
@@ -128,6 +131,7 @@ protected:
 	 */
 	
 	Texturec *bgTex;
+	WORLD_BG_TYPE bgType;
 	
 	/**
 	 * The Mix_Music object that holds the background soundtrack for the world.
@@ -167,7 +171,7 @@ public:
 	std::vector<Particles	*>	particles;
 	
 	void addStructure(_TYPE t,BUILD_SUB sub,float x,float y,World *inside);
-	void addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside);
+	void addVillage(int bCount, int npcMin, int npcMax,_TYPE t,World *inside);
 	void addMob(int t,float x,float y);
 	void addMob(int t,float x,float y,void (*hey)(Mob *));
 	void addNPC(float x,float y);
@@ -262,8 +266,8 @@ public:
 	
 	int getTheWidth(void);
 	
-	void save(FILE *);
-	void load(FILE *);
+	void save(std::ofstream *);
+	void load(std::ifstream *);
 };
 
 /*
