@@ -166,13 +166,19 @@ public:
 	std::vector<Object		*>	object;
 	std::vector<Particles	*>	particles;
 	
-	void addStructure(_TYPE t,BUILD_SUB sub,float x,float y,World *outside,World *inside);
-	void addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside,World *inside);
+	void addStructure(_TYPE t,BUILD_SUB sub,float x,float y,World *inside);
+	void addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside);
 	void addMob(int t,float x,float y);
 	void addMob(int t,float x,float y,void (*hey)(Mob *));
 	void addNPC(float x,float y);
 	void addObject(ITEM_ID, bool, const char *, float, float);
 	void addParticle(float, float, float, float, float, float, Color color, int);
+
+	NPC *getAvailableNPC(void);
+	
+	/*
+	 *	Update coordinates of all entities.
+	 */
 	
 	void update(Player *p,unsigned int delta);
 	

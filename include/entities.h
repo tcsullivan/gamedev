@@ -32,7 +32,8 @@ enum MOB_SUB {
 	MS_RABBIT = 1,
 	MS_BIRD,
 	MS_TRIGGER,
-	MS_DOOR
+	MS_DOOR,
+	MS_PAGE
 };
 
 enum BUILD_SUB{
@@ -43,6 +44,8 @@ enum BUILD_SUB{
 	HOUSE4,
 	FOUNTAIN
 };
+
+class World;
 
 class Particles{
 public:
@@ -162,14 +165,14 @@ public:
 
 class Structures : public Entity{
 public:
-	void *inWorld;
-	void *inside;
+	World *inWorld;
+	World *inside;
 	BUILD_SUB bsubtype;
 	
 	Structures();
 	~Structures();
 	
-	unsigned int spawn(_TYPE, BUILD_SUB, float, float);
+	unsigned int spawn(_TYPE, BUILD_SUB, float, float, World *);
 };
 
 class Mob : public Entity{

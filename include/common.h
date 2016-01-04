@@ -70,7 +70,7 @@ typedef struct{
  * The desired width of the game window.
  */
 
-#define SCREEN_WIDTH	1024
+#define SCREEN_WIDTH	1280
 
 /**
  * The desired height of the game window.
@@ -142,6 +142,23 @@ extern vec2 offset;
 extern unsigned int loops;
 
 /**
+ * This class contains a string for identification and a value. It can be used to
+ * save certain events for and decisions so that they can be recalled later.
+ */
+
+class Condition {
+private:
+	char *id;
+	void *value;
+public:
+	Condition(const char *_id,void *val);
+	~Condition();
+	
+	bool sameID(const char *s);
+	void *getValue(void);
+};
+
+/**
  *	Prints a formatted debug message to the console, along with the callee's file and line
  *	number.
  */
@@ -159,5 +176,18 @@ void safeSetColor(int r,int g,int b);
  */
 
 void safeSetColorA(int r,int g,int b,int a);
+
+/**
+ * We've encountered many problems when attempting to create delays for triggering
+ * the logic function. As a result, we decided on using the timing libraries given
+ * by <chrono> in the standard C++ library. This function simply returns the amount
+ * of milliseconds that have passed sine the epoch.
+ */
+
+#ifdef __WIN32__
+#define millis()	SDL_GetTicks()
+#else
+unsigned int millis(void);
+#endif // __WIN32__
 
 #endif // COMMON_H

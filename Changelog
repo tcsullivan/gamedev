@@ -411,8 +411,6 @@
 	- imrpoved BGM handling
 	- continued work on particles, made a fountain
 	- added sanic
-<<<<<<< HEAD
->>>>>>> 43bbcf02fd5e4e69a9aa521fa4cd572cc8675cf3
 =======
 	
 	~ Broke 5000 lines of code/doc, now with some file Doxygen'd
@@ -426,4 +424,44 @@
 	- fixed fading bugs
 	- continued fixing general game bugs
 	- fixed structure spawn issues
->>>>>>> e67bfdde0b7e15ac6bc29993a92a89a844474554
+=======
+
+12/15/2015:
+===========
+
+	- began/continued work on original player sprite
+	- began working on dirt textures
+
+12/16/2015:
+===========
+
+	- added more soundtracks
+	- completed dirt texturizing, improved ground shading
+	- checking files for potential divide by 0 errors, due to random floating point errors
+		still have floating point errors
+	- restarted work on real shading (GLSL stuffs)
+
+12/17/2015:
+===========
+
+	- continued work on player sprite
+	- continued work on GLSL shaders
+	- fixed NPC spawning world location stuff
+	- messed with threads/forks
+	- re-fixed/added indoor environment; fixed indoor background
+
+12/18/2015:
+===========
+
+	- upgraded development utilities
+	- began working on pages, made sprite and handler
+	- GLSL shaders are better
+	- redid theme_jazz
+
+12/21/2015:
+===========
+
+	- fixed dialog options issues, finished basic pages
+	- added World::getAvailableNPC() for easy quest assigner assigning
+	- added the Condition class, so that events and actions can be remembered by NPCs
+	- added functionality for multiple lights (GLSL)

@@ -1,3 +1,7 @@
+/** @file ui.h
+ * @brief Contains functions for handling the user interface.
+ */
+
 #ifndef UI_H
 #define UI_H
 
@@ -12,9 +16,9 @@
 
 namespace ui {
 
-	/*
-	 *	Contains the coordinates of the mouse in the window.
-	*/
+	/**
+	 *	Contains the coordinates of the mouse inside the window.
+	 */
 
 	extern vec2 mouse;
 
@@ -90,6 +94,7 @@ namespace ui {
 	void toggleWhiteFast(void);
 	void waitForCover(void);
 	
+	void waitForNothing(unsigned int);
 }
 
 #endif // UI_H

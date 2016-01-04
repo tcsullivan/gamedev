@@ -1,7 +1,10 @@
 #include <entities.h>
 #include <ui.h>
 
-extern FILE* names;
+#include <istream>
+//#include <unistd.h>
+
+extern std::istream *names;
 extern unsigned int loops;
 
 extern World *currentWorld;
@@ -10,39 +13,30 @@ extern Player *player;
 
 extern const char *itemName;
 
-extern 
-
 void getRandomName(Entity *e){
-	int tempNum,max=0;
+	unsigned int tempNum,max=0;
 	char *bufs;
 	
-	rewind(names);
+	names->seekg(0,names->beg);
 	
-	bufs = new char[16];	//(char *)malloc(16);
+	bufs = new char[32];
 	
-	for(;!feof(names);max++){
-		fgets(bufs,16,(FILE*)names);
-	}
+	for(;!names->eof();max++)
+		names->getline(bufs,32);
 	
 	tempNum = rand() % max;
-	rewind(names);
+	names->seekg(0,names->beg);
 	
-	for(int i=0;i<tempNum;i++){
-		fgets(bufs,16,(FILE*)names);
-	}
+	for(unsigned int i=0;i<tempNum;i++)
+		names->getline(bufs,32);
 	
-	switch(fgetc(names)){
+	switch(bufs[0]){
+	default :
 	case 'm': e->gender = MALE;  break;
 	case 'f': e->gender = FEMALE;break;
-	default : break;
 	}
 	
-	if((fgets(bufs,16,(FILE*)names)) != NULL){
-		bufs[strlen(bufs)] = '\0';
-		strcpy(e->name,bufs);
-		if(e->name[strlen(e->name)-1] == '\n')
-			e->name[strlen(e->name)-1] = '\0';
-	}
+	strcpy(e->name,bufs+1);
 	
 	delete[] bufs;
 }
@@ -71,19 +65,20 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 		}
 	}
 	
-	name = new char[16];
+	name = new char[32];
 	getRandomName(this);
 }
 
 Player::Player(){ //sets all of the player specific traits on object creation
 	width = HLINE * 10;
-	height = HLINE * 16;
+	height = HLINE * 15;
 	
 	type = PLAYERT; //set type to player
 	subtype = 0;	
 	health = maxHealth = 100;
 	speed = 1;
-	tex = new Texturec(3, "assets/player1.png", "assets/player.png", "assets/player2.png");
+	//tex = new Texturec(3, "assets/player1.png", "assets/player.png", "assets/player2.png");
+	tex = new Texturec(3, "assets/maybeplayer.png", "assets/maybeplayer.png", "assets/maybeplayer.png");
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
 Player::~Player(){
@@ -106,7 +101,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 	
-	randDialog = rand() % 10 - 1;
+	randDialog = rand() % 12 - 1;
 }
 NPC::~NPC(){
 	while(!aiFunc.empty()){
@@ -150,14 +145,21 @@ Mob::Mob(int sub){
 		width = HLINE * 8;
 		height = HLINE * 8;
 		tex = new Texturec(1, "assets/robin.png");
+		break;
 	case MS_TRIGGER:
 		width = HLINE * 20;
 		height = 2000;
 		tex = new Texturec(0);
+		break;
 	case MS_DOOR:
-		width = HLINE * 10;
-		height = HLINE * 16;
+		width = HLINE * 12;
+		height = HLINE * 19;
 		tex = new Texturec(1,"assets/door.png");
+		break;
+	case MS_PAGE:
+		width = HLINE * 6;
+		height = HLINE * 4;
+		tex = new Texturec(1,"assets/items/ITEM_PAGE.png");
 		break;
 	}
 	
@@ -217,7 +219,7 @@ void Entity::draw(void){		//draws the entities
 	case PLAYERT:
 		static int texState = 0;
 		static bool up = true;
-		if(loops % (int)((float)4/(float)speed) == 0){
+		if(speed && !(loops % (int)(4.0f/(float)speed))){
 			//currentWorld->addParticle(loc.x,loc.y-HLINE,HLINE,HLINE,0,0,{0.0f,.17f,0.0f},1000);
 			if(up){
 				if(++texState==2)up=false;
@@ -245,6 +247,7 @@ void Entity::draw(void){		//draws the entities
 				break;
 			case MS_BIRD:
 			case MS_DOOR:
+			case MS_PAGE:
 			default:
 				tex->bind(0);
 				break;
@@ -342,7 +345,8 @@ const char *randomDialog[] = {
 	"HELP MY CAPS LOCK IS STUCK",
 	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
 	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
-	"Frig."
+	"Frig.",
+	"The sine of theta equals the opposite over the hypotenuese."
 };
 
 void NPC::interact(){ //have the npc's interact back to the player
@@ -391,7 +395,7 @@ void Object::interact(void){
  *							point to have non-normal traits so it could be invisible or invincible...
 */
 
-unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
+unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y, World *oi){
 	loc.x = x;
 	loc.y = y;
 	type = t;
@@ -401,6 +405,8 @@ unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
 	width =  50 * HLINE;
 	height = 40 * HLINE;
 	bsubtype = sub;
+
+	inWorld = oi;
 
 	/*
 	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
@@ -416,7 +422,7 @@ unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
 		 *	with type NPC.
 		*/
 		
-		currentWorld->addNPC(loc.x + i * HLINE ,100);
+		inWorld->addNPC(loc.x + i * HLINE ,100);
 		
 	}
 
@@ -458,10 +464,28 @@ void Mob::wander(int timeRun){
 	case MS_TRIGGER:
 		if(player->loc.x + player->width / 2 > loc.x		 &&
 		   player->loc.x + player->width / 2 < loc.x + width ){
-			hey(this);
+			//if(!vfork()){
+				hey(this);
+				/*_exit(0);
+			}*/
+			
 		}
 		break;
-	case MS_DOOR:
+	case MS_PAGE:
+		if(player->loc.x > loc.x - 100		 &&
+		   player->loc.x < loc.x + 100		 &&
+		   ui::mouse.x > loc.x				 &&
+		   ui::mouse.x < loc.x + width		 &&
+		   ui::mouse.y > loc.y - width / 2	 &&
+		   ui::mouse.y < loc.y + width * 1.5 &&
+		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+			if(speed != 666){
+				speed = 666;
+				hey(this);
+				speed = 0;
+			}
+		}
+		break;
 	default:
 		break;
 	}

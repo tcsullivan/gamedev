@@ -107,7 +107,7 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 
 void Inventory::draw(void){
 	static unsigned int lop = 0;
-	static unsigned int numSlot = 7;
+	const unsigned int numSlot = 7;
 	static std::vector<int>dfp(numSlot);
 	static std::vector<Ray>iray(numSlot);
 	static std::vector<vec2>curCoord(numSlot);
@@ -153,7 +153,7 @@ void Inventory::draw(void){
 			curCoord[a].y += float((dfp[a]) * sin(angle*PI/180));
 			r.end = curCoord[a];
 
-			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)range)*0.5f);
+			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)(range?range:1))*0.5f);
  			glBegin(GL_QUADS);
 				glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
 				glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
@@ -164,7 +164,7 @@ void Inventory::draw(void){
 			if(inv[a].count > 0){
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, itemtex[inv[a].id]);			
-				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)range)*0.8f);
+				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)(range?range:1))*0.8f);
 	 			glBegin(GL_QUADS);
 					if(item[inv[a].id].height > item[inv[a].id].width){
 						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y-(itemWide/2));
@@ -203,7 +203,7 @@ void Inventory::draw(void){
 			mouseSel=true;
 		}else{
 			if((ui::mouse.x - offset.x) >= mouseStart.x){
-				thing = ((ui::mouse.x - offset.x) - mouseStart.x)/80;
+				thing = (ui::mouse.x - offset.x - mouseStart.x)/80;
 				highlight=sel+thing;
 				if(highlight>numSlot-1)highlight=numSlot-1;
 				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
@@ -299,10 +299,10 @@ void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
 	glBindTexture(GL_TEXTURE_2D,itemtex[id]);
 	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2f(itemLoc.x,				 itemLoc.y);
+		glTexCoord2i(0,1);glVertex2f(itemLoc.x,				  itemLoc.y);
 		glTexCoord2i(1,1);glVertex2f(itemLoc.x+item[id].width,itemLoc.y);
 		glTexCoord2i(1,0);glVertex2f(itemLoc.x+item[id].width,itemLoc.y+item[id].height);
-		glTexCoord2i(0,0);glVertex2f(itemLoc.x,				 itemLoc.y+item[id].height);
+		glTexCoord2i(0,0);glVertex2f(itemLoc.x,				  itemLoc.y+item[id].height);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	glTranslatef(player->loc.x*2,0,0);
@@ -341,6 +341,7 @@ int Inventory::useItem(void){
 			}
 			break;
 		default:
+			//hangle++;
 			break;
 		}
 	}
