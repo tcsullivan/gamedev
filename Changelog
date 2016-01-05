@@ -476,3 +476,9 @@
 	- finished wrapping text for dialog boxes
 	- began working on world saving/loading again
 	- got some mad GLSL shaders running
+
+1/4/2015:
+=========
+
+	- fixed basic world save/load, working on entity saving
+	- GLSL shaders worked?

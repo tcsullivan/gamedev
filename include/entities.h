@@ -45,6 +45,31 @@ enum BUILD_SUB{
 	FOUNTAIN
 };
 
+typedef struct {
+	InventorySavePacket isp;
+	vec2 loc;
+	vec2 vel;
+	float width;
+	float height;
+	float speed;
+	float health;
+	float maxHealth;
+	int subtype;
+	int ticksToUse;
+	unsigned int randDialog;
+	unsigned char ground;
+	bool near;
+	bool canMove;
+	bool right,left;
+	bool alive;
+	bool hit;
+	_TYPE type;
+	GENDER  gender;
+	size_t nameSize;
+	//char   *name;
+	//Texturec *tex;
+} __attribute__ ((packed)) EntitySavePacket;
+
 class World;
 
 class Particles{
@@ -139,6 +164,9 @@ public:
 	virtual void interact(){}
 	
 	virtual ~Entity(){}
+	
+	char *baseSave(void);
+	void baseLoad(char *);
 };
 
 class Player : public Entity {
@@ -151,6 +179,10 @@ public:
 	void interact();
 };
 
+typedef struct {
+	EntitySavePacket esp;
+} __attribute__ ((packed)) NPCSavePacket;
+
 class NPC : public Entity{
 public:
 	std::vector<int (*)(NPC *)>aiFunc;
@@ -161,6 +193,9 @@ public:
 	void addAIFunc(int (*func)(NPC *),bool preload);
 	void interact();
 	void wander(int);
+	
+	char *save(unsigned int *size);
+	void load(char *b);
 };
 
 class Structures : public Entity{

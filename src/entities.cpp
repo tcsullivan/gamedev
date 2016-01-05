@@ -490,3 +490,73 @@ void Mob::wander(int timeRun){
 		break;
 	}
 }
+
+char *Entity::baseSave(void){
+	static EntitySavePacket *esp = new EntitySavePacket();
+	memcpy(&esp->isp,inv->save(),sizeof(InventorySavePacket));
+	esp->loc = loc;
+	esp->vel = vel;
+	esp->width = width;
+	esp->height = height;
+	esp->speed = speed;
+	esp->health = health;
+	esp->maxHealth = maxHealth;
+	esp->subtype = subtype;
+	esp->ticksToUse = ticksToUse;
+	esp->randDialog = randDialog;
+	esp->ground = ground;
+	esp->near = near;
+	esp->canMove = canMove;
+	esp->right = right;
+	esp->left = left;
+	esp->alive = alive;
+	esp->hit = hit;
+	esp->type = type;
+	esp->gender = gender;
+	esp->nameSize = strlen(name) + 1;
+	return (char *)esp;
+}
+
+void Entity::baseLoad(char *e){
+	const char *tmpname = "GG\0";
+	EntitySavePacket *esp = (EntitySavePacket *)e;
+	inv->load(&esp->isp);
+	loc = esp->loc;
+	vel = esp->vel;
+	width = esp->width;
+	height = esp->height;
+	speed = esp->speed;
+	health = esp->health;
+	maxHealth = esp->maxHealth;
+	subtype = esp->subtype;
+	ticksToUse = esp->ticksToUse;
+	randDialog = esp->randDialog;
+	ground = esp->ground;
+	near = esp->near;
+	canMove = esp->canMove;
+	right = esp->right;
+	left = esp->left;
+	alive = esp->alive;
+	hit = esp->hit;
+	type = esp->type;
+	gender = esp->gender;
+	name = new char[esp->nameSize+1];
+	strcpy(name,tmpname);
+}
+
+char *NPC::save(unsigned int *size){
+	static char *buf = new char[(*size = sizeof(EntitySavePacket) + aiFunc.size() * sizeof(int(*)(NPC *)))],*esp;
+	memcpy(buf,(esp = baseSave()),sizeof(EntitySavePacket));
+	delete[] esp;
+	memcpy(buf+sizeof(EntitySavePacket),aiFunc.data(),aiFunc.size() * sizeof(int(*)(NPC *)));
+	return buf;
+}
+
+void NPC::load(char *b){
+	unsigned int size = *(unsigned int *)b,size2,i;
+	baseLoad(b + sizeof(unsigned int));
+	size2 = (size - sizeof(unsigned int) - sizeof(EntitySavePacket)) / sizeof(int(*)(NPC *));
+	for(i=0;i<size2;i++){
+		//aiFunc.push_back
+	}
+}

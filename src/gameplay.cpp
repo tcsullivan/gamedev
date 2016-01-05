@@ -122,16 +122,17 @@ static World *worldFirstVillage;
 
 void destroyEverything(void);
 void initEverything(void){
-	//static std::ifstream i ("world.dat",std::ifstream::in | std::ifstream::binary);
+	static std::ifstream i ("world.dat",std::ifstream::in | std::ifstream::binary);
 	
 	worldSpawnHill1 = new World();
-	/*if(!i.fail()){
+	worldSpawnHill1->setBackground(BG_FOREST);
+	if(!i.fail()){
 		worldSpawnHill1->load(&i);
 		i.close();
-	}else*/
+	}else{
 		worldSpawnHill1->generateFunc(400,gen_worldSpawnHill1);
-	worldSpawnHill1->setBackground(BG_FOREST);
-	worldSpawnHill1->setBGM("assets/music/embark.wav");
+		worldSpawnHill1->setBGM("assets/music/embark.wav");
+	}
 	worldSpawnHill1->addMob(MS_TRIGGER,0,0,worldSpawnHill1_hillBlock);
 
 	worldSpawnHill2 = new World();

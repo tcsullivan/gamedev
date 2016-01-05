@@ -62,27 +62,68 @@ void World::setBackground(WORLD_BG_TYPE bgt){
 }
 
 void World::save(std::ofstream *o){
+	static unsigned int size2;
+	unsigned int size,i;
+	size_t bgms = strlen(bgm) + 1;
+	char *bufptr;
+	
 	o->write((char *)&lineCount,            sizeof(unsigned int));
-	o->write((char *)&line     ,lineCount * sizeof(struct line_t));
+	o->write((char *)line      ,lineCount * sizeof(struct line_t));
 	o->write("GG"              ,2         * sizeof(char));
-	o->write((char *)&star     ,100       * sizeof(vec2));
+	o->write((char *)star      ,100       * sizeof(vec2));
+	o->write((char *)&bgType   ,            sizeof(WORLD_BG_TYPE));
+	o->write((char *)&bgms     ,            sizeof(size_t));
+	o->write(bgm               ,strlen(bgm)+1);
+	o->write("NO"              ,2         * sizeof(char));
+	
+	/*std::vector<NPC			*>	npc;
+	std::vector<Structures	*>	build;
+	std::vector<Mob			*>	mob;
+	std::vector<Entity		*>	entity;
+	std::vector<Object		*>	object;*/
+	
+	size = npc.size();
+	for(i=0;i<size;i++){
+		bufptr = npc[i]->save(&size2);
+		o->write((char *)&size2,sizeof(unsigned int));
+		o->write(bufptr,size2);
+	}
 }
 
 void World::load(std::ifstream *i){
-	static char end[2];
+	//unsigned int size;
+	size_t bgms;
+	char sig[2];
 	
 	i->read((char *)&lineCount,sizeof(unsigned int));
-	line = new struct line_t[lineCount];
 	
-	i->read((char *)&line,lineCount * sizeof(struct line_t));
-	i->read(end          ,2         * sizeof(char));
-	if(strncmp(end,"GG",2)){
+	line = new struct line_t[lineCount];
+	i->read((char *)line,lineCount * sizeof(struct line_t));
+	
+	i->read(sig,2 * sizeof(char));
+	if(strncmp(sig,"GG",2)){
 		std::cout<<"world.dat corrupt"<<std::endl;
 		exit(EXIT_FAILURE);
 	}
-	i->read((char *)&star,100 * sizeof(vec2));
-	
+
 	x_start = 0 - getWidth(this) / 2;
+	
+	i->read((char *)star,100 * sizeof(vec2));
+	i->read((char *)&bgType,sizeof(WORLD_BG_TYPE));
+	
+	i->read((char *)&bgms,sizeof(size_t));
+	bgm = new char[bgms];
+	i->read(bgm,bgms);
+	setBGM(bgm);
+
+	
+	i->read(sig,2 * sizeof(char));
+	if(strncmp(sig,"NO",2)){
+		std::cout<<"world.dat corrupt"<<std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	
 }
 
 World::World(void){
