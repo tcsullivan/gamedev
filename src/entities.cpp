@@ -123,6 +123,8 @@ Structures::Structures(){ //sets the structure type
 	
 	inWorld = NULL;
 	name = NULL;
+	
+	inv = NULL;
 }
 Structures::~Structures(){
 	delete tex;
@@ -171,6 +173,19 @@ Mob::~Mob(){
 	delete[] name;
 }
 
+Object::Object(){
+	type = OBJECTT;
+	alive = true;
+	near = false;
+	width  = 0;
+	height = 0;
+
+	maxHealth = health = 1;
+	
+	tex = NULL;
+	inv = NULL;
+}
+
 Object::Object(ITEM_ID id, bool qo, const char *pd){
 	identifier = id;
 	questObject = qo;
@@ -187,11 +202,21 @@ Object::Object(ITEM_ID id, bool qo, const char *pd){
 
 	maxHealth = health = 1;
 	tex = new Texturec(1,getItemTexturePath(id));
+	inv = NULL;
 }
 Object::~Object(){
 	delete[] pickupDialog;
 	delete tex;
 	delete[] name;
+}
+
+void Object::reloadTexture(void){
+	if(tex)
+		delete tex;
+		
+	tex = new Texturec(1,getItemTexturePath(identifier));
+	width  = getItemWidth(identifier);
+	height = getItemHeight(identifier);
 }
 
 void Entity::draw(void){		//draws the entities
@@ -492,8 +517,12 @@ void Mob::wander(int timeRun){
 }
 
 char *Entity::baseSave(void){
-	static EntitySavePacket *esp = new EntitySavePacket();
-	memcpy(&esp->isp,inv->save(),sizeof(InventorySavePacket));
+	static EntitySavePacket *esp;
+	esp = new EntitySavePacket();
+	if(inv)
+		memcpy(&esp->isp,inv->save(),sizeof(InventorySavePacket));
+	else
+		memset(&esp->isp,0,sizeof(InventorySavePacket));
 	esp->loc = loc;
 	esp->vel = vel;
 	esp->width = width;
@@ -513,14 +542,20 @@ char *Entity::baseSave(void){
 	esp->hit = hit;
 	esp->type = type;
 	esp->gender = gender;
-	esp->nameSize = strlen(name) + 1;
+	if(name){
+		esp->nameSize = strlen(name) + 1;
+		strncpy(esp->name,name,32);
+	}else{
+		esp->nameSize = 0;
+		strcpy(esp->name,"\0");
+	}
 	return (char *)esp;
 }
 
 void Entity::baseLoad(char *e){
-	const char *tmpname = "GG\0";
 	EntitySavePacket *esp = (EntitySavePacket *)e;
-	inv->load(&esp->isp);
+	if(esp->nameSize > 1)
+		inv->load(&esp->isp);
 	loc = esp->loc;
 	vel = esp->vel;
 	width = esp->width;
@@ -540,23 +575,101 @@ void Entity::baseLoad(char *e){
 	hit = esp->hit;
 	type = esp->type;
 	gender = esp->gender;
-	name = new char[esp->nameSize+1];
-	strcpy(name,tmpname);
+	if(esp->nameSize){
+		name = new char[esp->nameSize+1];
+		strcpy(name,esp->name);
+	}else{
+		name = new char[4];
+		strncpy(name,"\0\0\0\0",4);
+	}
 }
 
 char *NPC::save(unsigned int *size){
-	static char *buf = new char[(*size = sizeof(EntitySavePacket) + aiFunc.size() * sizeof(int(*)(NPC *)))],*esp;
+	static char *buf,*esp;
+	buf = new char[(*size = sizeof(EntitySavePacket) /*+ aiFunc.size() * sizeof(int(*)(NPC *))*/)];
 	memcpy(buf,(esp = baseSave()),sizeof(EntitySavePacket));
 	delete[] esp;
-	memcpy(buf+sizeof(EntitySavePacket),aiFunc.data(),aiFunc.size() * sizeof(int(*)(NPC *)));
+	//memcpy(buf+sizeof(EntitySavePacket),aiFunc.data(),aiFunc.size() * sizeof(int(*)(NPC *)));
 	return buf;
 }
 
-void NPC::load(char *b){
-	unsigned int size = *(unsigned int *)b,size2,i;
-	baseLoad(b + sizeof(unsigned int));
-	size2 = (size - sizeof(unsigned int) - sizeof(EntitySavePacket)) / sizeof(int(*)(NPC *));
-	for(i=0;i<size2;i++){
-		//aiFunc.push_back
-	}
+void NPC::load(unsigned int size,char *b){
+	//unsigned int size2,i;
+	//int (*func)(NPC *);
+	baseLoad(b);
+	size--;
+	/*if(size > sizeof(EntitySavePacket)){
+		size2 = (size - sizeof(EntitySavePacket)) / sizeof(int(*)(NPC *));
+		std::cout<<size<<" "<<sizeof(EntitySavePacket)<<" "<<sizeof(int(*)(NPC *))<<" = "<<size2<<std::endl;
+		aiFunc.reserve(size2);
+		if(aiFunc.max_size() < size2){
+			std::cout<<"what"<<std::endl;
+			abort();
+		}
+		for(i=0;i<size2;i++){
+			
+			aiFunc.push_back(
+		}
+		memcpy(aiFunc.data(),b+sizeof(EntitySavePacket),size2 * sizeof(int(*)(NPC *)));
+		//aiFunc.erase(aiFunc.begin());
+		std::cout<<aiFunc.size()<<std::endl;
+	}*/
+}
+
+char *Structures::save(void){
+	static StructuresSavePacket *ssp;
+	char *esp;
+	ssp = new StructuresSavePacket();
+	esp = baseSave();
+	memcpy(&ssp->esp,esp,sizeof(EntitySavePacket));
+	delete[] esp;
+	ssp->inWorld = inWorld;
+	ssp->inside = inside;
+	ssp->bsubtype = bsubtype;
+	return (char *)ssp;
+}
+
+void Structures::load(char *s){
+	StructuresSavePacket *ssp = (StructuresSavePacket *)s;
+	baseLoad((char *)&ssp->esp);
+	inWorld = ssp->inWorld;
+	inside = ssp->inside;
+	bsubtype = ssp->bsubtype;
+}
+
+char *Object::save(void){
+	static ObjectSavePacket *osp;
+	char *esp;
+	osp = new ObjectSavePacket();
+	memcpy(&osp->esp,(esp = baseSave()),sizeof(EntitySavePacket));
+	delete[] esp;
+	osp->identifier = identifier;
+	osp->questObject = questObject;
+	strncpy(osp->pickupDialog,pickupDialog,256);
+	return (char *)osp;
+}
+
+void Object::load(char *buf){
+	ObjectSavePacket *osp = (ObjectSavePacket *)buf;
+	baseLoad((char *)&osp->esp);
+	identifier = osp->identifier;
+	questObject = osp->questObject;
+	pickupDialog = new char[256];
+	strcpy(pickupDialog,osp->pickupDialog);
+}
+
+char *Mob::save(void){
+	static MobSavePacket *msp;
+	char *esp;
+	msp = new MobSavePacket();
+	memcpy(&msp->esp,(esp = baseSave()),sizeof(MobSavePacket));
+	delete[] esp;
+	msp->init_y = init_y;
+	return (char *)msp;
+}
+
+void Mob::load(char *m){
+	MobSavePacket *msp = (MobSavePacket *)m;
+	baseLoad((char *)&msp->esp);
+	init_y = msp->init_y;
 }

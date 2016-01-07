@@ -66,7 +66,7 @@ void World::save(std::ofstream *o){
 	unsigned int size,i;
 	size_t bgms = strlen(bgm) + 1;
 	char *bufptr;
-	
+
 	o->write((char *)&lineCount,            sizeof(unsigned int));
 	o->write((char *)line      ,lineCount * sizeof(struct line_t));
 	o->write("GG"              ,2         * sizeof(char));
@@ -75,25 +75,41 @@ void World::save(std::ofstream *o){
 	o->write((char *)&bgms     ,            sizeof(size_t));
 	o->write(bgm               ,strlen(bgm)+1);
 	o->write("NO"              ,2         * sizeof(char));
-	
-	/*std::vector<NPC			*>	npc;
-	std::vector<Structures	*>	build;
-	std::vector<Mob			*>	mob;
-	std::vector<Entity		*>	entity;
-	std::vector<Object		*>	object;*/
-	
 	size = npc.size();
+	o->write((char *)&size,sizeof(unsigned int));
 	for(i=0;i<size;i++){
 		bufptr = npc[i]->save(&size2);
 		o->write((char *)&size2,sizeof(unsigned int));
 		o->write(bufptr,size2);
+		delete[] bufptr;
+	}
+	size = build.size();
+	o->write((char *)&size,sizeof(unsigned int));
+	for(i=0;i<size;i++){
+		bufptr = build[i]->save();
+		o->write(bufptr,sizeof(StructuresSavePacket));
+		delete[] bufptr;
+	}
+	size = object.size();
+	o->write((char *)&size,sizeof(unsigned int));
+	for(i=0;i<size;i++){
+		bufptr = object[i]->save();
+		o->write(bufptr,sizeof(ObjectSavePacket));
+		delete[] bufptr;
+	}
+	size = mob.size();
+	o->write((char *)&size,sizeof(unsigned int));
+	for(i=0;i<size;i++){
+		bufptr = mob[i]->save();
+		o->write(bufptr,sizeof(MobSavePacket));
+		delete[] bufptr;
 	}
 }
 
 void World::load(std::ifstream *i){
-	//unsigned int size;
+	unsigned int size,size2,j;
 	size_t bgms;
-	char sig[2];
+	char sig[2],*buf;
 	
 	i->read((char *)&lineCount,sizeof(unsigned int));
 	
@@ -102,7 +118,7 @@ void World::load(std::ifstream *i){
 	
 	i->read(sig,2 * sizeof(char));
 	if(strncmp(sig,"GG",2)){
-		std::cout<<"world.dat corrupt"<<std::endl;
+		std::cout<<"world.dat corrupt: GG"<<std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -116,14 +132,55 @@ void World::load(std::ifstream *i){
 	i->read(bgm,bgms);
 	setBGM(bgm);
 
-	
 	i->read(sig,2 * sizeof(char));
 	if(strncmp(sig,"NO",2)){
-		std::cout<<"world.dat corrupt"<<std::endl;
+		std::cout<<"world.dat corrupt: NO"<<std::endl;
 		exit(EXIT_FAILURE);
 	}
 	
+	i->read((char *)&size,sizeof(unsigned int));
+	for(j=0;j<size;j++){
+		i->read((char *)&size2,sizeof(unsigned int));
+		buf = new char[size2];
+		i->read(buf,size2);
+		npc.push_back(new NPC());
+		npc.back()->load(size2,buf);
+		entity.push_back(npc.back());	
+		delete[] buf;
+	}
 	
+	static StructuresSavePacket *ssp;
+	ssp = new StructuresSavePacket();
+	i->read((char *)&size,sizeof(unsigned int));
+	for(j=0;j<size;j++){
+		i->read((char *)ssp,sizeof(StructuresSavePacket));
+		build.push_back(new Structures());
+		build.back()->load((char *)ssp);
+		entity.push_back(build.back());
+	}
+	delete ssp;
+	
+	static ObjectSavePacket *osp;
+	osp = new ObjectSavePacket();
+	i->read((char *)&size,sizeof(unsigned int));
+	for(j=0;j<size;j++){
+		i->read((char *)osp,sizeof(ObjectSavePacket));
+		object.push_back(new Object());
+		object.back()->load((char *)osp);
+		object.back()->reloadTexture();
+		entity.push_back(object.back());
+	}
+	delete osp;
+	
+	static MobSavePacket *msp;
+	msp = new MobSavePacket();
+	i->read((char *)&size,sizeof(unsigned int));
+	for(j=0;j<size;j++){
+		i->read((char *)msp,sizeof(MobSavePacket));
+		mob.push_back(new Mob(0));
+		mob.back()->load((char *)msp);
+		entity.push_back(mob.back());
+	}
 }
 
 World::World(void){

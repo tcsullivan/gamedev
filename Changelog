@@ -482,3 +482,9 @@
 
 	- fixed basic world save/load, working on entity saving
 	- GLSL shaders worked?
+
+1/5/2015:
+=========
+
+	- can save NPCs and Structures
+	- more shadering
