@@ -122,34 +122,35 @@ static World *worldFirstVillage;
 
 void destroyEverything(void);
 void initEverything(void){
-	static std::ifstream i ("world.dat",std::ifstream::in | std::ifstream::binary);
+	//static std::ifstream i ("world.dat",std::ifstream::in | std::ifstream::binary);
 	
 	worldSpawnHill1 = new World();
 	worldSpawnHill1->setBackground(BG_FOREST);
-	// if(!i.fail()){
-	// 	worldSpawnHill1->load(&i);
-	// 	i.close();
-	// }else{
+	/*if(!i.fail()){
+		worldSpawnHill1->load(&i);
+		i.close();
+	}else{*/
 		worldSpawnHill1->generateFunc(400,gen_worldSpawnHill1);
 		worldSpawnHill1->setBGM("assets/music/embark.wav");
-	// }
+	//}
 	worldSpawnHill1->addMob(MS_TRIGGER,0,0,worldSpawnHill1_hillBlock);
+	worldSpawnHill1->addNPC(300,100);
 
 	worldSpawnHill2 = new World();
-	worldSpawnHill2->generate(700);
 	worldSpawnHill2->setBackground(BG_FOREST);
 	worldSpawnHill2->setBGM("assets/music/ozone.wav");
+	worldSpawnHill2->generate(700);
 	worldSpawnHill2->addMob(MS_PAGE,-400,0,worldSpawnHill2_infoSprint);
-
+	
 	worldSpawnHill3 = new World();
 	worldSpawnHill3->generateFunc(1000,gen_worldSpawnHill3);
 	worldSpawnHill3->setBackground(BG_FOREST);
 	worldSpawnHill3->setBGM("assets/music/ozone.wav");
 	
 	worldFirstVillage = new World();
-	worldFirstVillage->generate(1000);
 	worldFirstVillage->setBackground(BG_FOREST);
 	worldFirstVillage->setBGM("assets/music/embark.wav");
+	worldFirstVillage->generate(1000);
 	
 	worldSpawnHill1->toRight = worldSpawnHill2;
 	worldSpawnHill2->toLeft = worldSpawnHill1;
@@ -186,7 +187,7 @@ void initEverything(void){
 	player = new Player();
 	player->spawn(200,100);
 
-	currentWorld = worldSpawnHill1;	
+	currentWorld = worldSpawnHill1;
 	currentWorld->bgmPlay(NULL);
 	atexit(destroyEverything);
 }
@@ -195,10 +196,10 @@ extern std::vector<int (*)(NPC *)> AIpreload;
 extern std::vector<NPC *> AIpreaddr;
 
 void destroyEverything(void){
-	static std::ofstream o;
+	/*static std::ofstream o;
 	o.open("world.dat",std::ifstream::binary);
-	worldSpawnHill1->save(&o);
-	o.close();
+	worldSpawnHill2->save(&o);
+	o.close();*/
 	
 	while(!AIpreload.empty())
 		AIpreload.pop_back();

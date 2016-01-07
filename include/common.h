@@ -77,7 +77,7 @@ typedef struct{
  * The desired width of the game window.
  */
 
-#define SCREEN_WIDTH	1280
+#define SCREEN_WIDTH	1024
 
 /**
  * The desired height of the game window.

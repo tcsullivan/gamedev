@@ -66,7 +66,7 @@ typedef struct {
 	_TYPE type;
 	GENDER  gender;
 	size_t nameSize;
-	//char   *name;
+	char   name[32];
 	//Texturec *tex;
 } __attribute__ ((packed)) EntitySavePacket;
 
@@ -180,10 +180,6 @@ public:
 	void interact();
 };
 
-typedef struct {
-	EntitySavePacket esp;
-} __attribute__ ((packed)) NPCSavePacket;
-
 class NPC : public Entity{
 public:
 	std::vector<int (*)(NPC *)>aiFunc;
@@ -196,8 +192,15 @@ public:
 	void wander(int);
 	
 	char *save(unsigned int *size);
-	void load(char *b);
+	void load(unsigned int,char *b);
 };
+
+typedef struct {
+	EntitySavePacket esp;
+	World *inWorld;
+	World *inside;
+	BUILD_SUB bsubtype;
+} __attribute__ ((packed)) StructuresSavePacket;
 
 class Structures : public Entity{
 public:
@@ -209,6 +212,9 @@ public:
 	~Structures();
 	
 	unsigned int spawn(_TYPE, BUILD_SUB, float, float, World *);
+	
+	char *save(void);
+	void load(char *s);
 };
 
 class Mob : public Entity{
@@ -221,19 +227,41 @@ public:
 	~Mob();
 	
 	void wander(int);
+	
+	char *save(void);
+	void load(char *);
 };
+
+typedef struct {
+	EntitySavePacket esp;
+	double init_y;
+	//void (*hey)(Mob *callee);
+} __attribute__ ((packed)) MobSavePacket;
+
+typedef struct {
+	EntitySavePacket esp;
+	ITEM_ID identifier;
+	bool questObject;
+	char pickupDialog[256];
+} __attribute__ ((packed)) ObjectSavePacket;
 
 class Object : public Entity{
 private:
-	int identifier;
+	ITEM_ID identifier;
 public:
 	char *pickupDialog;
 	bool questObject = false;
 	
+	Object();
 	Object(ITEM_ID id, bool qo, const char *pd);
 	~Object();
 	
+	void reloadTexture(void);
+	
 	void interact(void);
+	
+	char *save(void);
+	void load(char *);
 };
 #endif // ENTITIES_H
 
