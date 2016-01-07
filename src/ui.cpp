@@ -815,7 +815,7 @@ DONE:
 					player->inv->sel++;
 					break;
 				case SDLK_f:
-					
+					player->light^=true;
 					break;
 				default:
 					break;

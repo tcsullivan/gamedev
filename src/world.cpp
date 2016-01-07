@@ -617,7 +617,10 @@ LOOP2:
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glUniform1f(glGetUniformLocation(shaderProgram, "amb"), float(shade+50.0f)/100.0f);
-	if(light.size() == 0){
+	if(p->light){
+		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), p->loc.x - offset.x+SCREEN_WIDTH/2,p->loc.y);
+		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
+	}else if(light.size() == 0){
 		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 0,-1000);
 		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 0.0f,0.0f,0.0f);
 	}else{
@@ -1211,7 +1214,10 @@ void IndoorWorld::draw(Player *p){
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glUniform1f(glGetUniformLocation(shaderProgram, "amb"), 0.0f);
-	if(light.size() == 0){
+	if(p->light){
+		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), p->loc.x - offset.x+SCREEN_WIDTH/2,p->loc.y);
+		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
+	}else if(light.size() == 0){
 		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 0,-1000);
 		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 0.0f,0.0f,0.0f);
 	}else{

@@ -624,7 +624,7 @@ void render(){
 	if(ui::mouse.x > player->loc.x && ui::mouse.y < player->loc.y+player->height/2 && handAngle <= 0) handAngle = 360+handAngle;
 	//if(ui::mouse.x < player->loc.x + (player->width/2)){player->left = true;player->right=false;}
 	//if(ui::mouse.x >= player->loc.x + (player->width/2)){player->right = true;player->left=false;}
-	if(player->light){
+	/*if(player->light){
 		vec2 light;
 		int lightStr = 150;
 		vec2 curCoord;
@@ -655,12 +655,12 @@ void render(){
 						}
 					}
 				}
-				/*if(curCoord.x > player->loc.x && curCoord.x < player->loc.x + player->width){
+				if(curCoord.x > player->loc.x && curCoord.x < player->loc.x + player->width){
 						if(curCoord.y > player->loc.y && curCoord .y < player->loc.y + player->height){
 							r.end = curCoord;
 							l=lightStr;
 						}
-				}*/if(l==lightStr)r.end = curCoord;
+				}if(l==lightStr)r.end = curCoord;
 			}//end length
 			glBegin(GL_LINES);
 				glVertex2f(r.start.x,r.start.y);
@@ -683,7 +683,7 @@ void render(){
 			glEnd();
 		}
 		glUseProgramObjectARB(0);
-	}
+	}*/
 
 	
 	player->inv->draw();
