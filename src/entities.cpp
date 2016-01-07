@@ -1,6 +1,8 @@
 #include <entities.h>
 #include <ui.h>
 
+#include <unistd.h>
+
 extern FILE* names;
 extern unsigned int loops;
 
@@ -77,7 +79,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 
 Player::Player(){ //sets all of the player specific traits on object creation
 	width = HLINE * 10;
-	height = HLINE * 16;
+	height = HLINE * 15;
 	
 	type = PLAYERT; //set type to player
 	subtype = 0;	
@@ -126,6 +128,7 @@ Structures::Structures(){ //sets the structure type
 	near  = false;
 	
 	tex = new Texturec(3,"assets/house1.png", "assets/house2.png", "assets/fountain1.png");
+	ntex = new Texturec(1, "assets/house1N.png");
 	
 	inWorld = NULL;
 	name = NULL;
@@ -196,6 +199,7 @@ Object::~Object(){
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	glColor3ub(255,255,255);
+	//glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	if(type==NPCT){
 		if(NPCp(this)->aiFunc.size()){
 			glColor3ub(255,255,0);
@@ -222,23 +226,29 @@ void Entity::draw(void){		//draws the entities
 			//currentWorld->addParticle(loc.x,loc.y-HLINE,HLINE,HLINE,0,0,{0.0f,.17f,0.0f},1000);
 			if(up){
 				if(++texState==2)up=false;
+				glActiveTexture(GL_TEXTURE0);
 				tex->bindNext();
 			}else{
 				if(!--texState)up=true;
+				glActiveTexture(GL_TEXTURE0);
 				tex->bindPrev();
 			}
 		}
 		if(!ground){
+			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(0);
 		}else if(vel.x){
+			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(texState);
 		}else{
+			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(1);
 		}
 		break;
 	case MOBT:
 		switch(subtype){
 			case MS_RABBIT:
+				glActiveTexture(GL_TEXTURE0 + 0);
 				tex->bind(!ground);
 				break;
 			case MS_TRIGGER:
@@ -247,6 +257,7 @@ void Entity::draw(void){		//draws the entities
 			case MS_BIRD:
 			case MS_DOOR:
 			default:
+				glActiveTexture(GL_TEXTURE0 + 0);
 				tex->bind(0);
 				break;
 		}
@@ -255,26 +266,39 @@ void Entity::draw(void){		//draws the entities
 		for(auto &strt : currentWorld->build){
 			if(this == strt){
 				if(strt->bsubtype == HOUSE){
+					glActiveTexture(GL_TEXTURE1);
+					ntex->bind(0);
+					//When rendering an objectwith this program.
+					glActiveTexture(GL_TEXTURE0 + 0);
 					tex->bind(0);
+					//glBindSampler(0, linearFiltering);
+
+
 				}else if(strt->bsubtype == HOUSE2){
+					glActiveTexture(GL_TEXTURE0 + 0);
 					tex->bind(1);
 				}else if(strt->bsubtype == FOUNTAIN){
+					glActiveTexture(GL_TEXTURE0 + 0);
 					tex->bind(2);
 				}
 			}
 		} 
 		break;
 	default:
+		glActiveTexture(GL_TEXTURE0 + 0);
 		tex->bind(0);
 		break;
 	}
 	glColor3ub(255,255,255);
+	glUseProgram(shaderProgram);
+	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
 		glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
 		glTexCoord2i(1,0);glVertex2i(loc.x + width, loc.y + height);
 		glTexCoord2i(0,0);glVertex2i(loc.x, loc.y + height);
 	glEnd();
+	glUseProgram(0);
 NOPE:
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
@@ -393,7 +417,7 @@ void Object::interact(void){
  *							point to have non-normal traits so it could be invisible or invincible...
 */
 
-unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
+unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y, World *oi){
 	loc.x = x;
 	loc.y = y;
 	type = t;
@@ -403,6 +427,8 @@ unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
 	width =  50 * HLINE;
 	height = 40 * HLINE;
 	bsubtype = sub;
+
+	inWorld = oi;
 
 	/*
 	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
@@ -418,10 +444,7 @@ unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y){
 		 *	with type NPC.
 		*/
 		
-		//((World*)(inWorld))->addNPC(loc.x + i * HLINE ,100);
-		//inWorld->addNPC(loc.x + i * HLINE, 100);
-		currentWorld->addNPC(loc.x + i * HLINE ,100);
-
+		inWorld->addNPC(loc.x + i * HLINE ,100);
 		
 	}
 
@@ -463,7 +486,11 @@ void Mob::wander(int timeRun){
 	case MS_TRIGGER:
 		if(player->loc.x + player->width / 2 > loc.x		 &&
 		   player->loc.x + player->width / 2 < loc.x + width ){
-			hey(this);
+			//if(!vfork()){
+				hey(this);
+				/*_exit(0);
+			}*/
+			
 		}
 		break;
 	case MS_DOOR:

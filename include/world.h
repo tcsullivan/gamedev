@@ -26,7 +26,7 @@
  * Defines how many game ticks it takes for a day to elapse.
  */
 
-#define DAY_CYCLE 3000
+#define DAY_CYCLE 12000
 
 /**
  * The background type enum.
@@ -51,6 +51,11 @@ typedef enum {
 	RAIN		/**< Rain (not implemented :) )*/
 } WEATHER;
 
+
+typedef struct{
+	vec2 loc;
+	Color color;
+}Light;
 /**
  * The line structure.
  * This structure is used to store the world's ground, stored in vertical
@@ -165,14 +170,16 @@ public:
 	std::vector<Entity		*>	entity;
 	std::vector<Object		*>	object;
 	std::vector<Particles	*>	particles;
+	std::vector<Light        >  light;
 	
-	void addStructure(_TYPE t,BUILD_SUB sub,float x,float y,World *outside,World *inside);
-	void addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside,World *inside);
+	void addStructure(_TYPE t,BUILD_SUB sub,float x,float y,World *inside);
+	void addVillage(int bCount, int npcMin, int npcMax,_TYPE t,float x,float y,World *outside);
 	void addMob(int t,float x,float y);
 	void addMob(int t,float x,float y,void (*hey)(Mob *));
 	void addNPC(float x,float y);
 	void addObject(ITEM_ID, bool, const char *, float, float);
 	void addParticle(float, float, float, float, float, float, Color color, int);
+	void addLight(vec2, Color);
 	
 	void update(Player *p,unsigned int delta);
 	

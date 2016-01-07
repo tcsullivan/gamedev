@@ -4,6 +4,7 @@
 */
 
 #include <cstdio> // fopen
+#include <thread>
 
 #include <common.h>
 #include <world.h>
@@ -197,10 +198,10 @@ extern int  fadeIntensity;
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
-
 int main(/*int argc, char *argv[]*/){
 	//*argv = (char *)argc;
 	gameRunning=false;
+		
 	/*!
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
 	 *	make openGL calls. Exit if there was an error.
@@ -298,7 +299,7 @@ int main(/*int argc, char *argv[]*/){
 	if((err=glewInit()) != GLEW_OK){
 		std::cout << "GLEW was not able to initialize! Error: " << glewGetErrorString(err) << std::endl;
 		return -1;
-	}
+	}	
 	
 	/*
 	 *	Initialize the FreeType libraries and select what font to use using functions from the ui
@@ -453,7 +454,7 @@ void mainLoop(void){
 	
 	if(!currentTime){						// Initialize currentTime if it hasn't been
 		currentTime=millis();
-		prevPrevTime=currentTime;
+		//prevPrevTime=currentTime;
 	}	
 	
 	/*
@@ -598,7 +599,10 @@ void render(){
 
 	player->near=true;			// Draw the player's name
 
+	//glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,100);
 	currentWorld->draw(player);
+	//glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 0,1.0f,0);
+
 
 	/*
 	 *	Apply shaders if desired.
@@ -676,15 +680,9 @@ void render(){
 		glUseProgramObjectARB(0);
 	}
 
-	glUseProgramObjectARB(shaderProgram);
-	glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 250,250);
-	glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,0,0);
-	glColor4f(0.0f,0.0f,0.0f,1.0f);
-	glRectf(-SCREEN_WIDTH/2,0,SCREEN_WIDTH/2,SCREEN_HEIGHT);
-	glUseProgramObjectARB(0);
-
-	player->inv->draw();
 	
+	player->inv->draw();
+
 	/*
 	 *	Here we draw a black overlay if it's been requested.
 	*/

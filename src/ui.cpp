@@ -512,7 +512,7 @@ namespace ui {
 					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y+1);
 					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y-1-SCREEN_HEIGHT/4);
 					glVertex2f(x-1						,y-1-SCREEN_HEIGHT/4);
-					glVertex2f(x-1						,y+2);
+					glVertex2f(x						,y+1);
 				glEnd();
 			
 				glColor3ub(0,0,0);

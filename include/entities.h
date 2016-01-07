@@ -44,6 +44,8 @@ enum BUILD_SUB{
 	FOUNTAIN
 };
 
+class World;
+
 class Particles{
 public:
 	vec2 loc;
@@ -124,6 +126,7 @@ public:
 	GENDER  gender;
 	
 	Texturec *tex;
+	Texturec *ntex;
 
 	unsigned int randDialog;
 
@@ -161,14 +164,14 @@ public:
 
 class Structures : public Entity{
 public:
-	void *inWorld;
-	void *inside;
+	World *inWorld;
+	World *inside;
 	BUILD_SUB bsubtype;
 	
 	Structures();
 	~Structures();
 	
-	unsigned int spawn(_TYPE, BUILD_SUB, float, float);
+	unsigned int spawn(_TYPE, BUILD_SUB, float, float, World *);
 };
 
 class Mob : public Entity{

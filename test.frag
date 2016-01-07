@@ -1,17 +1,23 @@
+uniform sampler2D sampler;
+
 uniform vec2 lightLocation;
 uniform vec3 lightColor;
-uniform float screenHeight;
-
-float radius = 4.9;
-float minLight = .01;
-float a = .01;
-float b = 1.0 / (radius*radius * minLight);
-
+uniform float amb;
+// uniform float lightStrength;
+//uniform float screenHeight;
 void main() {
-	float distance = length(lightLocation - gl_FragCoord.xy);
-	//float attenuation = 1.0 / (1.0 + a*distance + b*distance*distance);
-	float attenuation = clamp(1.0 - distance*distance/(radius*radius), 0.0, 1.0); attenuation *= attenuation;
-	vec4 color = vec4(attenuation, attenuation, attenuation, attenuation) * vec4(lightColor, 1);
+	float lightAdd = 1.0f;
 
-	gl_FragColor = color;
+	float dist = length(lightLocation - gl_FragCoord.xy);
+	float attenuation=1.0/(1.0+0.01*dist+0.00000000001*dist*dist);
+
+	//vec4 color = vec4(1.0f,1.0f,1.0f,1.0f);
+	vec4 color = vec4(attenuation, attenuation, attenuation, 1.0f) * vec4(lightColor, 1.0f);
+	//color = color + vec4((vec3(lightColor.r + amb, lightColor.g + amb, lightColor.b + amb)*0.25f),1.0f);
+
+	vec2 coords = gl_TexCoord[0].st;
+	vec4 tex = texture2D(sampler, coords);
+
+	color += vec4(amb,amb,amb,1.0f+amb);
+	gl_FragColor = tex * vec4(color)*tex.a;
 }

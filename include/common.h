@@ -46,6 +46,12 @@ typedef struct {
 	float y;
 } vec2;
 
+typedef struct {
+	float x;
+	float y;
+	float z;
+} vec3;
+
 /**
  * This structure contains two sets of coordinates for ray drawing.
  */
@@ -141,6 +147,8 @@ extern vec2 offset;
  * sprites.
  */
 extern unsigned int loops;
+
+extern GLuint shaderProgram;
 
 /**
  *	Prints a formatted debug message to the console, along with the callee's file and line
