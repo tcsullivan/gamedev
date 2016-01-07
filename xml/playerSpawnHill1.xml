@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<World>
+	<Background>0</Background>
+	<BGM>assets/music/embark.wav</BGM>
+	<GenerationType>Random</GenerationType>
+	<GenerationWidth>500</GenerationsWidth>
+</World>

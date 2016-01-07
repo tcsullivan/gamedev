@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <string>
 #include <vector>
 #include <math.h>
 #include <string>
@@ -198,5 +199,7 @@ void safeSetColorA(int r,int g,int b,int a);
 #else
 unsigned int millis(void);
 #endif // __WIN32__
+
+int getdir(const char *dir, std::vector<std::string> &files);
 
 #endif // COMMON_H
