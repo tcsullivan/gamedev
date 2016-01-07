@@ -1,9 +1,10 @@
 #include <entities.h>
 #include <ui.h>
 
-#include <unistd.h>
+#include <istream>
+//#include <unistd.h>
 
-extern FILE* names;
+extern std::istream *names;
 extern unsigned int loops;
 
 extern World *currentWorld;
@@ -12,39 +13,30 @@ extern Player *player;
 
 extern const char *itemName;
 
-extern 
-
 void getRandomName(Entity *e){
-	int tempNum,max=0;
+	unsigned int tempNum,max=0;
 	char *bufs;
 	
-	rewind(names);
+	names->seekg(0,names->beg);
 	
-	bufs = new char[16];	//(char *)malloc(16);
+	bufs = new char[32];
 	
-	for(;!feof(names);max++){
-		fgets(bufs,16,(FILE*)names);
-	}
+	for(;!names->eof();max++)
+		names->getline(bufs,32);
 	
 	tempNum = rand() % max;
-	rewind(names);
+	names->seekg(0,names->beg);
 	
-	for(int i=0;i<tempNum;i++){
-		fgets(bufs,16,(FILE*)names);
-	}
+	for(unsigned int i=0;i<tempNum;i++)
+		names->getline(bufs,32);
 	
-	switch(fgetc(names)){
+	switch(bufs[0]){
+	default :
 	case 'm': e->gender = MALE;  break;
 	case 'f': e->gender = FEMALE;break;
-	default : break;
 	}
 	
-	if((fgets(bufs,16,(FILE*)names)) != NULL){
-		bufs[strlen(bufs)] = '\0';
-		strcpy(e->name,bufs);
-		if(e->name[strlen(e->name)-1] == '\n')
-			e->name[strlen(e->name)-1] = '\0';
-	}
+	strcpy(e->name,bufs+1);
 	
 	delete[] bufs;
 }
@@ -73,7 +65,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 		}
 	}
 	
-	name = new char[16];
+	name = new char[32];
 	getRandomName(this);
 }
 
@@ -109,7 +101,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 	
-	randDialog = rand() % 12 - 1;
+	randDialog = 6;//rand() % 12 - 1;
 }
 NPC::~NPC(){
 	while(!aiFunc.empty()){
@@ -154,14 +146,21 @@ Mob::Mob(int sub){
 		width = HLINE * 8;
 		height = HLINE * 8;
 		tex = new Texturec(1, "assets/robin.png");
+		break;
 	case MS_TRIGGER:
 		width = HLINE * 20;
 		height = 2000;
 		tex = new Texturec(0);
+		break;
 	case MS_DOOR:
 		width = HLINE * 12;
 		height = HLINE * 20;
 		tex = new Texturec(1,"assets/door.png");
+		break;
+	case MS_PAGE:
+		width = HLINE * 6;
+		height = HLINE * 4;
+		tex = new Texturec(1,"assets/items/ITEM_PAGE.png");
 		break;
 	}
 	
@@ -256,6 +255,7 @@ void Entity::draw(void){		//draws the entities
 				break;
 			case MS_BIRD:
 			case MS_DOOR:
+			case MS_PAGE:
 			default:
 				glActiveTexture(GL_TEXTURE0 + 0);
 				tex->bind(0);
@@ -363,7 +363,7 @@ const char *randomDialog[] = {
 	"How much wood could a woodchuck chuck if a woodchuck could chuck wood?",
 	"I don\'t think anyone has ever been able to climb up that hill.",
 	"If you ever see a hole in the ground, watch out; it could mean the end for you.",
-	"Did you know this game has over 4000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
+	"Did you know this game has over 5000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
 	"HELP MY CAPS LOCK IS STUCK",
 	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
 	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
@@ -493,8 +493,92 @@ void Mob::wander(int timeRun){
 			
 		}
 		break;
-	case MS_DOOR:
+	case MS_PAGE:
+		if(player->loc.x > loc.x - 100		 &&
+		   player->loc.x < loc.x + 100		 &&
+		   ui::mouse.x > loc.x				 &&
+		   ui::mouse.x < loc.x + width		 &&
+		   ui::mouse.y > loc.y - width / 2	 &&
+		   ui::mouse.y < loc.y + width * 1.5 &&
+		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+			if(speed != 666){
+				speed = 666;
+				hey(this);
+				speed = 0;
+			}
+		}
+		break;
 	default:
 		break;
+	}
+}
+
+char *Entity::baseSave(void){
+	static EntitySavePacket *esp = new EntitySavePacket();
+	memcpy(&esp->isp,inv->save(),sizeof(InventorySavePacket));
+	esp->loc = loc;
+	esp->vel = vel;
+	esp->width = width;
+	esp->height = height;
+	esp->speed = speed;
+	esp->health = health;
+	esp->maxHealth = maxHealth;
+	esp->subtype = subtype;
+	esp->ticksToUse = ticksToUse;
+	esp->randDialog = randDialog;
+	esp->ground = ground;
+	esp->near = near;
+	esp->canMove = canMove;
+	esp->right = right;
+	esp->left = left;
+	esp->alive = alive;
+	esp->hit = hit;
+	esp->type = type;
+	esp->gender = gender;
+	esp->nameSize = strlen(name) + 1;
+	return (char *)esp;
+}
+
+void Entity::baseLoad(char *e){
+	const char *tmpname = "GG\0";
+	EntitySavePacket *esp = (EntitySavePacket *)e;
+	inv->load(&esp->isp);
+	loc = esp->loc;
+	vel = esp->vel;
+	width = esp->width;
+	height = esp->height;
+	speed = esp->speed;
+	health = esp->health;
+	maxHealth = esp->maxHealth;
+	subtype = esp->subtype;
+	ticksToUse = esp->ticksToUse;
+	randDialog = esp->randDialog;
+	ground = esp->ground;
+	near = esp->near;
+	canMove = esp->canMove;
+	right = esp->right;
+	left = esp->left;
+	alive = esp->alive;
+	hit = esp->hit;
+	type = esp->type;
+	gender = esp->gender;
+	name = new char[esp->nameSize+1];
+	strcpy(name,tmpname);
+}
+
+char *NPC::save(unsigned int *size){
+	static char *buf = new char[(*size = sizeof(EntitySavePacket) + aiFunc.size() * sizeof(int(*)(NPC *)))],*esp;
+	memcpy(buf,(esp = baseSave()),sizeof(EntitySavePacket));
+	delete[] esp;
+	memcpy(buf+sizeof(EntitySavePacket),aiFunc.data(),aiFunc.size() * sizeof(int(*)(NPC *)));
+	return buf;
+}
+
+void NPC::load(char *b){
+	unsigned int size = *(unsigned int *)b,size2,i;
+	baseLoad(b + sizeof(unsigned int));
+	size2 = (size - sizeof(unsigned int) - sizeof(EntitySavePacket)) / sizeof(int(*)(NPC *));
+	for(i=0;i<size2;i++){
+		//aiFunc.push_back
 	}
 }

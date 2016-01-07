@@ -3,7 +3,8 @@
 	The  main game loop contains all of the global variables the game uses, and it runs the main game loop, the render loop, and the logic loop that control all of the entities.
 */
 
-#include <cstdio> // fopen
+#include <fstream>
+#include <istream>
 #include <thread>
 
 #include <common.h>
@@ -123,7 +124,7 @@ Mix_Chunk *crickets;
  *	referenced in src/entities.cpp for getting random names.
 */
 
-FILE *names;
+std::istream *names;
 
 /*
  *	loops is used for texture animation. It is believed to be passed to entity
@@ -201,7 +202,7 @@ extern int  fadeIntensity;
 int main(/*int argc, char *argv[]*/){
 	//*argv = (char *)argc;
 	gameRunning=false;
-		
+
 	/*!
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
 	 *	make openGL calls. Exit if there was an error.
@@ -386,7 +387,10 @@ int main(/*int argc, char *argv[]*/){
 	 * 
 	*/
 	
-	names = fopen("assets/names_en-us", "r+");
+	static std::filebuf fb;
+	fb.open("assets/names_en-us",std::ios::in);
+	names = new std::istream(&fb);
+	
 
 	crickets=Mix_LoadWAV("assets/sounds/crickets.wav");
 	//Mix_Volume(2,25);
@@ -426,7 +430,7 @@ int main(/*int argc, char *argv[]*/){
     
     Mix_HaltMusic();
     
-    fclose(names);
+    fb.close();
     
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
@@ -475,6 +479,7 @@ void mainLoop(void){
 	
 	if(prev != currentWorld){
 		currentWorld->bgmPlay(prev);
+		ui::dialogBoxExists = false;
 	}
 	
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
@@ -894,6 +899,7 @@ void logic(){
 				m->wander((rand()%240 + 15));	// Make the mob wander :)
 				break;
 			case MS_TRIGGER:
+			case MS_PAGE:
 				m->wander(0);
 				break;
 			case MS_DOOR:

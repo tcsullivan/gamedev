@@ -28,6 +28,10 @@ void story(Mob *callee){
 	callee->alive = false;
 }
 
+/*
+ *	Gens
+ */
+
 float gen_worldSpawnHill1(float x){
 	return (float)(pow(2,(-x+200)/5) + GEN_MIN);
 }
@@ -42,7 +46,6 @@ float gen_worldSpawnHill3(float x){
  */
 
 void worldSpawnHill1_hillBlock(Mob *callee){
-	std::cout<<"oi";
 	player->vel.x = 0;
 	player->loc.x = callee->loc.x + callee->width;
 	ui::dialogBox(player->name,NULL,false,"This hill seems to steep to climb up...");
@@ -51,30 +54,46 @@ void worldSpawnHill1_hillBlock(Mob *callee){
 
 static Arena *a;
 void worldSpawnHill2_infoSprint(Mob *callee){
-	callee->alive = false;
-	a = new Arena(currentWorld,player);
-	a->setBackground(BG_FOREST);
-	a->setBGM("assets/music/embark.wav");
-	ui::toggleWhiteFast();
-	ui::waitForCover();
-	currentWorld = a;
-	ui::toggleWhiteFast();
+	
+	ui::dialogBox(player->name,":Sure:Nah",false,"This page would like to take you somewhere.");
+	ui::waitForDialog();
+	switch(ui::dialogOptChosen){
+	case 1:
+		ui::dialogBox(player->name,NULL,true,"Cool.");
+		callee->alive = false;
+		a = new Arena(currentWorld,player);
+		a->setBackground(BG_FOREST);
+		a->setBGM("assets/music/embark.wav");
+		ui::toggleWhiteFast();
+		ui::waitForCover();
+		currentWorld = a;
+		ui::toggleWhiteFast();
+		break;
+	case 2:
+	default:
+		ui::dialogBox(player->name,NULL,false,"Okay then.");
+		break;
+	}
+	
 	//ui::dialogBox("B-) ",NULL,true,"Press \'Shift\' to run!");
 }
 
-void worldSpawnHill3_itemGet(Mob *callee){
-	ui::dialogBox("B-) ",NULL,true,"Right click to pick up items!");
-	callee->alive = false;
+int worldSpawnHill2_Quest2(NPC *callee){
+	ui::dialogBox(callee->name,NULL,false,"Yo.");
+	ui::waitForDialog();
+	return 0;
 }
 
-void worldSpawnHill3_itemSee(Mob *callee){
-	ui::dialogBox("B-) ",NULL,true,"Press \'e\' to open your inventory!");
-	callee->alive = false;
-}
-
-void worldSpawnHill3_leave(Mob *callee){
-	ui::dialogBox("B-) ",NULL,true,"Now jump in this hole, and let your journey begin :)");
-	callee->alive = false;
+int worldSpawnHill2_Quest1(NPC *callee){
+	ui::dialogBox(callee->name,":Cool.",false,"Did you know that I\'m the coolest NPC in the world?");
+	ui::waitForDialog();
+	if(ui::dialogOptChosen == 1){
+		ui::dialogBox(callee->name,NULL,false,"Yeah, it is.");
+		currentWorld->getAvailableNPC()->addAIFunc(worldSpawnHill2_Quest2,true);
+		ui::waitForDialog();
+		return 0;
+	}
+	return 1;
 }
 
 /*
@@ -96,39 +115,48 @@ static World *worldSpawnHill3;
 
 static IndoorWorld *worldSpawnHill2_Building1;
 
+static World *worldFirstVillage;
 /*
  *	initEverything() start
  */
 
 void destroyEverything(void);
 void initEverything(void){
-
+	static std::ifstream i ("world.dat",std::ifstream::in | std::ifstream::binary);
+	
 	worldSpawnHill1 = new World();
-	worldSpawnHill1->generateFunc(400,gen_worldSpawnHill1);
 	worldSpawnHill1->setBackground(BG_FOREST);
-	worldSpawnHill1->setBGM("assets/music/embark.wav");
+	// if(!i.fail()){
+	// 	worldSpawnHill1->load(&i);
+	// 	i.close();
+	// }else{
+		worldSpawnHill1->generateFunc(400,gen_worldSpawnHill1);
+		worldSpawnHill1->setBGM("assets/music/embark.wav");
+	// }
 	worldSpawnHill1->addMob(MS_TRIGGER,0,0,worldSpawnHill1_hillBlock);
 
 	worldSpawnHill2 = new World();
 	worldSpawnHill2->generate(700);
 	worldSpawnHill2->setBackground(BG_FOREST);
 	worldSpawnHill2->setBGM("assets/music/ozone.wav");
-	worldSpawnHill2->addMob(MS_TRIGGER,-400,0,worldSpawnHill2_infoSprint);
+	worldSpawnHill2->addMob(MS_PAGE,-400,0,worldSpawnHill2_infoSprint);
 
 	worldSpawnHill3 = new World();
 	worldSpawnHill3->generateFunc(1000,gen_worldSpawnHill3);
 	worldSpawnHill3->setBackground(BG_FOREST);
 	worldSpawnHill3->setBGM("assets/music/ozone.wav");
-	worldSpawnHill3->addMob(MS_TRIGGER,-500,0,worldSpawnHill3_itemGet);
-	worldSpawnHill3->addMob(MS_TRIGGER,0,0,worldSpawnHill3_itemSee);
-	worldSpawnHill3->addObject(FLASHLIGHT,false,"",-200,300);
-	worldSpawnHill3->addMob(MS_TRIGGER,650,0,worldSpawnHill3_leave);
-	worldSpawnHill3->addHole(800,1000);
+	
+	worldFirstVillage = new World();
+	worldFirstVillage->generate(1000);
+	worldFirstVillage->setBackground(BG_FOREST);
+	worldFirstVillage->setBGM("assets/music/embark.wav");
 	
 	worldSpawnHill1->toRight = worldSpawnHill2;
 	worldSpawnHill2->toLeft = worldSpawnHill1;
 	worldSpawnHill2->toRight = worldSpawnHill3;
 	worldSpawnHill3->toLeft = worldSpawnHill2;
+	worldSpawnHill3->toRight = worldFirstVillage;
+	worldFirstVillage->toLeft = worldSpawnHill3;
 
 	/*
 	 *	Spawn some entities.
@@ -150,6 +178,9 @@ void initEverything(void){
 
 	worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill2_Building1);
 	worldSpawnHill2->addLight({300,100},{1.0f,1.0f,1.0f});
+	worldSpawnHill2->getAvailableNPC()->addAIFunc(worldSpawnHill2_Quest1,false);
+	
+	worldFirstVillage->addVillage(5,0,0,STRUCTURET,worldSpawnHill2_Building1);
 	
 	//worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill1,worldSpawnHill2);
 	player = new Player();
@@ -164,6 +195,11 @@ extern std::vector<int (*)(NPC *)> AIpreload;
 extern std::vector<NPC *> AIpreaddr;
 
 void destroyEverything(void){
+	static std::ofstream o;
+	o.open("world.dat",std::ifstream::binary);
+	worldSpawnHill1->save(&o);
+	o.close();
+	
 	while(!AIpreload.empty())
 		AIpreload.pop_back();
 	while(!AIpreaddr.empty())

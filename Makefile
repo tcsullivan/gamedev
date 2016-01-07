@@ -5,6 +5,7 @@ WIN_LIBS = -lopengl32 -lglew32 -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_m
 FLAGS = -std=c++11 -Iinclude -Iinclude/freetype2 -Wall -Wextra -Werror
 
 MFLAGS64 = 64
+
 all:
 	@echo "Building for 32-bit target"
 	@rm -f out/*.o
@@ -21,7 +22,7 @@ all:
 
 win32:
 	@g++ $(FLAGS) -o main main.cpp src/*.cpp $(WIN_LIBS)
-	
+
 clean:
 	@echo "  RM main"
 	@-rm -f main

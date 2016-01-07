@@ -95,6 +95,8 @@ namespace ui {
 	bool dialogImportant = false;
 	unsigned char dialogOptChosen = 0;
 	
+	unsigned int textWrapLimit = 110;
+	
 	/*
 	 *	Current font size. Changing this WILL NOT change the font size, see setFontSize() for
 	 *	actual font size changing.
@@ -266,7 +268,13 @@ namespace ui {
 		*/
 		
 		do{
-			if(s[i]=='\n'){			//	Handle newlines
+			if(i && ((i / 110.0) == (i / 110))){
+				yo-=fontSize*1.05;
+				xo=x;
+				if(s[i] == ' ')
+					i++;
+			}
+			if(s[i] == '\n'){
 				yo-=fontSize*1.05;
 				xo=x;
 			}else if(s[i]==' '){	//	Handle spaces
@@ -300,19 +308,21 @@ namespace ui {
 			}
 		}while(s[++i]);
 		
-		return putString(x-width/2,y,s);
+		putString(x-width/2,y,s);
+		return width;
 	}
 	
 	/*
 	 *	Draw a string in a typewriter-esque fashion. Each letter is rendered as calls are made
 	 *	to this function. Passing a different string to the function will reset the counters.
 	*/
-	
+
+	static char *ret = NULL;
 	char *typeOut(char *str){
 		static unsigned int sinc,	//	Acts as a delayer for the space between each character.
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
-		static char *ret = NULL;
+		//static char *ret = NULL;
 		
 		/*
 		 *	Create a well-sized buffer if we haven't yet.
@@ -452,6 +462,8 @@ namespace ui {
 		dialogBoxExists = true;
 		dialogImportant = false;
 		
+		if(ret)
+			ret[0] = '\0';
 	}
 	void waitForDialog(void){
 		do{
@@ -487,7 +499,7 @@ namespace ui {
 	}
 	void draw(void){
 		unsigned char i;
-		float x,y;
+		float x,y,tmp;
 		char *rtext;
 		
 		if(dialogBoxExists){
@@ -524,12 +536,12 @@ namespace ui {
 			
 				for(i=0;i<dialogOptCount;i++){
 					setFontColor(255,255,255);
-					dialogOptLoc[i][1]=y-SCREEN_HEIGHT/4+(fontSize+HLINE)*(i+1);
-					dialogOptLoc[i][2]=
-					putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
-					dialogOptLoc[i][0]=offset.x-dialogOptLoc[i][2]/2;
+					tmp = putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+					dialogOptLoc[i][2] = offset.x + tmp;
+					dialogOptLoc[i][0] = offset.x - tmp;
+					dialogOptLoc[i][1] = y - SCREEN_HEIGHT / 4 + (fontSize + HLINE) * (i + 1);
 					if(mouse.x > dialogOptLoc[i][0] &&
-					   mouse.x < dialogOptLoc[i][0] + dialogOptLoc[i][2] &&
+					   mouse.x < dialogOptLoc[i][2] &&
 					   mouse.y > dialogOptLoc[i][1] &&
 					   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
 						  setFontColor(255,255,0);
@@ -666,7 +678,6 @@ DONE:
 								memcpy(&player->loc,&tmppos,sizeof(vec2));
 								currentWorld = tmp;
 								toggleBlackFast();
-								dialogBoxExists = false;
 							}
 						}
 						break;
@@ -688,7 +699,6 @@ DONE:
 								memcpy(&player->loc,&tmppos,sizeof(vec2));
 								currentWorld = tmp;
 								toggleBlackFast();
-								dialogBoxExists = false;
 							}
 						}
 						break;
@@ -803,6 +813,9 @@ DONE:
 					break;
 				case SDLK_RIGHT:
 					player->inv->sel++;
+					break;
+				case SDLK_f:
+					
 					break;
 				default:
 					break;

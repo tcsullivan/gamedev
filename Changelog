@@ -444,3 +444,41 @@
 	- fixed NPC spawning world location stuff
 	- messed with threads/forks
 	- re-fixed/added indoor environment; fixed indoor background
+
+12/18/2015:
+===========
+
+	- upgraded development utilities
+	- began working on pages, made sprite and handler
+	- GLSL shaders are better
+	- redid theme_jazz
+
+12/21/2015:
+===========
+
+	- fixed dialog options issues, finished basic pages
+	- added World::getAvailableNPC() for easy quest assigner assigning
+	- added the Condition class, so that events and actions can be remembered by NPCs
+	- added functionality for multiple lights (GLSL)
+
+12/22/2015:
+===========
+
+	- 3 month Changelog anniversary!
+	- fixed dialog quitting bug
+	- worked on village spawning
+	- worked on wrapping text for dialog boxes
+	- did more work on GLSL shaders
+
+1/3/2015:
+=========
+
+	- finished wrapping text for dialog boxes
+	- began working on world saving/loading again
+	- got some mad GLSL shaders running
+
+1/4/2015:
+=========
+
+	- fixed basic world save/load, working on entity saving
+	- GLSL shaders worked?

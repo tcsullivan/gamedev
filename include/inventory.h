@@ -60,6 +60,11 @@ struct item_t{
 	ITEM_ID id;
 } __attribute__((packed));
 
+typedef struct {
+	unsigned int size;
+	int os;
+	unsigned int sel;
+} __attribute__ ((packed)) InventorySavePacket;
 
 class Inventory {
 private:
@@ -87,6 +92,18 @@ public:
 	
 	void draw(void);	// Draws a text list of items in this inventory (should only be called for the player for now)
 	
+	char *save(void){
+		static InventorySavePacket *isp = new InventorySavePacket();
+		isp->size = size;
+		isp->os = os;
+		isp->sel = sel;
+		return (char *)isp;
+	}
+	void load(InventorySavePacket *isp){
+		size = isp->size;
+		os = isp->os;
+		sel = isp->sel;
+	}
 };
 
 void itemUse(void *p);
