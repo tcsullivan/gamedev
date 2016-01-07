@@ -14,6 +14,7 @@
 #include <math.h>
 #include <string>
 #include <fstream>	
+#include <thread>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -34,7 +35,7 @@ typedef unsigned int uint;
  * This flag lets the compiler know that we want to use shaders.
  */
 
-#define SHADERSs
+#define SHADERS
 
 /**
  * This structure contains a set of coordinates for ease of coding.
@@ -44,6 +45,12 @@ typedef struct {
 	float x;
 	float y;
 } vec2;
+
+typedef struct {
+	float x;
+	float y;
+	float z;
+} vec3;
 
 /**
  * This structure contains two sets of coordinates for ray drawing.
@@ -140,6 +147,8 @@ extern vec2 offset;
  * sprites.
  */
 extern unsigned int loops;
+
+extern GLuint shaderProgram;
 
 /**
  * This class contains a string for identification and a value. It can be used to

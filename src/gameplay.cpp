@@ -178,10 +178,12 @@ void initEverything(void){
 	worldSpawnHill2_Building1->setBGM("assets/music/theme_jazz.wav");
 
 	worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill2_Building1);
+	worldSpawnHill2->addLight({300,100},{1.0f,1.0f,1.0f});
 	worldSpawnHill2->getAvailableNPC()->addAIFunc(worldSpawnHill2_Quest1,false);
 	
 	worldFirstVillage->addVillage(5,0,0,STRUCTURET,worldSpawnHill2_Building1);
 	
+	//worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill1,worldSpawnHill2);
 	player = new Player();
 	player->spawn(200,100);
 

@@ -199,11 +199,10 @@ extern int  fadeIntensity;
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
- 
 int main(/*int argc, char *argv[]*/){
 	//*argv = (char *)argc;
 	gameRunning=false;
-	
+
 	/*!
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
 	 *	make openGL calls. Exit if there was an error.
@@ -301,7 +300,7 @@ int main(/*int argc, char *argv[]*/){
 	if((err=glewInit()) != GLEW_OK){
 		std::cout << "GLEW was not able to initialize! Error: " << glewGetErrorString(err) << std::endl;
 		return -1;
-	}
+	}	
 	
 	/*
 	 *	Initialize the FreeType libraries and select what font to use using functions from the ui
@@ -347,7 +346,7 @@ int main(/*int argc, char *argv[]*/){
 
 	 	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-		std::string shaderFileContents = readFile("shader.frag");
+		std::string shaderFileContents = readFile("test.frag");
 		const GLchar *shaderSource = shaderFileContents.c_str();
 
 		GLint bufferln = GL_FALSE;
@@ -579,10 +578,7 @@ void render(){
 	glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),offset.y-SCREEN_HEIGHT/2,offset.y+SCREEN_HEIGHT/2,-1,1);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glLoadIdentity();
-	glEnable(GL_STENCIL_TEST);
-	glPushMatrix();
-	
+	glLoadIdentity();	
 	/*
 	 * glPushAttrib		This passes attributes to the renderer so it knows what it can
 	 *					render. In our case, GL_DEPTH_BUFFER_BIT allows the renderer to
@@ -608,22 +604,14 @@ void render(){
 
 	player->near=true;			// Draw the player's name
 
+	//glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,100);
 	currentWorld->draw(player);
+	//glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 0,1.0f,0);
+
 
 	/*
 	 *	Apply shaders if desired.
 	*/
-
-	#ifdef SHADERS
-		glUseProgramObjectARB(shaderProgram);
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,100);
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
-		glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 100 + (1000-(shade*10)));
-		//std::cout << 100 + (1000-(shade*10)) << std::endl;
-		glColor4ub(0,0,0,200);
-		glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
-		glUseProgramObjectARB(0);
-	#endif //SHADERS
 
 	handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
 	if(ui::mouse.x < player->loc.x){
@@ -696,11 +684,15 @@ void render(){
 		}
 		glUseProgramObjectARB(0);
 	}
-	player->inv->draw();
+
 	
+	player->inv->draw();
+
 	/*
 	 *	Here we draw a black overlay if it's been requested.
 	*/
+	//glUseProgramObjectARB(0);
+
 	
 	if(fadeIntensity){
 		if(fadeWhite)
@@ -790,6 +782,7 @@ void render(){
 static volatile bool objectInteracting = false;
 
 void logic(){
+
 	/*
 	 *	NPCSelected is used to insure that only one NPC is made interactable with the mouse
 	 *	if, for example, multiple entities are occupying one space.

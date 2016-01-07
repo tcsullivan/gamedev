@@ -77,8 +77,8 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	subtype = 0;	
 	health = maxHealth = 100;
 	speed = 1;
-	//tex = new Texturec(3, "assets/player1.png", "assets/player.png", "assets/player2.png");
-	tex = new Texturec(3, "assets/maybeplayer.png", "assets/maybeplayer.png", "assets/maybeplayer.png");
+	tex = new Texturec(3, "assets/player1.png", "assets/player.png", "assets/player2.png");
+	//tex = new Texturec(3, "assets/maybeplayer.png", "assets/maybeplayer.png", "assets/maybeplayer.png");
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
 Player::~Player(){
@@ -120,6 +120,7 @@ Structures::Structures(){ //sets the structure type
 	near  = false;
 	
 	tex = new Texturec(3,"assets/house1.png", "assets/house2.png", "assets/fountain1.png");
+	ntex = new Texturec(1, "assets/house1N.png");
 	
 	inWorld = NULL;
 	name = NULL;
@@ -155,7 +156,7 @@ Mob::Mob(int sub){
 		break;
 	case MS_DOOR:
 		width = HLINE * 12;
-		height = HLINE * 19;
+		height = HLINE * 20;
 		tex = new Texturec(1,"assets/door.png");
 		break;
 	case MS_PAGE:
@@ -222,6 +223,7 @@ void Object::reloadTexture(void){
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	glColor3ub(255,255,255);
+	//glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	if(type==NPCT){
 		if(NPCp(this)->aiFunc.size()){
 			glColor3ub(255,255,0);
@@ -248,23 +250,29 @@ void Entity::draw(void){		//draws the entities
 			//currentWorld->addParticle(loc.x,loc.y-HLINE,HLINE,HLINE,0,0,{0.0f,.17f,0.0f},1000);
 			if(up){
 				if(++texState==2)up=false;
+				glActiveTexture(GL_TEXTURE0);
 				tex->bindNext();
 			}else{
 				if(!--texState)up=true;
+				glActiveTexture(GL_TEXTURE0);
 				tex->bindPrev();
 			}
 		}
 		if(!ground){
+			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(0);
 		}else if(vel.x){
+			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(texState);
 		}else{
+			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(1);
 		}
 		break;
 	case MOBT:
 		switch(subtype){
 			case MS_RABBIT:
+				glActiveTexture(GL_TEXTURE0 + 0);
 				tex->bind(!ground);
 				break;
 			case MS_TRIGGER:
@@ -274,6 +282,7 @@ void Entity::draw(void){		//draws the entities
 			case MS_DOOR:
 			case MS_PAGE:
 			default:
+				glActiveTexture(GL_TEXTURE0 + 0);
 				tex->bind(0);
 				break;
 		}
@@ -282,26 +291,39 @@ void Entity::draw(void){		//draws the entities
 		for(auto &strt : currentWorld->build){
 			if(this == strt){
 				if(strt->bsubtype == HOUSE){
+					glActiveTexture(GL_TEXTURE1);
+					ntex->bind(0);
+					//When rendering an objectwith this program.
+					glActiveTexture(GL_TEXTURE0 + 0);
 					tex->bind(0);
+					//glBindSampler(0, linearFiltering);
+
+
 				}else if(strt->bsubtype == HOUSE2){
+					glActiveTexture(GL_TEXTURE0 + 0);
 					tex->bind(1);
 				}else if(strt->bsubtype == FOUNTAIN){
+					glActiveTexture(GL_TEXTURE0 + 0);
 					tex->bind(2);
 				}
 			}
 		} 
 		break;
 	default:
+		glActiveTexture(GL_TEXTURE0 + 0);
 		tex->bind(0);
 		break;
 	}
 	glColor3ub(255,255,255);
+	glUseProgram(shaderProgram);
+	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
 		glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
 		glTexCoord2i(1,0);glVertex2i(loc.x + width, loc.y + height);
 		glTexCoord2i(0,0);glVertex2i(loc.x, loc.y + height);
 	glEnd();
+	glUseProgram(0);
 NOPE:
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);

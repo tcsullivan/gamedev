@@ -33,6 +33,8 @@ const char *bgPaths[2][7]={
 	 NULL}
 };
 
+Texturec *grassT;
+
 const float bgDraw[3][3]={
 	{100,240,.6 },
 	{150,250,.4 },
@@ -203,6 +205,7 @@ World::World(void){
 	
 	star = new vec2[100];
 	memset(star,0,100 * sizeof(vec2));
+	grassT = new Texturec(1,"assets/grass.png");
 }
 
 void World::deleteEntities(void){
@@ -498,20 +501,9 @@ LLLOOP:
 	width = (-x_start) << 1;
 	
 	glEnable(GL_TEXTURE_2D);
-	
+
 	bgTex->bind(0);
 	safeSetColorA(255,255,255,255 - worldShade * 4);
-	
-	glBegin(GL_QUADS);
-		glTexCoord2i(0,0);glVertex2i( cx_start,SCREEN_HEIGHT);
-		glTexCoord2i(1,0);glVertex2i(-cx_start,SCREEN_HEIGHT);
-		glTexCoord2i(1,1);glVertex2i(-cx_start,0);
-		glTexCoord2i(0,1);glVertex2i( cx_start,0);
-	glEnd();
-	
-	bgTex->bindNext();
-	safeSetColorA(255,255,255,worldShade * 4);
-	
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,0);glVertex2i( cx_start,SCREEN_HEIGHT);
 		glTexCoord2i(1,0);glVertex2i(-cx_start,SCREEN_HEIGHT);
@@ -519,6 +511,14 @@ LLLOOP:
 		glTexCoord2i(0,1);glVertex2i( cx_start,0);
 	glEnd();
 
+	bgTex->bindNext();
+	safeSetColorA(255,255,255,worldShade * 4);	
+	glBegin(GL_QUADS);
+		glTexCoord2i(0,0);glVertex2i( cx_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,0);glVertex2i(-cx_start,SCREEN_HEIGHT);
+		glTexCoord2i(1,1);glVertex2i(-cx_start,0);
+		glTexCoord2i(0,1);glVertex2i( cx_start,0);
+	glEnd();
 	glDisable(GL_TEXTURE_2D);
 
 	/*
@@ -541,13 +541,13 @@ LLLOOP:
 			
 		}
 	}
+
 	
 	glEnable(GL_TEXTURE_2D);
 
 	/*
 	 *	Draw the mountains.
 	*/
-
 	bgTex->bindNext();
 	safeSetColorA(150-bgshade,150-bgshade,150-bgshade,220);
 	
@@ -666,79 +666,108 @@ LOOP2:
 
 	bool hey=false;
 	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
 	bgTex->bindNext();
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
-	glBegin(GL_QUADS);
-		for(i=is;i<(unsigned)ie-GEN_INC;i++){
-			cline[i].y+=(yoff-DRAW_Y_OFFSET);															// Add the y offset
-			if(!cline[i].y){
-				cline[i].y=base;
-				hey=true;
-				glColor4ub(0,0,0,255);
-			}else
-				safeSetColorA(150+shade*2,150+shade*2,150+shade*2,255);
-			glTexCoord2i(0,0);glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
-			glTexCoord2i(1,0);glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
-			glTexCoord2i(1,(int)(cline[i].y/64)+cline[i].color);glVertex2i(cx_start+i*HLINE+HLINE,0);
-			glTexCoord2i(0,(int)(cline[i].y/64)+cline[i].color);glVertex2i(cx_start+i*HLINE	   ,0);
-			cline[i].y-=(yoff-DRAW_Y_OFFSET);															// Restore the line's y value
-			if(hey){
-				hey=false;
-				cline[i].y=0;
-			}
+	glUseProgram(shaderProgram);
+	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
+	glUniform1f(glGetUniformLocation(shaderProgram, "amb"), float(shade+50.0f)/100.0f);
+	if(light.size() == 0){
+		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 0,-1000);
+		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 0.0f,0.0f,0.0f);
+	}else{
+		for(auto &l : light){
+			glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), l.loc.x-offset.x,l.loc.y);
+			glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), l.color.red,l.color.green,l.color.blue);
 		}
+	}
+
+	glBegin(GL_QUADS);
+	for(i=is;i<(unsigned)ie-GEN_INC;i++){
+		cline[i].y+=(yoff-DRAW_Y_OFFSET);															// Add the y offset
+		if(!cline[i].y){
+			cline[i].y=base;
+			hey=true;
+			glColor4ub(0,0,0,255);
+		}else safeSetColorA(150+shade*2,150+shade*2,150+shade*2,255);
+		glTexCoord2i(0,0);glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
+		glTexCoord2i(1,0);glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
+		glTexCoord2i(1,(int)(cline[i].y/64)+cline[i].color);glVertex2i(cx_start+i*HLINE+HLINE,0);
+		glTexCoord2i(0,(int)(cline[i].y/64)+cline[i].color);glVertex2i(cx_start+i*HLINE	   ,0);
+		cline[i].y-=(yoff-DRAW_Y_OFFSET);															// Restore the line's y value
+		if(hey){
+			hey=false;
+			cline[i].y=0;
+		}
+	}
 	glEnd();
+	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
-	
 	/*
 	 *	Draw grass on every line.
 	*/
 	
 	float cgh[2];
-	glBegin(GL_QUADS);
-		for(i=is;i<(unsigned)ie-GEN_INC;i++){
-			
-			/*
-			 *	Load the current line's grass values
-			*/
-			
-			if(cline[i].y)memcpy(cgh,cline[i].gh,2*sizeof(float));
-			else 		  memset(cgh,0			,2*sizeof(float));
-			
-			
-			
-			/*
-			 *	Flatten the grass if the player is standing on it.
-			*/
-			
-			if(!cline[i].gs){
-				cgh[0]/=4;
-				cgh[1]/=4;
-			}
-			
-			/*
-			 *	Actually draw the grass.
-			*/
-			
-			cline[i].y+=(yoff-DRAW_Y_OFFSET);
-			
-			safeSetColor(shade,100+shade*1.5,shade);
-			
-			glVertex2i(cx_start+i*HLINE        ,cline[i].y+cgh[0]);
-			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y+cgh[0]);
-			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y-GRASS_HEIGHT);
-			glVertex2i(cx_start+i*HLINE		   ,cline[i].y-GRASS_HEIGHT);
-			
-			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y+cgh[1]);
-			glVertex2i(cx_start+i*HLINE+HLINE  ,cline[i].y+cgh[1]);
-			glVertex2i(cx_start+i*HLINE+HLINE  ,cline[i].y-GRASS_HEIGHT);
-			glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y-GRASS_HEIGHT);
-			
-			cline[i].y-=(yoff-DRAW_Y_OFFSET);
+
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	grassT->bind(0);
+	glUseProgram(shaderProgram);
+	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);		
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
+	//glBegin(GL_QUADS);
+
+	for(i=is;i<(unsigned)ie-GEN_INC;i++){
+		
+		/*
+		 *	Load the current line's grass values
+		*/
+		
+		if(cline[i].y)memcpy(cgh,cline[i].gh,2*sizeof(float));
+		else 		  memset(cgh,0			,2*sizeof(float));
+		
+		
+		
+		/*
+		 *	Flatten the grass if the player is standing on it.
+		*/
+		
+		if(!cline[i].gs){
+			cgh[0]/=4;
+			cgh[1]/=4;
 		}
-	glEnd();
-	
+		
+		/*
+		 *	Actually draw the grass.
+		*/
+		
+		cline[i].y+=(yoff-DRAW_Y_OFFSET);
+		safeSetColorA(255,255,255,255);
+		glBegin(GL_QUADS);
+		glTexCoord2i(0,0);glVertex2i(cx_start+i*HLINE        ,cline[i].y+cgh[0]);
+		glTexCoord2i(1,0);glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y+cgh[0]);
+		glTexCoord2i(1,1);glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y-GRASS_HEIGHT);
+		glTexCoord2i(0,1);glVertex2i(cx_start+i*HLINE		 ,cline[i].y-GRASS_HEIGHT);
+		glEnd();
+
+		glBegin(GL_QUADS);
+		glTexCoord2i(0,0);glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y+cgh[1]);
+		glTexCoord2i(1,0);glVertex2i(cx_start+i*HLINE+HLINE  ,cline[i].y+cgh[1]);
+		glTexCoord2i(1,1);glVertex2i(cx_start+i*HLINE+HLINE  ,cline[i].y-GRASS_HEIGHT);
+		glTexCoord2i(0,1);glVertex2i(cx_start+i*HLINE+HLINE/2,cline[i].y-GRASS_HEIGHT);
+		glEnd();
+
+		cline[i].y-=(yoff-DRAW_Y_OFFSET);
+	}
+	//glEnd();
+	//glUseProgram(0);
+	glDisable(GL_TEXTURE_2D);
+
+	//glUseProgram(0);
+
 	/*
 	 *	Draw non-structure entities.
 	*/
@@ -1078,6 +1107,12 @@ void World::addParticle(float x, float y, float w, float h, float vx, float vy, 
 	particles.back()->canMove = true;
 }
 
+void World::addLight(vec2 loc, Color color){
+	light.push_back(Light());
+	light.back().loc = loc;
+	light.back().color = color;
+}
+
 /*void World::removeObject(Object i){
 	object.delete[](i);
 }*/
@@ -1230,6 +1265,18 @@ void IndoorWorld::draw(Player *p){
 	*/
 	
 	glEnable(GL_TEXTURE_2D);
+	glUseProgram(shaderProgram);
+	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
+	glUniform1f(glGetUniformLocation(shaderProgram, "amb"), 0.0f);
+	if(light.size() == 0){
+		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 0,-1000);
+		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 0.0f,0.0f,0.0f);
+	}else{
+		for(auto &l : light){
+			glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), l.loc.x-offset.x,l.loc.y);
+			glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), l.color.red,l.color.green,l.color.blue);
+		}
+	}
 	
 	bgTex->bind(0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
@@ -1245,6 +1292,7 @@ void IndoorWorld::draw(Player *p){
 		//}
 	glEnd();
 	
+	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
 	
 	/*
@@ -1265,7 +1313,8 @@ void IndoorWorld::draw(Player *p){
 	/*
 	 *	Draw the ground.
 	*/
-	
+	glUseProgram(shaderProgram);
+	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glBegin(GL_QUADS);
 		for(;i < ie - GEN_INC;i++){
 			safeSetColor(150,100,50);
@@ -1277,6 +1326,7 @@ void IndoorWorld::draw(Player *p){
 			glVertex2i(x		,line[i].y - 50);
 		}
 	glEnd();
+	glUseProgram(0);
 	
 	/*
 	 *	Draw all entities.

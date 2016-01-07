@@ -152,6 +152,7 @@ public:
 	GENDER  gender;
 	
 	Texturec *tex;
+	Texturec *ntex;
 
 	unsigned int randDialog;
 
@@ -169,7 +170,7 @@ public:
 	void baseLoad(char *);
 };
 
-class Player : public Entity {
+class Player : public Entity{
 public:
 	QuestHandler qh;
 	bool light = false;

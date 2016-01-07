@@ -568,7 +568,7 @@ namespace ui {
 				hub.y-=fontSize*1.15;
 				glRectf(hub.x,
 						hub.y,
-						hub.x+(player->health/player->maxHealth)*130,
+						hub.x+(player->health/player->maxHealth?player->maxHealth:1)*130,
 						hub.y+12);
 			}
 			
@@ -813,6 +813,9 @@ DONE:
 					break;
 				case SDLK_RIGHT:
 					player->inv->sel++;
+					break;
+				case SDLK_f:
+					
 					break;
 				default:
 					break;
