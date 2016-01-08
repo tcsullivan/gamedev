@@ -1,7 +1,22 @@
 <?xml version="1.0"?>
 <World>
-	<Background>0</Background>
-	<BGM>assets/music/embark.wav</BGM>
-	<GenerationType>Random</GenerationType>
-	<GenerationWidth>500</GenerationsWidth>
+	<style background="0" bgm="assets/music/embark.wav" />
+	<generation type="Random" width="500" />
+	
+	<!--<mob type="1" x="250" y="100" />-->
+	
+	<npc name="Ralph" x="0" y="100" hasDialog="true"/>
+
 </World>
+
+<Dialog>
+	
+	<text name="Ralph" id="0" nextid="1">
+		Hello there!
+	</text>
+	
+	<text name="Ralph" id="1">
+		Lol
+	</text>
+	
+</Dialog>

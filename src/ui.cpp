@@ -274,10 +274,11 @@ namespace ui {
 				if(s[i] == ' ')
 					i++;
 			}
-			if(s[i] == '\n'){
+			if(s[i] == '\n' || s[i] == '\r' || s[i] == '\t'){
+			/*if(s[i] == '\n'){
 				yo-=fontSize*1.05;
 				xo=x;
-			}else if(s[i]==' '){	//	Handle spaces
+			*/}else if(s[i]==' '){	//	Handle spaces
 				xo+=fontSize/2;
 			}else if(s[i]=='\b'){	//	Handle backspaces?
 				xo-=add.x;
