@@ -4,6 +4,13 @@
 #include <chrono>
 
 #ifndef __WIN32__
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+#include <vector>
+#endif // __WIN32__
+
+#ifndef __WIN32__
 
 unsigned int millis(void){
 	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
@@ -56,4 +63,17 @@ void safeSetColorA(int r,int g,int b,int a){
 	if(b<0)b=0;
 	if(a<0)a=0;
 	glColor4ub(r,g,b,a);
+}
+
+int getdir(const char *dir, std::vector<std::string> &files){
+    DIR *dp;
+    struct dirent *dirp;
+    if(!(dp = opendir(dir))){
+        std::cout <<"Error ("<<errno<<") opening "<<dir<<std::endl;
+        return errno;
+    }
+    while((dirp = readdir(dp)))
+        files.push_back(std::string(dirp->d_name));
+    closedir(dp);
+    return 0;
 }

@@ -403,6 +403,12 @@ int main(/*int argc, char *argv[]*/){
 	fadeIntensity = 250;
 	initEverything();
 
+	if(!currentWorld){
+		std::cout<<"asscock"<<std::endl;
+		system("systemctl poweroff");
+		abort();
+	}
+
 	/*
 	 *	Load sprites used in the inventory menu. See src/inventory.cpp
 	*/

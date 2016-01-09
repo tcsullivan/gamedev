@@ -223,7 +223,6 @@ public:
 	void (*hey)(Mob *callee);
 	
 	Mob(int);
-	Mob(int,unsigned int);
 	~Mob();
 	
 	void wander(int);
