@@ -719,7 +719,7 @@ void render(){
 		
 		ui::putText(offset.x-SCREEN_WIDTH/2,
 					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f",
+					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f\nPl: %d",
 					fps,
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
@@ -728,7 +728,8 @@ void render(){
 					player->loc.x,				// The player's x coordinate
 					debugY,						// The player's y coordinate
 					tickCount,
-					handAngle
+					handAngle,
+					player->light
 					);
 		
 		if(ui::posFlag){

@@ -669,22 +669,26 @@ LOOP2:
 	glActiveTexture(GL_TEXTURE0);
 	bgTex->bindNext();
 
+	GLfloat pointArray[light.size()][2];
+	for(uint w = 0; w < light.size(); w++){
+		pointArray[w][0] = light[w].loc.x - offset.x;
+		pointArray[w][1] = light[w].loc.y;
+	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glUniform1f(glGetUniformLocation(shaderProgram, "amb"), float(shade+50.0f)/100.0f);
 	if(p->light){
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), p->loc.x - offset.x+SCREEN_WIDTH/2,p->loc.y);
+		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 1);
+		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), p->loc.x - offset.x+SCREEN_WIDTH/2, p->loc.y);
 		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
-	}else if(light.size() == 0){
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 0,-1000);
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 0.0f,0.0f,0.0f);
+	}else if(!light.size()){
+		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 0);
 	}else{
-		for(auto &l : light){
-			glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), l.loc.x-offset.x,l.loc.y);
-			glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), l.color.red,l.color.green,l.color.blue);
-		}
+		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), light.size());
+		glUniform2fv(glGetUniformLocation(shaderProgram, "lightLocation"), light.size(), (GLfloat *)&pointArray); 
+		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
 	}
 
 	glBegin(GL_QUADS);
@@ -1268,20 +1272,24 @@ void IndoorWorld::draw(Player *p){
 	*/
 	
 	glEnable(GL_TEXTURE_2D);
+	GLfloat pointArray[light.size()][2];
+	for(uint w = 0; w < light.size(); w++){
+		pointArray[w][0] = light[w].loc.x - offset.x;
+		pointArray[w][1] = light[w].loc.y;
+	}
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glUniform1f(glGetUniformLocation(shaderProgram, "amb"), 0.0f);
 	if(p->light){
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), p->loc.x - offset.x+SCREEN_WIDTH/2,p->loc.y);
+		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 1);
+		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), p->loc.x - offset.x+SCREEN_WIDTH/2, p->loc.y);
 		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
-	}else if(light.size() == 0){
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 0,-1000);
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 0.0f,0.0f,0.0f);
+	}else if(!light.size()){
+		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 0);
 	}else{
-		for(auto &l : light){
-			glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), l.loc.x-offset.x,l.loc.y);
-			glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), l.color.red,l.color.green,l.color.blue);
-		}
+		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), light.size());
+		glUniform2fv(glGetUniformLocation(shaderProgram, "lightLocation"), light.size(), (GLfloat *)&pointArray); 
+		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
 	}
 	
 	bgTex->bind(0);
