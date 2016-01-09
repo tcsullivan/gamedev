@@ -437,10 +437,11 @@ namespace ui {
 			dialogOptCount--;
 		};
 
-		dialogOptChosen=0;
+		dialogOptCount = 0;
+		dialogOptChosen = 0;
 		memset(&dialogOptLoc,0,sizeof(float)*12);
 		
-		if(opt){
+		if(opt != NULL){
 			
 			soptbuf = new char[strlen(opt)+1];
 			strcpy(soptbuf,opt);

@@ -9,14 +9,20 @@
 
 </World>
 
-<Dialog>
+<Dialog name="Ralph">
 	
-	<text name="Ralph" id="0" nextid="1">
+	<text id="0">
 		Hello there!
+		<option text="Hello" nextid="1" />
+		<option text="Frig" nextid="2" />
 	</text>
 	
-	<text name="Ralph" id="1">
-		Lol
+	<text id="1">
+		gg.
+	</text>
+	
+	<text id="2">
+		Frrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
 	</text>
 	
 </Dialog>
