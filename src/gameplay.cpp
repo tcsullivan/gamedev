@@ -46,6 +46,7 @@ int commonAIFunc(NPC *speaker){
 	XMLDocument xml;
 	XMLElement *exml,*oxml;
 	unsigned int idx;
+	bool stop = false;
 	
 	for(auto &n : npcd){
 		if(n.npc == speaker){
@@ -102,6 +103,22 @@ int commonAIFunc(NPC *speaker){
 							ui::dialogBox(speaker->name,"",false,exml->GetText());
 							ui::waitForDialog();
 						}
+						if(exml->Attribute("call")){
+							for(auto &n : currentWorld->npc){
+								if(!strcmp(n->name,exml->Attribute("call"))){
+									if(exml->QueryUnsignedAttribute("callid",&idx) == XML_NO_ERROR){
+										for(auto &n2 : npcd){
+											if(n2.npc == n){
+												n2.index = idx;
+												break;
+											}
+										}
+									}
+									n->addAIFunc(commonAIFunc,false);
+									break;
+								}
+							}
+						}
 						if(exml->QueryUnsignedAttribute("nextid",&idx) == XML_NO_ERROR){
 							for(auto &n : npcd){
 								if(n.npc == speaker){
@@ -109,7 +126,11 @@ int commonAIFunc(NPC *speaker){
 									break;
 								}
 							}
-							return 1;
+							if(exml->QueryBoolAttribute("stop",&stop) == XML_NO_ERROR && stop)
+								return 0;
+							else if(exml->QueryBoolAttribute("pause",&stop) == XML_NO_ERROR && stop)
+								return 1;
+							else return commonAIFunc(speaker);
 						}
 						return 0;
 					}
@@ -127,6 +148,7 @@ void initEverything(void){
 	std::vector<std::string> xmlFiles;
 	static char *file;
 	bool dialog;
+	float spawnx;
 	XMLDocument xml;
 	XMLElement *wxml;
 	
@@ -158,9 +180,16 @@ void initEverything(void){
 						earth.back()->generate(wxml->UnsignedAttribute("width"));
 					}
 				}else if(!strcmp(name,"mob")){
-					earth.back()->addMob(wxml->UnsignedAttribute("type"),wxml->FloatAttribute("x"),wxml->FloatAttribute("y"));
+					if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
+						earth.back()->addMob(wxml->UnsignedAttribute("type"),getRand() % earth.back()->getTheWidth() / 2,100);
+					else
+						earth.back()->addMob(wxml->UnsignedAttribute("type"),wxml->FloatAttribute("x"),wxml->FloatAttribute("y"));
 				}else if(!strcmp(name,"npc")){
-					earth.back()->addNPC(wxml->FloatAttribute("x"),wxml->FloatAttribute("y"));
+					if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
+						earth.back()->addNPC(getRand() % earth.back()->getTheWidth() / 2.0f,100);
+					else
+						earth.back()->addNPC(wxml->FloatAttribute("x"),wxml->FloatAttribute("y"));
+					
 					if(wxml->Attribute("name")){
 						delete[] earth.back()->npc.back()->name;
 						earth.back()->npc.back()->name = new char[strlen(wxml->Attribute("name"))+1];

@@ -770,10 +770,8 @@ LOOP2:
 		cline[i].y-=(yoff-DRAW_Y_OFFSET);
 	}
 	//glEnd();
-	//glUseProgram(0);
+	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
-
-	//glUseProgram(0);
 
 	/*
 	 *	Draw non-structure entities.
