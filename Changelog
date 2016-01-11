@@ -465,3 +465,46 @@
 	- added World::getAvailableNPC() for easy quest assigner assigning
 	- added the Condition class, so that events and actions can be remembered by NPCs
 	- added functionality for multiple lights (GLSL)
+
+12/22/2015:
+===========
+
+	- 3 month Changelog anniversary!
+	- fixed dialog quitting bug
+	- worked on village spawning
+	- worked on wrapping text for dialog boxes
+	- did more work on GLSL shaders
+
+1/3/2016:
+=========
+
+	- finished wrapping text for dialog boxes
+	- began working on world saving/loading again
+	- got some mad GLSL shaders running
+
+1/4/2016:
+=========
+
+	- fixed basic world save/load, working on entity saving
+	- GLSL shaders worked?
+
+1/5/2016:
+=========
+
+	- can save NPCs and Structures
+	- more shadering
+	
+1/6/2016:
+=========
+
+	- flashlight!
+	- XML-scripted worlds!!!
+	- !!!!!!!!!!!!!!!!!!!!!!!!
+	
+1/7/2016:
+=========
+
+	- xml'd npc and mob spawning
+	- xml'd npc dialogs
+	- drafted page xml
+	

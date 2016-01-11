@@ -3,98 +3,12 @@
 #include <world.h>
 #include <ui.h>
 
+#include <tinyxml2.h>
+
+using namespace tinyxml2;
+
 extern World	*currentWorld;
 extern Player	*player;
-
-/*
- * 	int (npc*)
- * 
- *	dialog
- *	wait...
- * 
- * 	switch optchosen
- * 
- * 	qh.assign
- *	addAIFunc?
- * 
- * 	return 1 = repeat
- */
- 
-void story(Mob *callee){
-	player->vel.x = 0;
-	Mix_FadeOutMusic(0);
-	ui::importantText("It was a dark and stormy night...");
-	ui::waitForDialog();
-	callee->alive = false;
-}
-
-/*
- *	Gens
- */
-
-float gen_worldSpawnHill1(float x){
-	return (float)(pow(2,(-x+200)/5) + GEN_MIN);
-}
-
-float gen_worldSpawnHill3(float x){
-	float tmp = 60*atan(-(x/30-20))+GEN_MIN*2;
-	return tmp>GEN_MIN?tmp:GEN_MIN;
-}
-
-/*
- *	Thing-thangs
- */
-
-void worldSpawnHill1_hillBlock(Mob *callee){
-	player->vel.x = 0;
-	player->loc.x = callee->loc.x + callee->width;
-	ui::dialogBox(player->name,NULL,false,"This hill seems to steep to climb up...");
-	callee->alive = true;
-}
-
-static Arena *a;
-void worldSpawnHill2_infoSprint(Mob *callee){
-	
-	ui::dialogBox(player->name,":Sure:Nah",false,"This page would like to take you somewhere.");
-	ui::waitForDialog();
-	switch(ui::dialogOptChosen){
-	case 1:
-		ui::dialogBox(player->name,NULL,true,"Cool.");
-		callee->alive = false;
-		a = new Arena(currentWorld,player);
-		a->setBackground(BG_FOREST);
-		a->setBGM("assets/music/embark.wav");
-		ui::toggleWhiteFast();
-		ui::waitForCover();
-		currentWorld = a;
-		ui::toggleWhiteFast();
-		break;
-	case 2:
-	default:
-		ui::dialogBox(player->name,NULL,false,"Okay then.");
-		break;
-	}
-	
-	//ui::dialogBox("B-) ",NULL,true,"Press \'Shift\' to run!");
-}
-
-int worldSpawnHill2_Quest2(NPC *callee){
-	ui::dialogBox(callee->name,NULL,false,"Yo.");
-	ui::waitForDialog();
-	return 0;
-}
-
-int worldSpawnHill2_Quest1(NPC *callee){
-	ui::dialogBox(callee->name,":Cool.",false,"Did you know that I\'m the coolest NPC in the world?");
-	ui::waitForDialog();
-	if(ui::dialogOptChosen == 1){
-		ui::dialogBox(callee->name,NULL,false,"Yeah, it is.");
-		currentWorld->getAvailableNPC()->addAIFunc(worldSpawnHill2_Quest2,true);
-		ui::waitForDialog();
-		return 0;
-	}
-	return 1;
-}
 
 /*
  *	new world 
@@ -109,72 +23,135 @@ int worldSpawnHill2_Quest1(NPC *callee){
  *	World definitions
  */
 
-static World *worldSpawnHill1;
-static World *worldSpawnHill2;
-static World *worldSpawnHill3;
-
-static IndoorWorld *worldSpawnHill2_Building1;
-
 /*
  *	initEverything() start
  */
 
+typedef struct {
+	World *ptr;
+	char *file;
+} WorldXML;
+
+
+typedef struct {
+	NPC *npc;
+	unsigned int index;
+} NPCDialog;
+
+std::vector<NPCDialog>	npcd;
+std::vector<WorldXML>	earthxml;
+std::vector<World *>	earth;
+
+int commonAIFunc(NPC *speaker){
+	XMLDocument xml;
+	XMLElement *exml;
+	unsigned int idx;
+	
+	for(auto &n : npcd){
+		if(n.npc == speaker){
+			idx = n.index;
+			break;
+		}
+	}
+	
+	for(auto &e : earthxml){
+		if(e.ptr == currentWorld){
+			xml.LoadFile(e.file);
+			exml = xml.FirstChildElement("Dialog")->FirstChildElement();
+			
+			do{
+				if(!strcmp(exml->Name(),"text")){
+					if(!strcmp(exml->Attribute("name"),speaker->name) && exml->UnsignedAttribute("id") == idx){
+						ui::dialogBox(speaker->name,"",false,exml->GetText());
+						ui::waitForDialog();
+						if(exml->QueryUnsignedAttribute("nextid",&idx) == XML_NO_ERROR){
+							for(auto &n : npcd){
+								if(n.npc == speaker){
+									n.index = idx;
+									break;
+								}
+							}
+							return 1;
+						}
+						return 0;
+					}
+				}
+				exml = exml->NextSiblingElement();
+			}while(exml);
+		}
+	}
+	return 0;
+}
+
 void destroyEverything(void);
 void initEverything(void){
-
-	worldSpawnHill1 = new World();
-	worldSpawnHill1->generateFunc(400,gen_worldSpawnHill1);
-	worldSpawnHill1->setBackground(BG_FOREST);
-	worldSpawnHill1->setBGM("assets/music/embark.wav");
-	worldSpawnHill1->addMob(MS_TRIGGER,0,0,worldSpawnHill1_hillBlock);
-
-	worldSpawnHill2 = new World();
-	worldSpawnHill2->generate(700);
-	worldSpawnHill2->setBackground(BG_FOREST);
-	worldSpawnHill2->setBGM("assets/music/ozone.wav");
-	worldSpawnHill2->addMob(MS_PAGE,-400,0,worldSpawnHill2_infoSprint);
-
-	worldSpawnHill3 = new World();
-	worldSpawnHill3->generateFunc(1000,gen_worldSpawnHill3);
-	worldSpawnHill3->setBackground(BG_FOREST);
-	worldSpawnHill3->setBGM("assets/music/embark.wav");
-	//worldSpawnHill3->addMob(MS_TRIGGER,-500,0,worldSpawnHill3_itemGet);
-	//worldSpawnHill3->addMob(MS_TRIGGER,0,0,worldSpawnHill3_itemSee);
-	worldSpawnHill3->addObject(FLASHLIGHT,false,"",-200,300);
-	//worldSpawnHill3->addMob(MS_TRIGGER,400,0,worldSpawnHill3_leave);
-
-	worldSpawnHill3->addHole(800,1000);
+	const char *name;
+	std::vector<std::string> xmlFiles;
+	static char *file;
+	bool dialog;
+	XMLDocument xml;
+	XMLElement *wxml;
 	
-	worldSpawnHill1->toRight = worldSpawnHill2;
-	worldSpawnHill2->toLeft = worldSpawnHill1;
-	worldSpawnHill2->toRight = worldSpawnHill3;
-	worldSpawnHill3->toLeft = worldSpawnHill2;
+	if(getdir("./xml/",xmlFiles)){
+		std::cout<<"Error reading XML files!!!1"<<std::endl;
+		abort();
+	}
+	
+	for(auto x : xmlFiles){
+		if(strncmp(x.c_str(),".",1) && strncmp(x.c_str(),"..",2)){
+			file = new char[5 + x.size()];
+			strncpy(file,"xml/",4);
+			strcpy(file+4,x.c_str());
+			xml.LoadFile(file);
 
-	/*
-	 *	Spawn some entities.
-	*/
+			wxml = xml.FirstChildElement("World")->FirstChildElement();
 
-	//playerSpawnHill->addMob(MS_TRIGGER,player->loc.x,0,story);
-
-	//playerSpawnHill->addStructure(STRUCTURET,FOUNTAIN,(rand()%120*HLINE)+100*HLINE,100,test,iw);
-	//playerSpawnHill->addStructure(STRUCTURET,HOUSE2,(rand()%120*HLINE)+300*HLINE,100,test,iw);
-
-	//playerSpawnHill->addVillage(5,1,4,STRUCTURET,rand()%500+120,(float)200,playerSpawnHill,iw);
-	//playerSpawnHill->addMob(MS_TRIGGER,-1300,0,CUTSCENEEE);*/
-
-
-	worldSpawnHill2_Building1 = new IndoorWorld();
-	worldSpawnHill2_Building1->generate(300);
-	worldSpawnHill2_Building1->setBackground(BG_WOODHOUSE);
-	worldSpawnHill2_Building1->setBGM("assets/music/theme_jazz.wav");
-
-	worldSpawnHill2->addStructure(STRUCTURET,HOUSE,(rand()%120*HLINE),100,worldSpawnHill2_Building1);
-	worldSpawnHill2->getAvailableNPC()->addAIFunc(worldSpawnHill2_Quest1,false);
+			earth.push_back(new World());
+			
+			do{
+				name = wxml->Name();
+				
+				if(!strcmp(name,"style")){
+					earth.back()->setBackground((WORLD_BG_TYPE)wxml->UnsignedAttribute("background"));
+					earth.back()->setBGM(wxml->Attribute("bgm"));
+				}else if(!strcmp(name,"generation")){
+					if(!strcmp(wxml->Attribute("type"),"Random")){
+						earth.back()->generate(wxml->UnsignedAttribute("width"));
+					}
+				}else if(!strcmp(name,"mob")){
+					earth.back()->addMob(wxml->UnsignedAttribute("type"),wxml->FloatAttribute("x"),wxml->FloatAttribute("y"));
+				}else if(!strcmp(name,"npc")){
+					earth.back()->addNPC(wxml->FloatAttribute("x"),wxml->FloatAttribute("y"));
+					if(wxml->Attribute("name")){
+						delete[] earth.back()->npc.back()->name;
+						earth.back()->npc.back()->name = new char[strlen(wxml->Attribute("name"))+1];
+						strcpy(earth.back()->npc.back()->name,wxml->Attribute("name"));
+					}
+					dialog = false;
+					if(wxml->QueryBoolAttribute("hasDialog",&dialog) == XML_NO_ERROR && dialog){
+						for(auto &ex : earthxml){
+							if(ex.ptr == earth.back())
+								goto SKIP;
+						}
+						earthxml.push_back((WorldXML){earth.back(),new char[64]});
+						strcpy(earthxml.back().file,file);
+SKIP:
+						earth.back()->npc.back()->addAIFunc(commonAIFunc,false);
+						npcd.push_back((NPCDialog){earth.back()->npc.back(),0});
+					}
+				}
+				
+				wxml = wxml->NextSiblingElement();
+			}while(wxml);
+			
+			delete[] file;
+		}
+	}
 	
 	player = new Player();
 	player->spawn(200,100);
 
-	currentWorld = worldSpawnHill1;	
+	currentWorld = earth.front();
 	currentWorld->bgmPlay(NULL);
 	atexit(destroyEverything);
 }
@@ -183,6 +160,7 @@ extern std::vector<int (*)(NPC *)> AIpreload;
 extern std::vector<NPC *> AIpreaddr;
 
 void destroyEverything(void){
+	
 	while(!AIpreload.empty())
 		AIpreload.pop_back();
 	while(!AIpreaddr.empty())

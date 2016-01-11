@@ -77,8 +77,8 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	subtype = 0;	
 	health = maxHealth = 100;
 	speed = 1;
-	//tex = new Texturec(3, "assets/player1.png", "assets/player.png", "assets/player2.png");
-	tex = new Texturec(3, "assets/maybeplayer.png", "assets/maybeplayer.png", "assets/maybeplayer.png");
+	tex = new Texturec(3, "assets/player1.png", "assets/playerk.png", "assets/player2.png");
+	//tex = new Texturec(3, "assets/maybeplayer.png", "assets/maybeplayer.png", "assets/maybeplayer.png");
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
 Player::~Player(){
@@ -101,7 +101,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 	
-	randDialog = rand() % 12 - 1;
+	randDialog = 6;//rand() % 12 - 1;
 }
 NPC::~NPC(){
 	while(!aiFunc.empty()){
@@ -120,9 +120,12 @@ Structures::Structures(){ //sets the structure type
 	near  = false;
 	
 	tex = new Texturec(3,"assets/house1.png", "assets/house2.png", "assets/fountain1.png");
+	ntex = new Texturec(1, "assets/house1N.png");
 	
 	inWorld = NULL;
 	name = NULL;
+	
+	inv = NULL;
 }
 Structures::~Structures(){
 	delete tex;
@@ -153,7 +156,7 @@ Mob::Mob(int sub){
 		break;
 	case MS_DOOR:
 		width = HLINE * 12;
-		height = HLINE * 19;
+		height = HLINE * 20;
 		tex = new Texturec(1,"assets/door.png");
 		break;
 	case MS_PAGE:
@@ -169,6 +172,19 @@ Mob::~Mob(){
 	delete inv;
 	delete tex;
 	delete[] name;
+}
+
+Object::Object(){
+	type = OBJECTT;
+	alive = true;
+	near = false;
+	width  = 0;
+	height = 0;
+
+	maxHealth = health = 1;
+	
+	tex = NULL;
+	inv = NULL;
 }
 
 Object::Object(ITEM_ID id, bool qo, const char *pd){
@@ -187,6 +203,7 @@ Object::Object(ITEM_ID id, bool qo, const char *pd){
 
 	maxHealth = health = 1;
 	tex = new Texturec(1,getItemTexturePath(id));
+	inv = NULL;
 }
 Object::~Object(){
 	delete[] pickupDialog;
@@ -194,9 +211,19 @@ Object::~Object(){
 	delete[] name;
 }
 
+void Object::reloadTexture(void){
+	if(tex)
+		delete tex;
+		
+	tex = new Texturec(1,getItemTexturePath(identifier));
+	width  = getItemWidth(identifier);
+	height = getItemHeight(identifier);
+}
+
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	glColor3ub(255,255,255);
+	//glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	if(type==NPCT){
 		if(NPCp(this)->aiFunc.size()){
 			glColor3ub(255,255,0);
@@ -223,23 +250,29 @@ void Entity::draw(void){		//draws the entities
 			//currentWorld->addParticle(loc.x,loc.y-HLINE,HLINE,HLINE,0,0,{0.0f,.17f,0.0f},1000);
 			if(up){
 				if(++texState==2)up=false;
+				glActiveTexture(GL_TEXTURE0);
 				tex->bindNext();
 			}else{
 				if(!--texState)up=true;
+				glActiveTexture(GL_TEXTURE0);
 				tex->bindPrev();
 			}
 		}
 		if(!ground){
+			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(0);
 		}else if(vel.x){
+			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(texState);
 		}else{
+			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(1);
 		}
 		break;
 	case MOBT:
 		switch(subtype){
 			case MS_RABBIT:
+				glActiveTexture(GL_TEXTURE0 + 0);
 				tex->bind(!ground);
 				break;
 			case MS_TRIGGER:
@@ -249,6 +282,7 @@ void Entity::draw(void){		//draws the entities
 			case MS_DOOR:
 			case MS_PAGE:
 			default:
+				glActiveTexture(GL_TEXTURE0 + 0);
 				tex->bind(0);
 				break;
 		}
@@ -257,26 +291,39 @@ void Entity::draw(void){		//draws the entities
 		for(auto &strt : currentWorld->build){
 			if(this == strt){
 				if(strt->bsubtype == HOUSE){
+					glActiveTexture(GL_TEXTURE1);
+					ntex->bind(0);
+					//When rendering an objectwith this program.
+					glActiveTexture(GL_TEXTURE0 + 0);
 					tex->bind(0);
+					//glBindSampler(0, linearFiltering);
+
+
 				}else if(strt->bsubtype == HOUSE2){
+					glActiveTexture(GL_TEXTURE0 + 0);
 					tex->bind(1);
 				}else if(strt->bsubtype == FOUNTAIN){
+					glActiveTexture(GL_TEXTURE0 + 0);
 					tex->bind(2);
 				}
 			}
 		} 
 		break;
 	default:
+		glActiveTexture(GL_TEXTURE0 + 0);
 		tex->bind(0);
 		break;
 	}
 	glColor3ub(255,255,255);
+	glUseProgram(shaderProgram);
+	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
 		glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
 		glTexCoord2i(1,0);glVertex2i(loc.x + width, loc.y + height);
 		glTexCoord2i(0,0);glVertex2i(loc.x, loc.y + height);
 	glEnd();
+	glUseProgram(0);
 NOPE:
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
@@ -341,7 +388,7 @@ const char *randomDialog[] = {
 	"How much wood could a woodchuck chuck if a woodchuck could chuck wood?",
 	"I don\'t think anyone has ever been able to climb up that hill.",
 	"If you ever see a hole in the ground, watch out; it could mean the end for you.",
-	"Did you know this game has over 4000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
+	"Did you know this game has over 5000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
 	"HELP MY CAPS LOCK IS STUCK",
 	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
 	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
@@ -489,4 +536,162 @@ void Mob::wander(int timeRun){
 	default:
 		break;
 	}
+}
+
+char *Entity::baseSave(void){
+	static EntitySavePacket *esp;
+	esp = new EntitySavePacket();
+	if(inv)
+		memcpy(&esp->isp,inv->save(),sizeof(InventorySavePacket));
+	else
+		memset(&esp->isp,0,sizeof(InventorySavePacket));
+	esp->loc = loc;
+	esp->vel = vel;
+	esp->width = width;
+	esp->height = height;
+	esp->speed = speed;
+	esp->health = health;
+	esp->maxHealth = maxHealth;
+	esp->subtype = subtype;
+	esp->ticksToUse = ticksToUse;
+	esp->randDialog = randDialog;
+	esp->ground = ground;
+	esp->near = near;
+	esp->canMove = canMove;
+	esp->right = right;
+	esp->left = left;
+	esp->alive = alive;
+	esp->hit = hit;
+	esp->type = type;
+	esp->gender = gender;
+	if(name){
+		esp->nameSize = strlen(name) + 1;
+		strncpy(esp->name,name,32);
+	}else{
+		esp->nameSize = 0;
+		strcpy(esp->name,"\0");
+	}
+	return (char *)esp;
+}
+
+void Entity::baseLoad(char *e){
+	EntitySavePacket *esp = (EntitySavePacket *)e;
+	if(esp->nameSize > 1)
+		inv->load(&esp->isp);
+	loc = esp->loc;
+	vel = esp->vel;
+	width = esp->width;
+	height = esp->height;
+	speed = esp->speed;
+	health = esp->health;
+	maxHealth = esp->maxHealth;
+	subtype = esp->subtype;
+	ticksToUse = esp->ticksToUse;
+	randDialog = esp->randDialog;
+	ground = esp->ground;
+	near = esp->near;
+	canMove = esp->canMove;
+	right = esp->right;
+	left = esp->left;
+	alive = esp->alive;
+	hit = esp->hit;
+	type = esp->type;
+	gender = esp->gender;
+	if(esp->nameSize){
+		name = new char[esp->nameSize+1];
+		strcpy(name,esp->name);
+	}else{
+		name = new char[4];
+		strncpy(name,"\0\0\0\0",4);
+	}
+}
+
+char *NPC::save(unsigned int *size){
+	static char *buf,*esp;
+	buf = new char[(*size = sizeof(EntitySavePacket) /*+ aiFunc.size() * sizeof(int(*)(NPC *))*/)];
+	memcpy(buf,(esp = baseSave()),sizeof(EntitySavePacket));
+	delete[] esp;
+	//memcpy(buf+sizeof(EntitySavePacket),aiFunc.data(),aiFunc.size() * sizeof(int(*)(NPC *)));
+	return buf;
+}
+
+void NPC::load(unsigned int size,char *b){
+	//unsigned int size2,i;
+	//int (*func)(NPC *);
+	baseLoad(b);
+	size--;
+	/*if(size > sizeof(EntitySavePacket)){
+		size2 = (size - sizeof(EntitySavePacket)) / sizeof(int(*)(NPC *));
+		std::cout<<size<<" "<<sizeof(EntitySavePacket)<<" "<<sizeof(int(*)(NPC *))<<" = "<<size2<<std::endl;
+		aiFunc.reserve(size2);
+		if(aiFunc.max_size() < size2){
+			std::cout<<"what"<<std::endl;
+			abort();
+		}
+		for(i=0;i<size2;i++){
+			
+			aiFunc.push_back(
+		}
+		memcpy(aiFunc.data(),b+sizeof(EntitySavePacket),size2 * sizeof(int(*)(NPC *)));
+		//aiFunc.erase(aiFunc.begin());
+		std::cout<<aiFunc.size()<<std::endl;
+	}*/
+}
+
+char *Structures::save(void){
+	static StructuresSavePacket *ssp;
+	char *esp;
+	ssp = new StructuresSavePacket();
+	esp = baseSave();
+	memcpy(&ssp->esp,esp,sizeof(EntitySavePacket));
+	delete[] esp;
+	ssp->inWorld = inWorld;
+	ssp->inside = inside;
+	ssp->bsubtype = bsubtype;
+	return (char *)ssp;
+}
+
+void Structures::load(char *s){
+	StructuresSavePacket *ssp = (StructuresSavePacket *)s;
+	baseLoad((char *)&ssp->esp);
+	inWorld = ssp->inWorld;
+	inside = ssp->inside;
+	bsubtype = ssp->bsubtype;
+}
+
+char *Object::save(void){
+	static ObjectSavePacket *osp;
+	char *esp;
+	osp = new ObjectSavePacket();
+	memcpy(&osp->esp,(esp = baseSave()),sizeof(EntitySavePacket));
+	delete[] esp;
+	osp->identifier = identifier;
+	osp->questObject = questObject;
+	strncpy(osp->pickupDialog,pickupDialog,256);
+	return (char *)osp;
+}
+
+void Object::load(char *buf){
+	ObjectSavePacket *osp = (ObjectSavePacket *)buf;
+	baseLoad((char *)&osp->esp);
+	identifier = osp->identifier;
+	questObject = osp->questObject;
+	pickupDialog = new char[256];
+	strcpy(pickupDialog,osp->pickupDialog);
+}
+
+char *Mob::save(void){
+	static MobSavePacket *msp;
+	char *esp;
+	msp = new MobSavePacket();
+	memcpy(&msp->esp,(esp = baseSave()),sizeof(MobSavePacket));
+	delete[] esp;
+	msp->init_y = init_y;
+	return (char *)msp;
+}
+
+void Mob::load(char *m){
+	MobSavePacket *msp = (MobSavePacket *)m;
+	baseLoad((char *)&msp->esp);
+	init_y = msp->init_y;
 }

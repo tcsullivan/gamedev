@@ -291,7 +291,8 @@ void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
 	default:
 		hangle = 0.0f;
 	}
-
+	glUseProgram(shaderProgram);
+	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glTranslatef(itemLoc.x,itemLoc.y,0);
 	glRotatef(hangle, 0.0f, 0.0f, 1.0f);
 	glTranslatef(-itemLoc.x,-itemLoc.y,0);
@@ -307,6 +308,7 @@ void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
 	glDisable(GL_TEXTURE_2D);
 	glTranslatef(player->loc.x*2,0,0);
 	glPopMatrix();
+	glUseProgram(0);
 }
 
 int Inventory::useItem(void){

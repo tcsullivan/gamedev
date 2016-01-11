@@ -10,10 +10,12 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <string>
 #include <vector>
 #include <math.h>
 #include <string>
 #include <fstream>	
+#include <thread>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -34,7 +36,7 @@ typedef unsigned int uint;
  * This flag lets the compiler know that we want to use shaders.
  */
 
-#define SHADERSs
+#define SHADERS
 
 /**
  * This structure contains a set of coordinates for ease of coding.
@@ -44,6 +46,12 @@ typedef struct {
 	float x;
 	float y;
 } vec2;
+
+typedef struct {
+	float x;
+	float y;
+	float z;
+} vec3;
 
 /**
  * This structure contains two sets of coordinates for ray drawing.
@@ -141,6 +149,8 @@ extern vec2 offset;
  */
 extern unsigned int loops;
 
+extern GLuint shaderProgram;
+
 /**
  * This class contains a string for identification and a value. It can be used to
  * save certain events for and decisions so that they can be recalled later.
@@ -189,5 +199,7 @@ void safeSetColorA(int r,int g,int b,int a);
 #else
 unsigned int millis(void);
 #endif // __WIN32__
+
+int getdir(const char *dir, std::vector<std::string> &files);
 
 #endif // COMMON_H

@@ -33,6 +33,8 @@ namespace ui {
 	extern unsigned char dialogOptChosen;
 	extern bool dialogImportant;
 
+	extern unsigned int textWrapLimit;
+
 	/*
 	 *	Initializes the FreeType system.
 	*/

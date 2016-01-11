@@ -95,6 +95,8 @@ namespace ui {
 	bool dialogImportant = false;
 	unsigned char dialogOptChosen = 0;
 	
+	unsigned int textWrapLimit = 110;
+	
 	/*
 	 *	Current font size. Changing this WILL NOT change the font size, see setFontSize() for
 	 *	actual font size changing.
@@ -266,10 +268,17 @@ namespace ui {
 		*/
 		
 		do{
-			if(s[i]=='\n'){			//	Handle newlines
+			if(i && ((i / 110.0) == (i / 110))){
 				yo-=fontSize*1.05;
 				xo=x;
-			}else if(s[i]==' '){	//	Handle spaces
+				if(s[i] == ' ')
+					i++;
+			}
+			if(s[i] == '\n' || s[i] == '\r' || s[i] == '\t'){
+			/*if(s[i] == '\n'){
+				yo-=fontSize*1.05;
+				xo=x;
+			*/}else if(s[i]==' '){	//	Handle spaces
 				xo+=fontSize/2;
 			}else if(s[i]=='\b'){	//	Handle backspaces?
 				xo-=add.x;
@@ -308,12 +317,13 @@ namespace ui {
 	 *	Draw a string in a typewriter-esque fashion. Each letter is rendered as calls are made
 	 *	to this function. Passing a different string to the function will reset the counters.
 	*/
-	
+
+	static char *ret = NULL;
 	char *typeOut(char *str){
 		static unsigned int sinc,	//	Acts as a delayer for the space between each character.
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
-		static char *ret = NULL;
+		//static char *ret = NULL;
 		
 		/*
 		 *	Create a well-sized buffer if we haven't yet.
@@ -453,6 +463,8 @@ namespace ui {
 		dialogBoxExists = true;
 		dialogImportant = false;
 		
+		if(ret)
+			ret[0] = '\0';
 	}
 	void waitForDialog(void){
 		do{
@@ -557,7 +569,7 @@ namespace ui {
 				hub.y-=fontSize*1.15;
 				glRectf(hub.x,
 						hub.y,
-						hub.x+(player->health/player->maxHealth)*130,
+						hub.x+(player->health/player->maxHealth?player->maxHealth:1)*130,
 						hub.y+12);
 			}
 			
@@ -667,7 +679,6 @@ DONE:
 								memcpy(&player->loc,&tmppos,sizeof(vec2));
 								currentWorld = tmp;
 								toggleBlackFast();
-								dialogBoxExists = false;
 							}
 						}
 						break;
@@ -689,7 +700,6 @@ DONE:
 								memcpy(&player->loc,&tmppos,sizeof(vec2));
 								currentWorld = tmp;
 								toggleBlackFast();
-								dialogBoxExists = false;
 							}
 						}
 						break;
@@ -804,6 +814,9 @@ DONE:
 					break;
 				case SDLK_RIGHT:
 					player->inv->sel++;
+					break;
+				case SDLK_f:
+					player->light^=true;
 					break;
 				default:
 					break;
