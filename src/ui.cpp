@@ -437,10 +437,11 @@ namespace ui {
 			dialogOptCount--;
 		};
 
-		dialogOptChosen=0;
+		dialogOptCount = 0;
+		dialogOptChosen = 0;
 		memset(&dialogOptLoc,0,sizeof(float)*12);
 		
-		if(opt){
+		if(opt != NULL){
 			
 			soptbuf = new char[strlen(opt)+1];
 			strcpy(soptbuf,opt);
@@ -815,8 +816,11 @@ DONE:
 				case SDLK_RIGHT:
 					player->inv->sel++;
 					break;
-				case SDLK_f:
+				case SDLK_l:
 					player->light^=true;
+					break;
+				case SDLK_f:
+					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
 				default:
 					break;

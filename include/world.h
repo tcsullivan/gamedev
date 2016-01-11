@@ -167,7 +167,7 @@ public:
 	 * loaded inside the world, with the Entity vector containing pointers to
 	 * the contents of all the others.
 	 */
-	
+
 	std::vector<NPC			*>	npc;
 	std::vector<Structures	*>	build;
 	std::vector<Mob			*>	mob;

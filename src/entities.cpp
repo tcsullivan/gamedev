@@ -77,7 +77,7 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	subtype = 0;	
 	health = maxHealth = 100;
 	speed = 1;
-	tex = new Texturec(3, "assets/player1.png", "assets/playerk.png", "assets/player2.png");
+	tex = new Texturec(3, "assets/player1.png", "assets/player.png", "assets/player2.png");
 	//tex = new Texturec(3, "assets/maybeplayer.png", "assets/maybeplayer.png", "assets/maybeplayer.png");
 	inv = new Inventory(PLAYER_INV_SIZE);
 }

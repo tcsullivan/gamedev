@@ -2,7 +2,7 @@
 uniform sampler2D sampler;
 
 uniform int numLight;
-uniform vec2 lightLocation[10];
+uniform vec2 lightLocation[255];
 uniform vec3 lightColor;
 uniform float amb;
 // uniform float lightStrength;
