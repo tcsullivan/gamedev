@@ -29,10 +29,10 @@ ID PLAYER_BAG
 ID FLASHLIGHT 	
 	NAME "Flashlight" 
 	TYPE TOOL 
-	WIDTH HLINE*2 
-	HEIGHT HLINE*4 
+	WIDTH HLINE*4 
+	HEIGHT HLINE*8 
 	STACKSIZE 1 
-	TEX "assets/items/ITEM_TEST.png" 
+	TEX "assets/items/flashlight_off.png" 
 	ENI
 
 ID SWORD_WOOD 	

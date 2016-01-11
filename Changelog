@@ -377,7 +377,7 @@
 ==========
 
 	- re-did fullscreen text (importantText)
-	- began doxygening headers
+	- began doxygening headersspin a dreidel
 	- fixed entity name reading
 	- fixed entity sprites
 
@@ -387,6 +387,9 @@
 	- continued to document header files through doxygen
 	- added border to dialogBox
 	- fix entity movement handling; npcs stop when you talk to them
+<<<<<<< HEAD
+	- added sword animation?
+=======
 	- added sword animation?
 
 12/9/2015,
@@ -408,6 +411,7 @@
 	- imrpoved BGM handling
 	- continued work on particles, made a fountain
 	- added sanic
+=======
 	
 	~ Broke 5000 lines of code/doc, now with some file Doxygen'd
 
@@ -420,6 +424,7 @@
 	- fixed fading bugs
 	- continued fixing general game bugs
 	- fixed structure spawn issues
+=======
 
 12/15/2015:
 ===========

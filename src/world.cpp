@@ -669,7 +669,7 @@ LOOP2:
 	glActiveTexture(GL_TEXTURE0);
 	bgTex->bindNext();
 
-	GLfloat pointArray[light.size()][2];
+	GLfloat pointArray[light.size() + (int)p->light][2];
 	for(uint w = 0; w < light.size(); w++){
 		pointArray[w][0] = light[w].loc.x - offset.x;
 		pointArray[w][1] = light[w].loc.y;
@@ -680,15 +680,18 @@ LOOP2:
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glUniform1f(glGetUniformLocation(shaderProgram, "amb"), float(shade+50.0f)/100.0f);
 	if(p->light){
-		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 1);
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), p->loc.x - offset.x+SCREEN_WIDTH/2, p->loc.y);
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
-	}else if(!light.size()){
+		//glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 1);
+		//glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), p->loc.x - offset.x+SCREEN_WIDTH/2, p->loc.y);
+		//glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
+		pointArray[light.size()+1][0] = (float)(p->loc.x + SCREEN_WIDTH/2);
+		pointArray[light.size()+1][1] = (float)(p->loc.y);
+	}
+	if(light.size()+(int)p->light == 0){
 		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 0);
 	}else{
-		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), light.size());
-		glUniform2fv(glGetUniformLocation(shaderProgram, "lightLocation"), light.size(), (GLfloat *)&pointArray); 
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
+		glUniform1i (glGetUniformLocation(shaderProgram, "numLight"),      light.size()+(int)p->light);
+		glUniform2fv(glGetUniformLocation(shaderProgram, "lightLocation"), light.size()+(int)p->light, (GLfloat *)&pointArray); 
+		glUniform3f (glGetUniformLocation(shaderProgram, "lightColor"),    1.0f,1.0f,1.0f);
 	}
 
 	glBegin(GL_QUADS);
@@ -770,10 +773,8 @@ LOOP2:
 		cline[i].y-=(yoff-DRAW_Y_OFFSET);
 	}
 	//glEnd();
-	//glUseProgram(0);
+	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
-
-	//glUseProgram(0);
 
 	/*
 	 *	Draw non-structure entities.
