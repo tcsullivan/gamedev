@@ -822,6 +822,9 @@ DONE:
 				case SDLK_f:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
+				case SDLK_g:
+					currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, currentWorld);
+					break;
 				default:
 					break;
 				}

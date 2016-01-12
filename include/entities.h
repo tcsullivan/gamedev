@@ -37,12 +37,13 @@ enum MOB_SUB {
 };
 
 enum BUILD_SUB{
-	TOWN_HALL = 1,
-	HOUSE,
-	HOUSE2,
-	HOUSE3,
-	HOUSE4,
-	FOUNTAIN
+	TOWN_HALL = 0,
+	HOUSE = 1,
+	HOUSE2 = 2,
+	HOUSE3 = 3,
+	HOUSE4 = 4,
+	FOUNTAIN = 5,
+	LAMP_POST = 6
 };
 
 typedef struct {
@@ -211,7 +212,7 @@ public:
 	Structures();
 	~Structures();
 	
-	unsigned int spawn(_TYPE, BUILD_SUB, float, float, World *);
+	unsigned int spawn(BUILD_SUB, float, float, World *);
 	
 	char *save(void);
 	void load(char *s);

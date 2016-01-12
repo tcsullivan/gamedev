@@ -13,6 +13,14 @@ extern Player *player;
 
 extern const char *itemName;
 
+std::string sTexLoc[] = {	"assets/townhall.png",
+							"assets/house1.png", 
+							"assets/house2.png", 
+							"assets/house1.png", 
+							"assets/house1.png", 
+							"assets/fountain1.png",
+							"assets/lampPost1.png"};
+
 void getRandomName(Entity *e){
 	unsigned int tempNum,max=0;
 	char *bufs;
@@ -118,9 +126,6 @@ Structures::Structures(){ //sets the structure type
 	
 	alive = false;
 	near  = false;
-	
-	tex = new Texturec(3,"assets/house1.png", "assets/house2.png", "assets/fountain1.png");
-	ntex = new Texturec(1, "assets/house1N.png");
 	
 	inWorld = NULL;
 	name = NULL;
@@ -282,7 +287,7 @@ void Entity::draw(void){		//draws the entities
 			case MS_DOOR:
 			case MS_PAGE:
 			default:
-				glActiveTexture(GL_TEXTURE0 + 0);
+				glActiveTexture(GL_TEXTURE0);
 				tex->bind(0);
 				break;
 		}
@@ -290,27 +295,25 @@ void Entity::draw(void){		//draws the entities
 	case STRUCTURET:
 		for(auto &strt : currentWorld->build){
 			if(this == strt){
-				if(strt->bsubtype == HOUSE){
-					glActiveTexture(GL_TEXTURE1);
-					ntex->bind(0);
-					//When rendering an objectwith this program.
-					glActiveTexture(GL_TEXTURE0 + 0);
-					tex->bind(0);
-					//glBindSampler(0, linearFiltering);
-
-
-				}else if(strt->bsubtype == HOUSE2){
-					glActiveTexture(GL_TEXTURE0 + 0);
-					tex->bind(1);
-				}else if(strt->bsubtype == FOUNTAIN){
-					glActiveTexture(GL_TEXTURE0 + 0);
-					tex->bind(2);
+				switch(strt->bsubtype){
+					/*case HOUSE:
+						glActiveTexture(GL_TEXTURE1);
+						ntex->bind(0);
+						//When rendering an objectwith this program.
+						glActiveTexture(GL_TEXTURE0);
+						tex->bind(0);
+						//glBindSampler(0, linearFiltering);
+						break;*/
+					default:
+						glActiveTexture(GL_TEXTURE0);
+						tex->bind(0);
+						break;
 				}
 			}
 		} 
 		break;
 	default:
-		glActiveTexture(GL_TEXTURE0 + 0);
+		glActiveTexture(GL_TEXTURE0);
 		tex->bind(0);
 		break;
 	}
@@ -442,16 +445,16 @@ void Object::interact(void){
  *							point to have non-normal traits so it could be invisible or invincible...
 */
 
-unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y, World *oi){
+unsigned int Structures::spawn(BUILD_SUB sub, float x, float y, World *oi){
 	loc.x = x;
 	loc.y = y;
-	type = t;
-	
+	type = STRUCTURET;
+
 	alive = true;
 
-	width =  50 * HLINE;
-	height = 40 * HLINE;
 	bsubtype = sub;
+	int s = -1;
+	s = sub;
 
 	inWorld = oi;
 
@@ -459,20 +462,45 @@ unsigned int Structures::spawn(_TYPE t, BUILD_SUB sub, float x, float y, World *
 	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
 	 *	will spawn bewteen 2 and 7 villagers for the starting hut.
 	*/
-	
-	unsigned int tempN = (getRand() % 5 + 2);
-	
-	for(unsigned int i = 0;i < tempN;i++){
-		
-		/*
-		 *	This is where the entities actually spawn. A new entity is created
-		 *	with type NPC.
-		*/
-		
-		inWorld->addNPC(loc.x + i * HLINE ,100);
-		
-	}
+	/* tex = new Texturec(7,"assets/townhall.png",
+							"assets/house1.png", 
+							"assets/house2.png", 
+							"assets/house1.png", 
+							"assets/house1.png", 
+							"assets/fountain1.png",
+							"assets/lampPost1.png")*/;
 
+	unsigned int tempN = (getRand() % 5 + 2);
+	switch(s){
+		case HOUSE:
+			tex = new Texturec(1, sTexLoc[s].c_str());
+			width =  50 * HLINE;
+			height = 40 * HLINE;
+			for(unsigned int i = 0;i < tempN;i++){
+			
+				/*
+				 *	This is where the entities actually spawn. A new entity is created
+				 *	with type NPC.
+				*/
+			
+				oi->addNPC(loc.x + i * HLINE ,100);
+			
+			}
+			break;
+		case FOUNTAIN:
+			tex = new Texturec(1, sTexLoc[s].c_str());
+			width =  50 * HLINE;
+			height = 40 * HLINE;
+			break;
+		case LAMP_POST:
+			tex = new Texturec(1, sTexLoc[s].c_str());
+			width =  10 * HLINE;
+			height = 40 * HLINE;
+			oi->addLight({x+SCREEN_WIDTH/2,y+30*HLINE},{1.0f,1.0f,1.0f});
+			break;
+		default:
+			break;
+	}
 	return 0;
 }
 
