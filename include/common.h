@@ -201,5 +201,6 @@ unsigned int millis(void);
 #endif // __WIN32__
 
 int getdir(const char *dir, std::vector<std::string> &files);
+void strVectorSortAlpha(std::vector<std::string> *v);
 
 #endif // COMMON_H

@@ -77,3 +77,17 @@ int getdir(const char *dir, std::vector<std::string> &files){
     closedir(dp);
     return 0;
 }
+
+void strVectorSortAlpha(std::vector<std::string> *v){
+	static bool change;
+	do{
+		change = false;
+		for(unsigned int i=0;i<v->size()-1;i++){
+			if(v[0][i] > v[0][i+1]){
+				std::cout<<"swap "<<v[0][i]<<" <-> "<<v[0][i+1]<<std::endl;
+				std::swap(v[0][i],v[0][i+1]);
+				change = true;
+			}
+		}
+	}while(change);
+}

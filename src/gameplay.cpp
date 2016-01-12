@@ -32,16 +32,21 @@ typedef struct {
 	char *file;
 } WorldXML;
 
+typedef struct {
+	char *name;
+	World *ptr;
+} WorldLink;
 
 typedef struct {
 	NPC *npc;
 	unsigned int index;
 } NPCDialog;
 
-std::vector<NPCDialog>		npcd;
-std::vector<WorldXML>		earthxml;
-std::vector<World *>		earth;
-std::vector<XMLElement *>	dopt;
+std::vector<NPCDialog>			npcd;
+std::vector<WorldXML>			earthxml;
+static std::vector<WorldLink>	earthlnk;
+std::vector<World *>			earth;
+std::vector<XMLElement *>		dopt;
 
 int commonAIFunc(NPC *speaker){
 	XMLDocument xml;
@@ -68,7 +73,7 @@ int commonAIFunc(NPC *speaker){
 			
 			do{
 				if(!strcmp(exml->Name(),"text")){
-					if(/*!strcmp(exml->Attribute("name"),speaker->name) &&*/ exml->UnsignedAttribute("id") == idx){
+					if(exml->UnsignedAttribute("id") == idx){
 						
 						if((oxml = exml->FirstChildElement("option"))){
 							const char *op;
@@ -158,22 +163,53 @@ void initEverything(void){
 		abort();
 	}
 	
-	for(auto x : xmlFiles){
-		if(strncmp(x.c_str(),".",1) && strncmp(x.c_str(),"..",2)){
-			file = new char[5 + x.size()];
-			memset(file,0,5 + x.size());
+	strVectorSortAlpha(&xmlFiles);
+	
+	for(unsigned int i=0;i<xmlFiles.size();i++){
+		if(strncmp(xmlFiles[i].c_str(),".",1) && strncmp(xmlFiles[i].c_str(),"..",2)){
+			earthlnk.push_back((WorldLink){new char[strlen(xmlFiles[i].c_str() + 1)],NULL});
+			strcpy(earthlnk.back().name,xmlFiles[i].c_str());
+		}
+	}
+	
+	for(unsigned int i=0;i<xmlFiles.size();i++){
+		if(strncmp(xmlFiles[i].c_str(),".",1) && strncmp(xmlFiles[i].c_str(),"..",2)){
+			file = new char[5 + xmlFiles[i].size()];
+			memset(file,0,5 + xmlFiles[i].size());
 			strncpy(file,"xml/",4);
-			strcpy(file+4,x.c_str());
+			strcpy(file+4,xmlFiles[i].c_str());
+			std::cout<<std::endl<<"Loading "<<file<<" ..."<<std::endl<<std::endl;
 			xml.LoadFile(file);
 
 			wxml = xml.FirstChildElement("World")->FirstChildElement();
 
 			earth.push_back(new World());
 			
-			do{
+			for(auto &l : earthlnk){
+				if(!strcmp(file+4,l.name)){
+					l.ptr = earth.back();
+					break;
+				}
+			}
+			
+			while(wxml){
 				name = wxml->Name();
-				
-				if(!strcmp(name,"style")){
+
+				if(!strcmp(name,"link") && wxml->Attribute("left")){
+					for(auto &l : earthlnk){
+						if(!strcmp(l.name,wxml->Attribute("left"))){
+							earth.back()->toLeft = &l.ptr;
+							break;
+						}
+					}
+				}else if(!strcmp(name,"link") && wxml->Attribute("right")){
+					for(auto &l : earthlnk){
+						if(!strcmp(l.name,wxml->Attribute("right"))){
+							earth.back()->toRight = &l.ptr;
+							break;
+						}
+					}
+				}else if(!strcmp(name,"style")){
 					earth.back()->setBackground((WORLD_BG_TYPE)wxml->UnsignedAttribute("background"));
 					earth.back()->setBGM(wxml->Attribute("bgm"));
 				}else if(!strcmp(name,"generation")){
@@ -208,10 +244,15 @@ SKIP:
 						earth.back()->npc.back()->addAIFunc(commonAIFunc,false);
 						npcd.push_back((NPCDialog){earth.back()->npc.back(),0});
 					}
+				}else if(!strcmp(name,"structure")){
+					/*if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
+						earth.back()->addStructure((getRand() % earth.back()->getTheWidth() / 2.0f,100);
+					else
+						earth.back()->addNPC(wxml->FloatAttribute("x"),wxml->FloatAttribute("y"));*/
 				}
 				
 				wxml = wxml->NextSiblingElement();
-			}while(wxml);
+			}
 			
 			delete[] file;
 		}

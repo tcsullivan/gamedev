@@ -376,6 +376,7 @@ int main(/*int argc, char *argv[]*/){
 	    std::vector<char> programError( (logLength > 1) ? logLength : 1 );
 	    glGetProgramInfoLog(shaderProgram, logLength, NULL, &programError[0]);
 	    std::cout << &programError[0] << std::endl;
+			
 	#endif //SHADERS
 	
 	//glEnable(GL_DEPTH_TEST); //THIS DOESN'T WORK ON LINUX

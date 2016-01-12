@@ -157,8 +157,8 @@ public:
 	 * ui.cpp for world jumping.
 	 */
 
-	World *toLeft,
-		  *toRight,
+	World **toLeft,
+		  **toRight,
 		  *behind,
 		  *infront;
 	

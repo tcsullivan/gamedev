@@ -185,6 +185,8 @@ void World::load(std::ifstream *i){
 	}
 }
 
+void *NULLPTR = NULL;
+
 World::World(void){
 	
 	bgm = NULL;
@@ -195,9 +197,9 @@ World::World(void){
 	*/
 	
 	behind	=
-	infront	=
+	infront	= NULL;
 	toLeft	=
-	toRight	= NULL;
+	toRight	= (World **)&NULLPTR;
 	
 	/*
 	 *	Allocate and clear an array for star coordinates.
@@ -1151,19 +1153,19 @@ NPC *World::getAvailableNPC(void){
 }
 
 World *World::goWorldLeft(Player *p){
-	if(toLeft&&p->loc.x<x_start+HLINE*15){
-		p->loc.x=toLeft->x_start+getWidth(toLeft)-HLINE*10;
-		p->loc.y=toLeft->line[toLeft->lineCount-GEN_INC-1].y;
-		return toLeft;
+	if(toLeft[0]&&p->loc.x<x_start+HLINE*15){
+		p->loc.x=toLeft[0]->x_start+getWidth(toLeft[0])-HLINE*10;
+		p->loc.y=toLeft[0]->line[toLeft[0]->lineCount-GEN_INC-1].y;
+		return toLeft[0];
 	}
 	return this;
 }
 
 World *World::goWorldRight(Player *p){
-	if(toRight&&p->loc.x+p->width>x_start+getWidth(this)-HLINE*10){
-		p->loc.x=toRight->x_start+HLINE*10;
-		p->loc.y=toRight->line[0].y;
-		return toRight;
+	if(toRight[0]&&p->loc.x+p->width>x_start+getWidth(this)-HLINE*10){
+		p->loc.x=toRight[0]->x_start+HLINE*10;
+		p->loc.y=toRight[0]->line[0].y;
+		return toRight[0];
 	}
 	return this;
 }
