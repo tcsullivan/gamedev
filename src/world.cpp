@@ -185,8 +185,6 @@ void World::load(std::ifstream *i){
 	}
 }
 
-void *NULLPTR = NULL;
-
 World::World(void){
 	
 	bgm = NULL;
@@ -1057,21 +1055,28 @@ LOOOOP:
 		goto LOOOOP;
 	}
 }
-void World::addStructure(BUILD_SUB sub, float x,float y,World *inside){
+void World::addStructure(BUILD_SUB sub, float x,float y,World **inside){//,World **outside){
 	build.push_back(new Structures());
 	build.back()->spawn(sub,x,y,this);
 	build.back()->inWorld=this;
-	build.back()->inside = (World *)inside;
-	((IndoorWorld *)inside)->outside = this;
+	build.back()->inside = inside;
+	//std::cout<<"yo"<<std::endl;
 	
+		
+//	  void *       |void ** - *|void ** | void **
+	//((IndoorWorld *)inside[0])->outside = outside;
+	
+	
+	
+	//std::cout<<"yo"<<std::endl;
 	entity.push_back(build.back());
 }
 	
-void World::addVillage(int bCount, int npcMin, int npcMax,World *inside){
+void World::addVillage(int bCount, int npcMin, int npcMax,World **inside){
 	std::cout << npcMin << ", " << npcMax << std::endl;
 	//int xwasd;
 	for(int i = 0; i < bCount; i++){
-		addStructure(HOUSE,x_start + (i * 300),100,inside);
+		addStructure(HOUSE,x_start + (i * 300),100,inside);//,(World **)&NULLPTR);
 		/*std::cout<<"1\n";
 		HERE:
 		xwasd = (rand()%(int)x+1000*HLINE);
@@ -1197,24 +1202,25 @@ World *World::goInsideStructure(Player *p){
 	if(!thing.size()){
 		for(auto &b : build){
 			if(p->loc.x            > b->loc.x            &&
-			   p->loc.x + p->width < b->loc.x + b->width ){
+			   p->loc.x + p->width < b->loc.x + b->width &&
+			   *b->inside != this ){
 				thing.push_back(this);
 				ui::toggleBlackFast();
 				ui::waitForCover();
 				ui::toggleBlackFast();
-				return (World *)b->inside;
+				return (World *)*b->inside;
 			}
 		}
 	}else{
 		for(auto &b : ((World *)thing.back())->build){
-			if(b->inside == this){
-				World *tmp = (World *)thing.back();
+			if(*b->inside == this){
+				//World *tmp = (World *)thing.back();
 				p->loc.x = b->loc.x + (b->width / 2) - (p->width / 2);
 				thing.erase(thing.end()-1);
 				ui::toggleBlackFast();
 				ui::waitForCover();
 				ui::toggleBlackFast();
-				return tmp;
+				return ((IndoorWorld *)(*b->inside))->outside;
 			}
 		}
 	}

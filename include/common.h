@@ -203,4 +203,6 @@ unsigned int millis(void);
 int getdir(const char *dir, std::vector<std::string> &files);
 void strVectorSortAlpha(std::vector<std::string> *v);
 
+extern void *NULLPTR;
+
 #endif // COMMON_H

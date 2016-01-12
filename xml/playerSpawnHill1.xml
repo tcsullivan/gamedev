@@ -3,13 +3,13 @@
 	<style background="0" bgm="assets/music/embark.wav" />
 	<generation type="Random" width="800" />
 	
-	<link right="playerSpawnHill2.xml" />
+	<!--<link right="playerSpawnHill2.xml" />-->
 	
 	<mob type="1" />
 	
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="true" />
-	<structure type="6"/>
+	<structure type="5" inside="playerSpawnHill1_Building1.xml" />
 
 </World>
 

@@ -718,8 +718,9 @@ DONE:
 								//delete &tmp;
 								toggleBlackFast();
 							}
-						}else
+						}else{
 							currentWorld=currentWorld->goInsideStructure(player);
+						}
 						break;
 					case SDLK_i:
 						currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
@@ -823,7 +824,7 @@ DONE:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
 				case SDLK_g:
-					currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, currentWorld);
+					//currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, currentWorld);
 					break;
 				default:
 					break;

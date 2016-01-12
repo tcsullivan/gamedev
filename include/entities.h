@@ -198,15 +198,13 @@ public:
 
 typedef struct {
 	EntitySavePacket esp;
-	World *inWorld;
-	World *inside;
 	BUILD_SUB bsubtype;
 } __attribute__ ((packed)) StructuresSavePacket;
 
 class Structures : public Entity{
 public:
 	World *inWorld;
-	World *inside;
+	World **inside;
 	BUILD_SUB bsubtype;
 	
 	Structures();

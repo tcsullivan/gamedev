@@ -673,8 +673,6 @@ char *Structures::save(void){
 	esp = baseSave();
 	memcpy(&ssp->esp,esp,sizeof(EntitySavePacket));
 	delete[] esp;
-	ssp->inWorld = inWorld;
-	ssp->inside = inside;
 	ssp->bsubtype = bsubtype;
 	return (char *)ssp;
 }
@@ -682,8 +680,6 @@ char *Structures::save(void){
 void Structures::load(char *s){
 	StructuresSavePacket *ssp = (StructuresSavePacket *)s;
 	baseLoad((char *)&ssp->esp);
-	inWorld = ssp->inWorld;
-	inside = ssp->inside;
 	bsubtype = ssp->bsubtype;
 }
 
