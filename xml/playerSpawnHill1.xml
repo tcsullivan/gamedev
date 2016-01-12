@@ -9,6 +9,7 @@
 	
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="true" />
+	<structure type="6"/>
 
 </World>
 

@@ -1057,9 +1057,9 @@ LOOOOP:
 		goto LOOOOP;
 	}
 }
-void World::addStructure(_TYPE t,BUILD_SUB sub, float x,float y,World *inside){
+void World::addStructure(BUILD_SUB sub, float x,float y,World *inside){
 	build.push_back(new Structures());
-	build.back()->spawn(t,sub,x,y,this);
+	build.back()->spawn(sub,x,y,this);
 	build.back()->inWorld=this;
 	build.back()->inside = (World *)inside;
 	((IndoorWorld *)inside)->outside = this;
@@ -1067,11 +1067,11 @@ void World::addStructure(_TYPE t,BUILD_SUB sub, float x,float y,World *inside){
 	entity.push_back(build.back());
 }
 	
-void World::addVillage(int bCount, int npcMin, int npcMax,_TYPE t,World *inside){
+void World::addVillage(int bCount, int npcMin, int npcMax,World *inside){
 	std::cout << npcMin << ", " << npcMax << std::endl;
 	//int xwasd;
 	for(int i = 0; i < bCount; i++){
-		addStructure(t,HOUSE,x_start + (i * 300),100,inside);
+		addStructure(HOUSE,x_start + (i * 300),100,inside);
 		/*std::cout<<"1\n";
 		HERE:
 		xwasd = (rand()%(int)x+1000*HLINE);
