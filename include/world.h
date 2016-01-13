@@ -289,7 +289,7 @@ float worldGetYBase(World *w);
  
 class IndoorWorld : public World {
 public:
-	World *outside;
+	World **outside;
 	IndoorWorld(void);
 	~IndoorWorld(void);
 	

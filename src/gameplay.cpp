@@ -226,7 +226,7 @@ void initEverything(void){
 						if(!strcmp(l.name,wxml->Attribute("outside"))){
 							for(auto &b : l.ptr->build){
 								if(*b->inside == earth.back()){
-									((IndoorWorld *)*b->inside)->outside = l.ptr;
+									((IndoorWorld *)*b->inside)->outside = &l.ptr;
 								}
 							}
 							break;

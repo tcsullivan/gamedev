@@ -509,7 +509,7 @@ void mainLoop(void){
 			fps=1000/deltaTime;
 	}else if(!(debugDiv%10)){
 		debugY = player->loc.y;
-	}
+	}	
 
 	render();	// Call the render loop;
 }
