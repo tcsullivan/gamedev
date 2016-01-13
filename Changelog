@@ -515,3 +515,19 @@
 	- WIP xml'd world linking
 	- textures?
 	- music?
+
+1/12/2015:
+==========
+
+	- world linking xml'd
+	- xml'ing indoors
+	- shaderssss
+	- more music
+	
+1/13/2015:
+==========
+
+	- discovered how intel and nvidia gpus handle lighting
+	- xml'd buildings and their indoors
+	- xml'd settings for screen dimensions
+	- xml'd item giving through npc dialog

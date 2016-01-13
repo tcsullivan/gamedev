@@ -11,6 +11,9 @@
 #include <world.h>
 #include <ui.h>
 #include <entities.h>
+#include <tinyxml2.h>
+
+using namespace tinyxml2;
 
 /*
  *	TICKS_PER_SEC & MSEC_PER_TICK
@@ -196,12 +199,21 @@ extern bool fadeWhite;
 extern bool fadeFast;
 extern int  fadeIntensity;
 
+unsigned int SCREEN_WIDTH;
+unsigned int SCREEN_HEIGHT;
+
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
 int main(/*int argc, char *argv[]*/){
 	//*argv = (char *)argc;
+	
 	gameRunning=false;
+	
+	XMLDocument xml;
+	xml.LoadFile("config/settings.xml");
+	SCREEN_WIDTH = xml.FirstChildElement("screen")->UnsignedAttribute("width");
+	SCREEN_HEIGHT = xml.FirstChildElement("screen")->UnsignedAttribute("height");
 
 	/*!
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
@@ -529,7 +541,7 @@ void render(){
 	 *  see past the world render
 	*/
 	
-	if(currentWorld->getTheWidth() < SCREEN_WIDTH){
+	if(currentWorld->getTheWidth() < (int)SCREEN_WIDTH){
 		offset.x = 0;
 	}else if(!worldInside){
 		if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)

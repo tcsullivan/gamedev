@@ -75,6 +75,13 @@ int commonAIFunc(NPC *speaker){
 				if(!strcmp(exml->Name(),"text")){
 					if(exml->UnsignedAttribute("id") == idx){
 						
+						if((oxml = exml->FirstChildElement("give"))){
+							while(oxml){
+								player->inv->addItem((ITEM_ID)oxml->UnsignedAttribute("id"),oxml->UnsignedAttribute("count"));
+								oxml = oxml->NextSiblingElement();
+							}
+						}
+						
 						if((oxml = exml->FirstChildElement("option"))){
 							const char *op;
 							char *bp1 = new char[1],*bp2,*tmp;
@@ -281,12 +288,6 @@ SKIP:
 							}
 						}	
 					}
-					/*for(auto &l : earthlnk){
-						if(!strcmp(file+4,l.name)){
-							yoyo2 = &l.ptr;
-							break;
-						}
-					}*/
 					if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
 						earth.back()->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),getRand() % earth.back()->getTheWidth() / 2.0f,100,yoyo);//,yoyo2);
 					else

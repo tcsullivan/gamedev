@@ -78,13 +78,15 @@ typedef struct{
  * The desired width of the game window.
  */
 
-#define SCREEN_WIDTH	1280
+//#define SCREEN_WIDTH	1280
+extern unsigned int SCREEN_WIDTH;
 
 /**
  * The desired height of the game window.
  */
 
-#define SCREEN_HEIGHT	720
+//#define SCREEN_HEIGHT	720
+extern unsigned int SCREEN_HEIGHT;
 
 //#define FULLSCREEN
 

@@ -3,7 +3,7 @@
 	<style background="0" bgm="assets/music/embark.wav" />
 	<generation type="Random" width="800" />
 	
-	<!--<link right="playerSpawnHill2.xml" />-->
+	<link right="playerSpawnHill2.xml" />
 	
 	<mob type="1" />
 	
@@ -37,6 +37,7 @@
 	</text>
 	
 	<text id="1" >
-		****FREE WIRELESS KEYBOARD**JAM PACKED FULL OF GOODIES TOO MUCH TO MENTION** SUPPLIED WITH ANDROID TV BOX BLACK **CUSTOM BUILT XBMC APPLE TV AIRPLAY SYSTEM ** FULLY LOADED QUAD CORE**4K KITKAT ULTRA-HD XBMC ALL FREE ONE OFF PURCHASE FOR THE BOX FREE TV FREE MUSIC FREE MOVIES FREE SPORTS FREE GAMES FREE XXX NEXT GENERATION ANDROID TV BOX FASTEST ON THE MARKET TO DATE RELEASE 2015 FREE WORLDWIDE TV AT YOUR FINGER TIPS WIFI AND ETHERNET CONNECTION 5 Ghz WIFI
+		My name's Johnny.
+		<give id="0" count="1" />
 	</text>
 </Dialog>
