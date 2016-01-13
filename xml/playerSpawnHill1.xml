@@ -3,7 +3,7 @@
 	<style background="0" bgm="assets/music/embark.wav" />
 	<generation type="Random" width="800" />
 	
-	<!--<link right="playerSpawnHill2.xml" />-->
+	<link right="playerSpawnHill2.xml" />
 	
 	<mob type="1" />
 	
@@ -38,5 +38,7 @@
 	
 	<text id="1" >
 		My name's Johnny.
+		
+		<give id="0" count="1" />
 	</text>
 </Dialog>

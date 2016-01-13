@@ -78,13 +78,15 @@ typedef struct{
  * The desired width of the game window.
  */
 
-#define SCREEN_WIDTH	1280
+//#define SCREEN_WIDTH	1280
+extern unsigned int SCREEN_WIDTH;
 
 /**
  * The desired height of the game window.
  */
 
-#define SCREEN_HEIGHT	720
+//#define SCREEN_HEIGHT	720
+extern unsigned int SCREEN_HEIGHT;
 
 //#define FULLSCREEN
 
@@ -98,7 +100,7 @@ typedef struct{
  * 
  */
 
-#define HLINE 3
+#define HLINE 1
 
 /**
  * A 'wrapper' for libc's srand(), as we hope to eventually have our own random number
