@@ -962,7 +962,7 @@ void logic(){
 				break;
 			case FIRE_PIT:
 				for(int r = 0; r < (rand()%20)+10;r++){
-					currentWorld->addParticle(rand()%(int)(b->width/2) + b->loc.x+b->width/4, b->loc.y+3*HLINE, HLINE, HLINE, rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,((4+rand()%6)*.05), {1.0f,0.0f,0.0f}, 100);
+					currentWorld->addParticle(rand()%(int)(b->width/2) + b->loc.x+b->width/4, b->loc.y+3*HLINE, HLINE, HLINE, rand()%2 == 0?-(rand()%3)*.01:(rand()%3)*.01,((4+rand()%6)*.005), {1.0f,0.0f,0.0f}, 400);
 					currentWorld->particles.back()->gravity = false;
 					currentWorld->particles.back()->behind = true;
 				}
