@@ -82,11 +82,11 @@ public:
 	float velx;
 	float vely;
 	Color color;
-	int duration;
+	float duration;
 	bool canMove;
 	bool fountain;
 	bool gravity;
-	Particles(float x, float y, float w, float h, float vx, float vy, Color c, int d){
+	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d){
 		loc.x = (x);
 		loc.y = (y);
 		width = (w);
@@ -100,14 +100,16 @@ public:
 		fountain = false;
 		gravity = true;
 	}
-	~Particles(){}
+	~Particles(){
+
+	}
 	void draw(){
 		glColor3f(color.red,color.green,color.blue);
 		glRectf(loc.x,loc.y,loc.x+width,loc.y+height);
 	}
 	bool kill(float delta){
 		duration -= delta;
-		if(duration <= 0){
+		if(duration <= 0.0f){
 			return true;
 		}
 		else return false;
@@ -204,15 +206,13 @@ public:
 
 typedef struct {
 	EntitySavePacket esp;
-	World *inWorld;
-	World *inside;
 	BUILD_SUB bsubtype;
 } __attribute__ ((packed)) StructuresSavePacket;
 
 class Structures : public Entity{
 public:
 	World *inWorld;
-	World *inside;
+	World **inside;
 	BUILD_SUB bsubtype;
 	
 	Structures();

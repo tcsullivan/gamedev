@@ -718,8 +718,9 @@ DONE:
 								//delete &tmp;
 								toggleBlackFast();
 							}
-						}else
+						}else{
 							currentWorld=currentWorld->goInsideStructure(player);
+						}
 						break;
 					case SDLK_i:
 						currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
@@ -823,19 +824,19 @@ DONE:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
 				case SDLK_g:
-					currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, currentWorld);
+					//currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, currentWorld);
 					break;
 				case SDLK_h:
-					currentWorld->addStructure(TOWN_HALL, player->loc.x, player->loc.y, currentWorld);
+					//currentWorld->addStructure(TOWN_HALL, player->loc.x, player->loc.y, currentWorld);
 					break;
 				case SDLK_j:
-					currentWorld->addStructure(FOUNTAIN, player->loc.x, player->loc.y, currentWorld);
+					//currentWorld->addStructure(FOUNTAIN, player->loc.x, player->loc.y, currentWorld);
 					break;
 				case SDLK_v:
-					currentWorld->addVillage(player->loc.x, player->loc.y, 5, 10, 100, currentWorld);
+					//currentWorld->addVillage(player->loc.x, player->loc.y, 5, 10, 100, currentWorld);
 					break;
 				case SDLK_b:
-					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, currentWorld);
+					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, NULL);
 					break;
 				case SDLK_F12:
 					std::cout << "Took screenshot" << std::endl;

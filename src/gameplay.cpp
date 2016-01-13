@@ -153,8 +153,12 @@ void initEverything(void){
 	const char *name;
 	std::vector<std::string> xmlFiles;
 	static char *file;
+	
+	static bool Indoor = false;
 	bool dialog;
 	float spawnx;
+	World **yoyo;//,**yoyo2;
+	
 	XMLDocument xml;
 	XMLElement *wxml;
 	
@@ -181,9 +185,17 @@ void initEverything(void){
 			std::cout<<std::endl<<"Loading "<<file<<" ..."<<std::endl<<std::endl;
 			xml.LoadFile(file);
 
-			wxml = xml.FirstChildElement("World")->FirstChildElement();
+			wxml = xml.FirstChildElement("World");//->FirstChildElement();
 
-			earth.push_back(new World());
+			if(wxml){
+				wxml = wxml->FirstChildElement();
+				earth.push_back(new World());
+				Indoor = false;
+			}else if((wxml = xml.FirstChildElement("IndoorWorld"))){
+				wxml = wxml->FirstChildElement();
+				earth.push_back(new IndoorWorld());
+				Indoor = true;
+			}
 			
 			for(auto &l : earthlnk){
 				if(!strcmp(file+4,l.name)){
@@ -209,12 +221,28 @@ void initEverything(void){
 							break;
 						}
 					}
+				}else if(Indoor && !strcmp(name,"link") && wxml->Attribute("outside")){
+					for(auto &l : earthlnk){
+						if(!strcmp(l.name,wxml->Attribute("outside"))){
+							for(auto &b : l.ptr->build){
+								if(*b->inside == earth.back()){
+									((IndoorWorld *)*b->inside)->outside = l.ptr;
+								}
+							}
+							break;
+						}
+					}
 				}else if(!strcmp(name,"style")){
 					earth.back()->setBackground((WORLD_BG_TYPE)wxml->UnsignedAttribute("background"));
 					earth.back()->setBGM(wxml->Attribute("bgm"));
 				}else if(!strcmp(name,"generation")){
 					if(!strcmp(wxml->Attribute("type"),"Random")){
-						earth.back()->generate(wxml->UnsignedAttribute("width"));
+						if(Indoor)
+							((IndoorWorld *)earth.back())->generate(wxml->UnsignedAttribute("width"));
+						else
+							earth.back()->generate(wxml->UnsignedAttribute("width"));
+					}else if(Indoor){
+						abort();
 					}
 				}else if(!strcmp(name,"mob")){
 					if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
@@ -245,10 +273,24 @@ SKIP:
 						npcd.push_back((NPCDialog){earth.back()->npc.back(),0});
 					}
 				}else if(!strcmp(name,"structure")){
-					/*if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
-						earth.back()->addStructure((getRand() % earth.back()->getTheWidth() / 2.0f,100);
+					if(wxml->Attribute("inside")){
+						for(auto &l : earthlnk){
+							if(!strcmp(l.name,wxml->Attribute("inside"))){
+								yoyo = &l.ptr;
+								break;
+							}
+						}	
+					}
+					/*for(auto &l : earthlnk){
+						if(!strcmp(file+4,l.name)){
+							yoyo2 = &l.ptr;
+							break;
+						}
+					}*/
+					if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
+						earth.back()->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),getRand() % earth.back()->getTheWidth() / 2.0f,100,yoyo);//,yoyo2);
 					else
-						earth.back()->addNPC(wxml->FloatAttribute("x"),wxml->FloatAttribute("y"));*/
+						earth.back()->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),spawnx,wxml->FloatAttribute("y"),yoyo);//,yoyo2);
 				}
 				
 				wxml = wxml->NextSiblingElement();

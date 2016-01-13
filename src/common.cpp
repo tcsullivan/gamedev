@@ -10,6 +10,8 @@
 #include <vector>
 #endif // __WIN32__
 
+void *NULLPTR = NULL;
+
 #ifndef __WIN32__
 
 unsigned int millis(void){

@@ -341,43 +341,41 @@ int main(/*int argc, char *argv[]*/){
 	 *	Initializes our shaders so that the game has shadows.
 	*/
 	
-	#ifdef SHADERS
-		std::cout << "Initializing shaders!" << std::endl;
+	std::cout << "Initializing shaders!" << std::endl;
 
-	 	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+ 	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-		std::string shaderFileContents = readFile("test.frag");
-		const GLchar *shaderSource = shaderFileContents.c_str();
+	std::string shaderFileContents = readFile("test.frag");
+	const GLchar *shaderSource = shaderFileContents.c_str();
 
-		GLint bufferln = GL_FALSE;
-		int logLength;	
+	GLint bufferln = GL_FALSE;
+	int logLength;	
 
 
-		glShaderSource(fragShader, 1, &shaderSource, NULL);
-		glCompileShader(fragShader);
+	glShaderSource(fragShader, 1, &shaderSource, NULL);
+	glCompileShader(fragShader);
 
-		glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
-		glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
-		std::vector<char>fragShaderError((logLength > 1) ? logLength : 1);
-		glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
-		std::cout << &fragShaderError[0] << std::endl;
-		
-		if(bufferln == GL_FALSE){
-			std::cout << "Error compiling shader" << std::endl;
-		}
+	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
+	glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
+	std::vector<char>fragShaderError((logLength > 1) ? logLength : 1);
+	glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
+	std::cout << &fragShaderError[0] << std::endl;
+	
+	if(bufferln == GL_FALSE){
+		std::cout << "Error compiling shader" << std::endl;
+	}
 
-		shaderProgram = glCreateProgram();		
-		glAttachShader(shaderProgram, fragShader);
-		glLinkProgram(shaderProgram);
-		glValidateProgram(shaderProgram);
+	shaderProgram = glCreateProgram();		
+	glAttachShader(shaderProgram, fragShader);
+	glLinkProgram(shaderProgram);
+	glValidateProgram(shaderProgram);
 
-		glGetProgramiv(shaderProgram, GL_LINK_STATUS, &bufferln);
-	    glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
-	    std::vector<char> programError( (logLength > 1) ? logLength : 1 );
-	    glGetProgramInfoLog(shaderProgram, logLength, NULL, &programError[0]);
-	    std::cout << &programError[0] << std::endl;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &bufferln);
+    glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
+    std::vector<char> programError( (logLength > 1) ? logLength : 1 );
+    glGetProgramInfoLog(shaderProgram, logLength, NULL, &programError[0]);
+    std::cout << &programError[0] << std::endl;
 			
-	#endif //SHADERS
 	
 	//glEnable(GL_DEPTH_TEST); //THIS DOESN'T WORK ON LINUX
 	glEnable(GL_MULTISAMPLE);
