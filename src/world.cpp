@@ -231,8 +231,11 @@ void World::deleteEntities(void){
 		entity.pop_back();
 	}
 	while(!particles.empty()){
-		delete particles.back();
+		//delete particles.back();
 		particles.pop_back();
+	}
+	while(!light.empty()){
+		light.pop_back();
 	}
 }
 
@@ -426,14 +429,13 @@ void World::update(Player *p,unsigned int delta){
 	uint oh = 0;
 	for(auto &pa : particles){
 		if(pa->kill(deltaTime)){
-			delete pa;
+			//delete pa;
 			particles.erase(particles.begin()+oh);
 		}else if(pa->canMove){
 			pa->loc.y += pa->vely * deltaTime;
 			pa->loc.x += pa->velx * deltaTime;
-
 			for(auto &b : build){
-				if(b->bsubtype==FOUNTAIN){
+				if(b->bsubtype==FOUNTAIN && pa->fountain){
 					if(pa->loc.x >= b->loc.x && pa->loc.x <= b->loc.x+b->width){
 						if(pa->loc.y <= b->loc.y + b->height*.25){
 							delete pa;
@@ -442,8 +444,7 @@ void World::update(Player *p,unsigned int delta){
 					}
 				}
 			}
-		}
-		oh++;
+		}oh++;
 	}oh=0;
 	
 	if(ui::dialogImportant){
@@ -1048,7 +1049,7 @@ LOOOOP:
 			part->velx = 0;
 			part->canMove = false;
 		}else{
-			if(part->vely > -2)part->vely-=.003 * deltaTime;
+			if(!part->gravity && part->vely > -2)part->vely-=.003 * deltaTime;
 		}
 		what++;
 	}what=0;
@@ -1067,21 +1068,12 @@ void World::addStructure(BUILD_SUB sub, float x,float y,World *inside){
 	entity.push_back(build.back());
 }
 	
-void World::addVillage(int bCount, int npcMin, int npcMax,World *inside){
+void World::addVillage(int x, int y, int bCount, int npcMin, int npcMax,World *inside){
 	std::cout << npcMin << ", " << npcMax << std::endl;
-	//int xwasd;
-	for(int i = 0; i < bCount; i++){
-		addStructure(HOUSE,x_start + (i * 300),100,inside);
-		/*std::cout<<"1\n";
-		HERE:
-		xwasd = (rand()%(int)x+1000*HLINE);
-		for(auto &bu : build){
-			if(xwasd > bu->loc.x && xwasd < bu->loc.x+bu->width)goto HERE;
-		}
-		std::cout<<"2\n";
-		addStructure(t,HOUSE,xwasd,y,inside);
-		std::cout<<"3\n";*/
-	}
+	this->addStructure(TOWN_HALL, x,y, inside);
+	bCount--;
+	this->addStructure(LAMP_POST, x-3*HLINE,y, this);
+	this->addStructure(LAMP_POST, x+53*HLINE,y, this);
 }
 void World::addMob(int t,float x,float y){
 	mob.push_back(new Mob(t));

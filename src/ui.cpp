@@ -825,6 +825,25 @@ DONE:
 				case SDLK_g:
 					currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, currentWorld);
 					break;
+				case SDLK_h:
+					currentWorld->addStructure(TOWN_HALL, player->loc.x, player->loc.y, currentWorld);
+					break;
+				case SDLK_j:
+					currentWorld->addStructure(FOUNTAIN, player->loc.x, player->loc.y, currentWorld);
+					break;
+				case SDLK_v:
+					currentWorld->addVillage(player->loc.x, player->loc.y, 5, 10, 100, currentWorld);
+					break;
+				case SDLK_b:
+					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, currentWorld);
+					break;
+				case SDLK_F12:
+					std::cout << "Took screenshot" << std::endl;
+					// Make the BYTE array, factor of 3 because it's RBG.
+					static GLubyte* pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
+					glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+					break;
 				default:
 					break;
 				}

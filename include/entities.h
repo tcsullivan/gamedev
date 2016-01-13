@@ -43,7 +43,8 @@ enum BUILD_SUB{
 	HOUSE3 = 3,
 	HOUSE4 = 4,
 	FOUNTAIN = 5,
-	LAMP_POST = 6
+	LAMP_POST = 6,
+	FIRE_PIT = 7
 };
 
 typedef struct {
@@ -83,6 +84,8 @@ public:
 	Color color;
 	int duration;
 	bool canMove;
+	bool fountain;
+	bool gravity;
 	Particles(float x, float y, float w, float h, float vx, float vy, Color c, int d){
 		loc.x = (x);
 		loc.y = (y);
@@ -94,6 +97,8 @@ public:
 		color.green = (c.green);
 		color.blue = (c.blue);
 		duration = d;
+		fountain = false;
+		gravity = true;
 	}
 	~Particles(){}
 	void draw(){
@@ -102,8 +107,9 @@ public:
 	}
 	bool kill(float delta){
 		duration -= delta;
-		if(duration <= 0)
+		if(duration <= 0){
 			return true;
+		}
 		else return false;
 	}
 };

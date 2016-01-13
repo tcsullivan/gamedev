@@ -19,7 +19,8 @@ std::string sTexLoc[] = {	"assets/townhall.png",
 							"assets/house1.png", 
 							"assets/house1.png", 
 							"assets/fountain1.png",
-							"assets/lampPost1.png"};
+							"assets/lampPost1.png",
+							"assets/brazzier.png"};
 
 void getRandomName(Entity *e){
 	unsigned int tempNum,max=0;
@@ -453,9 +454,6 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y, World *oi){
 	alive = true;
 
 	bsubtype = sub;
-	int s = -1;
-	s = sub;
-
 	inWorld = oi;
 
 	/*
@@ -471,9 +469,15 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y, World *oi){
 							"assets/lampPost1.png")*/;
 
 	unsigned int tempN = (getRand() % 5 + 2);
-	switch(s){
+	switch(sub){
+		case TOWN_HALL:
+			tex = new Texturec(1, sTexLoc[sub].c_str());
+			width =  50 * HLINE;
+			height = 40 * HLINE;
+
+			break;
 		case HOUSE:
-			tex = new Texturec(1, sTexLoc[s].c_str());
+			tex = new Texturec(1, sTexLoc[sub].c_str());
 			width =  50 * HLINE;
 			height = 40 * HLINE;
 			for(unsigned int i = 0;i < tempN;i++){
@@ -484,19 +488,23 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y, World *oi){
 				*/
 			
 				oi->addNPC(loc.x + i * HLINE ,100);
-			
 			}
 			break;
 		case FOUNTAIN:
-			tex = new Texturec(1, sTexLoc[s].c_str());
+			tex = new Texturec(1, sTexLoc[sub].c_str());
 			width =  50 * HLINE;
 			height = 40 * HLINE;
 			break;
 		case LAMP_POST:
-			tex = new Texturec(1, sTexLoc[s].c_str());
+			tex = new Texturec(1, sTexLoc[sub].c_str());
 			width =  10 * HLINE;
 			height = 40 * HLINE;
 			oi->addLight({x+SCREEN_WIDTH/2,y+30*HLINE},{1.0f,1.0f,1.0f});
+			break;
+		case FIRE_PIT:
+			tex = new Texturec(1, sTexLoc[sub].c_str());
+			width =  12 * HLINE;
+			height = 12 * HLINE;
 			break;
 		default:
 			break;

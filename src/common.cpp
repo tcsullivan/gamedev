@@ -84,7 +84,6 @@ void strVectorSortAlpha(std::vector<std::string> *v){
 		change = false;
 		for(unsigned int i=0;i<v->size()-1;i++){
 			if(v[0][i] > v[0][i+1]){
-				std::cout<<"swap "<<v[0][i]<<" <-> "<<v[0][i+1]<<std::endl;
 				std::swap(v[0][i],v[0][i+1]);
 				change = true;
 			}
