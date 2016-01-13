@@ -505,6 +505,7 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y, World *oi){
 			tex = new Texturec(1, sTexLoc[sub].c_str());
 			width =  12 * HLINE;
 			height = 12 * HLINE;
+			oi->addLight({x+SCREEN_WIDTH/2,y},{1.0f,1.0f,1.0f});
 			break;
 		default:
 			break;

@@ -424,21 +424,21 @@ void World::update(Player *p,unsigned int delta){
 	   else if(e->vel.x > 0)e->left = false;
 		}
 	}
-	for(auto &pa : particles){
-		if(pa->kill(deltaTime)){
-			//delete pa;
-			//particles.erase(particles.begin()+oh);
-			std::cout << pa.duration;
-			std::cout << particles[oh].duration;
-		}else if(pa->canMove){
-			pa->loc.y += pa->vely * deltaTime;
-			pa->loc.x += pa->velx * deltaTime;
+
+	for(unsigned int i=0;i<particles.size();i++){
+		if(particles[i]->kill(deltaTime)){
+			delete particles[i];
+			particles.erase(particles.begin()+i);
+		}else if(particles[i]->canMove){
+			particles[i]->loc.y += particles[i]->vely * deltaTime;
+			particles[i]->loc.x += particles[i]->velx * deltaTime;
+
 			for(auto &b : build){
-				if(b->bsubtype==FOUNTAIN && pa->fountain){
-					if(pa->loc.x >= b->loc.x && pa->loc.x <= b->loc.x+b->width){
-						if(pa->loc.y <= b->loc.y + b->height*.25){
-							delete pa;
-							particles.erase(particles.begin()+oh);
+				if(b->bsubtype==FOUNTAIN){
+					if(particles[i]->loc.x >= b->loc.x && particles[i]->loc.x <= b->loc.x + b->width){
+						if(particles[i]->loc.y <= b->loc.y + b->height * .25){
+							delete particles[i];
+							particles.erase(particles.begin()+i);
 						}
 					}
 				}
@@ -657,7 +657,8 @@ LOOP2:
 	 *	Draw structures. We draw structures behind the dirt/grass so that the building's
 	 *	corners don't stick out.
 	*/
-	
+
+	for(auto &part : particles){if(part->behind)part->draw();}
 	for(auto &b : current->build){
 		b->draw();
 	}
@@ -781,7 +782,7 @@ LOOP2:
 	/*
 	 *	Draw non-structure entities.
 	*/
-	for(auto &part : particles){part->draw();}
+	for(auto &part : particles){if(!part->behind)part->draw();}
 	for(auto &n : current->npc){
 		n->loc.y+=(yoff-DRAW_Y_OFFSET);
 		n->draw();
@@ -1125,9 +1126,11 @@ void World::addParticle(float x, float y, float w, float h, float vx, float vy, 
 }
 
 void World::addLight(vec2 loc, Color color){
-	light.push_back(Light());
-	light.back().loc = loc;
-	light.back().color = color;
+	if(light.size() < 64){
+		light.push_back(Light());
+		light.back().loc = loc;
+		light.back().color = color;
+	}
 }
 
 /*void World::removeObject(Object i){
@@ -1216,13 +1219,13 @@ World *World::goInsideStructure(Player *p){
 	}else{
 		for(auto &b : ((World *)thing.back())->build){
 			if(*b->inside == this){
-				//World *tmp = (World *)thing.back();
+				World *tmp = (World *)thing.back();
 				p->loc.x = b->loc.x + (b->width / 2) - (p->width / 2);
 				thing.erase(thing.end()-1);
 				ui::toggleBlackFast();
 				ui::waitForCover();
 				ui::toggleBlackFast();
-				return ((IndoorWorld *)(*b->inside))->outside;
+				return tmp;
 			}
 		}
 	}

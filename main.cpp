@@ -509,7 +509,7 @@ void mainLoop(void){
 			fps=1000/deltaTime;
 	}else if(!(debugDiv%10)){
 		debugY = player->loc.y;
-	}
+	}	
 
 	render();	// Call the render loop;
 }
@@ -950,8 +950,9 @@ void logic(){
 				break;
 			case FIRE_PIT:
 				for(int r = 0; r < (rand()%20)+10;r++){
-					currentWorld->addParticle(rand()%(int)(b->width) + b->loc.x, b->loc.y, HLINE, HLINE, rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,((4+rand()%6)*.05), {1.0f,0.0f,0.0f}, 100);
+					currentWorld->addParticle(rand()%(int)(b->width/2) + b->loc.x+b->width/4, b->loc.y+3*HLINE, HLINE, HLINE, rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,((4+rand()%6)*.05), {1.0f,0.0f,0.0f}, 100);
 					currentWorld->particles.back()->gravity = false;
+					currentWorld->particles.back()->behind = true;
 				}
 				break;
 			default: break;

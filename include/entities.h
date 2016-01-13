@@ -86,6 +86,7 @@ public:
 	bool canMove;
 	bool fountain;
 	bool gravity;
+	bool behind;
 	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d){
 		loc.x = (x);
 		loc.y = (y);
@@ -99,6 +100,7 @@ public:
 		duration = d;
 		fountain = false;
 		gravity = true;
+		behind = false;
 	}
 	~Particles(){
 
