@@ -1360,6 +1360,7 @@ void IndoorWorld::draw(Player *p){
 	 *	Draw all entities.
 	*/
 	
+	for(auto &part : particles) part->draw();
 	for(auto &e : entity) e->draw();
 	p->draw();
 }
