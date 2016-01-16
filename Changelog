@@ -531,3 +531,19 @@
 	- xml'd buildings and their indoors
 	- xml'd settings for screen dimensions
 	- xml'd item giving through npc dialog
+
+1/14/2015:
+==========
+
+	- pondered on non-random generation
+	- fixed some drawing issues
+	- made spritesheet for easier solid-color-texture drawing
+	
+	- began to incorporate XML into the world class for dynamic world loading...
+
+1/16/2015:
+==========
+
+	- removed layers
+	- switched world linking from pointers to file names, rewrote all world-linking code
+	- worlds are now loaded dynamically

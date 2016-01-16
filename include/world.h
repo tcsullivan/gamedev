@@ -20,8 +20,16 @@
 
 #define GEN_INC 10
 
+/**
+ * Defines the lowest possible y value for a world line.
+ */
 
 #define GEN_MIN  80
+
+/**
+ * Defines the highest possible y value for a randomly generated world line.
+ */
+
 #define GEN_MAX  110
 
 
@@ -54,11 +62,15 @@ typedef enum {
 	RAIN		/**< Rain (not implemented :) )*/
 } WEATHER;
 
+/**
+ * The light structure, used to store light coordinates and color.
+ */
 
-typedef struct{
-	vec2 loc;
-	Color color;
-}Light;
+typedef struct {
+	vec2 loc;		/**< Light location */
+	Color color;	/**< Light color */
+} Light;
+
 /**
  * The line structure.
  * This structure is used to store the world's ground, stored in vertical
@@ -156,13 +168,13 @@ public:
 	 * These pointers keep track of worlds that are adjacent to this one. Used in
 	 * ui.cpp for world jumping.
 	 */
-
-	World **toLeft,
-		  **toRight,
-		  *behind,
-		  *infront;
 	
-	/*
+	char *toLeft,*toRight;
+	
+	char *setToLeft(const char *file);
+	char *setToRight(const char *file);
+	
+	/**
 	 * These vectors contain the NPCs, Mobs, Structures and Objects that are
 	 * loaded inside the world, with the Entity vector containing pointers to
 	 * the contents of all the others.
@@ -176,8 +188,8 @@ public:
 	std::vector<Particles	*>	particles;
 	std::vector<Light        >  light;
 	
-	void addStructure(BUILD_SUB sub,float x,float y,World **inside);//,World **outside);
-	void addVillage(int bCount, int npcMin, int npcMax,World **inside);
+	void addStructure(BUILD_SUB sub,float x,float y,const char *inside);
+	void addVillage(int bCount, int npcMin, int npcMax,const char *inside);
 	void addMob(int t,float x,float y);
 	void addMob(int t,float x,float y,void (*hey)(Mob *));
 	void addNPC(float x,float y);
@@ -222,18 +234,11 @@ public:
 	void bgmPlay(World *prev);
 	
 	/*
-	 *	Looks for the furthest back layer in this world and adds a new layer of width `width` behind it.
-	*/
-	
-	void addLayer(unsigned int width);
-	
-	/*
 	 *	Draw the world and entities based on the player's coordinates. Virtual for the same
 	 *	reason generate() is.
 	*/
 														
 	virtual void draw(Player *p);
-	
 	
 	/*
 	 *	Detect the player and any entities in the current world.
@@ -248,12 +253,7 @@ public:
 	*/
 	
 	World *goWorldLeft(Player *p);
-	World *goWorldRight(Player *p);					
-	World *goWorldBack(Player *p);
-	World *goWorldFront(Player *p);
-
-	bool isWorldLeft(void);
-	bool isWorldRight(void);
+	World *goWorldRight(Player *p);
 	
 	/*
 	 *	Called to enter/exit a structure.
@@ -272,9 +272,6 @@ public:
 	*/
 	
 	int getTheWidth(void);
-	
-	void save(std::ofstream *);
-	void load(std::ifstream *);
 };
 
 /*
@@ -289,7 +286,6 @@ float worldGetYBase(World *w);
  
 class IndoorWorld : public World {
 public:
-	World **outside;
 	IndoorWorld(void);
 	~IndoorWorld(void);
 	
@@ -308,5 +304,8 @@ public:
 };
 
 extern int worldShade;
+extern char *currentXML;
+
+World *loadWorldFromXML(const char *path);
 
 #endif // WORLD_H

@@ -669,15 +669,16 @@ DONE:
 						player->right = false;
 						left = true;
 						right = false;
-						if(currentWorld->isWorldLeft()){
-							memcpy(&oldpos,&player->loc,sizeof(vec2));
-							tmp = currentWorld->goWorldLeft(player);
-							if(currentWorld != tmp){
-								memcpy(&tmppos,&player->loc,sizeof(vec2));
-								memcpy(&player->loc,&oldpos,sizeof(vec2));
+						if(currentWorld->toLeft){
+							oldpos = player->loc;
+							if((tmp = currentWorld->goWorldLeft(player)) != currentWorld){
+								tmppos = player->loc;
+								player->loc = oldpos;
+								
 								toggleBlackFast();
 								waitForCover();
-								memcpy(&player->loc,&tmppos,sizeof(vec2));
+								player->loc = tmppos;
+								
 								currentWorld = tmp;
 								toggleBlackFast();
 							}
@@ -690,55 +691,52 @@ DONE:
 						player->left = false;
 						left = false;
 						right = true;
-						if(currentWorld->isWorldRight()){
-							memcpy(&oldpos,&player->loc,sizeof(vec2));
-							tmp = currentWorld->goWorldRight(player);
-							if(currentWorld != tmp){
-								memcpy(&tmppos,&player->loc,sizeof(vec2));
-								memcpy(&player->loc,&oldpos,sizeof(vec2));
+						if(currentWorld->toRight){
+							oldpos = player->loc;
+							if((tmp = currentWorld->goWorldRight(player)) != currentWorld){
+								tmppos = player->loc;
+								player->loc = oldpos;
+								
 								toggleBlackFast();
 								waitForCover();
-								memcpy(&player->loc,&tmppos,sizeof(vec2));
+								player->loc = tmppos;
+								
 								currentWorld = tmp;
 								toggleBlackFast();
 							}
 						}
 						break;
 					case SDLK_s:
-						/*if(player->ground == 2){
-							player->ground=false;
-							player->loc.y-=HLINE*1.5;
-						}*/
 						break;
 					case SDLK_w:
-						if(inBattle){
+						/*if(inBattle){
 							tmp = currentWorld;
 							currentWorld = ((Arena *)currentWorld)->exitArena(player);
 							if(tmp != currentWorld){
 								//delete &tmp;
 								toggleBlackFast();
 							}
-						}else{
+						}else{*/
 							currentWorld=currentWorld->goInsideStructure(player);
-						}
+						//}*/
 						break;
 					case SDLK_i:
-						currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
+						/*currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	
 						if(tmp!=currentWorld){
 							currentWorld->detect(player);
 							player->vel.y=.2;
 							player->loc.y+=HLINE*5;
 							player->ground=false;
-						}
+						}*/
 						break;
 					case SDLK_k:
-						currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
+						/*currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
 						if(tmp!=currentWorld){
 							currentWorld->behind->detect(player);
 							player->vel.y=.2;
 							player->loc.y+=HLINE*5;
 							player->ground=false;
-						}
+						}*/
 						break;
 					case SDLK_LSHIFT:
 						if(debug){
@@ -824,16 +822,16 @@ DONE:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
 				case SDLK_g:
-					//currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, currentWorld);
+					//currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, NULL);
 					break;
 				case SDLK_h:
-					//currentWorld->addStructure(TOWN_HALL, player->loc.x, player->loc.y, currentWorld);
+					//currentWorld->addStructure(TOWN_HALL, player->loc.x, player->loc.y, NULL);
 					break;
 				case SDLK_j:
-					//currentWorld->addStructure(FOUNTAIN, player->loc.x, player->loc.y, currentWorld);
+					//currentWorld->addStructure(FOUNTAIN, player->loc.x, player->loc.y, NULL);
 					break;
 				case SDLK_v:
-					//currentWorld->addVillage(player->loc.x, player->loc.y, 5, 10, 100, currentWorld);
+					//currentWorld->addVillage(player->loc.x, player->loc.y, 5, 10, 100, NULL);
 					break;
 				case SDLK_b:
 					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, NULL);

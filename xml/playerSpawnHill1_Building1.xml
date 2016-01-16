@@ -1,9 +1,7 @@
 <?xml version="1.0"?>
 <IndoorWorld>
 	<style background="1" bgm="assets/music/theme_jazz.wav" />
-	<generation type="Random" width="400" />
-
-	<link outside="playerSpawnHill1.xml" />
+	<generation type="Random" width="300" />
 
 </IndoorWorld>
 

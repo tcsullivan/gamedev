@@ -42,12 +42,13 @@ const float bgDraw[3][3]={
 };
 
 float worldGetYBase(World *w){
-	World *tmp = w;
+//	World *tmp = w;
 	float base = GEN_MIN;
-	while(tmp->infront){
+/*	while(tmp->infront){
 		tmp = tmp->infront;
 		base -= DRAW_Y_OFFSET;
-	}
+	}*/
+	if(!w)return 0;
 	return base;
 }
 
@@ -63,141 +64,13 @@ void World::setBackground(WORLD_BG_TYPE bgt){
 	}
 }
 
-void World::save(std::ofstream *o){
-	static unsigned int size2;
-	unsigned int size,i;
-	size_t bgms = strlen(bgm) + 1;
-	char *bufptr;
-
-	o->write((char *)&lineCount,            sizeof(unsigned int));
-	o->write((char *)line      ,lineCount * sizeof(struct line_t));
-	o->write("GG"              ,2         * sizeof(char));
-	o->write((char *)star      ,100       * sizeof(vec2));
-	o->write((char *)&bgType   ,            sizeof(WORLD_BG_TYPE));
-	o->write((char *)&bgms     ,            sizeof(size_t));
-	o->write(bgm               ,strlen(bgm)+1);
-	o->write("NO"              ,2         * sizeof(char));
-	size = npc.size();
-	o->write((char *)&size,sizeof(unsigned int));
-	for(i=0;i<size;i++){
-		bufptr = npc[i]->save(&size2);
-		o->write((char *)&size2,sizeof(unsigned int));
-		o->write(bufptr,size2);
-		delete[] bufptr;
-	}
-	size = build.size();
-	o->write((char *)&size,sizeof(unsigned int));
-	for(i=0;i<size;i++){
-		bufptr = build[i]->save();
-		o->write(bufptr,sizeof(StructuresSavePacket));
-		delete[] bufptr;
-	}
-	size = object.size();
-	o->write((char *)&size,sizeof(unsigned int));
-	for(i=0;i<size;i++){
-		bufptr = object[i]->save();
-		o->write(bufptr,sizeof(ObjectSavePacket));
-		delete[] bufptr;
-	}
-	size = mob.size();
-	o->write((char *)&size,sizeof(unsigned int));
-	for(i=0;i<size;i++){
-		bufptr = mob[i]->save();
-		o->write(bufptr,sizeof(MobSavePacket));
-		delete[] bufptr;
-	}
-}
-
-void World::load(std::ifstream *i){
-	unsigned int size,size2,j;
-	size_t bgms;
-	char sig[2],*buf;
-	
-	i->read((char *)&lineCount,sizeof(unsigned int));
-	
-	line = new struct line_t[lineCount];
-	i->read((char *)line,lineCount * sizeof(struct line_t));
-	
-	i->read(sig,2 * sizeof(char));
-	if(strncmp(sig,"GG",2)){
-		std::cout<<"world.dat corrupt: GG"<<std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	x_start = 0 - getWidth(this) / 2;
-	
-	i->read((char *)star,100 * sizeof(vec2));
-	i->read((char *)&bgType,sizeof(WORLD_BG_TYPE));
-	
-	i->read((char *)&bgms,sizeof(size_t));
-	bgm = new char[bgms];
-	i->read(bgm,bgms);
-	setBGM(bgm);
-
-	i->read(sig,2 * sizeof(char));
-	if(strncmp(sig,"NO",2)){
-		std::cout<<"world.dat corrupt: NO"<<std::endl;
-		exit(EXIT_FAILURE);
-	}
-	
-	i->read((char *)&size,sizeof(unsigned int));
-	for(j=0;j<size;j++){
-		i->read((char *)&size2,sizeof(unsigned int));
-		buf = new char[size2];
-		i->read(buf,size2);
-		npc.push_back(new NPC());
-		npc.back()->load(size2,buf);
-		entity.push_back(npc.back());	
-		delete[] buf;
-	}
-	
-	static StructuresSavePacket *ssp;
-	ssp = new StructuresSavePacket();
-	i->read((char *)&size,sizeof(unsigned int));
-	for(j=0;j<size;j++){
-		i->read((char *)ssp,sizeof(StructuresSavePacket));
-		build.push_back(new Structures());
-		build.back()->load((char *)ssp);
-		entity.push_back(build.back());
-	}
-	delete ssp;
-	
-	static ObjectSavePacket *osp;
-	osp = new ObjectSavePacket();
-	i->read((char *)&size,sizeof(unsigned int));
-	for(j=0;j<size;j++){
-		i->read((char *)osp,sizeof(ObjectSavePacket));
-		object.push_back(new Object());
-		object.back()->load((char *)osp);
-		object.back()->reloadTexture();
-		entity.push_back(object.back());
-	}
-	delete osp;
-	
-	static MobSavePacket *msp;
-	msp = new MobSavePacket();
-	i->read((char *)&size,sizeof(unsigned int));
-	for(j=0;j<size;j++){
-		i->read((char *)msp,sizeof(MobSavePacket));
-		mob.push_back(new Mob(0));
-		mob.back()->load((char *)msp);
-		entity.push_back(mob.back());
-	}
-}
-
 World::World(void){
 	
 	bgm = NULL;
 	bgmObj = NULL;
-	
-	/*
-	 *	Nullify pointers to other worlds.
-	*/
-	
-	behind	=
-	infront	= NULL;
-	toLeft	=
-	toRight	= (World **)&NULLPTR;
+		
+	toLeft =
+	toRight = NULL;	
 	
 	/*
 	 *	Allocate and clear an array for star coordinates.
@@ -238,8 +111,8 @@ void World::deleteEntities(void){
 }
 
 World::~World(void){
-	if(behind != NULL)
-		delete behind;
+	/*if(behind != NULL)
+		delete behind;*/
 	
 	if(bgmObj)
 		Mix_FreeMusic(bgmObj);
@@ -494,11 +367,11 @@ void World::draw(Player *p){
 	 *	Draw the background images in the appropriate order.
 	*/
 	
-LLLOOP:
-	if(current->infront){
+//LLLOOP:
+	/*if(current->infront){
 		current=current->infront;
 		goto LLLOOP;
-	}
+	}*/
 	cx_start = current->x_start * 1.5;
 	width = (-x_start) << 1;
 	
@@ -597,9 +470,9 @@ LLLOOP:
 	current=this;
 	shade=worldShade;
 	
-LOOP1:
+//LOOP1:
 
-	if(current->behind){
+	//if(current->behind){
 		
 		/*
 		 *	Add to the y offset and shade values (explained further below)
@@ -607,11 +480,11 @@ LOOP1:
 		 * 
 		*/
 		
-		yoff+=DRAW_Y_OFFSET;
+		/*yoff+=DRAW_Y_OFFSET;
 		shade+=DRAW_SHADE;
 		current=current->behind;
 		goto LOOP1;
-	}
+	}*/
 	
 	/*
 	 *	Here is where the actual world drawing begins. A goto is made to
@@ -619,7 +492,7 @@ LOOP1:
 	 *	draw the next closest layer.
 	*/
 	
-LOOP2:
+//LOOP2:
 
 	/*
 	 *	Calculate the offset in the line array that the player is (or would)
@@ -850,14 +723,14 @@ LOOP2:
 	 *	Draw the next closest world if it exists.
 	*/
 	
-	if(current->infront){
+	/*if(current->infront){
 		yoff  -= DRAW_Y_OFFSET;
 		shade -= DRAW_SHADE;
 		
 		current=current->infront;
 		goto LOOP2;
 		
-	}else{
+	}else{*/
 		
 		/*
 		 *	If finished, reset the yoff and shade variables for the next call.
@@ -865,7 +738,7 @@ LOOP2:
 		
 		yoff=DRAW_Y_OFFSET;
 		shade=0;
-	}
+	//}
 }
 
 void World::singleDetect(Entity *e){
@@ -1032,7 +905,7 @@ void World::detect(Player *p){
 	 *	Handle all remaining entities in this world. 
 	*/
 	
-LOOOOP:
+//LOOOOP:
 	static int what = 0;
 	for(auto &e : hey->entity)
 		hey->singleDetect(e);
@@ -1053,33 +926,30 @@ LOOOOP:
 		}
 		what++;
 	}what=0;
-	if(hey->infront){
+	/*if(hey->infront){
 		hey = hey->infront;
 		goto LOOOOP;
-	}
+	}*/
 }
-void World::addStructure(BUILD_SUB sub, float x,float y,World **inside){//,World **outside){
+void World::addStructure(BUILD_SUB sub, float x,float y,const char *inside){
 	build.push_back(new Structures());
-	build.back()->spawn(sub,x,y,this);
-	build.back()->inWorld=this;
-	build.back()->inside = inside;
-	//std::cout<<"yo"<<std::endl;
+	build.back()->spawn(sub,x,y);
 	
+	if(inside)
+		strcpy((build.back()->inside = new char[1 + strlen(inside)]),inside);
+	else
+		strcpy((build.back()->inside = new char[1]),"\0");
 		
-//	  void *       |void ** - *|void ** | void **
-	//((IndoorWorld *)inside[0])->outside = outside;
+	//strcpy((build.back()->outside = new char[1 + strlen((char *)(currentXML+4))]),(char *)(currentXML+4));
 	
-	
-	
-	//std::cout<<"yo"<<std::endl;
 	entity.push_back(build.back());
 }
 	
-void World::addVillage(int bCount, int npcMin, int npcMax,World **inside){
+void World::addVillage(int bCount, int npcMin, int npcMax,const char *inside){
 	std::cout << npcMin << ", " << npcMax << std::endl;
 	//int xwasd;
 	for(int i = 0; i < bCount; i++){
-		addStructure(HOUSE,x_start + (i * 300),100,inside);//,(World **)&NULLPTR);
+		addStructure(HOUSE,x_start + (i * 300),100,inside);
 		/*std::cout<<"1\n";
 		HERE:
 		xwasd = (rand()%(int)x+1000*HLINE);
@@ -1141,7 +1011,7 @@ void World::addLight(vec2 loc, Color color){
  *	The rest of these functions are explained well enough in world.h ;)
 */
 
-void World::addLayer(unsigned int width){
+/*void World::addLayer(unsigned int width){
 	if(behind){
 		behind->addLayer(width);
 		return;
@@ -1152,7 +1022,7 @@ void World::addLayer(unsigned int width){
 	behind->star=star;
 	behind->bgmObj=bgmObj;
 	behind->bgTex=bgTex;
-}
+}*/
 
 NPC *World::getAvailableNPC(void){
 	for(auto &n : npc){
@@ -1162,25 +1032,53 @@ NPC *World::getAvailableNPC(void){
 	return (NPC *)NULL;
 }
 
+char *World::setToLeft(const char *file){
+	if(toLeft)
+		delete[] toLeft;
+	if(!file)
+		return (toLeft = NULL);
+	
+	strcpy((toLeft = new char[strlen(file) + 1]),file);
+	return toLeft;
+}
+char *World::setToRight(const char *file){
+	if(toRight)
+		delete[] toRight;
+	if(!file)
+		return (toRight = NULL);
+	
+	strcpy((toRight = new char[strlen(file) + 1]),file);
+	return toRight;
+}
+
 World *World::goWorldLeft(Player *p){
-	if(toLeft[0]&&p->loc.x<x_start+HLINE*15){
-		p->loc.x=toLeft[0]->x_start+getWidth(toLeft[0])-HLINE*10;
-		p->loc.y=toLeft[0]->line[toLeft[0]->lineCount-GEN_INC-1].y;
-		return toLeft[0];
+	World *tmp;
+	if(toLeft && p->loc.x < x_start + HLINE * 15){
+		tmp = loadWorldFromXML(toLeft);
+		
+		p->loc.x = -tmp->x_start - HLINE * 10;
+		p->loc.y =  tmp->line[tmp->lineCount - 1].y;
+		
+		return tmp;
 	}
 	return this;
-}
+}		
 
 World *World::goWorldRight(Player *p){
-	if(toRight[0]&&p->loc.x+p->width>x_start+getWidth(this)-HLINE*10){
-		p->loc.x=toRight[0]->x_start+HLINE*10;
-		p->loc.y=toRight[0]->line[0].y;
-		return toRight[0];
+	World *tmp;
+	
+	if(toRight && p->loc.x + p->width > -x_start - HLINE * 15){
+		tmp = loadWorldFromXML(toRight);
+		
+		p->loc.x = tmp->x_start + HLINE * 10;
+		p->loc.y = tmp->line[0].y;
+		
+		return tmp;
 	}
 	return this;
 }
 
-World *World::goWorldBack(Player *p){
+/*World *World::goWorldBack(Player *p){
 	if(behind&&p->loc.x>(int)(0-getWidth(behind)/2)&&p->loc.x<getWidth(behind)/2){
 		return behind;
 	}
@@ -1192,42 +1090,45 @@ World *World::goWorldFront(Player *p){
 		return infront;
 	}
 	return this;
-}
+}*/
 
-bool World::isWorldLeft(void){
-	return toLeft ? true : false;
-}
-
-bool World::isWorldRight(void){
-	return toRight ? true : false;
-}
-
-std::vector<void *>thing;
+std::vector<char *>inside;
 World *World::goInsideStructure(Player *p){
-	if(!thing.size()){
+	World *tmp;
+	char *current;
+	if(inside.empty()){
 		for(auto &b : build){
 			if(p->loc.x            > b->loc.x            &&
-			   p->loc.x + p->width < b->loc.x + b->width &&
-			   *b->inside != this ){
-				thing.push_back(this);
+			   p->loc.x + p->width < b->loc.x + b->width ){
+				inside.push_back(new char[1 + strlen(currentXML)]);
+				strcpy(inside.back(),(char *)(currentXML+4));
+				
+				tmp = loadWorldFromXML(b->inside);
+				
 				ui::toggleBlackFast();
 				ui::waitForCover();
 				ui::toggleBlackFast();
-				return (World *)*b->inside;
-			}
-		}
-	}else{
-		for(auto &b : ((World *)thing.back())->build){
-			if(*b->inside == this){
-				World *tmp = (World *)thing.back();
-				p->loc.x = b->loc.x + (b->width / 2) - (p->width / 2);
-				thing.erase(thing.end()-1);
-				ui::toggleBlackFast();
-				ui::waitForCover();
-				ui::toggleBlackFast();
+				
 				return tmp;
 			}
 		}
+	}else{
+		strcpy((current = new char[strlen((char *)(currentXML + 4)) + 1]),(char *)(currentXML + 4));
+		tmp = loadWorldFromXML(inside.back());
+		for(auto &b : tmp->build){
+			if(!strcmp(current,b->inside)){
+				p->loc.x = b->loc.x + (b->width / 2);
+				delete[] inside.back();
+				inside.pop_back();
+
+				ui::toggleBlackFast();
+				ui::waitForCover();
+				ui::toggleBlackFast();
+				
+				return tmp;
+			}
+		}
+		delete[] current;
 	}
 	return this;
 }
@@ -1241,11 +1142,11 @@ void World::addHole(unsigned int start,unsigned int end){
 
 int World::getTheWidth(void){
 	World *hey=this;
-LOOP:
+/*LOOP:
 	if(hey->infront){
 		hey=hey->infront;
 		goto LOOP;
-	}
+	}*/
 	return -hey->x_start*2;
 }
 
@@ -1271,8 +1172,8 @@ void IndoorWorld::generate(unsigned int width){		// Generates a flat area of wid
 	for(i=0;i<lineCount;i++){			// Indoor areas don't have to be directly on the ground (i.e. 0)...
 		line[i].y=INDOOR_FLOOR_HEIGHT;
 	}
-	behind=infront=NULL;						// Set pointers to other worlds to NULL
-	toLeft=toRight=NULL;						// to avoid accidental calls to goWorld... functions
+	//behind=infront=NULL;						// Set pointers to other worlds to NULL
+	//toLeft=toRight=NULL;						// to avoid accidental calls to goWorld... functions
 	x_start=0-getWidth(this)/2+GEN_INC/2*HLINE;	// Calculate x_start (explained in world.h)
 }
 
@@ -1286,6 +1187,7 @@ void IndoorWorld::draw(Player *p){
 	*/
 	
 	glEnable(GL_TEXTURE_2D);
+	
 	GLfloat pointArray[light.size()][2];
 	for(uint w = 0; w < light.size(); w++){
 		pointArray[w][0] = light[w].loc.x - offset.x;
@@ -1396,4 +1298,104 @@ World *Arena::exitArena(Player *p){
 	}else{
 		return this;
 	}
+}
+
+#include <tinyxml2.h>
+using namespace tinyxml2;
+
+char *currentXML = NULL;
+
+extern int commonAIFunc(NPC *);
+
+World *loadWorldFromXML(const char *path){
+	XMLDocument xml;
+	XMLElement *wxml;
+	
+	World *tmp;
+	float spawnx;
+	bool dialog,Indoor;
+	
+	const char *ptr,*name;
+	
+	unsigned int size = 5 + strlen(path);
+	
+	if(currentXML)
+		delete[] currentXML;
+	
+	memset((currentXML = new char[size]),0,size);
+	strcpy(currentXML,"xml/");
+	strcat(currentXML,path);
+	
+	//std::cout<<currentXML<<std::endl;
+	
+	xml.LoadFile(currentXML);
+	wxml = xml.FirstChildElement("World");
+
+	if(wxml){
+		wxml = wxml->FirstChildElement();
+		Indoor = false;
+		tmp = new World();
+	}else if((wxml = xml.FirstChildElement("IndoorWorld"))){
+		wxml = wxml->FirstChildElement();
+		Indoor = true;
+		tmp = new IndoorWorld();
+	}
+	
+	while(wxml){
+		name = wxml->Name();
+
+		if(!strcmp(name,"link")){
+			if((ptr = wxml->Attribute("left")))
+				tmp->setToLeft(ptr);
+			else if((ptr = wxml->Attribute("right")))
+				tmp->setToRight(ptr);
+			else abort();
+		}else if(!strcmp(name,"style")){
+			tmp->setBackground((WORLD_BG_TYPE)wxml->UnsignedAttribute("background"));
+			tmp->setBGM(wxml->Attribute("bgm"));
+		}else if(!strcmp(name,"generation")){
+			if(!strcmp(wxml->Attribute("type"),"Random")){
+				if(Indoor)
+					((IndoorWorld *)tmp)->generate(wxml->UnsignedAttribute("width"));
+				else
+					tmp->generate(wxml->UnsignedAttribute("width"));
+			}else if(Indoor){
+				abort();
+			}
+		}else if(!strcmp(name,"mob")){
+			unsigned int type;
+			
+			type = wxml->UnsignedAttribute("type");
+			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
+				tmp->addMob(type,getRand() % tmp->getTheWidth() / 2,100);
+			else
+				tmp->addMob(type,spawnx,wxml->FloatAttribute("y"));
+		}else if(!strcmp(name,"npc")){
+			const char *npcname;
+			
+			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
+				tmp->addNPC(getRand() % tmp->getTheWidth() / 2.0f,100);
+			else
+				tmp->addNPC(spawnx,wxml->FloatAttribute("y"));
+			
+			if((npcname = wxml->Attribute("name"))){
+				delete[] tmp->npc.back()->name;
+				tmp->npc.back()->name = new char[strlen(npcname) + 1];
+				strcpy(tmp->npc.back()->name,npcname);
+			}
+			
+			dialog = false;
+			if(wxml->QueryBoolAttribute("hasDialog",&dialog) == XML_NO_ERROR && dialog)
+				tmp->npc.back()->addAIFunc(commonAIFunc,false);
+			
+		}else if(!strcmp(name,"structure")){
+			ptr = wxml->Attribute("inside");
+			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
+				tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),getRand() % tmp->getTheWidth() / 2.0f,100,ptr);
+			else
+				tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),spawnx,wxml->FloatAttribute("y"),ptr);
+		}
+		wxml = wxml->NextSiblingElement();
+	}
+	return tmp;
 }

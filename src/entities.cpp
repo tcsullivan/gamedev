@@ -111,6 +111,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	inv = new Inventory(NPC_INV_SIZE);
 	
 	randDialog = 6;//rand() % 12 - 1;
+	dialogIndex = 0;
 }
 NPC::~NPC(){
 	while(!aiFunc.empty()){
@@ -128,7 +129,6 @@ Structures::Structures(){ //sets the structure type
 	alive = false;
 	near  = false;
 	
-	inWorld = NULL;
 	name = NULL;
 	
 	inv = NULL;
@@ -446,7 +446,7 @@ void Object::interact(void){
  *							point to have non-normal traits so it could be invisible or invincible...
 */
 
-unsigned int Structures::spawn(BUILD_SUB sub, float x, float y, World *oi){
+unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 	loc.x = x;
 	loc.y = y;
 	type = STRUCTURET;
@@ -454,8 +454,7 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y, World *oi){
 	alive = true;
 
 	bsubtype = sub;
-	inWorld = oi;
-
+	
 	/*
 	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
 	 *	will spawn bewteen 2 and 7 villagers for the starting hut.
@@ -487,7 +486,7 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y, World *oi){
 				 *	with type NPC.
 				*/
 			
-				oi->addNPC(loc.x + i * HLINE ,100);
+				//oi->addNPC(loc.x + i * HLINE ,100);
 			}
 			break;
 		case FOUNTAIN:
@@ -499,13 +498,13 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y, World *oi){
 			tex = new Texturec(1, sTexLoc[sub].c_str());
 			width =  10 * HLINE;
 			height = 40 * HLINE;
-			oi->addLight({x+SCREEN_WIDTH/2,y+30*HLINE},{1.0f,1.0f,1.0f});
+			//oi->addLight({x+SCREEN_WIDTH/2,y+30*HLINE},{1.0f,1.0f,1.0f});
 			break;
 		case FIRE_PIT:
 			tex = new Texturec(1, sTexLoc[sub].c_str());
 			width =  12 * HLINE;
 			height = 12 * HLINE;
-			oi->addLight({x+SCREEN_WIDTH/2,y},{1.0f,1.0f,1.0f});
+			//oi->addLight({x+SCREEN_WIDTH/2,y},{1.0f,1.0f,1.0f});
 			break;
 		default:
 			break;
@@ -573,158 +572,4 @@ void Mob::wander(int timeRun){
 	default:
 		break;
 	}
-}
-
-char *Entity::baseSave(void){
-	static EntitySavePacket *esp;
-	esp = new EntitySavePacket();
-	if(inv)
-		memcpy(&esp->isp,inv->save(),sizeof(InventorySavePacket));
-	else
-		memset(&esp->isp,0,sizeof(InventorySavePacket));
-	esp->loc = loc;
-	esp->vel = vel;
-	esp->width = width;
-	esp->height = height;
-	esp->speed = speed;
-	esp->health = health;
-	esp->maxHealth = maxHealth;
-	esp->subtype = subtype;
-	esp->ticksToUse = ticksToUse;
-	esp->randDialog = randDialog;
-	esp->ground = ground;
-	esp->near = near;
-	esp->canMove = canMove;
-	esp->right = right;
-	esp->left = left;
-	esp->alive = alive;
-	esp->hit = hit;
-	esp->type = type;
-	esp->gender = gender;
-	if(name){
-		esp->nameSize = strlen(name) + 1;
-		strncpy(esp->name,name,32);
-	}else{
-		esp->nameSize = 0;
-		strcpy(esp->name,"\0");
-	}
-	return (char *)esp;
-}
-
-void Entity::baseLoad(char *e){
-	EntitySavePacket *esp = (EntitySavePacket *)e;
-	if(esp->nameSize > 1)
-		inv->load(&esp->isp);
-	loc = esp->loc;
-	vel = esp->vel;
-	width = esp->width;
-	height = esp->height;
-	speed = esp->speed;
-	health = esp->health;
-	maxHealth = esp->maxHealth;
-	subtype = esp->subtype;
-	ticksToUse = esp->ticksToUse;
-	randDialog = esp->randDialog;
-	ground = esp->ground;
-	near = esp->near;
-	canMove = esp->canMove;
-	right = esp->right;
-	left = esp->left;
-	alive = esp->alive;
-	hit = esp->hit;
-	type = esp->type;
-	gender = esp->gender;
-	if(esp->nameSize){
-		name = new char[esp->nameSize+1];
-		strcpy(name,esp->name);
-	}else{
-		name = new char[4];
-		strncpy(name,"\0\0\0\0",4);
-	}
-}
-
-char *NPC::save(unsigned int *size){
-	static char *buf,*esp;
-	buf = new char[(*size = sizeof(EntitySavePacket) /*+ aiFunc.size() * sizeof(int(*)(NPC *))*/)];
-	memcpy(buf,(esp = baseSave()),sizeof(EntitySavePacket));
-	delete[] esp;
-	//memcpy(buf+sizeof(EntitySavePacket),aiFunc.data(),aiFunc.size() * sizeof(int(*)(NPC *)));
-	return buf;
-}
-
-void NPC::load(unsigned int size,char *b){
-	//unsigned int size2,i;
-	//int (*func)(NPC *);
-	baseLoad(b);
-	size--;
-	/*if(size > sizeof(EntitySavePacket)){
-		size2 = (size - sizeof(EntitySavePacket)) / sizeof(int(*)(NPC *));
-		std::cout<<size<<" "<<sizeof(EntitySavePacket)<<" "<<sizeof(int(*)(NPC *))<<" = "<<size2<<std::endl;
-		aiFunc.reserve(size2);
-		if(aiFunc.max_size() < size2){
-			std::cout<<"what"<<std::endl;
-			abort();
-		}
-		for(i=0;i<size2;i++){
-			
-			aiFunc.push_back(
-		}
-		memcpy(aiFunc.data(),b+sizeof(EntitySavePacket),size2 * sizeof(int(*)(NPC *)));
-		//aiFunc.erase(aiFunc.begin());
-		std::cout<<aiFunc.size()<<std::endl;
-	}*/
-}
-
-char *Structures::save(void){
-	static StructuresSavePacket *ssp;
-	char *esp;
-	ssp = new StructuresSavePacket();
-	esp = baseSave();
-	memcpy(&ssp->esp,esp,sizeof(EntitySavePacket));
-	delete[] esp;
-	ssp->bsubtype = bsubtype;
-	return (char *)ssp;
-}
-
-void Structures::load(char *s){
-	StructuresSavePacket *ssp = (StructuresSavePacket *)s;
-	baseLoad((char *)&ssp->esp);
-	bsubtype = ssp->bsubtype;
-}
-
-char *Object::save(void){
-	static ObjectSavePacket *osp;
-	char *esp;
-	osp = new ObjectSavePacket();
-	memcpy(&osp->esp,(esp = baseSave()),sizeof(EntitySavePacket));
-	delete[] esp;
-	osp->identifier = identifier;
-	osp->questObject = questObject;
-	strncpy(osp->pickupDialog,pickupDialog,256);
-	return (char *)osp;
-}
-
-void Object::load(char *buf){
-	ObjectSavePacket *osp = (ObjectSavePacket *)buf;
-	baseLoad((char *)&osp->esp);
-	identifier = osp->identifier;
-	questObject = osp->questObject;
-	pickupDialog = new char[256];
-	strcpy(pickupDialog,osp->pickupDialog);
-}
-
-char *Mob::save(void){
-	static MobSavePacket *msp;
-	char *esp;
-	msp = new MobSavePacket();
-	memcpy(&msp->esp,(esp = baseSave()),sizeof(MobSavePacket));
-	delete[] esp;
-	msp->init_y = init_y;
-	return (char *)msp;
-}
-
-void Mob::load(char *m){
-	MobSavePacket *msp = (MobSavePacket *)m;
-	baseLoad((char *)&msp->esp);
-	init_y = msp->init_y;
 }
