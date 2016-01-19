@@ -10,6 +10,7 @@ struct texture_t *LoadedTexture[256];
 unsigned int LoadedTextureCounter = 0;
 
 namespace Texture{
+	Color pixels[8][4];
 	GLuint loadTexture(const char *fileName){
 		SDL_Surface *image;
 		GLuint object = 0;
@@ -62,6 +63,47 @@ namespace Texture{
 		LoadedTextureCounter++;
 		
 		return object;
+	}
+
+	void initColorIndex(){
+		colorIndex = loadTexture("assets/colorIndex.png");
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colorIndex);
+		GLubyte* buffer = new GLubyte[8*4*3];
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+		uint i = 0;
+		for(uint o = 0; o < 8; o++){
+			for(uint t = 0; t < 4; t++){
+				for (int r = 0; r < 3; r++){
+					pixels[o][t].red = buffer[i++];
+					pixels[o][t].green = buffer[i++];
+					pixels[o][t].blue = buffer[i++];
+					std::cout << pixels[o][t].red << "," << pixels[o][t].green << "," << pixels[o][t].blue << std::endl;
+				}
+				//std::cout << std::endl;
+			}
+		}
+
+	}
+
+	//sqrt((255-145)^2+(90-145)^2+(0-0)^2);
+	vec2 getIndex(Color c){
+		uint buf[2];
+		float buff = 999;
+		float shit = 999;
+		for(uint o = 0; o < 8; o++){
+			for(uint t = 0; t < 4; t++){
+				buff = sqrt(pow((c.red-pixels[o][t].red),2)+pow((c.green-pixels[o][t].green),2)+pow((c.blue-pixels[o][t].blue),2));
+				//std::cout << buff << std::endl;
+				if(buff < shit){
+					shit = buff;
+					buf[0] = o;
+					buf[1] = t;
+				}
+			}
+		}
+		std::cout << float(buf[1]) << ", " << float(buf[0]) << std::endl;
+		return {float(buf[1]),float(buf[0])};
 	}
 }
 

@@ -30,13 +30,21 @@ typedef unsigned int uint;
 #undef near
 #endif
 
-#include <Texture.h>
-
 /**
  * This flag lets the compiler know that we want to use shaders.
  */
 
 #define SHADERS
+
+template<typename N>
+N abso(N v){
+	if(v < 0.0){
+		return v * -1;
+	}else
+		return v;
+}
+
+extern GLuint colorIndex;
 
 /**
  * This structure contains a set of coordinates for ease of coding.
@@ -67,6 +75,8 @@ typedef struct{
 	float green;
 	float blue;
 } Color;
+
+#include <Texture.h>
 
 /**
  * Define the game's name (displayed in the window title).

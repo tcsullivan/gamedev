@@ -22,6 +22,12 @@ std::string sTexLoc[] = {	"assets/townhall.png",
 							"assets/lampPost1.png",
 							"assets/brazzier.png"};
 
+GLuint waterTex;
+
+void initEntity(){
+	waterTex = Texture::loadTexture("assets/waterTex.png");
+}
+
 void getRandomName(Entity *e){
 	unsigned int tempNum,max=0;
 	char *bufs;
