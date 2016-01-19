@@ -959,7 +959,15 @@ void logic(){
 		switch(b->bsubtype){
 			case FOUNTAIN:
 				for(int r = 0; r < (rand()%25)+10;r++){
-					currentWorld->addParticle(rand()%HLINE*3 + b->loc.x + b->width/2,b->loc.y + b->height, HLINE,HLINE, rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,((4+rand()%6)*.05), {0,0,255}, 2500);
+					currentWorld->addParticle(	rand()%HLINE*3 + b->loc.x + b->width/2,
+												b->loc.y + b->height, 
+												HLINE*1.25,
+												HLINE*1.25, 
+												rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,
+												((4+rand()%6)*.05), 
+												{0.0f,0.0f,255.0f}, 
+												2500);
+
 					currentWorld->particles.back()->fountain = true;
 				}
 				break;

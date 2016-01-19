@@ -835,6 +835,7 @@ DONE:
 					break;
 				case SDLK_b:
 					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, NULL);
+					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
 				case SDLK_F12:
 					std::cout << "Took screenshot" << std::endl;
