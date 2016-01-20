@@ -57,6 +57,8 @@ public:
 	float velx;
 	float vely;
 	Color color;
+	vec2 index;
+	//GLuint tex;
 	float duration;
 	bool canMove;
 	bool fountain;
@@ -74,13 +76,29 @@ public:
 		fountain = false;
 		gravity = true;
 		behind = false;
+		index = Texture::getIndex(c);
+		//tex = text;
 	}
 	~Particles(){
 
 	}
 	void draw(){
-		glColor3f(color.red,color.green,color.blue);
-		glRectf(loc.x,loc.y,loc.x+width,loc.y+height);
+		//glColor3f(color.red,color.green,color.blue);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colorIndex);
+		glUseProgram(shaderProgram);
+		glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
+		glEnable(GL_TEXTURE_2D);
+		glColor3ub(255,255,255);
+		glBegin(GL_QUADS);
+			glTexCoord2f(.25*index.x, .126*index.y);	glVertex2i(loc.x, loc.y);
+			glTexCoord2f(.26*index.x, .126*index.y);	glVertex2i(loc.x + width, loc.y);
+			glTexCoord2f(.26*index.x, .125*index.y);	glVertex2i(loc.x + width, loc.y + height);
+			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y + width);
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
+		glUseProgram(0);
+		//glRectf(loc.x,loc.y,loc.x+width,loc.y+height);
 	}
 	bool kill(float delta){
 		duration -= delta;
@@ -90,6 +108,8 @@ public:
 		else return false;
 	}
 };
+
+void initEntity();
 
 class Entity{
 public:

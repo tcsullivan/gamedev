@@ -30,6 +30,9 @@ namespace Texture{
 	GLuint loadTexture(const char *fileName);
 	
 	void freeTextures(void);
+	
+	void initColorIndex();
+	vec2 getIndex(Color c);
 }
 
 /**

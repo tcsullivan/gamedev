@@ -6,10 +6,17 @@ struct texture_t {
 	GLuint tex;
 } __attribute__ ((packed));
 
+struct index_t{
+	Color color;
+	int indexx;
+	int indexy;
+};
+
 struct texture_t *LoadedTexture[256];
 unsigned int LoadedTextureCounter = 0;
 
 namespace Texture{
+	Color pixels[8][4];
 	GLuint loadTexture(const char *fileName){
 		SDL_Surface *image;
 		GLuint object = 0;
@@ -63,12 +70,72 @@ namespace Texture{
 		
 		return object;
 	}
+	
 	void freeTextures(void){
 		for(unsigned int i=0;i<LoadedTextureCounter;i++){
 			glDeleteTextures(1,&LoadedTexture[i]->tex);
 			delete[] LoadedTexture[i]->name;
 			delete LoadedTexture[i];
 		}
+	}
+
+	void initColorIndex(){
+		colorIndex = loadTexture("assets/colorIndex.png");
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colorIndex);
+		GLubyte* buffer = new GLubyte[8*4*3];
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+		GLfloat* bufferf = new GLfloat[8*4*3];
+		for(uint iu = 0; iu < 8*4*3; iu++){
+			bufferf[iu] = float(buffer[iu]) / 255.0f;
+		}
+		uint i = 0;
+		for(uint y = 0; y < 8; y++){
+			for(uint x = 0; x < 4; x++){
+					if(i >= 8*4*3){
+						return;
+					}
+					pixels[y][x].red = buffer[i++];
+					pixels[y][x].green = buffer[i++];
+					pixels[y][x].blue = buffer[i++];
+					//std::cout << pixels[y][x].red << "," << pixels[y][x].green << "," << pixels[y][x].blue << std::endl;
+				//std::cout << std::endl;
+			}
+		}
+
+	}
+
+	//sqrt((255-145)^2+(90-145)^2+(0-0)^2);
+	std::vector<index_t>ind;
+	vec2 getIndex(Color c){
+		for(auto &i : ind){
+			if(c.red == i.color.red && c.green == i.color.green && c.blue == i.color.blue){
+				//std::cout << float(i.indexy) << "," << float(i.indexx) << std::endl;
+				return {float(i.indexx), float(i.indexy)};
+			}
+		}
+		uint buf[2];
+		float buff = 999;
+		float shit = 999;
+		for(uint y = 0; y < 8; y++){
+			for(uint x = 0; x < 4; x++){
+				//std::cout << y << "," << x << ":" << pixels[y][x].red << "," << pixels[y][x].green << "," << pixels[y][x].blue << std::endl;
+				buff = sqrt(pow((pixels[y][x].red-	c.red),  2)+
+							pow((pixels[y][x].green-c.green),2)+
+							pow((pixels[y][x].blue-	c.blue), 2));
+				//std::cout << buff << std::endl;
+				if(buff < shit){
+					shit = buff;
+					buf[0] = y;
+					buf[1] = x;
+				}
+				//
+				//std::cout << shit << std::endl;
+			}
+		}
+		ind.push_back({c, (int)buf[1], (int)buf[0]});
+		//std::cout << float(buf[1]) << ", " << float(buf[0]) << std::endl;
+		return {float(buf[1]),float(buf[0])};
 	}
 }
 

@@ -119,6 +119,7 @@ unsigned int deltaTime = 0;
 
 GLuint fragShader;
 GLuint shaderProgram;
+GLuint colorIndex;
 
 Mix_Chunk *crickets;
 
@@ -329,6 +330,8 @@ int main(/*int argc, char *argv[]*/){
 	
 	SDL_ShowCursor(SDL_DISABLE);
 
+	Texture::initColorIndex();
+	initEntity();
 	/*
 	 *	Initializes our shaders so that the game has shadows.
 	*/
@@ -942,13 +945,21 @@ void logic(){
 		switch(b->bsubtype){
 			case FOUNTAIN:
 				for(int r = 0; r < (rand()%25)+10;r++){
-					currentWorld->addParticle(rand()%HLINE*3 + b->loc.x + b->width/2,b->loc.y + b->height, HLINE,HLINE, rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,((4+rand()%6)*.05), {0,0,1.0f}, 2500);
+					currentWorld->addParticle(	rand()%HLINE*3 + b->loc.x + b->width/2,
+												b->loc.y + b->height, 
+												HLINE*1.25,
+												HLINE*1.25, 
+												rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,
+												((4+rand()%6)*.05), 
+												{0.0f,0.0f,255.0f}, 
+												2500);
+
 					currentWorld->particles.back()->fountain = true;
 				}
 				break;
 			case FIRE_PIT:
 				for(int r = 0; r < (rand()%20)+10;r++){
-					currentWorld->addParticle(rand()%(int)(b->width/2) + b->loc.x+b->width/4, b->loc.y+3*HLINE, HLINE, HLINE, rand()%2 == 0?-(rand()%3)*.01:(rand()%3)*.01,((4+rand()%6)*.005), {1.0f,0.0f,0.0f}, 400);
+					currentWorld->addParticle(rand()%(int)(b->width/2) + b->loc.x+b->width/4, b->loc.y+3*HLINE, HLINE, HLINE, rand()%2 == 0?-(rand()%3)*.01:(rand()%3)*.01,((4+rand()%6)*.005), {255,0,0}, 400);
 					currentWorld->particles.back()->gravity = false;
 					currentWorld->particles.back()->behind = true;
 				}
