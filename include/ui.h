@@ -41,6 +41,8 @@ namespace ui {
 
 	void initFonts(void);
 	
+	void destroyFonts(void);
+	
 	/*
 	 *	Sets the current font/font size.
 	*/

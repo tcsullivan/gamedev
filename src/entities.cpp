@@ -137,6 +137,8 @@ Structures::~Structures(){
 	delete tex;
 	if(name)
 		delete[] name;
+	if(inside)
+		delete[] inside;
 }
 
 Mob::Mob(int sub){

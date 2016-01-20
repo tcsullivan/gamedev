@@ -166,25 +166,6 @@ void logic(void);
 void render(void);
 void mainLoop(void);
 
-std::string readFile(const char *filePath) {
-    std::string content;
-    std::ifstream fileStream(filePath, std::ios::in);
-
-    if(!fileStream.is_open()) {
-        std::cerr << "Could not read file " << filePath << ". File does not exist." << std::endl;
-        return "";
-    }
-
-    std::string line = "";
-    while(!fileStream.eof()) {
-        std::getline(fileStream, line);
-        content.append(line + "\n");
-    }
-
-    fileStream.close();
-    return content;
-}
-
 /*
  *	This offset is used as the player offset in the world drawing so
  *	everything can be moved according to the player
@@ -253,7 +234,6 @@ int main(/*int argc, char *argv[]*/){
 	Mix_AllocateChannels(8);
 
 	// Run Mix_Quit when main returns
-	atexit(Mix_CloseAudio);
 	atexit(Mix_Quit);
 
 	/*
@@ -355,21 +335,21 @@ int main(/*int argc, char *argv[]*/){
 	
 	std::cout << "Initializing shaders!" << std::endl;
 
- 	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+	const GLchar *shaderSource = readFile("test.frag");
 
-	std::string shaderFileContents = readFile("test.frag");
-	const GLchar *shaderSource = shaderFileContents.c_str();
-
-	GLint bufferln = GL_FALSE;
-	int logLength;	
+	GLint bufferln = 0;
+	int logLength;
 
 
+	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragShader, 1, &shaderSource, NULL);
 	glCompileShader(fragShader);
 
 	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
 	glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
-	std::vector<char>fragShaderError((logLength > 1) ? logLength : 1);
+	
+	std::vector<char> fragShaderError ((logLength > 1) ? logLength : 1);
+	
 	glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
 	std::cout << &fragShaderError[0] << std::endl;
 	
@@ -388,6 +368,7 @@ int main(/*int argc, char *argv[]*/){
     glGetProgramInfoLog(shaderProgram, logLength, NULL, &programError[0]);
     std::cout << &programError[0] << std::endl;
 			
+	delete[] shaderSource;
 	
 	//glEnable(GL_DEPTH_TEST); //THIS DOESN'T WORK ON LINUX
 	glEnable(GL_MULTISAMPLE);
@@ -432,7 +413,7 @@ int main(/*int argc, char *argv[]*/){
 	****     GAMELOOP      ****
 	**************************/
 	
-	gameRunning=true;
+	gameRunning = true;
 	while(gameRunning){
 		mainLoop();
 	}
@@ -446,8 +427,13 @@ int main(/*int argc, char *argv[]*/){
     */
     
     Mix_HaltMusic();
+    Mix_CloseAudio();
     
     fb.close();
+    
+    destroyInventory();
+	ui::destroyFonts();
+    Texture::freeTextures();
     
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);

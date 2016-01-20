@@ -102,7 +102,7 @@ void World::deleteEntities(void){
 		entity.pop_back();
 	}
 	while(!particles.empty()){
-		//delete particles.back();
+		delete particles.back();
 		particles.pop_back();
 	}
 	while(!light.empty()){
@@ -121,6 +121,9 @@ World::~World(void){
 	delete bgTex;
 	delete[] star;
 	delete[] line;
+	
+	delete[] toLeft;
+	delete[] toRight;
 
 	deleteEntities();
 }
@@ -1150,6 +1153,51 @@ int World::getTheWidth(void){
 	return -hey->x_start*2;
 }
 
+void World::save(void){
+	static std::string data;
+	
+	std::string save = (std::string)currentXML + ".dat";
+	std::ofstream out (save,std::ios::out | std::ios::binary);
+	
+	std::cout<<"Saving to "<<save<<" ..."<<std::endl;
+	
+	//data.append(std::to_string(npc.size()) + "\n");
+	for(auto &n : npc)
+		data.append(std::to_string(n->dialogIndex) + "\n");
+		
+	data.append("dOnE\0");
+	out.write(data.c_str(),data.size());
+	
+	out.close();
+}
+
+#include <sstream>
+
+extern int commonAIFunc(NPC *);
+
+void World::load(void){
+	std::string save,data,line;
+	
+	save = (std::string)currentXML + ".dat";
+	data = readFile(save.c_str());
+	std::istringstream iss (data);
+	
+	for(auto &n : npc){
+		std::getline(iss,line);
+		if((n->dialogIndex = std::stoi(line)) != -1)
+			n->addAIFunc(commonAIFunc,false);
+	}
+	
+	while(std::getline(iss,line)){
+		if(line == "dOnE")
+			break;
+		
+		std::cout<<line<<std::endl;
+	}
+	
+	//abort();
+}
+
 IndoorWorld::IndoorWorld(void){
 }
 
@@ -1306,7 +1354,7 @@ using namespace tinyxml2;
 
 char *currentXML = NULL;
 
-extern int commonAIFunc(NPC *);
+extern World *currentWorld;
 
 World *loadWorldFromXML(const char *path){
 	XMLDocument xml;
@@ -1320,8 +1368,10 @@ World *loadWorldFromXML(const char *path){
 	
 	unsigned int size = 5 + strlen(path);
 	
-	if(currentXML)
+	if(currentXML){
+		currentWorld->save();
 		delete[] currentXML;
+	}
 	
 	memset((currentXML = new char[size]),0,size);
 	strcpy(currentXML,"xml/");
@@ -1388,6 +1438,7 @@ World *loadWorldFromXML(const char *path){
 			dialog = false;
 			if(wxml->QueryBoolAttribute("hasDialog",&dialog) == XML_NO_ERROR && dialog)
 				tmp->npc.back()->addAIFunc(commonAIFunc,false);
+			else tmp->npc.back()->dialogIndex = -1;
 			
 		}else if(!strcmp(name,"structure")){
 			ptr = wxml->Attribute("inside");
@@ -1398,5 +1449,12 @@ World *loadWorldFromXML(const char *path){
 		}
 		wxml = wxml->NextSiblingElement();
 	}
+	
+	std::ifstream dat (((std::string)currentXML + ".dat").c_str());
+	if(dat.good()){
+		dat.close();
+		tmp->load();
+	}
+	
 	return tmp;
 }

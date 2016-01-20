@@ -93,7 +93,24 @@ void strVectorSortAlpha(std::vector<std::string> *v){
 	}while(change);
 }
 
-
+const char *readFile(const char *path){
+	std::ifstream in (path,std::ios::in);
+	unsigned int size;
+	GLchar *buf;
+	
+	if(!in.is_open()){
+		std::cout<<"Error reading file "<<path<<"!"<<std::endl;
+		abort();
+	}
+	
+	in.seekg(0,in.end);
+	buf = new GLchar[(size = in.tellg())];
+	in.seekg(0,in.beg);
+	in.read(buf,size);
+	
+	in.close();
+	return buf;
+}
 
 /*int strCreateFunc(const char *equ){
 	static unsigned int size;

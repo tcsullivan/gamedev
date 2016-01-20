@@ -28,6 +28,8 @@ namespace Texture{
 	 */
 	
 	GLuint loadTexture(const char *fileName);
+	
+	void freeTextures(void);
 }
 
 /**

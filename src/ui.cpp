@@ -67,6 +67,8 @@ unsigned int fadeIntensity = 0;
 bool inBattle = false;
 Mix_Chunk *battleStart;
 
+Mix_Chunk *sanic;
+
 namespace ui {
 	
 	/*
@@ -119,7 +121,18 @@ namespace ui {
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
 		dialogClick = Mix_LoadWAV("assets/click.wav");
+		battleStart = Mix_LoadWAV("assets/sounds/frig.wav");
+		sanic = Mix_LoadWAV("assets/sounds/sanic.wav");
 		Mix_Volume(1,50);
+	}
+	
+	void destroyFonts(void){
+		FT_Done_Face(ftf);
+		FT_Done_FreeType(ftl);
+		
+		Mix_FreeChunk(dialogClick);
+		Mix_FreeChunk(battleStart);
+		Mix_FreeChunk(sanic);
 	}
 	
 	/*
@@ -740,8 +753,6 @@ DONE:
 						break;
 					case SDLK_LSHIFT:
 						if(debug){
-							Mix_Chunk *sanic;
-							sanic = Mix_LoadWAV("assets/sounds/sanic.wav");
 							Mix_PlayChannel(1,sanic,-1);
 							player->speed = 4.0f;
 						}else
@@ -884,7 +895,6 @@ DONE:
 		fadeEnable ^= true;
 		fadeWhite = true;
 		fadeFast = true;
-		battleStart = Mix_LoadWAV("assets/sounds/frig.wav");
 		Mix_PlayChannel(1,battleStart,0);
 	}
 }

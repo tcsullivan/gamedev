@@ -63,6 +63,13 @@ namespace Texture{
 		
 		return object;
 	}
+	void freeTextures(void){
+		for(unsigned int i=0;i<LoadedTextureCounter;i++){
+			glDeleteTextures(1,&LoadedTexture[i]->tex);
+			delete[] LoadedTexture[i]->name;
+			delete LoadedTexture[i];
+		}
+	}
 }
 
 Texturec::Texturec(uint amt, ...){
