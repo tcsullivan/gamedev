@@ -144,7 +144,7 @@ void World::generate(unsigned int width){	// Generates the world and sets all va
 	if(width <= 0)
 		abort();
 		
-	lineCount = width + GEN_INC;
+	lineCount = (width + GEN_INC) / HLINE;
 	
 	/*
 	 *	Allocate enough memory for the world to be stored.
@@ -375,8 +375,13 @@ void World::draw(Player *p){
 		current=current->infront;
 		goto LLLOOP;
 	}*/
-	cx_start = current->x_start * 1.5;
-	width = (-x_start) << 1;
+	
+	if(current->x_start < SCREEN_WIDTH * -.5 )
+		cx_start = current->x_start * 1.5;
+	else
+		cx_start = (int)(SCREEN_WIDTH * -.5);
+		
+	width = (-cx_start) << 1;
 	
 	glEnable(GL_TEXTURE_2D);
 
@@ -534,7 +539,10 @@ void World::draw(Player *p){
 	 *	corners don't stick out.
 	*/
 
-	for(auto &part : particles){if(part->behind)part->draw();}
+	for(auto &part : particles){
+		if(part->behind)
+		part->draw();
+	}
 	for(auto &b : current->build){
 		b->draw();
 	}
@@ -574,6 +582,12 @@ void World::draw(Player *p){
 	}
 
 	glBegin(GL_QUADS);
+	
+	glTexCoord2i(0 ,0);glVertex2i(v_offset - (SCREEN_WIDTH / 1.5),0);
+	glTexCoord2i(64,0);glVertex2i(v_offset + (SCREEN_WIDTH / 1.5),0);
+	glTexCoord2i(64,1);glVertex2i(v_offset + (SCREEN_WIDTH / 1.5),base);
+	glTexCoord2i(0 ,1);glVertex2i(v_offset - (SCREEN_WIDTH / 1.5),base);
+	
 	for(i=is;i<(unsigned)ie-GEN_INC;i++){
 		cline[i].y+=(yoff-DRAW_Y_OFFSET);															// Add the y offset
 		if(!cline[i].y){
@@ -796,15 +810,15 @@ void World::singleDetect(Entity *e){
 						}
 					}
 					break;
-				case PLAYERT:
-					std::cout<<"RIP "<<e->name<<"."<<std::endl;
-					exit(0);
+				default:
 					break;
 				}
 				entity.erase(entity.begin()+i);
 				return;
 			}
 		}
+		std::cout<<"RIP "<<e->name<<"."<<std::endl;
+		exit(0);
 	}
 	
 	/*
@@ -1196,27 +1210,34 @@ void World::load(void){
 	
 	for(auto &n : npc){
 		std::getline(iss,line);
+		if(line == "dOnE")return;
 		if((n->dialogIndex = std::stoi(line)) != 9999)
 			n->addAIFunc(commonAIFunc,false);
 		else n->clearAIFunc();
 		
 		std::getline(iss,line);
+		if(line == "dOnE")return;
 		n->loc.x = std::stoi(line);
 		std::getline(iss,line);
+		if(line == "dOnE")return;
 		n->loc.y = std::stoi(line);
 	}
 	
 	for(auto &b : build){
 		std::getline(iss,line);
+		if(line == "dOnE")return;
 		b->loc.x = std::stoi(line);
 		std::getline(iss,line);
+		if(line == "dOnE")return;
 		b->loc.y = std::stoi(line);
 	}
 	
 	for(auto &m : mob){
 		std::getline(iss,line);
+		if(line == "dOnE")return;
 		m->loc.x = std::stoi(line);
 		std::getline(iss,line);
+		if(line == "dOnE")return;
 		m->loc.y = std::stoi(line);
 	}
 	
@@ -1234,11 +1255,10 @@ IndoorWorld::IndoorWorld(void){
 }
 
 IndoorWorld::~IndoorWorld(void){
-	std::cout<<"A\n";
 	delete bgTex;
 	delete[] star;
 	delete[] line;
-
+	
 	deleteEntities();
 }
 
@@ -1350,12 +1370,13 @@ void IndoorWorld::draw(Player *p){
 
 extern bool inBattle;
 
-Arena::Arena(World *leave,Player *p){
-	generate(300);
+Arena::Arena(World *leave,Player *p,Mob *m){
+	generate(800);
 	addMob(MS_DOOR,100,100);
 	inBattle = true;
 	exit = leave;
 	pxy = p->loc;
+	mmob = m;
 	
 	star = new vec2[100];
 	memset(star,0,100 * sizeof(vec2));
@@ -1376,6 +1397,7 @@ World *Arena::exitArena(Player *p){
 		ui::toggleBlackFast();
 		ui::waitForCover();
 		p->loc = pxy;
+		mmob->alive = false;
 		return exit;
 	}else{
 		return this;
@@ -1454,6 +1476,10 @@ World *loadWorldFromXML(const char *path){
 				tmp->addMob(type,getRand() % tmp->getTheWidth() / 2,100);
 			else
 				tmp->addMob(type,spawnx,wxml->FloatAttribute("y"));
+				
+			if(wxml->QueryBoolAttribute("aggressive",&dialog) == XML_NO_ERROR)
+				tmp->mob.back()->aggressive = dialog;
+			
 		}else if(!strcmp(name,"npc")){
 			const char *npcname;
 			

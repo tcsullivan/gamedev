@@ -387,9 +387,6 @@
 	- continued to document header files through doxygen
 	- added border to dialogBox
 	- fix entity movement handling; npcs stop when you talk to them
-<<<<<<< HEAD
-	- added sword animation?
-=======
 	- added sword animation?
 
 12/9/2015,
@@ -411,7 +408,6 @@
 	- imrpoved BGM handling
 	- continued work on particles, made a fountain
 	- added sanic
-=======
 	
 	~ Broke 5000 lines of code/doc, now with some file Doxygen'd
 
@@ -424,7 +420,6 @@
 	- fixed fading bugs
 	- continued fixing general game bugs
 	- fixed structure spawn issues
-=======
 
 12/15/2015:
 ===========
@@ -508,7 +503,7 @@
 	- xml'd npc dialogs
 	- drafted page xml
 	
-1/11/2015:
+1/11/2016:
 ==========
 
 	- improved npc dialog xmling
@@ -516,7 +511,7 @@
 	- textures?
 	- music?
 
-1/12/2015:
+1/12/2016:
 ==========
 
 	- world linking xml'd
@@ -524,7 +519,7 @@
 	- shaderssss
 	- more music
 	
-1/13/2015:
+1/13/2016:
 ==========
 
 	- discovered how intel and nvidia gpus handle lighting
@@ -532,7 +527,7 @@
 	- xml'd settings for screen dimensions
 	- xml'd item giving through npc dialog
 
-1/14/2015:
+1/14/2016:
 ==========
 
 	- pondered on non-random generation
@@ -541,22 +536,33 @@
 	
 	- began to incorporate XML into the world class for dynamic world loading...
 
-1/16/2015:
+1/16/2016:
 ==========
 
 	- removed layers
 	- switched world linking from pointers to file names, rewrote all world-linking code
 	- worlds are now loaded dynamically
 
-1/19/2015:
+1/19/2016:
 ==========
 
 	- memory management
 	- began reconsidering save/load stuff
 
-1/20/2015:
+1/20/2016:
 ==========
 
 	- can save npc dialog positions
 	- worked on player sprite redesign
 	- greatly simplified/documented gameplay.cpp
+
+1/21/2016:
+==========
+
+	- can save most mob positions
+	- fixed world widths, background drawing
+	- added aggressive flag to mobs, player enters arena on impact
+	- added world load fault handlers
+	- worked on player sprite redesign
+
+	~ A little over 5200 lines of code

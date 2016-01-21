@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <World>
 	<style background="0" bgm="assets/music/embark.wav" />
-	<generation type="Random" width="800" />
+	<generation type="Random" width="1600" />
 	
 	<link right="playerSpawnHill2.xml" />
 	
-	<mob type="1" />
+	<mob type="1" aggressive="true" />
 	
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="true" />

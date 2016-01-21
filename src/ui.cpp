@@ -722,19 +722,17 @@ DONE:
 					case SDLK_s:
 						break;
 					case SDLK_w:
-						/*if(inBattle){
+						if(inBattle){
 							tmp = currentWorld;
 							currentWorld = ((Arena *)currentWorld)->exitArena(player);
 							if(tmp != currentWorld){
 								//delete &tmp;
 								toggleBlackFast();
 							}
-						}else{*/
-							if((tmp = currentWorld->goInsideStructure(player)) != currentWorld){
-								delete currentWorld;
+						}else{
+							if((tmp = currentWorld->goInsideStructure(player)) != currentWorld)
 								currentWorld = tmp;
-							}
-						//}*/
+						}
 						break;
 					case SDLK_i:
 						/*currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible	

@@ -208,6 +208,7 @@ public:
 
 class Mob : public Entity{
 public:
+	bool aggressive;
 	double init_y;
 	void (*hey)(Mob *callee);
 	

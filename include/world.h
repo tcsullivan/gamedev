@@ -300,8 +300,9 @@ class Arena : public World {
 private:
 	vec2	 pxy;
 	World	*exit;
+	Mob 	*mmob;
 public:
-	Arena(World *leave,Player *p);
+	Arena(World *leave,Player *p,Mob *m);
 	~Arena(void);
 	World *exitArena(Player *p);
 };
