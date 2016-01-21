@@ -29,6 +29,10 @@ void initInventorySprites(void){
 	Mix_Volume(2,100);
 }
 
+void destroyInventory(void){
+	Mix_FreeChunk(swordSwing);
+}
+
 char *getItemTexturePath(ITEM_ID id){
 	return item[id].textureLoc;
 }

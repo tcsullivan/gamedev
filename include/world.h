@@ -272,6 +272,9 @@ public:
 	*/
 	
 	int getTheWidth(void);
+	
+	void save(void);
+	void load(void);
 };
 
 /*

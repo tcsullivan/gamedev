@@ -106,8 +106,9 @@ public:
 	}
 };
 
-void itemUse(void *p);
 void initInventorySprites(void);
+void destroyInventory(void);
+
 char *getItemTexturePath(ITEM_ID id);
 int getItemWidth(ITEM_ID);
 int getItemHeight(ITEM_ID);

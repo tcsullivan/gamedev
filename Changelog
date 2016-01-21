@@ -547,3 +547,16 @@
 	- removed layers
 	- switched world linking from pointers to file names, rewrote all world-linking code
 	- worlds are now loaded dynamically
+
+1/19/2015:
+==========
+
+	- memory management
+	- began reconsidering save/load stuff
+
+1/20/2015:
+==========
+
+	- can save npc dialog positions
+	- worked on player sprite redesign
+	- greatly simplified/documented gameplay.cpp

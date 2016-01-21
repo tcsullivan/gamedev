@@ -70,6 +70,14 @@ namespace Texture{
 		
 		return object;
 	}
+	
+	void freeTextures(void){
+		for(unsigned int i=0;i<LoadedTextureCounter;i++){
+			glDeleteTextures(1,&LoadedTexture[i]->tex);
+			delete[] LoadedTexture[i]->name;
+			delete LoadedTexture[i];
+		}
+	}
 
 	void initColorIndex(){
 		colorIndex = loadTexture("assets/colorIndex.png");
@@ -90,7 +98,7 @@ namespace Texture{
 					pixels[y][x].red = buffer[i++];
 					pixels[y][x].green = buffer[i++];
 					pixels[y][x].blue = buffer[i++];
-					std::cout << pixels[y][x].red << "," << pixels[y][x].green << "," << pixels[y][x].blue << std::endl;
+					//std::cout << pixels[y][x].red << "," << pixels[y][x].green << "," << pixels[y][x].blue << std::endl;
 				//std::cout << std::endl;
 			}
 		}
@@ -111,7 +119,7 @@ namespace Texture{
 		float shit = 999;
 		for(uint y = 0; y < 8; y++){
 			for(uint x = 0; x < 4; x++){
-				std::cout << y << "," << x << ":" << pixels[y][x].red << "," << pixels[y][x].green << "," << pixels[y][x].blue << std::endl;
+				//std::cout << y << "," << x << ":" << pixels[y][x].red << "," << pixels[y][x].green << "," << pixels[y][x].blue << std::endl;
 				buff = sqrt(pow((pixels[y][x].red-	c.red),  2)+
 							pow((pixels[y][x].green-c.green),2)+
 							pow((pixels[y][x].blue-	c.blue), 2));
@@ -126,7 +134,7 @@ namespace Texture{
 			}
 		}
 		ind.push_back({c, (int)buf[1], (int)buf[0]});
-		std::cout << float(buf[1]) << ", " << float(buf[0]) << std::endl;
+		//std::cout << float(buf[1]) << ", " << float(buf[0]) << std::endl;
 		return {float(buf[1]),float(buf[0])};
 	}
 }

@@ -65,15 +65,13 @@ public:
 	bool gravity;
 	bool behind;
 	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d){
-		loc.x = (x);
-		loc.y = (y);
-		width = (w);
-		height = (h);
+		loc.x = x;
+		loc.y = y;
+		width = w;
+		height = h;
 		velx = vx;
 		vely = vy;
-		color.red = (c.red);
-		color.green = (c.green);
-		color.blue = (c.blue);
+		color = c;
 		duration = d;
 		fountain = false;
 		gravity = true;
@@ -186,7 +184,7 @@ public:
 class NPC : public Entity{
 public:
 	std::vector<int (*)(NPC *)>aiFunc;
-	unsigned int dialogIndex;
+	int dialogIndex;
 	
 	NPC();
 	~NPC();
@@ -200,7 +198,6 @@ class Structures : public Entity{
 public:
 	BUILD_SUB bsubtype;
 	char *inside;
-	//char *outside;
 	
 	Structures();
 	~Structures();
