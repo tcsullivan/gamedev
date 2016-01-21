@@ -730,7 +730,10 @@ DONE:
 								toggleBlackFast();
 							}
 						}else{*/
-							currentWorld=currentWorld->goInsideStructure(player);
+							if((tmp = currentWorld->goInsideStructure(player)) != currentWorld){
+								delete currentWorld;
+								currentWorld = tmp;
+							}
 						//}*/
 						break;
 					case SDLK_i:

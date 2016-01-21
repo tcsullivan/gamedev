@@ -110,7 +110,7 @@ extern bool worldInside;
  *	referenced somewhere.
 */
 
-unsigned int tickCount = 0;
+unsigned int tickCount = DAY_CYCLE;
 unsigned int deltaTime = 0;
 
 /*
@@ -340,7 +340,7 @@ int main(/*int argc, char *argv[]*/){
 
 	const GLchar *shaderSource = readFile("test.frag");
 
-	GLint bufferln = 0;
+	GLint bufferln = GL_FALSE;
 	int logLength;
 
 

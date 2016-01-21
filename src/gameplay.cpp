@@ -145,14 +145,17 @@ int commonAIFunc(NPC *speaker){
 					speaker->dialogIndex = idx;
 					
 					if(exml->QueryBoolAttribute("stop",&stop) == XML_NO_ERROR && stop){
-						speaker->dialogIndex = -1;
+						speaker->dialogIndex = 9999;
 						return 0;
 					}else if(exml->QueryBoolAttribute("pause",&stop) == XML_NO_ERROR && stop){
-						speaker->dialogIndex = -1;
+						speaker->dialogIndex = 9999;
 						return 1;
 					}else return commonAIFunc(speaker);
+				}else{
+					speaker->dialogIndex = 9999;
+					return 0;
 				}
-				return 0;
+				return 1;
 			}
 		}
 		

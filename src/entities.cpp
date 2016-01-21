@@ -393,6 +393,10 @@ void NPC::addAIFunc(int (*func)(NPC *),bool preload){
 	else aiFunc.push_back(func);
 }
 
+void NPC::clearAIFunc(void){
+	aiFunc.clear();
+}
+
 const char *randomDialog[] = {
 	"What a beautiful day it is.",
 	"Have you ever went fast? I have.",

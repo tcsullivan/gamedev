@@ -190,6 +190,7 @@ public:
 	~NPC();
 	
 	void addAIFunc(int (*func)(NPC *),bool preload);
+	void clearAIFunc(void);
 	void interact();
 	void wander(int);
 };
