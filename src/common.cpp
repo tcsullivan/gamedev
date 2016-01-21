@@ -104,9 +104,10 @@ const char *readFile(const char *path){
 	}
 	
 	in.seekg(0,in.end);
-	buf = new GLchar[(size = in.tellg())];
+	buf = new GLchar[(size = in.tellg()) + 1];
 	in.seekg(0,in.beg);
 	in.read(buf,size);
+	buf[size] = '\0';
 	
 	in.close();
 	return buf;
