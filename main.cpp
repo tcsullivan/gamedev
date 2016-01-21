@@ -173,7 +173,7 @@ std::string readFile(const char *filePath) {
 
     if(!fileStream.is_open()) {
         std::cerr << "Could not read file " << filePath << ". File does not exist." << std::endl;
-        return "";
+        return "cancer";
     }
 
     std::string line = "";
@@ -965,7 +965,7 @@ void logic(){
 												HLINE*1.25, 
 												rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,
 												((4+rand()%6)*.05), 
-												{0.0f,0.0f,255.0f}, 
+												{0,0,255}, 
 												2500);
 
 					currentWorld->particles.back()->fountain = true;

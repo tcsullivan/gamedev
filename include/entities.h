@@ -93,9 +93,9 @@ public:
 		glEnable(GL_TEXTURE_2D);
 		glColor3ub(255,255,255);
 		glBegin(GL_QUADS);
-			glTexCoord2f(.25*index.x, .126*index.y);	glVertex2i(loc.x, loc.y);
-			glTexCoord2f(.26*index.x, .126*index.y);	glVertex2i(loc.x + width, loc.y);
-			glTexCoord2f(.26*index.x, .125*index.y);	glVertex2i(loc.x + width, loc.y + height);
+			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y);
+			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x + width, loc.y);
+			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x + width, loc.y + height);
 			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y + width);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);

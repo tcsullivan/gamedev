@@ -110,7 +110,7 @@ extern unsigned int SCREEN_HEIGHT;
  * 
  */
 
-#define HLINE 3
+#define HLINE 4
 
 /**
  * A 'wrapper' for libc's srand(), as we hope to eventually have our own random number
