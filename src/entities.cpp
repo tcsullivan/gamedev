@@ -149,6 +149,7 @@ Structures::~Structures(){
 
 Mob::Mob(int sub){
 	type = MOBT;
+	aggressive = false;
 	
 	maxHealth = health = 50;
 	
@@ -533,6 +534,23 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 void Mob::wander(int timeRun){
 	static int direction;	//variable to decide what direction the entity moves
 	static unsigned int heya=0,hi=0;
+	static bool YAYA = false;
+	
+	if(aggressive && !YAYA &&
+	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
+	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height ){
+		Arena *a = new Arena(currentWorld,player,this);
+		a->setBackground(BG_FOREST);
+		a->setBGM("assets/music/embark.wav");
+		ui::toggleWhiteFast();
+		YAYA = true;
+		ui::waitForCover();
+		YAYA = false;
+		currentWorld = a;
+		ui::toggleWhiteFast();
+		//player->health-=5;
+	}
+	
 	switch(subtype){
 	case MS_RABBIT:
 		if(!ticksToUse){
