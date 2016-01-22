@@ -1482,11 +1482,12 @@ World *loadWorldFromXML(const char *path){
 			
 		}else if(!strcmp(name,"npc")){
 			const char *npcname;
-			
+
 			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
 				tmp->addNPC(getRand() % tmp->getTheWidth() / 2.0f,100);
 			else
 				tmp->addNPC(spawnx,wxml->FloatAttribute("y"));
+			
 			
 			if((npcname = wxml->Attribute("name"))){
 				delete[] tmp->npc.back()->name;

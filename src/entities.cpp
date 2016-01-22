@@ -32,18 +32,26 @@ void getRandomName(Entity *e){
 	unsigned int tempNum,max=0;
 	char *bufs;
 	
-	names->seekg(0,names->beg);
+	std::ifstream names ("assets/names_en-us",std::ios::in);
+	
+	names.seekg(0,names.beg);
 	
 	bufs = new char[32];
 	
-	for(;!names->eof();max++)
-		names->getline(bufs,32);
+	std::cout<<"1\n";
+	
+	for(;!names.eof();max++)
+		names.getline(bufs,32);
+	
+	std::cout<<"2\n";
 	
 	tempNum = rand() % max;
-	names->seekg(0,names->beg);
+	names.seekg(0,names.beg);
 	
 	for(unsigned int i=0;i<tempNum;i++)
-		names->getline(bufs,32);
+		names.getline(bufs,32);
+	
+	names.close();
 	
 	switch(bufs[0]){
 	default :

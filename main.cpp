@@ -124,13 +124,6 @@ GLuint colorIndex;
 Mix_Chunk *crickets;
 
 /*
- *	names is used to open a file containing all possible NPC names. It is externally
- *	referenced in src/entities.cpp for getting random names.
-*/
-
-std::istream *names;
-
-/*
  *	loops is used for texture animation. It is believed to be passed to entity
  *	draw functions, although it may be externally referenced instead.
 */
@@ -376,25 +369,14 @@ int main(/*int argc, char *argv[]*/){
 	//glEnable(GL_DEPTH_TEST); //THIS DOESN'T WORK ON LINUX
 	glEnable(GL_MULTISAMPLE);
 
-	/*
-	 *	Open the names file containing potential names for NPCs and store it in the names file
-	 *	pointer. This will be reference by getName in src/entities.cpp when NPCs are spawned. 
-	 * 
-	*/
-	
-	static std::filebuf fb;
-	fb.open("assets/names_en-us",std::ios::in);
-	names = new std::istream(&fb);
-	
-
 	crickets=Mix_LoadWAV("assets/sounds/crickets.wav");
 	//Mix_Volume(2,25);
 	
 	/*
 	 *	Create all the worlds, entities, mobs, and the player. This function is defined in
 	 *	src/gameplay.cpp
-	 * 
-	*/
+	 */
+	 
 	fadeIntensity = 250;
 	initEverything();
 
@@ -431,8 +413,6 @@ int main(/*int argc, char *argv[]*/){
     
     Mix_HaltMusic();
     Mix_CloseAudio();
-    
-    fb.close();
     
     destroyInventory();
 	ui::destroyFonts();
