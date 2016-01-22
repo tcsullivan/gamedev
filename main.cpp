@@ -174,8 +174,10 @@ extern bool fadeWhite;
 extern bool fadeFast;
 extern int  fadeIntensity;
 
-unsigned int SCREEN_WIDTH;
-unsigned int SCREEN_HEIGHT;
+unsigned int HLINE		   = 3;
+unsigned int SCREEN_WIDTH  = 720;
+unsigned int SCREEN_HEIGHT = 1080;
+bool		 FULLSCREEN    = false;
 
 /*******************************************************************************
  * MAIN ************************************************************************
@@ -186,9 +188,13 @@ int main(/*int argc, char *argv[]*/){
 	gameRunning=false;
 	
 	XMLDocument xml;
+	XMLElement *scr;
 	xml.LoadFile("config/settings.xml");
-	SCREEN_WIDTH = xml.FirstChildElement("screen")->UnsignedAttribute("width");
-	SCREEN_HEIGHT = xml.FirstChildElement("screen")->UnsignedAttribute("height");
+	scr = xml.FirstChildElement("screen");
+	SCREEN_WIDTH  = scr->UnsignedAttribute("width");
+	SCREEN_HEIGHT = scr->UnsignedAttribute("height");
+	FULLSCREEN    = scr->BoolAttribute("fullscreen");
+	HLINE         = xml.FirstChildElement("hline")->UnsignedAttribute("size");
 
 	/*!
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually

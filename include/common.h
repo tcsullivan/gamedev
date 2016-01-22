@@ -99,6 +99,7 @@ extern unsigned int SCREEN_WIDTH;
 extern unsigned int SCREEN_HEIGHT;
 
 //#define FULLSCREEN
+extern bool FULLSCREEN;
 
 /**
  * Define the length of a single HLINE.
@@ -110,7 +111,8 @@ extern unsigned int SCREEN_HEIGHT;
  * 
  */
 
-#define HLINE 3
+//#define HLINE 3
+extern unsigned int HLINE;
 
 /**
  * A 'wrapper' for libc's srand(), as we hope to eventually have our own random number
