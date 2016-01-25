@@ -10,12 +10,42 @@
 
 #include <world.h>
 #include <ft2build.h>
+#include <SDL2/SDL_opengl.h>
 #include FT_FREETYPE_H
 
 #define DEBUG
 
+typedef void(*menuFunc)();
+
+
+struct menuItem{
+	int member;
+	union{
+
+		struct{
+			vec2 loc;
+			dim2 dim;
+			Color color;
+			const char* text;
+			menuFunc func;
+		}button;
+
+		struct{
+			vec2 loc;
+			dim2 dim;
+			Color color;
+			float minValue;
+			float maxValue;
+			const char* text;
+			void* var;
+		}slider;
+
+	};
+};
+
 namespace ui {
 
+	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f);
 	/**
 	 *	Contains the coordinates of the mouse inside the window.
 	 */
@@ -26,6 +56,8 @@ namespace ui {
 	 *	These flags are used elsewhere.
 	*/
 
+	extern bool pMenu;
+	extern bool menu;
 	extern bool debug;
 	extern bool posFlag;
 	extern unsigned int fontSize;
@@ -83,6 +115,15 @@ namespace ui {
 	
 	void draw(void);
 	
+
+	/*
+	 *	Draw various menu items
+	*/
+	void quitGame();
+	void quitMenu();
+	void drawMenu(std::vector<menuItem>mi);
+
+
 	/*
 	 *	Handle keyboard/mouse events.
 	*/

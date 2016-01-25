@@ -6,6 +6,8 @@
 
 #define SDL_KEY e.key.keysym.sym
 
+extern SDL_Window *window;
+
 /*
  *	External references for updating player coords / current world.
 */
@@ -76,11 +78,14 @@ namespace ui {
 	*/
 	
 	vec2 mouse;
+	static vec2 premouse={0,0};		
 
 	/*
 	 *	Variety of keydown bools
 	*/
 	bool edown;
+	bool pMenu = false;
+	bool menu = false;
 	
 	/*
 	 *	Debugging flags.
@@ -604,6 +609,91 @@ namespace ui {
 			}
 		}
 	}
+
+	void quitGame(){
+		if(pMenu)pMenu^=pMenu;
+		if(menu)menu^=menu;
+		gameRunning = false;
+	}
+
+	void quitMenu(){
+		if(pMenu)pMenu^=pMenu;
+		if(menu)menu^=menu;
+	}
+
+
+	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f){
+		menuItem temp;
+		temp.member = 0;
+		temp.button.loc = l;
+		temp.button.dim = d;
+		temp.button.color = c;
+		temp.button.text = t;
+		temp.button.func = f;
+		return temp;
+	}
+
+	void drawMenu(std::vector<menuItem>mi){
+		SDL_Event e;
+			
+		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
+		mouse.y=(offset.y+SCREEN_HEIGHT/2)-premouse.y;
+
+		while(SDL_PollEvent(&e)){
+			switch(e.type){
+			case SDL_QUIT:
+				gameRunning=false;
+				return;
+				break;
+			case SDL_MOUSEMOTION:
+				premouse.x=e.motion.x;
+				premouse.y=e.motion.y;
+				break;
+			case SDL_KEYUP:
+				if(SDL_KEY == SDLK_ESCAPE){
+					quitMenu();
+					return;
+				}
+				break;
+			default:break;
+			}
+		}
+
+		glColor4f(0.0f, 0.0f, 0.0f, .8f);
+		glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
+		for(auto &m : mi){
+			if(m.member == 0){
+				glColor3f(m.button.color.red,m.button.color.green,m.button.color.blue);
+					glRectf(offset.x+m.button.loc.x, 
+							offset.y+m.button.loc.y, 
+							offset.x+m.button.loc.x + m.button.dim.x, 
+							offset.y+m.button.loc.y + m.button.dim.y);
+				putStringCentered(offset.x + m.button.loc.x + (m.button.dim.x/2), (offset.y + m.button.loc.y + (m.button.dim.y/2)) - ui::fontSize/2, m.button.text);
+				if(mouse.x >= offset.x+m.button.loc.x && mouse.x <= offset.x+m.button.loc.x + m.button.dim.x){
+					if(mouse.y >= offset.y+m.button.loc.y && mouse.y <= offset.y+m.button.loc.y + m.button.dim.y){
+
+						glColor3f(1.0f,1.0f,1.0f);
+						glBegin(GL_LINE_STRIP);
+							glVertex2f(offset.x+m.button.loc.x, 					offset.y+m.button.loc.y);
+							glVertex2f(offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y);
+							glVertex2f(offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y+m.button.dim.y);
+							glVertex2f(offset.x+m.button.loc.x, 					offset.y+m.button.loc.y+m.button.dim.y);
+							glVertex2f(offset.x+m.button.loc.x, 					offset.y+m.button.loc.y);
+						glEnd();
+
+						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) m.button.func();
+					}
+				}
+			}
+		}
+
+		/*glColor3ub(255,255,255);
+		glBegin(GL_TRIANGLES);
+			glVertex2i(mx		   ,my		  );
+			glVertex2i(mx+HLINE*3.5,my		  );
+			glVertex2i(mx		   ,my-HLINE*3.5);
+		glEnd();*/
+	}
 	void dialogAdvance(void){
 		unsigned char i;
 		if(!typeOutDone){
@@ -630,7 +720,6 @@ DONE:
 	}
 	void handleEvents(void){
 		static bool left=true,right=false;
-		static vec2 premouse={0,0};
 		static int heyOhLetsGo = 0;
 		World *tmp;
 		vec2 oldpos,tmppos;
@@ -660,10 +749,11 @@ DONE:
 				KEYDOWN
 			*/
 			case SDL_KEYDOWN:
-				if(SDL_KEY == SDLK_ESCAPE){
-					gameRunning = false;
+				/*if(SDL_KEY == SDLK_ESCAPE){
+					//gameRunning = false;
+					pMenu = true;
 					return;
-				}else if(SDL_KEY == SDLK_SPACE){
+				}else */if(SDL_KEY == SDLK_SPACE){
 					/*if(dialogBoxExists)
 						dialogAdvance();
 					else */if(player->ground){
@@ -794,6 +884,12 @@ DONE:
 			*/
 			
 			case SDL_KEYUP:
+				if(SDL_KEY == SDLK_ESCAPE){
+					//gameRunning = false;
+					pMenu = true;
+					menu = true;
+					return;
+				}
 				switch(SDL_KEY){
 				case SDLK_a:
 					left = false;

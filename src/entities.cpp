@@ -100,7 +100,15 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	subtype = 0;	
 	health = maxHealth = 100;
 	speed = 1;
-	tex = new Texturec(3, "assets/player1.png", "assets/playerk.png", "assets/player2.png");
+	tex = new Texturec(9, 	"assets/playerk.png",
+							"assets/playerk1.png",
+							"assets/playerk2.png",
+							"assets/playerk3.png",
+							"assets/playerk4.png",
+							"assets/playerk5.png",
+							"assets/playerk6.png",
+							"assets/playerk7.png",
+							"assets/playerk8.png");
 	//tex = new Texturec(3, "assets/maybeplayer.png", "assets/maybeplayer.png", "assets/maybeplayer.png");
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
@@ -268,18 +276,11 @@ void Entity::draw(void){		//draws the entities
 	switch(type){
 	case PLAYERT:
 		static int texState = 0;
-		static bool up = true;
-		if(speed && !(loops % (int)(4.0f/(float)speed))){
+		if(speed && !(loops % (int)(2.0f/(float)speed))){
 			//currentWorld->addParticle(loc.x,loc.y-HLINE,HLINE,HLINE,0,0,{0.0f,.17f,0.0f},1000);
-			if(up){
-				if(++texState==2)up=false;
-				glActiveTexture(GL_TEXTURE0);
-				tex->bindNext();
-			}else{
-				if(!--texState)up=true;
-				glActiveTexture(GL_TEXTURE0);
-				tex->bindPrev();
-			}
+			if(++texState==9)texState=1;
+			glActiveTexture(GL_TEXTURE0);
+			tex->bind(texState);
 		}
 		if(!ground){
 			glActiveTexture(GL_TEXTURE0 + 0);
@@ -289,7 +290,7 @@ void Entity::draw(void){		//draws the entities
 			tex->bind(texState);
 		}else{
 			glActiveTexture(GL_TEXTURE0 + 0);
-			tex->bind(1);
+			tex->bind(0);
 		}
 		break;
 	case MOBT:

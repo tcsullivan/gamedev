@@ -10,6 +10,10 @@ using namespace tinyxml2;
 extern World	*currentWorld;
 extern Player	*player;
 
+extern std::vector<menuItem>pauseMenu;
+
+extern void mainLoop(void);
+
 typedef struct {
 	NPC *npc;
 	unsigned int index;
@@ -211,6 +215,9 @@ void initEverything(void){
 
 	currentWorld->bgmPlay(NULL);
 	atexit(destroyEverything);
+
+	pauseMenu.push_back(ui::createButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Resume"), ui::quitMenu));
+	pauseMenu.push_back(ui::createButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), ui::quitGame));
 }
 
 extern std::vector<int (*)(NPC *)> AIpreload;

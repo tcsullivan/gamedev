@@ -167,6 +167,8 @@ void mainLoop(void);
 
 vec2 offset;																			/*	OFFSET!!!!!!!!!!!!!!!!!!!! */
 
+std::vector<menuItem>pauseMenu;
+
 extern WEATHER weather;
 
 extern bool fadeEnable;
@@ -461,6 +463,8 @@ void mainLoop(void){
 	prevTime	= currentTime;
 	currentTime = millis();
 	deltaTime	= currentTime - prevTime;
+
+	if(ui::menu)goto MENU;
 	
 	/*
 	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
@@ -484,6 +488,8 @@ void mainLoop(void){
 	*/
 	
 	currentWorld->update(player,deltaTime);
+
+	MENU:
 	
 	/*
 	 * 	Update debug variables if necessary
@@ -596,9 +602,7 @@ void render(){
 
 	player->near=true;			// Draw the player's name
 
-	//glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,100);
 	currentWorld->draw(player);
-	//glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 0,1.0f,0);
 
 
 	/*
@@ -739,6 +743,10 @@ void render(){
 			glEnd();
 		}
 
+	}
+
+	if(ui::menu){
+		if(ui::pMenu)ui::drawMenu(pauseMenu);
 	}
 
 	/*
@@ -984,6 +992,10 @@ void logic(){
 			 if(fadeIntensity > 150)fadeIntensity-=fadeFast?20:5;
 		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?40:10;
 		else fadeIntensity = 0;
+	}
+
+	if(ui::pMenu){
+		ui::drawMenu(pauseMenu);
 	}
 
 	/*

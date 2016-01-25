@@ -61,6 +61,8 @@ typedef struct {
 	float z;
 } vec3;
 
+typedef vec2 dim2;
+
 /**
  * This structure contains two sets of coordinates for ray drawing.
  */
@@ -70,11 +72,25 @@ typedef struct {
 	vec2 end;
 } Ray;
 
-typedef struct{
+struct col{
 	float red;
 	float green;
 	float blue;
-} Color;
+	col operator-=(float a){
+		red-=a;
+		green-=a;
+		blue-=a;
+		return *this;
+	}
+	col operator+=(float a){
+		return{red+a,green+a,blue+a};
+	}
+	col operator=(float a){
+		return{red=a,green=a,blue=a};
+	}
+};
+
+typedef col Color;
 
 #include <Texture.h>
 
