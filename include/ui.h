@@ -37,7 +37,9 @@ struct menuItem{
 			float minValue;
 			float maxValue;
 			const char* text;
-			void* var;
+			float* var;
+
+			float sliderLoc;
 		}slider;
 
 	};
@@ -46,6 +48,7 @@ struct menuItem{
 namespace ui {
 
 	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f);
+	menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v);
 	/**
 	 *	Contains the coordinates of the mouse inside the window.
 	 */
@@ -56,6 +59,7 @@ namespace ui {
 	 *	These flags are used elsewhere.
 	*/
 
+	extern bool oMenu;
 	extern bool pMenu;
 	extern bool menu;
 	extern bool debug;
@@ -121,6 +125,7 @@ namespace ui {
 	*/
 	void quitGame();
 	void quitMenu();
+	void optionsMenuF();
 	void drawMenu(std::vector<menuItem>mi);
 
 

@@ -6,6 +6,8 @@
 
 #define SDL_KEY e.key.keysym.sym
 
+extern std::vector<menuItem>optionsMenu;
+
 extern SDL_Window *window;
 
 /*
@@ -84,6 +86,7 @@ namespace ui {
 	 *	Variety of keydown bools
 	*/
 	bool edown;
+	bool oMenu = false;
 	bool pMenu = false;
 	bool menu = false;
 	
@@ -612,26 +615,69 @@ namespace ui {
 
 	void quitGame(){
 		if(pMenu)pMenu^=pMenu;
+		if(oMenu)oMenu^=oMenu;
 		if(menu)menu^=menu;
 		gameRunning = false;
 	}
 
 	void quitMenu(){
 		if(pMenu)pMenu^=pMenu;
+		if(oMenu)oMenu^=oMenu;
 		if(menu)menu^=menu;
+	}
+
+	void optionsMenuF(){
+		//pMenu = false;
+		oMenu = true;
+		drawMenu(optionsMenu);
 	}
 
 
 	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f){
 		menuItem temp;
 		temp.member = 0;
+
 		temp.button.loc = l;
 		temp.button.dim = d;
 		temp.button.color = c;
+
 		temp.button.text = t;
+
 		temp.button.func = f;
+
 		return temp;
 	}
+
+	menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v){
+		menuItem temp;
+		temp.member = 1;
+
+		temp.slider.loc = l;
+		temp.slider.dim = d;
+		temp.slider.color = c;
+		temp.slider.minValue = min;
+		temp.slider.maxValue = max;
+
+		temp.slider.text = t;
+
+		temp.slider.var = v;
+
+		temp.slider.sliderLoc = *v;
+
+		return temp;
+	}
+
+	char* stradd(const char* a, const char* b){
+		size_t len = strlen(a) + strlen(b);
+		char *ret = (char*)malloc(len * sizeof(char) + 1);
+		*ret = '\0';
+
+		return strcat(strcat(ret,a),b);
+	}
+
+	/*
+	 *	Don't even try to understand this Clyne...
+	*/
 
 	void drawMenu(std::vector<menuItem>mi){
 		SDL_Event e;
@@ -684,15 +730,53 @@ namespace ui {
 						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) m.button.func();
 					}
 				}
+			}else if(m.member == 1){
+				char outSV[32];
+				sprintf(outSV, "%s: %.1f",m.slider.text, *m.slider.var);
+				float sliderW = m.slider.dim.x * .05;
+				m.slider.sliderLoc = m.slider.minValue + (*m.slider.var/m.slider.maxValue)*(m.slider.dim.x-sliderW);
+				glColor4f(m.slider.color.red,m.slider.color.green,m.slider.color.blue, .5f);
+					glRectf(offset.x+m.slider.loc.x, 
+							offset.y+m.slider.loc.y, 
+							offset.x+m.slider.loc.x + m.slider.dim.x, 
+							offset.y+m.slider.loc.y + m.slider.dim.y);
+				glColor4f(m.slider.color.red,m.slider.color.green,m.slider.color.blue, 1.0f);
+					glRectf(offset.x+m.slider.loc.x+m.slider.sliderLoc,
+							offset.y+m.slider.loc.y,
+							offset.x+m.slider.loc.x + m.slider.sliderLoc + (m.slider.dim.x*.05),
+							offset.y+m.slider.loc.y + m.slider.dim.y);
+				putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y/2)) - ui::fontSize/2, outSV);
+				if(mouse.x >= offset.x+m.slider.loc.x && mouse.x <= offset.x+m.slider.loc.x + m.slider.dim.x){
+					if(mouse.y >= offset.y+m.slider.loc.y && mouse.y <= offset.y+m.slider.loc.y + m.slider.dim.y){
+						glColor3f(1.0f,1.0f,1.0f);
+						glBegin(GL_LINE_STRIP);
+							glVertex2f(offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y);
+							glVertex2f(offset.x+m.slider.loc.x+m.slider.dim.x, 		offset.y+m.slider.loc.y);
+							glVertex2f(offset.x+m.slider.loc.x+m.slider.dim.x, 		offset.y+m.slider.loc.y+m.slider.dim.y);
+							glVertex2f(offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y+m.slider.dim.y);
+							glVertex2f(offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y);
+
+							glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y);
+							glVertex2f(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y);
+							glVertex2f(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y+m.slider.dim.y);
+							glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y+m.slider.dim.y);
+							glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y);
+
+						glEnd();
+						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+							*m.slider.var = (((mouse.x-offset.x) - m.slider.loc.x)/m.slider.dim.x)*100;
+							glColor3f(1.0f,1.0f,1.0f);
+								glRectf(offset.x+m.slider.loc.x + m.slider.sliderLoc, 
+										offset.y+m.slider.loc.y, 
+										offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), 
+										offset.y+m.slider.loc.y + m.slider.dim.y);
+						}
+						if(*m.slider.var >= m.slider.maxValue)*m.slider.var = m.slider.maxValue;
+						else if(*m.slider.var <= m.slider.minValue)*m.slider.var = m.slider.minValue;
+					}
+				}
 			}
 		}
-
-		/*glColor3ub(255,255,255);
-		glBegin(GL_TRIANGLES);
-			glVertex2i(mx		   ,my		  );
-			glVertex2i(mx+HLINE*3.5,my		  );
-			glVertex2i(mx		   ,my-HLINE*3.5);
-		glEnd();*/
 	}
 	void dialogAdvance(void){
 		unsigned char i;

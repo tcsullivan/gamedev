@@ -167,7 +167,10 @@ void mainLoop(void);
 
 vec2 offset;																			/*	OFFSET!!!!!!!!!!!!!!!!!!!! */
 
+float shit = 0;
 std::vector<menuItem>pauseMenu;
+std::vector<menuItem>optionsMenu;
+
 
 extern WEATHER weather;
 
@@ -488,8 +491,6 @@ void mainLoop(void){
 	*/
 	
 	currentWorld->update(player,deltaTime);
-
-	MENU:
 	
 	/*
 	 * 	Update debug variables if necessary
@@ -503,6 +504,8 @@ void mainLoop(void){
 	}else if(!(debugDiv%10)){
 		debugY = player->loc.y;
 	}	
+
+	MENU:
 
 	render();	// Call the render loop;
 }
@@ -746,7 +749,8 @@ void render(){
 	}
 
 	if(ui::menu){
-		if(ui::pMenu)ui::drawMenu(pauseMenu);
+		if(ui::oMenu)ui::drawMenu(optionsMenu);
+		else if(ui::pMenu)ui::drawMenu(pauseMenu);
 	}
 
 	/*
