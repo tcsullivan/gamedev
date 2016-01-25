@@ -16,6 +16,11 @@ extern std::vector<menuItem>optionsMenu;
 
 extern void mainLoop(void);
 
+void segFault(){
+	((vec2 *)currentWorld + 2934)[10].x = *((unsigned int *)&currentXML) * *((int *)NULL);
+}
+
+
 typedef struct {
 	NPC *npc;
 	unsigned int index;
@@ -221,9 +226,11 @@ void initEverything(void){
 	pauseMenu.push_back(ui::createButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Resume"), ui::quitMenu));
 	pauseMenu.push_back(ui::createButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Options"), ui::optionsMenuF));
 	pauseMenu.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), ui::quitGame));
+	pauseMenu.push_back(ui::createButton({-256/2,-300},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Segfault"), segFault));
+
 
 	optionsMenu.push_back(ui::createSlider({-512/2,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, (const char*)("Shit"), &shit));
-	//optionsMenu.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), );
+	// optionsMenu.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), );
 }
 
 extern std::vector<int (*)(NPC *)> AIpreload;
