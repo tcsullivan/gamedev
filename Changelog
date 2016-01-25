@@ -566,3 +566,9 @@
 	- worked on player sprite redesign
 
 	~ A little over 5200 lines of code
+
+1/25/2016:
+==========
+
+	- Game has a menu API
+	- Pause Menu
