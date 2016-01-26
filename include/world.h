@@ -8,9 +8,6 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include <ostream>
-#include <istream>
-
 #include <common.h>
 #include <entities.h>
 
@@ -59,7 +56,7 @@ typedef enum {
 typedef enum {
 	SUNNY = 0,	/**< Sunny/daytime */
 	DARK,		/**< Nighttime */
-	RAIN		/**< Rain (not implemented :) )*/
+	RAIN		/**< Rain (to be implemented)*/
 } WEATHER;
 
 /**
@@ -77,12 +74,12 @@ typedef struct {
  * lines. Dirt color and grass properties are also kept track of here.
  */
 
-struct line_t {
+typedef struct line_t {
 	float y;				/**< Height of this vertical line */
 	bool gs;				/**< Show grass */
 	float gh[2];			/**< Height of glass (2 blades per line) */
 	unsigned char color;	/**< Lightness of dirt (brown) */
-} __attribute__ ((packed));
+} line_t;
 
 /**
  * The world class. This class does everything a world should do.
@@ -148,6 +145,11 @@ protected:
 	 */
 	
 	Texturec *bgTex;
+	
+	/**
+	 * Defines the set of background images that should be used for this world.
+	 */
+	
 	WORLD_BG_TYPE bgType;
 	
 	/**
@@ -165,111 +167,237 @@ protected:
 public:
 
 	/**
-	 * These pointers keep track of worlds that are adjacent to this one. Used in
-	 * ui.cpp for world jumping.
+	 * The filename of the XML file for the world to the left; NULL if no world
+	 * is present.
 	 */
 	
-	char *toLeft,*toRight;
-	
-	char *setToLeft(const char *file);
-	char *setToRight(const char *file);
+	char *toLeft;
 	
 	/**
-	 * These vectors contain the NPCs, Mobs, Structures and Objects that are
-	 * loaded inside the world, with the Entity vector containing pointers to
-	 * the contents of all the others.
+	 * The filename of the XML file for the world to the right; NULL if no world
+	 * is present.
+	 */
+	
+	char *toRight;
+	
+	/**
+	 * Sets what XML file to use for loading the world to the left.
+	 */
+	
+	char *setToLeft(const char *file);
+	
+	/**
+	 * Sets what XML file to use for loading the world to the right.
+	 */
+	
+	char *setToRight(const char *file);
+
+
+	/**
+	 * A vector of pointers to every NPC, Structure, Mob, and Object in this
+	 * world.
+	 */
+
+	std::vector<Entity		*>	entity;
+
+	/**
+	 * A vector of all NPCs in this world.
 	 */
 
 	std::vector<NPC			*>	npc;
+	
+	/**
+	 * A vector of all Structures in this world.
+	 */
+	 
 	std::vector<Structures	*>	build;
+	
+	/**
+	 * A vector of all Mobs in this world.
+	 */
+	 
 	std::vector<Mob			*>	mob;
-	std::vector<Entity		*>	entity;
+	
+	/**
+	 * A vector of all Objects in this world.
+	 */
+	
 	std::vector<Object		*>	object;
+	
+	/**
+	 * A vector of all particles in this world.
+	 */
+	
 	std::vector<Particles	*>	particles;
+	
+	/**
+	 * A vector of all light elements in this world.
+	 */
+	
 	std::vector<Light        >  light;
 	
-	void addStructure(BUILD_SUB sub,float x,float y,const char *inside);
-	void addVillage(int bCount, int npcMin, int npcMax,const char *inside);
-	void addMob(int t,float x,float y);
+	/**
+	 * NULLifies pointers and allocates necessary memory. This should be
+	 * followed by some combination of setBackground(), setBGM(), or
+	 * generate().
+	 */
+	
+	World(void);
+	
+	/**
+	 * Frees resources taken by the world.
+	 */
+	
+	virtual ~World(void);
+	
+	/**
+	 * Adds a structure to the world, with the specified subtype and
+	 * coordinates. `inside` is a file name for the IndoorWorld XML file that
+	 * this structure will lead to; if NULL the player won't be able to enter
+	 * the structure.
+	 */
+	
+	void addStructure(BUILD_SUB subtype,float x,float y,const char *inside);
+	//void addVillage(int buildingCount, int npcMin, int npcMax,const char *inside);
+	
+	/**
+	 * Adds a Mob to the world with the specified type and coordinates.
+	 */
+	
+	void addMob(int type,float x,float y);
+	
+	/**
+	 * Adds a Mob to the world with a handler function that can be called by
+	 * certain mobs to trigger events.
+	 */
+	
 	void addMob(int t,float x,float y,void (*hey)(Mob *));
+	
+	/**
+	 * Adds an NPC to the world with the specified coordinates.
+	 */
+	
 	void addNPC(float x,float y);
-	void addObject(ITEM_ID, bool, const char *, float, float);
-	void addParticle(float, float, float, float, float, float, Color color, int);
-	void addLight(vec2, Color);
+	
+	/**
+	 * Adds an object to the world with the specified item id and coordinates.
+	 * If `pickupDialog` is not NULL, that string will display in a dialog box
+	 * upon object interaction.
+	 */
+	
+	void addObject(ITEM_ID id,const char *pickupDialog, float x, float y);
+	
+	/**
+	 * Adds a particle to the world with the specified coordinates, dimensions,
+	 * velocity, color and duration (time to live).
+	 */
+	
+	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int duration);
+	
+	/**
+	 * Adds a light to the world with the specified coordinates and color.
+	 */
+	
+	void addLight(vec2 xy, Color color);
+
+	/**
+	 * Get the next NPC in the NPC vector that currently lacks a written dialog.
+	 * Could be used to assign random NPCs non-random dialogs.
+	 */
 
 	NPC *getAvailableNPC(void);
 	
-	/*
-	 *	Update coordinates of all entities.
+	/**
+	 * Updates the coordinates of everything in the world that has coordinates
+	 * and a velocity. The provided delta time is used for smoother updating.
 	 */
 	
 	void update(Player *p,unsigned int delta);
 	
-	/*
-	 *	Constructor and deconstructor, these do what you would expect.
-	*/
-						
-	World(void);
-	virtual ~World(void);				// Frees the 'line' array.
-	
-	/*
-	 *	Generate a world of width `width`. This function is virtual so that other world
-	 *	classes that are based on this one can generate themselves their own way.
-	*/
+	/**
+	 * Generate a world of the provided width. Worlds are drawn centered on the
+	 * y-axis, so the reachable coordinates on the world would be from negative
+	 * half-width to positive half-width.
+	 */
 	
 	virtual void generate(unsigned int width);
+	
+	/**
+	 * Generates a world of the provided width using the given function to
+	 * determine ground coordinates. The given y coordinates from the function
+	 * are limited to a certain range, most likely from GEN_MIN to 2000.
+	 */
+	
 	void generateFunc(unsigned int width,float(*func)(float));
 	
-	/*
-	 *	Adds images to using for the background.
-	*/
+	/**
+	 * Sets the background theme, collecting the required textures into a
+	 * Texturec object.
+	 */
 	
 	void setBackground(WORLD_BG_TYPE bgt);
 	
-	/*
-	 *	Start/stop background music. 
-	*/
+	/**
+	 * Sets the background music for the world, required for the world to be
+	 * playable.
+	 */
 	
 	void setBGM(const char *path);
+	
+	/**
+	 * Plays/stops this world's BGM. If `prev` is not NULL, that world's BGM
+	 * will be faded out followed by the fading in of this world's BGM.
+	 */
+	
 	void bgmPlay(World *prev);
 	
-	/*
-	 *	Draw the world and entities based on the player's coordinates. Virtual for the same
-	 *	reason generate() is.
-	*/
-														
+	/**
+	 * Draw the world and entities based on the player's coordinates.
+	 */
+
 	virtual void draw(Player *p);
 	
-	/*
-	 *	Detect the player and any entities in the current world.
-	*/
+	/**
+	 * Handles collision between the entities and the world, as well as entity
+	 * death.
+	 */
 	
 	void detect(Player *p);
 	
-	/*
-	 *	These functions return the pointer to the world in the direction that is requested if it
-	 *	exists and the player is in a condition that it can make the switch, otherwise they
-	 *	return the current world.
-	*/
+	/**
+	 * Attempts to let the player enter the left-linked world specified by
+	 * `toLeft`. Returns the world to the left if the movement is possible,
+	 * otherwise returns this world.
+	 */
 	
 	World *goWorldLeft(Player *p);
+	
+	/**
+	 * Attempts to let the player enter the right-linked world specified by
+	 * `toRight`. Returns the world to the right if the movement is possible,
+	 * otherwise returns this world.
+	 */
+	
 	World *goWorldRight(Player *p);
 	
-	/*
-	 *	Called to enter/exit a structure.
-	*/
+	/**
+	 * This function looks for any structure the player is standing in front of
+	 * that also have an inside world. Returns the inside world if those
+	 * conditions are met, otherwise returns this world.
+	 */
 	
 	World *goInsideStructure(Player *p);
 	
-	/*
-	 *	These functions add features to the world.
-	*/
+	/**
+	 * Adds a hole between the specified y coordinates. If the player falls in
+	 * this hole the game will exit.
+	 */
 	
 	void addHole(unsigned int start,unsigned int end);
 	
 	/*
 	 *	Get's the world's width.
-	*/
+	 */
 	
 	int getTheWidth(void);
 	

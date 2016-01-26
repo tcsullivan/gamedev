@@ -252,16 +252,15 @@ int main(/*int argc, char *argv[]*/){
 	 *
 	*/
 
+	uint32_t SDL_CreateWindowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | (FULLSCREEN ? SDL_WINDOW_FULLSCREEN : 0);
+
 	window = SDL_CreateWindow(GAME_NAME,
 							  SDL_WINDOWPOS_UNDEFINED,	// Spawn the window at random (undefined) x and y coordinates
 							  SDL_WINDOWPOS_UNDEFINED,	//
 							  SCREEN_WIDTH,
 							  SCREEN_HEIGHT,
-							  SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
-#ifdef FULLSCREEN
-							  | SDL_WINDOW_FULLSCREEN
-#endif // FULLSCREEN
-				  );
+							  SDL_CreateWindowFlags
+							  );
 
     /*
      *	Exit if the window cannot be created
@@ -439,7 +438,6 @@ int main(/*int argc, char *argv[]*/){
  *	fps contains the game's current FPS, debugY contains the player's
  *	y coordinates, updated at a certain interval. These are used in
  *	the debug menu (see below).
- * 
 */
 
 static unsigned int fps=0;

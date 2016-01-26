@@ -79,30 +79,38 @@ namespace Texture{
 		}
 	}
 
+	#define CINDEX_WIDTH (8*4*3)
 	void initColorIndex(){
+		unsigned int i;
+		GLubyte *buffer;
+		GLfloat *bufferf;
+		
+		buffer  = new GLubyte[CINDEX_WIDTH];
+		bufferf = new GLfloat[CINDEX_WIDTH];
+		
 		colorIndex = loadTexture("assets/colorIndex.png");
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, colorIndex);
-		GLubyte* buffer = new GLubyte[8*4*3];
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
-		GLfloat* bufferf = new GLfloat[8*4*3];
-		for(uint iu = 0; iu < 8*4*3; iu++){
-			bufferf[iu] = float(buffer[iu]) / 255.0f;
-		}
-		uint i = 0;
-		for(uint y = 0; y < 8; y++){
-			for(uint x = 0; x < 4; x++){
-					if(i >= 8*4*3){
+		
+		for(i = 0; i < CINDEX_WIDTH; i++)
+			bufferf[i] = (float)buffer[i] / 255.0f;
+		
+		i = 0;
+		for(unsigned int y = 0; y < 8; y++){
+			for(unsigned int x = 0; x < 4; x++){
+					if(i >= CINDEX_WIDTH){
+						delete[] buffer;
+						delete[] bufferf;
 						return;
 					}
 					pixels[y][x].red = buffer[i++];
 					pixels[y][x].green = buffer[i++];
 					pixels[y][x].blue = buffer[i++];
-					//std::cout << pixels[y][x].red << "," << pixels[y][x].green << "," << pixels[y][x].blue << std::endl;
-				//std::cout << std::endl;
 			}
 		}
-
+		delete[] buffer;
+		delete[] bufferf;
 	}
 
 	//sqrt((255-145)^2+(90-145)^2+(0-0)^2);

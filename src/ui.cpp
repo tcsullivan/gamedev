@@ -585,13 +585,19 @@ namespace ui {
 			};
 			
 			putText(hub.x,hub.y,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
-												(unsigned)player->maxHealth);
+												(unsigned)player->maxHealth
+												);
 			if(player->alive){
-				glColor3ub(255,0,0);
+				glColor3ub(150,0,0);
 				hub.y-=fontSize*1.15;
 				glRectf(hub.x,
 						hub.y,
-						hub.x+(player->health/player->maxHealth?player->maxHealth:1)*130,
+						hub.x+150,
+						hub.y+12);
+				glColor3ub(255,0,0);
+				glRectf(hub.x,
+						hub.y,
+						hub.x+(player->health/player->maxHealth * 150),
 						hub.y+12);
 			}
 			
@@ -916,6 +922,7 @@ DONE:
 							player->loc.y+=HLINE*5;
 							player->ground=false;
 						}*/
+						player->health -= 5;
 						break;
 					case SDLK_k:
 						/*currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible

@@ -38,12 +38,8 @@ void getRandomName(Entity *e){
 	
 	bufs = new char[32];
 	
-	std::cout<<"1\n";
-	
 	for(;!names.eof();max++)
 		names.getline(bufs,32);
-	
-	std::cout<<"2\n";
 	
 	tempNum = rand() % max;
 	names.seekg(0,names.beg);
@@ -218,13 +214,18 @@ Object::Object(){
 	inv = NULL;
 }
 
-Object::Object(ITEM_ID id, bool qo, const char *pd){
+Object::Object(ITEM_ID id, const char *pd){
 	identifier = id;
-	questObject = qo;
-	
-	pickupDialog = new char[strlen(pd)+1];
-	strcpy(pickupDialog,pd);
-	
+
+	if(pd){
+		pickupDialog = new char[strlen(pd)+1];
+		strcpy(pickupDialog,pd);
+		questObject = true;
+	}else{
+		pickupDialog = new char[1];
+		*pickupDialog = '\0';
+		questObject = false;
+	}
 
 	type = OBJECTT;
 	alive = true;

@@ -567,8 +567,18 @@
 
 	~ A little over 5200 lines of code
 
+1/22/2016:
+==========
+
+	- better player sprites???
+	- fixed major bugs
+	- free'd more resources
+	- documented almost all of world.h
+	- improved settings.xml
+
 1/25/2016:
 ==========
 
 	- Game has a menu API
 	- Pause Menu
+

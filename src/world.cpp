@@ -962,12 +962,12 @@ void World::addStructure(BUILD_SUB sub, float x,float y,const char *inside){
 	entity.push_back(build.back());
 }
 	
-void World::addVillage(int bCount, int npcMin, int npcMax,const char *inside){
+/*void World::addVillage(int bCount, int npcMin, int npcMax,const char *inside){
 	std::cout << npcMin << ", " << npcMax << std::endl;
 	//int xwasd;
 	for(int i = 0; i < bCount; i++){
 		addStructure(HOUSE,x_start + (i * 300),100,inside);
-		/*std::cout<<"1\n";
+		std::cout<<"1\n";
 		HERE:
 		xwasd = (rand()%(int)x+1000*HLINE);
 		for(auto &bu : build){
@@ -975,9 +975,10 @@ void World::addVillage(int bCount, int npcMin, int npcMax,const char *inside){
 		}
 		std::cout<<"2\n";
 		addStructure(t,HOUSE,xwasd,y,inside);
-		std::cout<<"3\n";*/
+		std::cout<<"3\n";
 	}
-}
+}*/
+
 void World::addMob(int t,float x,float y){
 	mob.push_back(new Mob(t));
 	mob.back()->spawn(x,y);
@@ -1000,8 +1001,8 @@ void World::addNPC(float x,float y){
 	entity.push_back(npc.back());
 }
 
-void World::addObject(ITEM_ID i, bool q, const char *p, float x, float y){
-	object.push_back(new Object(i,q, p));
+void World::addObject(ITEM_ID i,const char *p, float x, float y){
+	object.push_back(new Object(i,p));
 	object.back()->spawn(x,y);
 
 	entity.push_back(object.back());
@@ -1203,9 +1204,11 @@ extern int commonAIFunc(NPC *);
 
 void World::load(void){
 	std::string save,data,line;
+	const char *filedata;
 	
 	save = (std::string)currentXML + ".dat";
-	data = readFile(save.c_str());
+	filedata = readFile(save.c_str());
+	data = filedata;
 	std::istringstream iss (data);
 	
 	for(auto &n : npc){
@@ -1244,11 +1247,9 @@ void World::load(void){
 	while(std::getline(iss,line)){
 		if(line == "dOnE")
 			break;
-		
-		//std::cout<<line<<std::endl;
 	}
 	
-	//abort();
+	delete[] filedata;
 }
 
 IndoorWorld::IndoorWorld(void){

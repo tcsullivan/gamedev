@@ -226,7 +226,7 @@ public:
 	bool questObject = false;
 	
 	Object();
-	Object(ITEM_ID id, bool qo, const char *pd);
+	Object(ITEM_ID id,const char *pd);
 	~Object();
 	
 	void reloadTexture(void);
