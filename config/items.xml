@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<item name="Debug"       type="Tool"  maxStackSize="1"   width="1"  height="1"  sprite="assets/items/ITEM_TEST.png" />
+<item name="Dank Maymay" type="Tool"  maxStackSize="420" width="10" height="10" sprite="assets/items/ITEM_TEST.png" />
+<item name="Your Bag"    type="Equip" maxStackSize="1"   width="5"  height="5"  sprite="assets/items/ITEM_TEST.png" />
+<item name="Flashlight"  type="Tool"  maxStackSize="1"   width="4"  height="8"  sprite="assets/items/flashlight_off.png" />
+<item name="Wood Sword"  type="Sword" maxStackSize="1"   width="4"  height="10" sprite="assets/items/SWORD_WOOD.png" />

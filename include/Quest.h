@@ -21,13 +21,6 @@
 #define DEBUG
 
 /**
- * Contains the total number of quests in the game at compile time, see Quest.cpp
- * for the actual definition of these quests.
- */
-
-#define TOTAL_QUESTS 1
-
-/**
  * The Quest class.
  * 
  * This contains information for a single quest, and should only really be interacted

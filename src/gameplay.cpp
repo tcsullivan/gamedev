@@ -17,7 +17,7 @@ extern std::vector<menuItem>optionsMenu;
 extern void mainLoop(void);
 
 void segFault(){
-	((vec2 *)currentWorld + 2934)[10].x = *((unsigned int *)&currentXML) * *((int *)NULL);
+	(*((int *)NULL))++;
 }
 
 
@@ -26,7 +26,7 @@ typedef struct {
 	unsigned int index;
 } NPCDialog;
 
-std::vector<XMLElement *>		dopt;
+std::vector<XMLElement *> dopt;
 
 int commonAIFunc(NPC *speaker){
 	XMLDocument xml;
@@ -66,7 +66,7 @@ int commonAIFunc(NPC *speaker){
 				
 				if((oxml = exml->FirstChildElement("give"))){
 					while(oxml){
-						player->inv->addItem((ITEM_ID)oxml->UnsignedAttribute("id"),oxml->UnsignedAttribute("count"));
+						player->inv->addItem(oxml->Attribute("id"),oxml->UnsignedAttribute("count"));
 						oxml = oxml->NextSiblingElement();
 					}
 				}
@@ -77,7 +77,7 @@ int commonAIFunc(NPC *speaker){
 				
 				if((oxml = exml->FirstChildElement("take"))){
 					while(oxml){
-						player->inv->takeItem((ITEM_ID)oxml->UnsignedAttribute("id"),oxml->UnsignedAttribute("count"));
+						player->inv->takeItem(oxml->Attribute("id"),oxml->UnsignedAttribute("count"));
 						oxml = oxml->NextSiblingElement();
 					}
 				}
@@ -128,7 +128,7 @@ int commonAIFunc(NPC *speaker){
 					/*
 					 * No options - simply print the text.
 					 */
-					
+
 					ui::dialogBox(speaker->name,"",false,exml->GetText());
 					ui::waitForDialog();
 				}

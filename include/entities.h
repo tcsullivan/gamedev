@@ -220,13 +220,15 @@ public:
 
 class Object : public Entity{
 private:
-	ITEM_ID identifier;
+	std::string iname;
+	//ITEM_ID identifier;
 public:
 	char *pickupDialog;
 	bool questObject = false;
 	
 	Object();
-	Object(ITEM_ID id,const char *pd);
+	//Object(ITEM_ID id,const char *pd);
+	Object(std::string in,const char *pd);
 	~Object();
 	
 	void reloadTexture(void);

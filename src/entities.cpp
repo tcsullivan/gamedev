@@ -214,8 +214,9 @@ Object::Object(){
 	inv = NULL;
 }
 
-Object::Object(ITEM_ID id, const char *pd){
-	identifier = id;
+Object::Object(/*ITEM_ID id*/std::string in, const char *pd){
+	//identifier = id;
+	iname = in;
 
 	if(pd){
 		pickupDialog = new char[strlen(pd)+1];
@@ -230,11 +231,11 @@ Object::Object(ITEM_ID id, const char *pd){
 	type = OBJECTT;
 	alive = true;
 	near = false;
-	width  = getItemWidth(id);
-	height = getItemHeight(id);
+	width  = getItemWidth(in);
+	height = getItemHeight(in);
 
 	maxHealth = health = 1;
-	tex = new Texturec(1,getItemTexturePath(id));
+	tex = new Texturec(1,getItemTexturePath(in));
 	inv = NULL;
 }
 Object::~Object(){
@@ -247,9 +248,9 @@ void Object::reloadTexture(void){
 	if(tex)
 		delete tex;
 		
-	tex = new Texturec(1,getItemTexturePath(identifier));
-	width  = getItemWidth(identifier);
-	height = getItemHeight(identifier);
+	tex = new Texturec(1,getItemTexturePath(iname));
+	width  = getItemWidth(iname);
+	height = getItemHeight(iname);
 }
 
 void Entity::draw(void){		//draws the entities
@@ -449,12 +450,12 @@ void Object::interact(void){
 		ui::dialogBox(player->name,":Yes:No",false,pickupDialog);		
 		ui::waitForDialog();
 		if(ui::dialogOptChosen == 1){
-			player->inv->addItem((ITEM_ID)(identifier), (char)1);
+			player->inv->addItem(/*(ITEM_ID)(identifier)*/iname, 1);
 			alive = false;
 		}
 	}else{
 		alive = false;
-		player->inv->addItem((ITEM_ID)(identifier), (char)1);
+		player->inv->addItem(iname, 1);
 	}
 }
 

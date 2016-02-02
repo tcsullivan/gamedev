@@ -806,6 +806,7 @@ DONE:
 			setFontSize(16);
 			toggleBlack();
 		}
+
 		dialogBoxExists = false;
 	}
 	void handleEvents(void){
@@ -828,12 +829,10 @@ DONE:
 				premouse.y=e.motion.y;
 				break;
 			case SDL_MOUSEBUTTONDOWN:
-				if((e.button.button&SDL_BUTTON_RIGHT)&&dialogBoxExists){
+				if((e.button.button & SDL_BUTTON_RIGHT) && dialogBoxExists)
 					dialogAdvance();
-				}
-				if((e.button.button&SDL_BUTTON_LEFT)&&!dialogBoxExists){
+				if((e.button.button & SDL_BUTTON_LEFT) && !dialogBoxExists)
 					player->inv->usingi = true;
-				}
 				break;
 			/*
 				KEYDOWN

@@ -1,14 +1,7 @@
 #include <Quest.h>
 
-#define TITLE	Quest(
-#define DESC	,
-#define REWARD	,(struct item_t){
-#define x		,
-#define END		}),
-
-const Quest QuestList[TOTAL_QUESTS]={
-// Get quest list
-#include "../config/quest_list.txt"
+const Quest QuestList[1] = {
+	Quest("Not a quest","Stop",(struct item_t){0,0})
 };
 
 
@@ -27,7 +20,7 @@ Quest::~Quest(){
 }
 
 int QuestHandler::assign(const char *t){
-	unsigned char i;
+	/*unsigned char i;
 	for(i=0;i<current.size();i++){				// Make sure we don't already have this quest
 		if(!strcmp(current[i]->title,t)){
 #ifdef DEBUG
@@ -36,7 +29,7 @@ int QuestHandler::assign(const char *t){
 			return -2;
 		}
 	}
-	for(i=0;i<TOTAL_QUESTS;i++){				// Add the quest (if it really exists)
+	for(i=0;i<0;i++){				// Add the quest (if it really exists)
 		if(!strcmp(QuestList[i].title,t)){
 			current.push_back(&QuestList[i]);
 #ifdef DEBUG
@@ -50,23 +43,23 @@ int QuestHandler::assign(const char *t){
 	}
 #ifdef DEBUG
 	DEBUG_printf("Quest %s does not exist.\n",t);
-#endif // DEBUG
-	return -1;
+#endif // DEBUG*/
+	return strcmp(t,"h");
 }
 
 int QuestHandler::drop(const char *t){
-	unsigned char i;
+	/*unsigned char i;
 	for(i=0;i<current.size();i++){
 		if(!strcmp(current[i]->title,t)){
 			current.erase(current.begin()+i);
 			return current.size();
 		}
-	}
-	return -1;
+	}*/
+	return strcmp(t,"h");
 }
 
 int QuestHandler::finish(const char *t,void *completer){
-	unsigned char i;
+	/*unsigned char i;
 	for(i=0;i<current.size();i++){
 		if(!strcmp(current[i]->title,t)){
 #ifdef DEBUG
@@ -82,8 +75,8 @@ int QuestHandler::finish(const char *t,void *completer){
 	}
 #ifdef DEBUG
 	DEBUG_printf("QuestHandler never had quest %s.\n",t);
-#endif // DEBUG
-	return -1;
+#endif // DEBUG*/
+	return strncmp(t,(char *)completer,1);
 }
 
 bool QuestHandler::hasQuest(const char *t){
