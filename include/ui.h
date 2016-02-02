@@ -8,6 +8,7 @@
 #include <common.h>
 #include <cstdarg>
 
+#include <config.h>
 #include <world.h>
 #include <ft2build.h>
 #include <SDL2/SDL_opengl.h>
@@ -16,7 +17,6 @@
 #define DEBUG
 
 typedef void(*menuFunc)();
-
 
 struct menuItem{
 	int member;
@@ -41,13 +41,23 @@ struct menuItem{
 
 			float sliderLoc;
 		}slider;
-
 	};
 };
 
-namespace ui {
+class Menu{
+public:
+	std::vector<menuItem>items;
+	Menu *child;
+	Menu *parent;
 
+	void gotoChild();
+	void gotoParent();
+};
+
+namespace ui {
 	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f);
+	menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t);
+	menuItem createParentButton(vec2 l, dim2 d, Color c, const char* t);
 	menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v);
 	/**
 	 *	Contains the coordinates of the mouse inside the window.
@@ -59,9 +69,6 @@ namespace ui {
 	 *	These flags are used elsewhere.
 	*/
 
-	extern bool oMenu;
-	extern bool pMenu;
-	extern bool menu;
 	extern bool debug;
 	extern bool posFlag;
 	extern unsigned int fontSize;
@@ -126,7 +133,7 @@ namespace ui {
 	void quitGame();
 	void quitMenu();
 	void optionsMenuF();
-	void drawMenu(std::vector<menuItem>mi);
+	void drawMenu(Menu* menu);
 
 
 	/*

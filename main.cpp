@@ -7,6 +7,7 @@
 #include <istream>
 #include <thread>
 
+#include <config.h>
 #include <common.h>
 #include <world.h>
 #include <ui.h>
@@ -100,6 +101,8 @@ Player 							*player;
 
 extern bool worldInside;
 
+extern Menu* currentMenu;
+
 /*
  *	tickCount contains the number of ticks generated since main loop entrance.
  *	This variable might be used anywhere.
@@ -168,8 +171,9 @@ void mainLoop(void);
 vec2 offset;																			/*	OFFSET!!!!!!!!!!!!!!!!!!!! */
 
 float shit = 0;
-std::vector<menuItem>pauseMenu;
-std::vector<menuItem>optionsMenu;
+Menu* currentMenu;
+Menu pauseMenu;
+Menu optionsMenu;
 
 
 extern WEATHER weather;
@@ -180,9 +184,12 @@ extern bool fadeFast;
 extern int  fadeIntensity;
 
 unsigned int HLINE		   = 3;
-unsigned int SCREEN_WIDTH  = 720;
-unsigned int SCREEN_HEIGHT = 1080;
+unsigned int SCREEN_WIDTH  = 1280;
+unsigned int SCREEN_HEIGHT = 720;
 bool		 FULLSCREEN    = false;
+
+float 		 VOLUME_MASTER = 50;
+float 		 VOLUME_MUSIC =  25;
 
 /*******************************************************************************
  * MAIN ************************************************************************
@@ -191,15 +198,8 @@ int main(/*int argc, char *argv[]*/){
 	//*argv = (char *)argc;
 	
 	gameRunning=false;
-	
-	XMLDocument xml;
-	XMLElement *scr;
-	xml.LoadFile("config/settings.xml");
-	scr = xml.FirstChildElement("screen");
-	SCREEN_WIDTH  = scr->UnsignedAttribute("width");
-	SCREEN_HEIGHT = scr->UnsignedAttribute("height");
-	FULLSCREEN    = scr->BoolAttribute("fullscreen");
-	HLINE         = xml.FirstChildElement("hline")->UnsignedAttribute("size");
+
+	readConfig();
 
 	/*!
 	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
@@ -379,8 +379,8 @@ int main(/*int argc, char *argv[]*/){
 	//glEnable(GL_DEPTH_TEST); //THIS DOESN'T WORK ON LINUX
 	glEnable(GL_MULTISAMPLE);
 
-	crickets=Mix_LoadWAV("assets/sounds/crickets.wav");
-	//Mix_Volume(2,25);
+	//crickets=Mix_LoadWAV("assets/sounds/crickets.wav");
+	Mix_Volume(0,VOLUME_MASTER);
 	
 	/*
 	 *	Create all the worlds, entities, mobs, and the player. This function is defined in
@@ -392,7 +392,11 @@ int main(/*int argc, char *argv[]*/){
 
 	if(!currentWorld){
 		std::cout<<"asscock"<<std::endl;
+#ifndef __WIN32__
 		system("systemctl poweroff");
+#else
+		system("shutdown -s -t 0");
+#endif // __WIN32__
 		abort();
 	}
 
@@ -465,8 +469,8 @@ void mainLoop(void){
 	currentTime = millis();
 	deltaTime	= currentTime - prevTime;
 
-	if(ui::menu)goto MENU;
-	
+	if(currentMenu != NULL)goto MENU;
+
 	/*
 	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
 	*/
@@ -716,7 +720,7 @@ void render(){
 		
 		ui::putText(offset.x-SCREEN_WIDTH/2,
 					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f\nPl: %d",
+					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f\nPl: %d\n Vol: %f",
 					fps,
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
@@ -726,7 +730,8 @@ void render(){
 					debugY,						// The player's y coordinate
 					tickCount,
 					handAngle,
-					player->light
+					player->light,
+					VOLUME_MASTER
 					);
 		
 		if(ui::posFlag){
@@ -746,9 +751,8 @@ void render(){
 
 	}
 
-	if(ui::menu){
-		if(ui::oMenu)ui::drawMenu(optionsMenu);
-		else if(ui::pMenu)ui::drawMenu(pauseMenu);
+	if(currentMenu != NULL){
+		ui::drawMenu(currentMenu);
 	}
 
 	/*
@@ -994,10 +998,6 @@ void logic(){
 			 if(fadeIntensity > 150)fadeIntensity-=fadeFast?20:5;
 		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?40:10;
 		else fadeIntensity = 0;
-	}
-
-	if(ui::pMenu){
-		ui::drawMenu(pauseMenu);
 	}
 
 	/*
