@@ -80,7 +80,7 @@ struct col{
 		red-=a;
 		green-=a;
 		blue-=a;
-		return *this;
+		return{red+a,green+a,blue+a};
 	}
 	col operator+=(float a){
 		return{red+a,green+a,blue+a};
@@ -130,6 +130,8 @@ extern bool FULLSCREEN;
 //#define HLINE 3
 extern unsigned int HLINE;
 
+extern float VOLUME_MASTER;
+extern float VOLUME_MUSIC;
 /**
  * A 'wrapper' for libc's srand(), as we hope to eventually have our own random number
  * generator.

@@ -11,8 +11,9 @@ extern World	*currentWorld;
 extern Player	*player;
 
 extern float shit;
-extern std::vector<menuItem>pauseMenu;
-extern std::vector<menuItem>optionsMenu;
+extern Menu* currentMenu;
+extern Menu pauseMenu;
+extern Menu optionsMenu;
 
 extern void mainLoop(void);
 
@@ -222,14 +223,19 @@ void initEverything(void){
 
 	currentWorld->bgmPlay(NULL);
 	atexit(destroyEverything);
+	std::cout << "Hey";
 
-	pauseMenu.push_back(ui::createButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Resume"), ui::quitMenu));
-	pauseMenu.push_back(ui::createButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Options"), ui::optionsMenuF));
-	pauseMenu.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), ui::quitGame));
-	pauseMenu.push_back(ui::createButton({-256/2,-300},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Segfault"), segFault));
+	pauseMenu.items.push_back(ui::createParentButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Resume")));
+	pauseMenu.items.push_back(ui::createChildButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Options")));
+	pauseMenu.items.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), ui::quitGame));
+	pauseMenu.items.push_back(ui::createButton({-256/2,-300},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Segfault"), segFault));
+	pauseMenu.child = &optionsMenu;
+	pauseMenu.parent = NULL;
 
 
-	optionsMenu.push_back(ui::createSlider({-512/2,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, (const char*)("Shit"), &shit));
+	optionsMenu.items.push_back(ui::createSlider({-512/2,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, (const char*)("Shit"), &VOLUME_MASTER));
+	optionsMenu.child = NULL;
+	optionsMenu.parent = &pauseMenu;
 	// optionsMenu.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), );
 }
 
