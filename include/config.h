@@ -5,8 +5,8 @@
 #include <SDL2/SDL_mixer.h>
 #include <tinyxml2.h>
 
-void readConfig();
+void readConfig(void);
 
-void updateConfig();
+void updateConfig(void);
 
 #endif //CONFIG_H

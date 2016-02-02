@@ -593,3 +593,9 @@
 
 	- began rewriting item/inventory system
 	- worked on option menu actually modifying options (updating settings.xml)
+
+2/2/2016:
+=========
+
+	- unbroke inventory stuff
+	- saved xml stuffs and volumes stuffsfees

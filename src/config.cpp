@@ -12,7 +12,7 @@ extern float 		 VOLUME_MUSIC;
 
 XMLDocument xml;
 
-void readConfig(){
+void readConfig(void){
 	XMLElement *scr;
 	XMLElement *vol;
 	xml.LoadFile("config/settings.xml");
@@ -28,7 +28,7 @@ void readConfig(){
 
 }
 
-void updateConfig(){
+void updateConfig(void){
 	XMLElement *vol = xml.FirstChildElement("volume")->FirstChildElement("master")->ToElement();
 	vol->SetAttribute("volume",VOLUME_MASTER);
 	
