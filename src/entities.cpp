@@ -20,7 +20,7 @@ std::string sTexLoc[] = {	"assets/townhall.png",
 							"assets/house1.png", 
 							"assets/fountain1.png",
 							"assets/lampPost1.png",
-							"assets/brazzier.png"};
+							"assets/brazier.png"};
 
 GLuint waterTex;
 
@@ -43,7 +43,7 @@ void getRandomName(Entity *e){
 	
 	tempNum = rand() % max;
 	names.seekg(0,names.beg);
-	
+
 	for(unsigned int i=0;i<tempNum;i++)
 		names.getline(bufs,32);
 	
@@ -420,7 +420,8 @@ const char *randomDialog[] = {
 	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
 	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
 	"Frig.",
-	"The sine of theta equals the opposite over the hypotenuese."
+	"The sine of theta equals the opposite over the hypotenuese.",
+	"Did you know the developers spelt brazier as brazzier."
 };
 
 void NPC::interact(){ //have the npc's interact back to the player

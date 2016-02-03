@@ -9,4 +9,6 @@ void readConfig();
 
 void updateConfig();
 
+void saveConfig();
+
 #endif //CONFIG_H

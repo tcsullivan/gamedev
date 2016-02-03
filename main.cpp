@@ -469,7 +469,7 @@ void mainLoop(void){
 	currentTime = millis();
 	deltaTime	= currentTime - prevTime;
 
-	if(currentMenu != NULL)goto MENU;
+	if(currentMenu)goto MENU;
 
 	/*
 	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
@@ -610,10 +610,6 @@ void render(){
 	currentWorld->draw(player);
 
 
-	/*
-	 *	Apply shaders if desired.
-	*/
-
 	handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
 	if(ui::mouse.x < player->loc.x){
 		if(handAngle <= 0)
@@ -623,68 +619,6 @@ void render(){
 		}
 	}
 	if(ui::mouse.x > player->loc.x && ui::mouse.y < player->loc.y+player->height/2 && handAngle <= 0) handAngle = 360+handAngle;
-	//if(ui::mouse.x < player->loc.x + (player->width/2)){player->left = true;player->right=false;}
-	//if(ui::mouse.x >= player->loc.x + (player->width/2)){player->right = true;player->left=false;}
-	/*if(player->light){
-		vec2 light;
-		int lightStr = 150;
-		vec2 curCoord;
-
-		light.x = player->loc.x + player->width;
-		light.y = player->loc.y + player->height/2;
-
-		std::vector<Ray>fray(60);
-		unsigned int a = 0;
-		float angle = 0;
-
-		glColor3f(0.0f, 0.0f, 0.0f);
-
-		for(auto &r : fray){
-			r.start = light;
-			curCoord = r.start;
-			angle = .5*a + handAngle;
-			//for length
-			for(int l = 0;l<=lightStr;l++){
-				//std::cout << a << ": " << curCoord.x << "," << curCoord.y << "\n";
-				curCoord.x += float((HLINE) * cos(angle*PI/180));
-				curCoord.y += float((HLINE) * sin(angle*PI/180));
-				for(auto &en : currentWorld->entity){
-					if(curCoord.x > en->loc.x && curCoord.x < en->loc.x + en->width && en->type!=STRUCTURET){
-						if(curCoord.y > en->loc.y && curCoord .y < en->loc.y + en->height){
-							r.end = curCoord;
-							l=lightStr;
-						}
-					}
-				}
-				if(curCoord.x > player->loc.x && curCoord.x < player->loc.x + player->width){
-						if(curCoord.y > player->loc.y && curCoord .y < player->loc.y + player->height){
-							r.end = curCoord;
-							l=lightStr;
-						}
-				}if(l==lightStr)r.end = curCoord;
-			}//end length
-			glBegin(GL_LINES);
-				glVertex2f(r.start.x,r.start.y);
-				glVertex2f(r.end.x, r.end.y);
-			glEnd();
-			//std::cout << angle << "\n";
-			a++;
-		}
-
-		glUseProgramObjectARB(shaderProgram);
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,300);
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
-		glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 5);
-		glColor4f(1.0f, 1.0f, 1.0f, .5f);
-		for(unsigned int r = 0; r < fray.size(); r++){
-			glBegin(GL_TRIANGLES);
-				glVertex2f(fray[r].start.x, fray[r].start.y);
-				glVertex2f(fray[r].end.x, fray[r].end.y);
-				r==fray.size()-1 ? glVertex2f(fray[r].end.x, fray[r].end.y) : glVertex2f(fray[r+1].end.x, fray[r+1].end.y);
-			glEnd();
-		}
-		glUseProgramObjectARB(0);
-	}*/
 
 	
 	player->inv->draw();
@@ -692,8 +626,6 @@ void render(){
 	/*
 	 *	Here we draw a black overlay if it's been requested.
 	*/
-	//glUseProgramObjectARB(0);
-
 	
 	if(fadeIntensity){
 		if(fadeWhite)
@@ -751,7 +683,7 @@ void render(){
 
 	}
 
-	if(currentMenu != NULL){
+	if(currentMenu){
 		ui::drawMenu(currentMenu);
 	}
 
@@ -826,6 +758,7 @@ void logic(){
 			*/
 
 			if(n->canMove) n->wander((rand() % 120 + 30));
+
 			if(!player->inv->usingi) n->hit = false;
 			if(player->inv->usingi && !n->hit && player->inv->detectCollision(vec2{n->loc.x, n->loc.y},vec2{n->loc.x+n->width,n->loc.y+n->height})){
 				n->health -= 25;

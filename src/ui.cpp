@@ -640,6 +640,7 @@ namespace ui {
 	void quitGame(){
 		gameRunning = false;
 		updateConfig();
+		saveConfig();
 	}
 
 	void quitMenu(){

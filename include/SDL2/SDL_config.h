@@ -137,7 +137,7 @@ typedef unsigned int uintptr_t;
 #define HAVE_SCALBN 1
 #endif
 #if !defined(_MSC_VER) || defined(_USE_MATH_DEFINES)
-#define HAVE_M_PI 1
+//#define HAVE_M_PI 1
 #endif
 #else
 #define HAVE_STDARG_H   1
