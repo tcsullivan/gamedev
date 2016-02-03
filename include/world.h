@@ -285,7 +285,7 @@ public:
 	 * upon object interaction.
 	 */
 	
-	void addObject(ITEM_ID id,const char *pickupDialog, float x, float y);
+	void addObject(/*ITEM_ID id*/std::string in,const char *pickupDialog, float x, float y);
 	
 	/**
 	 * Adds a particle to the world with the specified coordinates, dimensions,

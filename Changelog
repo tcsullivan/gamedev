@@ -582,3 +582,20 @@
 	- Game has a menu API
 	- Pause Menu
 
+1/26/2016:
+==========
+
+	- wrote paper regarding what we've learned, and where we're at
+	- ported game to Windows, left EXE and DLLs in repo
+	
+2/1/2016:
+=========
+
+	- began rewriting item/inventory system
+	- worked on option menu actually modifying options (updating settings.xml)
+
+2/2/2016:
+=========
+
+	- unbroke inventory stuff
+	- saved xml stuffs and volumes stuffsfees

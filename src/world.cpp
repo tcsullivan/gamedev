@@ -284,9 +284,9 @@ void World::update(Player *p,unsigned int delta){
 	
 	p->loc.y += p->vel.y			 * delta;
 	p->loc.x +=(p->vel.x * p->speed) * delta;
-	if(p->inv->usingi){
+	/*if(p->inv->usingi){
 		p->inv->useItem();
-	}
+	}*/
 
 	/*
 	 *	Update coordinates of all entities except for structures.
@@ -1001,8 +1001,8 @@ void World::addNPC(float x,float y){
 	entity.push_back(npc.back());
 }
 
-void World::addObject(ITEM_ID i,const char *p, float x, float y){
-	object.push_back(new Object(i,p));
+void World::addObject(/*ITEM_ID i*/std::string in,const char *p, float x, float y){
+	object.push_back(new Object(in,p));
 	object.back()->spawn(x,y);
 
 	entity.push_back(object.back());

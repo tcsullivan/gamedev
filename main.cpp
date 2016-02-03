@@ -123,6 +123,7 @@ unsigned int deltaTime = 0;
 GLuint fragShader;
 GLuint shaderProgram;
 GLuint colorIndex;
+GLuint mouseTex;
 
 Mix_Chunk *crickets;
 
@@ -195,7 +196,7 @@ float 		 VOLUME_MUSIC =  25;
  * MAIN ************************************************************************
  *******************************************************************************/
 int main(/*int argc, char *argv[]*/){
-	//*argv = (char *)argc;
+	// *argv = (char *)argc;
 	
 	gameRunning=false;
 
@@ -306,7 +307,7 @@ int main(/*int argc, char *argv[]*/){
 	*/
 	
 	ui::initFonts();
-	ui::setFontFace("ttf/Perfect DOS VGA 437.ttf");		// as in gamedev/ttf/<font>
+	ui::setFontFace("ttf/VCR_OSD_MONO_1.001.ttf");		// as in gamedev/ttf/<font>
 	
 	/*
 	 *	Initialize the random number generator. At the moment, initRand is a macro pointing to libc's
@@ -405,6 +406,7 @@ int main(/*int argc, char *argv[]*/){
 	*/
 
 	invUI = Texture::loadTexture("assets/invUI.png"	);
+	mouseTex = Texture::loadTexture("assets/mouse.png");
 	
 	initInventorySprites();
 	
@@ -507,8 +509,7 @@ void mainLoop(void){
 		debugY = player->loc.y;
 	}	
 
-	MENU:
-
+MENU:
 	render();	// Call the render loop;
 }
 
@@ -692,12 +693,15 @@ void render(){
 	*/
 
 	glColor3ub(255,255,255);
-
-	glBegin(GL_TRIANGLES);
-		glVertex2i(ui::mouse.x			,ui::mouse.y		  );
-		glVertex2i(ui::mouse.x+HLINE*3.5,ui::mouse.y		  );
-		glVertex2i(ui::mouse.x			,ui::mouse.y-HLINE*3.5);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, mouseTex);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0,0);glVertex2i(ui::mouse.x			,ui::mouse.y			);
+		glTexCoord2f(1,0);glVertex2i(ui::mouse.x+HLINE*5	,ui::mouse.y		 	);
+		glTexCoord2f(1,1);glVertex2i(ui::mouse.x+HLINE*5	,ui::mouse.y-HLINE*5	);
+		glTexCoord2f(0,1);glVertex2i(ui::mouse.x 			,ui::mouse.y-HLINE*5 	);
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
 	
 	/**************************
 	****  END RENDERING   ****
@@ -725,7 +729,7 @@ void logic(){
 	/*
 	 *	NPCSelected is used to insure that only one NPC is made interactable with the mouse
 	 *	if, for example, multiple entities are occupying one space.
-	*/
+	 */
 
 	static bool NPCSelected = false;
 
@@ -738,7 +742,8 @@ void logic(){
 	/*
 	 *	Run the world's detect function. This handles the physics of the player and any entities
 	 *	that exist in this world.
-	*/
+	 */
+	
 	currentWorld->detect(player);
 	if(player->loc.y<.02)gameRunning=false;
 
@@ -746,21 +751,30 @@ void logic(){
 	 *	Entity logic: This loop finds every entity that is alive and in the current world. It then
 	 *	basically runs their AI functions depending on what type of entity they are. For NPCs,
 	 *	click detection is done as well for NPC/player interaction.
-	 *
-	*/
+	 */
+	 
 	for(auto &n : currentWorld->npc){
 		if(n->alive){
+			
 			/*
 			 *	Make the NPC 'wander' about the world if they're allowed to do so.
 			 *	Entity->canMove is modified when a player interacts with an NPC so
 			 *	that the NPC doesn't move when it talks to the player.
-			 *
-			*/
+			 */
 
+/*<<<<<<< HEAD
 			if(n->canMove) n->wander((rand() % 120 + 30));
 
 			if(!player->inv->usingi) n->hit = false;
 			if(player->inv->usingi && !n->hit && player->inv->detectCollision(vec2{n->loc.x, n->loc.y},vec2{n->loc.x+n->width,n->loc.y+n->height})){
+=======*/
+			if(n->canMove)
+				n->wander((rand() % 120 + 30));
+			
+			/*if(!player->inv->usingi) n->hit = false;
+			
+			if(player->inv->usingi && !n->hit && player->inv->detectCollision((vec2){n->loc.x, n->loc.y},(vec2){n->loc.x+n->width,n->loc.y+n->height})){
+>>>>>>> 7ab072caaaec09720ad79cfed5738e89bc60c44f
 				n->health -= 25;
 				n->hit = true;
 				for(int r = 0; r < (rand()%5);r++)
@@ -769,10 +783,11 @@ void logic(){
 					for(int r = 0; r < (rand()%30)+15;r++)
 						currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%10)*.01-.05), {(rand()%75)+10/100.0f,0,0}, 10000);
 				}
-			}
+			}*/
+			
 			/*
 			 *	Don't bother handling the NPC if another has already been handled.
-			*/
+	 		 */
 
 			if(NPCSelected){
 				n->near=false;
@@ -781,7 +796,7 @@ void logic(){
 
 			/*
 			 *	Check if the NPC is under the mouse.
-			*/
+			 */
 
 			if(ui::mouse.x >= n->loc.x 				&&
 			   ui::mouse.x <= n->loc.x + n->width 	&&
@@ -793,15 +808,15 @@ void logic(){
 				 *	considered legal. In other words, require the player to be close to
 				 *	the NPC in order to interact with it.
 				 *
-				 *	This uses the Pythagorean theorem to check for NPCs within a certain			 *
-				*/
+				 *	This uses the Pythagorean theorem to check for NPCs within a certain
+ 				 */
 
 				if(pow((n->loc.x - player->loc.x),2) + pow((n->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
 
 					/*
 					 *	Set Entity->near so that this NPC's name is drawn under them, and toggle NPCSelected
 					 *	so this NPC is the only one that's clickable.
-					*/
+					 */
 
 					n->near=true;
 					NPCSelected=true;
@@ -809,7 +824,7 @@ void logic(){
 					/*
 					 *	Check for a right click, and allow the NPC to interact with the
 					 *	player if one was made.
-					*/
+					 */
 
 					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 
@@ -821,17 +836,18 @@ void logic(){
 
 				/*
 				 *	Hide the NPC's name if the mouse isn't on the NPC.
-				*/
+				 */
 
 			}else n->near=false;
 		}
 	}
+	
 	for(auto &m : currentWorld->mob){
 		if(m->alive){
 
 			/*
 			 *	Run the Mob's AI function.
-			*/
+			 */
 
 			switch(m->subtype){
 			case MS_RABBIT:
@@ -850,6 +866,7 @@ void logic(){
 			}
 		}
 	}
+	
 	if(!objectInteracting){
 		for(auto &o : currentWorld->object){
 			if(o->alive){

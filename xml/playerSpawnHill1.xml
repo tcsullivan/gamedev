@@ -38,6 +38,6 @@
 	
 	<text id="1" >
 		My name's Johnny.
-		<give id="0" count="1" />
+		<give id="Dank Maymay" count="1" />
 	</text>
 </Dialog>

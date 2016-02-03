@@ -2,27 +2,89 @@
 #include <entities.h>
 #include <ui.h>
 
-#define ITEM_COUNT 5	// Total number of items that actually exist
+#include <tinyxml2.h>
+using namespace tinyxml2;
 
 extern Player *player;
 extern GLuint invUI;
 static float hangle = 0.0f;
 static bool swing = false;
-static float xc,yc;
+//static float xc,yc;
 static vec2 itemLoc;
 Mix_Chunk* swordSwing;
 
-static const Item item[ITEM_COUNT]= {
-	#include "../config/items.h"
-};
+std::vector<Item *> itemMap;
 
-static GLuint itemtex[ITEM_COUNT];
-void itemDraw(Player *p,ITEM_ID id, ITEM_TYPE type);
+void items(void){
+	XMLDocument xml;
+	XMLElement *exml;
+	xml.LoadFile("config/items.xml");
+	exml = xml.FirstChildElement("item");
+	while(exml){
+		
+		itemMap.push_back(new Item());
+		itemMap.back()->width  = exml->FloatAttribute("width") * HLINE;
+		itemMap.back()->height = exml->FloatAttribute("height") * HLINE;
+		itemMap.back()->maxStackSize = exml->UnsignedAttribute("maxstack");
+		
+		itemMap.back()->name = exml->Attribute("name");
+		itemMap.back()->type = exml->Attribute("type");
+		itemMap.back()->texloc = exml->Attribute("sprite");
+
+		exml = exml->NextSiblingElement();
+	}
+}
+
+int Inventory::addItem(std::string name,uint count){
+	for(unsigned int i=0;i<itemMap.size();i++){
+		if(itemMap[i]->name == name){
+			for(auto &in : items){
+				if(in.id == i){
+					in.count += count;
+					return 0;
+				}
+			}
+			items.push_back((item_t){i,count});
+			return 0;
+		}
+	}
+	return -1;
+}
+
+int Inventory::takeItem(std::string name,uint count){
+	unsigned int id = 999999;
+	for(unsigned int i=0;i<itemMap.size();i++){
+		if(itemMap[i]->name == name){
+			id = i;
+			break;
+		}
+	}
+	for(unsigned int i=0;i<items.size();i++){
+		if(items[i].id == id){
+			if(count > items[i].count)
+				items.erase(items.begin()+i);
+			else 
+				items[i].count -= count;
+			return 0;
+		}
+	}
+	return -1;
+}
+
+/*static const Item item[ITEM_COUNT]= {
+	#include "../config/items.h"
+};*/
+
+static GLuint *itemtex;//[ITEM_COUNT];
+void itemDraw(Player *p,uint id);
 
 void initInventorySprites(void){
-	unsigned int i;
-	for(i = 0;i < ITEM_COUNT;i++){
-		itemtex[i] = Texture::loadTexture(getItemTexturePath((ITEM_ID)i));
+	
+	items();
+	itemtex = new GLuint[itemMap.size()];
+	
+	for(unsigned int i = 0;i<itemMap.size();i++){
+		itemtex[i] = Texture::loadTexture(getItemTexturePath(itemMap[i]->name));
 	}
 
 	swordSwing = Mix_LoadWAV("assets/sounds/shortSwing.wav");
@@ -33,19 +95,43 @@ void destroyInventory(void){
 	Mix_FreeChunk(swordSwing);
 }
 
-char *getItemTexturePath(ITEM_ID id){
+const char *getItemTexturePath(std::string name){
+	for(auto &i : itemMap){
+		if(i->name == name)
+			return i->texloc.c_str();
+	}
+	return NULL;
+}
+
+/*char *getItemTexturePath(ITEM_ID id){
 	return item[id].textureLoc;
+}*/
+
+float getItemWidth(std::string name){
+	for(auto &i : itemMap){
+		if(i->name == name)
+			return i->width;
+	}
+	return 0;
 }
 
-int getItemWidth(ITEM_ID id){
+/*int getItemWidth(ITEM_ID id){
 	return item[id].width;
+}*/
+
+float getItemHeight(std::string name){
+	for(auto &i : itemMap){
+		if(i->name == name)
+			return i->height;
+	}
+	return 0;
 }
 
-int getItemHeight(ITEM_ID id){
+/*int getItemHeight(ITEM_ID id){
 	return item[id].height;
-}
+}*/
 
-Item::Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const char *tl){
+/*Item::Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const char *tl){
 	id = i;
 	type = t;
 	width = w;
@@ -59,24 +145,24 @@ Item::Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const
 	strcpy(textureLoc,tl);
 
 	//tex= new Texturec(1,textureLoc);
-}
+}*/
 
 Inventory::Inventory(unsigned int s){
 	sel=0;
 	size=s;
-	inv = new struct item_t[size];
-	memset(inv,0,size*sizeof(struct item_t));
+	//inv = new struct item_t[size];
+	//memset(inv,0,size*sizeof(struct item_t));
 }
 
 Inventory::~Inventory(void){
-	delete[] inv;
+	//delete[] inv;
 }
 
 void Inventory::setSelection(unsigned int s){
 	sel=s;
 }
 
-int Inventory::addItem(ITEM_ID id,unsigned char count){
+/*int Inventory::addItem(ITEM_ID id,unsigned char count){
 	//std::cout << id << "," << inv[os].id << std::endl;
 	
 	for(unsigned int i = 0; i < size; i++){
@@ -94,9 +180,9 @@ int Inventory::addItem(ITEM_ID id,unsigned char count){
 #endif // DEBUG
 
 	return 0;
-}
+}*/
 
-int Inventory::takeItem(ITEM_ID id,unsigned char count){
+/*int Inventory::takeItem(ITEM_ID id,unsigned char count){
 	for(unsigned int i = 0;i < size;i++){
 		if(inv[i].id == id){
 #ifdef DEBUG
@@ -107,7 +193,7 @@ int Inventory::takeItem(ITEM_ID id,unsigned char count){
 		}
 	}
 	return -1;
-}
+}*/
 
 void Inventory::draw(void){
 	static unsigned int lop = 0;
@@ -122,72 +208,83 @@ void Inventory::draw(void){
 	unsigned int a = 0;
 	unsigned int end = 0;
 	static vec2 mouseStart = {0,0};
+	
 	for(auto &r : iray){
 		r.start.x = player->loc.x + (player->width/2);
 		r.start.y = player->loc.y + (player->height/2);
-		curCoord[a] = r.start;
+		curCoord[a++] = r.start;
 		//dfp[a] = 0;
-		a++;
+		//a++;
 	}a=0;
+	
 	if(invOpening){
-		end = 0;
+		//end = 0;
+		
 		for(auto &d : dfp){
-			if(a != 0){
-				if(dfp[a-1]>50)d+=1.65*deltaTime;
-			}else{
-				d += 1.65*deltaTime;
-			}
+			if(!a || dfp[a - 1] > 50)
+				d += 1.65 * deltaTime;
 			if(d >= range)
 				d = range;
 			a++;
 		}a=0;
-		if(end < numSlot)invOpen=true;
-	}else if(!invOpening){
+		
+		// if(end < numSlot)
+		if(numSlot > 0)invOpen=true;
+	}else{
 		for(auto &d : dfp){
 			if(d > 0){
-				d-=1.65*deltaTime;
+				d -= 1.65 * deltaTime;
 			}else end++;
 		}
-		if(end >= numSlot)invOpen=false;
+		if(end >= numSlot)
+			invOpen = false;
 	}
+	
+	/*
+	 * 	a = 0
+	 */
+	
 	if(invOpen){
+		
 		for(auto &r : iray){
-			angle=180-(angleB*a) - angleB/2.0f;
+			angle = 180 - (angleB * a) - angleB / 2.0f;
 			curCoord[a].x += float((dfp[a]) * cos(angle*PI/180));
 			curCoord[a].y += float((dfp[a]) * sin(angle*PI/180));
 			r.end = curCoord[a];
 
 			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)(range?range:1))*0.5f);
  			glBegin(GL_QUADS);
-				glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2));
-				glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2));
-				glVertex2i(r.end.x-(itemWide/2)+itemWide,	r.end.y-(itemWide/2)+itemWide);
-				glVertex2i(r.end.x-(itemWide/2),			r.end.y-(itemWide/2)+itemWide);
+				glVertex2i(r.end.x-(itemWide/2),		 r.end.y-(itemWide/2));
+				glVertex2i(r.end.x-(itemWide/2)+itemWide,r.end.y-(itemWide/2));
+				glVertex2i(r.end.x-(itemWide/2)+itemWide,r.end.y-(itemWide/2)+itemWide);
+				glVertex2i(r.end.x-(itemWide/2),		 r.end.y-(itemWide/2)+itemWide);
 			glEnd();
 
-			if(inv[a].count > 0){
+			if(!items.empty() && a < items.size() && items[a].count){
 				glEnable(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, itemtex[inv[a].id]);			
+				glBindTexture(GL_TEXTURE_2D, itemtex[items[a].id/*inv[a].id*/]);
 				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)(range?range:1))*0.8f);
-	 			glBegin(GL_QUADS);
-					if(item[inv[a].id].height > item[inv[a].id].width){
-						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y-(itemWide/2));
-						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y-(itemWide/2));
-						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y+(itemWide/2));
-						glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y+(itemWide/2));
+				glBegin(GL_QUADS);
+					if(itemMap[items[a].id]->height > itemMap[items[a].id]->width){//item[inv[a].id].width){
+						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
+						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
+						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y+(itemWide/2));
+						glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y+(itemWide/2));
 					}else{
-						glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),	r.end.y-(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
-						glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),	r.end.y-(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
-						glTexCoord2i(1,0);glVertex2i(r.end.x+(itemWide/2),	r.end.y+(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
-						glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),	r.end.y+(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
+						glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),r.end.y-(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
+						glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),r.end.y-(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
+						glTexCoord2i(1,0);glVertex2i(r.end.x+(itemWide/2),r.end.y+(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
+						glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),r.end.y+(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
 					}
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
-				ui::putText(r.end.x-(itemWide/2),r.end.y-(itemWide*.9),"%s",item[inv[a].id].name);
-				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",inv[a].count);
+				ui::putText(r.end.x-(itemWide/2),r.end.y-(itemWide*.9),"%s",itemMap[items[a].id]->name);
+				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",items[a].count);
 			}
+
 			a++;
-			if(sel==a){
+			
+			if(sel == a){
 	 			glBegin(GL_LINES);
 	 				glColor4f(1.0f, 0.0f, 0.0f, 0.0f);
 					glVertex2i(r.start.x,r.start.y);
@@ -199,6 +296,8 @@ void Inventory::draw(void){
 	}else if(invHover){
 		static unsigned int highlight = 0;
 		static unsigned int thing = 0;
+
+		std::cout<<"Inventory2???"<<std::endl;
 
 		if(!mouseSel){
 			mouseStart.x = ui::mouse.x - offset.x;
@@ -243,41 +342,43 @@ void Inventory::draw(void){
 				glVertex2i(r.end.x-(itemWide/2),	r.end.y+(itemWide/2));
 			glEnd();
 
-			if(inv[a].count > 0){
-				glEnable(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, itemtex[inv[a].id]);			
-				glColor4f(1.0f, 1.0f, 1.0f, a == highlight ? 0.8f : 0.2f);
-	 			glBegin(GL_QUADS);
-	 				if(item[inv[a].id].height > item[inv[a].id].width){
-						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y-(itemWide/2));
-						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y-(itemWide/2));
-						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y+(itemWide/2));
-						glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)item[inv[a].id].width/(float)item[inv[a].id].height)),	r.end.y+(itemWide/2));
-					}else{
-						glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),	r.end.y-(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
-						glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),	r.end.y-(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
-						glTexCoord2i(1,0);glVertex2i(r.end.x+(itemWide/2),	r.end.y+(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
-						glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),	r.end.y+(itemWide/2)*((float)item[inv[a].id].height/(float)item[inv[a].id].width));
-					}
-				glEnd();
-				glDisable(GL_TEXTURE_2D);
-				//ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/1.75),"%d",inv[a].count);
-			}
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, itemtex[items[a].id]);
+			glColor4f(1.0f, 1.0f, 1.0f, a == highlight ? 0.8f : 0.2f);
+			glBegin(GL_QUADS);
+				if(itemMap[items[a].id]->height > itemMap[items[a].id]->width){
+					glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y-(itemWide/2));
+					glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y-(itemWide/2));
+					glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y+(itemWide/2));
+					glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y+(itemWide/2));
+				}else{
+					glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),r.end.y-(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
+					glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),r.end.y-(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
+					glTexCoord2i(1,0);glVertex2i(r.end.x+(itemWide/2),r.end.y+(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
+					glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),r.end.y+(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
+				}
+			glEnd();
+			glDisable(GL_TEXTURE_2D);
+			//ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/1.75),"%d",inv[a].count);
+
 			a++;
 		}
-		if(inv[highlight].count > 0)ui::putStringCentered(player->loc.x+player->width/2, player->loc.y + range*.75,item[inv[highlight].id].name);
+		ui::putStringCentered(player->loc.x+player->width/2, player->loc.y + range*.75,itemMap[items[highlight].id]->name.c_str());
 	}
-	if(inv[sel].count)itemDraw(player,inv[sel].id,item[inv[sel].id].type);
+	
+	if(!items.empty() && items[sel].count)
+		itemDraw(player,items[sel].id);
 	lop++;
 }
 
-void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
+void itemDraw(Player *p,uint id){
 	itemLoc.y = p->loc.y+(p->height/3);
 	itemLoc.x = p->left?p->loc.x:p->loc.x+p->width;
 	glPushMatrix();
+	
 	if(!id)return;
-	switch(type){
-	case SWORD:
+	
+	if(itemMap[id]->type == "Sword"){
 		if(p->left){
 			if(hangle < 15){
 				hangle=15.0f;
@@ -291,10 +392,8 @@ void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
 				//swing=false;
 			}
 		}
-		break;
-	default:
-		hangle = 0.0f;
-	}
+	}else hangle = 0.0f;
+	
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glTranslatef(itemLoc.x,itemLoc.y,0);
@@ -304,10 +403,10 @@ void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
 	glBindTexture(GL_TEXTURE_2D,itemtex[id]);
 	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2f(itemLoc.x,				  itemLoc.y);
-		glTexCoord2i(1,1);glVertex2f(itemLoc.x+item[id].width,itemLoc.y);
-		glTexCoord2i(1,0);glVertex2f(itemLoc.x+item[id].width,itemLoc.y+item[id].height);
-		glTexCoord2i(0,0);glVertex2f(itemLoc.x,				  itemLoc.y+item[id].height);
+		glTexCoord2i(0,1);glVertex2f(itemLoc.x,					  itemLoc.y);
+		glTexCoord2i(1,1);glVertex2f(itemLoc.x+itemMap[id]->width,itemLoc.y);
+		glTexCoord2i(1,0);glVertex2f(itemLoc.x+itemMap[id]->width,itemLoc.y+itemMap[id]->height);
+		glTexCoord2i(0,0);glVertex2f(itemLoc.x,					  itemLoc.y+itemMap[id]->height);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	glTranslatef(player->loc.x*2,0,0);
@@ -317,10 +416,11 @@ void itemDraw(Player *p,ITEM_ID id,ITEM_TYPE type){
 
 int Inventory::useItem(void){
 	static bool up = false;
-	ITEM_TYPE type = item[inv[sel].id].type;
+	//ITEM_TYPE type = item[inv[sel].id].type;
 	if(!invHover){
-		switch(type){
-		case SWORD:
+		
+		if(itemMap[items[sel].id]->type == "Sword"){
+		
 			if(swing){
 				if(!player->left){
 					if(hangle==-15){up=true;Mix_PlayChannel(2,swordSwing,0);}
@@ -345,28 +445,30 @@ int Inventory::useItem(void){
 				swing=true;
 				Mix_PlayChannel(2,swordSwing,0);
 			}
-			break;
-		default:
 			//hangle++;
-			break;
+			//break;
 		}
 	}
 	return 0;
 }
 
 bool Inventory::detectCollision(vec2 one, vec2 two){
-	float i = 0.0f;
-	if(item[inv[sel].id].type == SWORD){
-		while(i<item[inv[sel].id].height){
+	//float i = 0.0f;
+	
+	/*if(items.empty() || !items[sel].count)
+		return false;
+	if(itemMap[items[sel].id]->type == "Sword"){
+		std::cout<<"Collision???"<<std::endl;
+		while(i<itemMap[items[sel].id]->height){
 			xc = itemLoc.x; yc = itemLoc.y;
 			xc += float(i) * cos((hangle+90)*PI/180);
 			yc += float(i) * sin((hangle+90)*PI/180);
 
-			/*glColor4f(1.0f,1.0f,1.0f,1.0f);
+			*glColor4f(1.0f,1.0f,1.0f,1.0f);
 			glBegin(GL_LINES);
 				glVertex2f(player->loc.x,player->loc.y+player->height/3);
 				glVertex2f(xc,yc);
-			glEnd();*/
+			glEnd();*
 
 			if(xc >= one.x && xc <= two.x){
 				if(yc >= one.y && yc <= two.y){
@@ -376,7 +478,7 @@ bool Inventory::detectCollision(vec2 one, vec2 two){
 
 			i+=HLINE;
 		}
-	}
-	return false;
+	}*/
+	return !(one.x == two.y);
 }
 

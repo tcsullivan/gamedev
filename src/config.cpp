@@ -14,7 +14,6 @@ XMLDocument xml;
 XMLElement *scr;
 XMLElement *vol;
 
-
 void readConfig(){
 	xml.LoadFile("config/settings.xml");
 	scr = xml.FirstChildElement("screen");
@@ -32,7 +31,7 @@ void readConfig(){
 void updateConfig(){
 	vol->FirstChildElement("master")->SetAttribute("volume",VOLUME_MASTER);
 	vol->FirstChildElement("music")->SetAttribute("volume",VOLUME_MUSIC);
-	
+
 	Mix_Volume(0,VOLUME_MASTER);
 	Mix_VolumeMusic(VOLUME_MUSIC);
 
