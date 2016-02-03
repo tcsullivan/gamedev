@@ -1371,13 +1371,23 @@ void IndoorWorld::draw(Player *p){
 
 extern bool inBattle;
 
+std::vector<World *> battleNest;
+std::vector<vec2>    battleNestLoc;
+
 Arena::Arena(World *leave,Player *p,Mob *m){
 	generate(800);
 	addMob(MS_DOOR,100,100);
+	
 	inBattle = true;
-	exit = leave;
-	pxy = p->loc;
 	mmob = m;
+	//exit = leave;
+	//pxy = p->loc;
+	
+	mob.push_back(m);
+	entity.push_back(m);
+	
+	battleNest.push_back(leave);
+	battleNestLoc.push_back(p->loc);
 	
 	star = new vec2[100];
 	memset(star,0,100 * sizeof(vec2));
@@ -1392,14 +1402,20 @@ Arena::~Arena(void){
 }
 
 World *Arena::exitArena(Player *p){
+	World *tmp;
 	if(p->loc.x + p->width / 2 > mob[0]->loc.x				&&
 	   p->loc.x + p->width / 2 < mob[0]->loc.x + HLINE * 12 ){
-		inBattle = false;
+		tmp = battleNest.front();
+		battleNest.erase(battleNest.begin());
+		
+		inBattle = !battleNest.empty();
 		ui::toggleBlackFast();
 		ui::waitForCover();
-		p->loc = pxy;
-		mmob->alive = false;
-		return exit;
+		
+		p->loc = battleNestLoc.back();
+		battleNestLoc.pop_back();
+		//mmob->alive = false;
+		return tmp;
 	}else{
 		return this;
 	}

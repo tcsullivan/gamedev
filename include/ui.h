@@ -12,6 +12,7 @@
 #include <world.h>
 #include <ft2build.h>
 #include <SDL2/SDL_opengl.h>
+#include <fstream>
 #include FT_FREETYPE_H
 
 #define DEBUG
@@ -53,6 +54,30 @@ public:
 	void gotoChild();
 	void gotoParent();
 };
+
+typedef unsigned long DWORD;
+typedef unsigned short WORD;
+
+typedef struct{
+	WORD 	bfType;
+	DWORD 	bfSize;
+	WORD 	bfReserved1, bfReserved2;
+	DWORD 	bfOffBits; //how many bytes before the image data
+} __attribute__ ((packed)) BITMAPFILEHEADER;
+
+typedef struct{
+	DWORD 	biSize; //size of header in bytes
+	long 	biWidth;
+	long 	biHeight;
+	WORD 	biPlanes;
+	WORD 	biBitCount; //how many bits are in a pixel
+	DWORD 	biCompression;
+	DWORD 	biSizeImage; //size of image in bytes
+	long 	biXPelsPerMeter;
+	long 	biYPelsPerMeter;
+	DWORD 	biClrUsed; //how many colors there are
+	DWORD 	biClrImportant; //important colors
+} __attribute__ ((packed)) BITMAPINFOHEADER;
 
 namespace ui {
 	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f);

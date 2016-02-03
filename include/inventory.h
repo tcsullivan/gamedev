@@ -4,49 +4,12 @@
 #include <common.h>
 #include <string.h>
 
+#include <Texture.h>
+
 #define DEBUG
 
-/*#define ID 			Item(
-#define NAME 		,
-#define TYPE 		,
-#define WIDTH 		,
-#define HEIGHT 		,
-#define STACKSIZE 	,
-#define TEX 		,
-#define ENI 		),
-#define STOP		)*/
-
-/*
- * A list of all item IDs.
-*/
-
-/*#define ITEM_COUNT 5
-
-enum ITEM_ID {
-	DEBUG_ITEM = 0,
-	TEST_ITEM,
-	PLAYER_BAG,
-	FLASHLIGHT,
-	SWORD_WOOD
-};
-
-enum ITEM_TYPE {
-	TOOL = 1,
-	SWORD,
-	RANGED,
-	EQUIP,
-	FOOD
-};*/
-
 class Item{
-protected:
 public:
-	//ITEM_ID id;				// ID of the item
-	//ITEM_TYPE type;			// What category the item falls under
-	
-	//char *name;
-	//char *type;
-	
 	std::string name,type;
 	
 	float width;
@@ -56,7 +19,6 @@ public:
 	std::string texloc;
 	Texturec *tex;
 
-	//Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const char *tl);
 	GLuint rtex(){
 		return tex->image[0];
 	}
@@ -64,16 +26,13 @@ public:
 
 struct item_t{
 	uint count;
-	uint/*ITEM_ID*/ id;
+	uint id;
 } __attribute__((packed));
 
 class Inventory {
 private:
-
 	std::vector<item_t> items;
-
-	unsigned int size;		// Size of 'item' array
-	//item_t *inv;
+	unsigned int size;
 	int os = 0;
 public:
 	unsigned int sel;

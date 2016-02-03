@@ -221,12 +221,13 @@ namespace ui {
 			 *	making it white-on-black.
 			*/
 			
-			buf = new char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];	//(char *)malloc(ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows*4);
+			buf = new char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];
 		
 			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
 				buf[j*4  ]=fontColor[0];
 				buf[j*4+1]=fontColor[1];
 				buf[j*4+2]=fontColor[2];
+				//buf[j*4+3]=ftf->glyph->bitmap.buffer[j] == 255 ? 255 : 0;
 				buf[j*4+3]=ftf->glyph->bitmap.buffer[j];
 			}
 			
@@ -631,7 +632,7 @@ namespace ui {
 				
 				for(auto &c : player->qh.current){
 					hub.y -= fontSize * 1.15;
-					putString(hub.x,hub.y,c->title);
+					putString(hub.x,hub.y,c.title.c_str());
 				}	
 			}
 		}
@@ -768,7 +769,9 @@ namespace ui {
 						offset.x+m.button.loc.x + m.button.dim.x, 
 						offset.y+m.button.loc.y + m.button.dim.y);
 				//draw the button text
-				putStringCentered(offset.x + m.button.loc.x + (m.button.dim.x/2), (offset.y + m.button.loc.y + (m.button.dim.y/2)) - ui::fontSize/2, m.button.text);
+				putStringCentered(offset.x + m.button.loc.x + (m.button.dim.x/2),
+								  (offset.y + m.button.loc.y + (m.button.dim.y/2)) - ui::fontSize/2,
+								  m.button.text);
 				
 				//tests if the mouse is over the button
 				if(mouse.x >= offset.x+m.button.loc.x && mouse.x <= offset.x+m.button.loc.x + m.button.dim.x){
@@ -874,6 +877,68 @@ namespace ui {
 		}
 		setFontSize(16);
 	}
+
+	void takeScreenshot(GLubyte* pixels){
+		GLubyte bgr[SCREEN_WIDTH*SCREEN_HEIGHT*3];
+		for(uint x = 0; x < SCREEN_WIDTH*SCREEN_HEIGHT*3; x+=3){
+			bgr[x] = pixels[x+2];
+			bgr[x+1] = pixels[x+1];
+			bgr[x+2] = pixels[x];
+		}
+
+		time_t epoch = time(NULL);
+		struct tm* timen = localtime(&epoch);
+
+		std::string name = "screenshots/";
+		name += std::to_string(1900 + timen->tm_year) += "-";
+		name += std::to_string(timen->tm_mon + 1) += "-";
+		name += std::to_string(timen->tm_mday) += "_";
+		name += std::to_string(timen->tm_hour) += "-";
+		name += std::to_string(timen->tm_min) += "-";
+		name += std::to_string(timen->tm_sec);
+		name += ".bmp";
+		FILE* bmp = fopen(name.c_str(), "w+");
+
+		unsigned long header_size = sizeof(BITMAPFILEHEADER) +
+									sizeof(BITMAPINFOHEADER);
+
+		BITMAPFILEHEADER bmfh;
+		BITMAPINFOHEADER bmih;
+
+		memset(&bmfh, 0, sizeof(BITMAPFILEHEADER));
+		memset(&bmih, 0, sizeof(BITMAPINFOHEADER));
+
+		bmfh.bfType = 0x4d42;
+
+		bmfh.bfOffBits = 0x36;
+		bmfh.bfSize = header_size;
+		bmfh.bfReserved1 = 0;
+		bmfh.bfReserved2 = 0;
+
+
+		bmih.biSize = sizeof(BITMAPINFOHEADER);
+		bmih.biBitCount = 24;
+
+		bmih.biClrImportant = 0;
+		bmih.biClrUsed = 0;
+
+		bmih.biCompression = 0;
+
+		bmih.biWidth = SCREEN_WIDTH;
+		bmih.biHeight = SCREEN_HEIGHT;
+
+		bmih.biPlanes = 1;
+		bmih.biSizeImage = 0;
+
+		bmih.biXPelsPerMeter = 0x0ec4;
+		bmih.biYPelsPerMeter = 0x0ec4;
+
+		fwrite(&bmfh, 1,sizeof(BITMAPFILEHEADER),bmp);
+		fwrite(&bmih, 1,sizeof(BITMAPINFOHEADER),bmp);
+		fwrite(&bgr, 1,3*SCREEN_WIDTH*SCREEN_HEIGHT,bmp);
+
+	}
+
 	void dialogAdvance(void){
 		unsigned char i;
 		if(!typeOutDone){
@@ -1125,11 +1190,12 @@ DONE:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
 				case SDLK_F12:
-					std::cout << "Took screenshot" << std::endl;
 					// Make the BYTE array, factor of 3 because it's RBG.
 					static GLubyte* pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
 					glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
+					takeScreenshot(pixels);
+					std::cout << "Took screenshot" << std::endl;
 					break;
 				default:
 					break;

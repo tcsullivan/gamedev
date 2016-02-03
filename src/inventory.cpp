@@ -71,11 +71,7 @@ int Inventory::takeItem(std::string name,uint count){
 	return -1;
 }
 
-/*static const Item item[ITEM_COUNT]= {
-	#include "../config/items.h"
-};*/
-
-static GLuint *itemtex;//[ITEM_COUNT];
+static GLuint *itemtex;
 void itemDraw(Player *p,uint id);
 
 void initInventorySprites(void){
@@ -103,10 +99,6 @@ const char *getItemTexturePath(std::string name){
 	return NULL;
 }
 
-/*char *getItemTexturePath(ITEM_ID id){
-	return item[id].textureLoc;
-}*/
-
 float getItemWidth(std::string name){
 	for(auto &i : itemMap){
 		if(i->name == name)
@@ -114,10 +106,6 @@ float getItemWidth(std::string name){
 	}
 	return 0;
 }
-
-/*int getItemWidth(ITEM_ID id){
-	return item[id].width;
-}*/
 
 float getItemHeight(std::string name){
 	for(auto &i : itemMap){
@@ -127,73 +115,17 @@ float getItemHeight(std::string name){
 	return 0;
 }
 
-/*int getItemHeight(ITEM_ID id){
-	return item[id].height;
-}*/
-
-/*Item::Item(ITEM_ID i, const char *n, ITEM_TYPE t, float w, float h, int m, const char *tl){
-	id = i;
-	type = t;
-	width = w;
-	height = h;
-	maxStackSize = m;
-
-	name 		= new char[strlen(n)+1];
-	textureLoc 	= new char[strlen(tl)+1];
-
-	strcpy(name,n);
-	strcpy(textureLoc,tl);
-
-	//tex= new Texturec(1,textureLoc);
-}*/
-
 Inventory::Inventory(unsigned int s){
 	sel=0;
 	size=s;
-	//inv = new struct item_t[size];
-	//memset(inv,0,size*sizeof(struct item_t));
 }
 
 Inventory::~Inventory(void){
-	//delete[] inv;
 }
 
 void Inventory::setSelection(unsigned int s){
 	sel=s;
 }
-
-/*int Inventory::addItem(ITEM_ID id,unsigned char count){
-	//std::cout << id << "," << inv[os].id << std::endl;
-	
-	for(unsigned int i = 0; i < size; i++){
-		if(inv[i].id == id){
-			inv[i].count += count;
-			return 0;
-		}
-	}
-	inv[os].id = id;
-	inv[os].count += count;
-	os++;
-
-#ifdef DEBUG
-	DEBUG_printf("Gave player %u more %s(s)(ID: %d).\n",count,item[id].name,item[id].id);
-#endif // DEBUG
-
-	return 0;
-}*/
-
-/*int Inventory::takeItem(ITEM_ID id,unsigned char count){
-	for(unsigned int i = 0;i < size;i++){
-		if(inv[i].id == id){
-#ifdef DEBUG
-			DEBUG_printf("Took %u of player's %s(s).\n",count,item[i].name);
-#endif // DEBUG
-			inv[i].count-=count;
-			return 0;
-		}
-	}
-	return -1;
-}*/
 
 void Inventory::draw(void){
 	static unsigned int lop = 0;
@@ -213,13 +145,9 @@ void Inventory::draw(void){
 		r.start.x = player->loc.x + (player->width/2);
 		r.start.y = player->loc.y + (player->height/2);
 		curCoord[a++] = r.start;
-		//dfp[a] = 0;
-		//a++;
 	}a=0;
 	
-	if(invOpening){
-		//end = 0;
-		
+	if(invOpening){		
 		for(auto &d : dfp){
 			if(!a || dfp[a - 1] > 50)
 				d += 1.65 * deltaTime;
@@ -228,7 +156,6 @@ void Inventory::draw(void){
 			a++;
 		}a=0;
 		
-		// if(end < numSlot)
 		if(numSlot > 0)invOpen=true;
 	}else{
 		for(auto &d : dfp){
@@ -262,10 +189,10 @@ void Inventory::draw(void){
 
 			if(!items.empty() && a < items.size() && items[a].count){
 				glEnable(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, itemtex[items[a].id/*inv[a].id*/]);
+				glBindTexture(GL_TEXTURE_2D, itemtex[items[a].id]);
 				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)(range?range:1))*0.8f);
 				glBegin(GL_QUADS);
-					if(itemMap[items[a].id]->height > itemMap[items[a].id]->width){//item[inv[a].id].width){
+					if(itemMap[items[a].id]->height > itemMap[items[a].id]->width){
 						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
 						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
 						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y+(itemWide/2));
@@ -284,7 +211,7 @@ void Inventory::draw(void){
 
 			a++;
 			
-			if(sel == a){
+			if(sel == a - 1){
 	 			glBegin(GL_LINES);
 	 				glColor4f(1.0f, 0.0f, 0.0f, 0.0f);
 					glVertex2i(r.start.x,r.start.y);
@@ -359,14 +286,13 @@ void Inventory::draw(void){
 				}
 			glEnd();
 			glDisable(GL_TEXTURE_2D);
-			//ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/1.75),"%d",inv[a].count);
 
 			a++;
 		}
 		ui::putStringCentered(player->loc.x+player->width/2, player->loc.y + range*.75,itemMap[items[highlight].id]->name.c_str());
 	}
 	
-	if(!items.empty() && items[sel].count)
+	if(!items.empty() && items.size() > sel && items[sel].count)
 		itemDraw(player,items[sel].id);
 	lop++;
 }
@@ -383,13 +309,11 @@ void itemDraw(Player *p,uint id){
 			if(hangle < 15){
 				hangle=15.0f;
 				p->inv->usingi = false;
-				//swing=false;
 			}
 		}else{
 			if(hangle > -15){
 				hangle=-15.0f;
 				p->inv->usingi = false;
-				//swing=false;
 			}
 		}
 	}else hangle = 0.0f;
@@ -416,7 +340,6 @@ void itemDraw(Player *p,uint id){
 
 int Inventory::useItem(void){
 	static bool up = false;
-	//ITEM_TYPE type = item[inv[sel].id].type;
 	if(!invHover){
 		
 		if(itemMap[items[sel].id]->type == "Sword"){
@@ -430,23 +353,11 @@ int Inventory::useItem(void){
 					if(hangle==15){up=true;Mix_PlayChannel(2,swordSwing,0);}
 					if(up)hangle+=.75*deltaTime;
 					if(hangle>=90)hangle=14;
-					/*
-					if(hangle<90&&!up)hangle+=.75*deltaTime;
-					if(hangle>=90&&!up)up=true;
-					if(up)hangle-=.75*deltaTime;
-					if(up&&hangle<=15){
-						up=false;
-						swing=false;
-						hangle=15;
-						return 0;
-					}*/
 				}
 			}else if(!swing){
 				swing=true;
 				Mix_PlayChannel(2,swordSwing,0);
 			}
-			//hangle++;
-			//break;
 		}
 	}
 	return 0;

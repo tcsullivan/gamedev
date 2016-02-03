@@ -60,6 +60,19 @@ int commonAIFunc(NPC *speaker){
 	do{
 		if(!strcmp(exml->Name(),"text")){
 			if(exml->UnsignedAttribute("id") == (unsigned)speaker->dialogIndex){
+
+				/*
+				 * Handle any quest tags
+				 */
+	
+				if((oxml = exml->FirstChildElement("quest"))){
+					const char *qname;
+					while(oxml){
+						if((qname = oxml->Attribute("assign")))
+							player->qh.current.push_back((Quest){qname,"None",(struct item_t){0,0}});
+						oxml = oxml->NextSiblingElement();
+					}
+				}
 				
 				/*
 				 * Handle any 'give' requests.

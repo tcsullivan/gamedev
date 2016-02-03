@@ -15,12 +15,29 @@ XMLElement *scr;
 XMLElement *vol;
 
 void readConfig(){
+	unsigned int uval;
+	bool bval;
+
 	xml.LoadFile("config/settings.xml");
 	scr = xml.FirstChildElement("screen");
-	SCREEN_WIDTH  = scr->UnsignedAttribute("width");
+	
+	if(scr->QueryUnsignedAttribute("width",&uval) == XML_NO_ERROR)
+		SCREEN_WIDTH = uval;
+	else SCREEN_WIDTH = 1280;
+	if(scr->QueryUnsignedAttribute("height",&uval) == XML_NO_ERROR)
+		SCREEN_HEIGHT = uval;
+	else SCREEN_HEIGHT = 800;
+	if(scr->QueryBoolAttribute("fullscreen",&bval) == XML_NO_ERROR)
+		FULLSCREEN = bval;
+	else FULLSCREEN = false;
+	if(xml.FirstChildElement("hline")->QueryUnsignedAttribute("size",&uval) == XML_NO_ERROR)
+		HLINE = uval;
+	else HLINE = 3;
+	
+	/*SCREEN_WIDTH  = scr->UnsignedAttribute("width");
 	SCREEN_HEIGHT = scr->UnsignedAttribute("height");
 	FULLSCREEN    = scr->BoolAttribute("fullscreen");
-	HLINE         = xml.FirstChildElement("hline")->UnsignedAttribute("size");
+	HLINE         = xml.FirstChildElement("hline")->UnsignedAttribute("size");*/
 
 	vol = xml.FirstChildElement("volume");
 	VOLUME_MASTER = vol->FirstChildElement("master")->FloatAttribute("volume");
