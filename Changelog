@@ -599,3 +599,12 @@
 
 	- unbroke inventory stuff
 	- saved xml stuffs and volumes stuffsfees
+
+2/3/2016:
+=========
+
+	- fixed inventory bugs
+	- improved arena handling
+	- removed old, unused and commented codes
+	- began working on XML'ing quests
+	- improved mouse

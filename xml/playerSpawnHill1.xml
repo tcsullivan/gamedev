@@ -34,6 +34,7 @@
 <Dialog name="Johnny">
 	<text id="0" nextid="1" stop="true">
 		Sup bro!
+		<quest assign="Quest #1" />
 	</text>
 	
 	<text id="1" >

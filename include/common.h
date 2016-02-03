@@ -38,7 +38,7 @@ typedef unsigned int uint;
 
 template<typename N>
 N abso(N v){
-	if(v < 0.0){
+	if(v < 0){
 		return v * -1;
 	}else
 		return v;
@@ -92,8 +92,6 @@ struct col{
 
 typedef col Color;
 
-#include <Texture.h>
-
 /**
  * Define the game's name (displayed in the window title).
  */
@@ -104,17 +102,14 @@ typedef col Color;
  * The desired width of the game window.
  */
 
-//#define SCREEN_WIDTH	1280
 extern unsigned int SCREEN_WIDTH;
 
 /**
  * The desired height of the game window.
  */
 
-//#define SCREEN_HEIGHT	720
 extern unsigned int SCREEN_HEIGHT;
 
-//#define FULLSCREEN
 extern bool FULLSCREEN;
 
 /**
@@ -127,7 +122,6 @@ extern bool FULLSCREEN;
  * 
  */
 
-//#define HLINE 3
 extern unsigned int HLINE;
 
 extern float VOLUME_MASTER;

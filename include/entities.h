@@ -4,6 +4,7 @@
 #include <common.h>
 #include <Quest.h>
 #include <inventory.h>
+#include <Texture.h>
 
 #define DEBUG
 
@@ -14,7 +15,7 @@
 #define PLAYER_INV_SIZE	30	// The size of the player's inventory
 #define NPC_INV_SIZE	3	// Size of an NPC's inventory
 
-enum _TYPE { //these are the main types of entities
+enum _TYPE {
 	OBJECTT = -2,
 	STRUCTURET,
 	PLAYERT,
@@ -58,7 +59,6 @@ public:
 	float vely;
 	Color color;
 	vec2 index;
-	//GLuint tex;
 	float duration;
 	bool canMove;
 	bool fountain;
@@ -77,13 +77,11 @@ public:
 		gravity = true;
 		behind = false;
 		index = Texture::getIndex(c);
-		//tex = text;
 	}
 	~Particles(){
 
 	}
 	void draw(){
-		//glColor3f(color.red,color.green,color.blue);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, colorIndex);
 		glUseProgram(shaderProgram);
@@ -98,7 +96,6 @@ public:
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 		glUseProgram(0);
-		//glRectf(loc.x,loc.y,loc.x+width,loc.y+height);
 	}
 	bool kill(float delta){
 		duration -= delta;
@@ -221,13 +218,11 @@ public:
 class Object : public Entity{
 private:
 	std::string iname;
-	//ITEM_ID identifier;
 public:
 	char *pickupDialog;
 	bool questObject = false;
 	
 	Object();
-	//Object(ITEM_ID id,const char *pd);
 	Object(std::string in,const char *pd);
 	~Object();
 	

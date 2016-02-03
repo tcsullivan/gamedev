@@ -1,11 +1,11 @@
 #include <Quest.h>
 
-const Quest QuestList[1] = {
+/*const Quest QuestList[1] = {
 	Quest("Not a quest","Stop",(struct item_t){0,0})
-};
+};*/
 
 
-Quest::Quest(const char *t,const char *d,struct item_t r){
+/*Quest::Quest(const char *t,const char *d,struct item_t r){
 	title = new char[strlen(t)+1];
 	desc = new char[strlen(d)+1];
 	strcpy(title,t);
@@ -17,7 +17,7 @@ Quest::~Quest(){
 	delete[] title;
 	delete[] desc;
 	memset(&reward,0,sizeof(struct item_t));
-}
+}*/
 
 int QuestHandler::assign(const char *t){
 	/*unsigned char i;
@@ -82,7 +82,7 @@ int QuestHandler::finish(const char *t,void *completer){
 bool QuestHandler::hasQuest(const char *t){
 	unsigned int i;
 	for(i=0;i<current.size();i++){
-		if(!strcmp(current[i]->title,t)){
+		if(!strcmp(current[i].title.c_str(),t)){
 			return true;
 		}
 	}

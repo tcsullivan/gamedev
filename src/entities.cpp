@@ -2,7 +2,6 @@
 #include <ui.h>
 
 #include <istream>
-//#include <unistd.h>
 
 extern std::istream *names;
 extern unsigned int loops;
@@ -105,7 +104,6 @@ Player::Player(){ //sets all of the player specific traits on object creation
 							"assets/playerk6.png",
 							"assets/playerk7.png",
 							"assets/playerk8.png");
-	//tex = new Texturec(3, "assets/maybeplayer.png", "assets/maybeplayer.png", "assets/maybeplayer.png");
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
 Player::~Player(){
@@ -214,8 +212,7 @@ Object::Object(){
 	inv = NULL;
 }
 
-Object::Object(/*ITEM_ID id*/std::string in, const char *pd){
-	//identifier = id;
+Object::Object(std::string in, const char *pd){
 	iname = in;
 
 	if(pd){
@@ -256,7 +253,6 @@ void Object::reloadTexture(void){
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	glColor3ub(255,255,255);
-	//glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	if(type==NPCT){
 		if(NPCp(this)->aiFunc.size()){
 			glColor3ub(255,255,0);
@@ -279,7 +275,6 @@ void Entity::draw(void){		//draws the entities
 	case PLAYERT:
 		static int texState = 0;
 		if(speed && !(loops % (int)(2.0f/(float)speed))){
-			//currentWorld->addParticle(loc.x,loc.y-HLINE,HLINE,HLINE,0,0,{0.0f,.17f,0.0f},1000);
 			if(++texState==9)texState=1;
 			glActiveTexture(GL_TEXTURE0);
 			tex->bind(texState);
@@ -316,20 +311,9 @@ void Entity::draw(void){		//draws the entities
 	case STRUCTURET:
 		for(auto &strt : currentWorld->build){
 			if(this == strt){
-				switch(strt->bsubtype){
-					/*case HOUSE:
-						glActiveTexture(GL_TEXTURE1);
-						ntex->bind(0);
-						//When rendering an objectwith this program.
-						glActiveTexture(GL_TEXTURE0);
-						tex->bind(0);
-						//glBindSampler(0, linearFiltering);
-						break;*/
-					default:
-						glActiveTexture(GL_TEXTURE0);
-						tex->bind(0);
-						break;
-				}
+				glActiveTexture(GL_TEXTURE0);
+				tex->bind(0);
+				break;
 			}
 		} 
 		break;
@@ -355,8 +339,7 @@ NOPE:
 	if(near)ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
 }
 
-void Player::interact(){ //the function that will cause the player to search for things to interact with
-	
+void Player::interact(){
 }
 
 /*
@@ -483,15 +466,8 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
 	 *	will spawn bewteen 2 and 7 villagers for the starting hut.
 	*/
-	/* tex = new Texturec(7,"assets/townhall.png",
-							"assets/house1.png", 
-							"assets/house2.png", 
-							"assets/house1.png", 
-							"assets/house1.png", 
-							"assets/fountain1.png",
-							"assets/lampPost1.png")*/;
 
-	unsigned int tempN = (getRand() % 5 + 2);
+	//unsigned int tempN = (getRand() % 5 + 2);
 	switch(sub){
 		case TOWN_HALL:
 			tex = new Texturec(1, sTexLoc[sub].c_str());
@@ -503,15 +479,6 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 			tex = new Texturec(1, sTexLoc[sub].c_str());
 			width =  50 * HLINE;
 			height = 40 * HLINE;
-			for(unsigned int i = 0;i < tempN;i++){
-			
-				/*
-				 *	This is where the entities actually spawn. A new entity is created
-				 *	with type NPC.
-				*/
-			
-				//oi->addNPC(loc.x + i * HLINE ,100);
-			}
 			break;
 		case FOUNTAIN:
 			tex = new Texturec(1, sTexLoc[sub].c_str());
@@ -522,13 +489,11 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 			tex = new Texturec(1, sTexLoc[sub].c_str());
 			width =  10 * HLINE;
 			height = 40 * HLINE;
-			//oi->addLight({x+SCREEN_WIDTH/2,y+30*HLINE},{1.0f,1.0f,1.0f});
 			break;
 		case FIRE_PIT:
 			tex = new Texturec(1, sTexLoc[sub].c_str());
 			width =  12 * HLINE;
 			height = 12 * HLINE;
-			//oi->addLight({x+SCREEN_WIDTH/2,y},{1.0f,1.0f,1.0f});
 			break;
 		default:
 			break;
@@ -559,7 +524,6 @@ void Mob::wander(int timeRun){
 		YAYA = false;
 		currentWorld = a;
 		ui::toggleWhiteFast();
-		//player->health-=5;
 	}
 	
 	switch(subtype){
@@ -587,13 +551,8 @@ void Mob::wander(int timeRun){
 		break;
 	case MS_TRIGGER:
 		if(player->loc.x + player->width / 2 > loc.x		 &&
-		   player->loc.x + player->width / 2 < loc.x + width ){
-			//if(!vfork()){
-				hey(this);
-				/*_exit(0);
-			}*/
-			
-		}
+		   player->loc.x + player->width / 2 < loc.x + width )
+			hey(this);
 		break;
 	case MS_PAGE:
 		if(player->loc.x > loc.x - 100		 &&

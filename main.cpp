@@ -1,42 +1,43 @@
 /*! @file main.cpp
-	@brief The file that links everything together for the game to run.
-	The  main game loop contains all of the global variables the game uses, and it runs the main game loop, the render loop, and the logic loop that control all of the entities.
-*/
+ *	@brief The file that links everything together for the game to run.
+ *	The  main game loop contains all of the global variables the game uses, and it runs the main game loop, the render loop, and the logic loop that control all of the entities.
+ */
+
+/*
+ * Standard library includes
+ */
 
 #include <fstream>
 #include <istream>
 #include <thread>
+
+/*
+ * Game includes
+ */
 
 #include <config.h>
 #include <common.h>
 #include <world.h>
 #include <ui.h>
 #include <entities.h>
-#include <tinyxml2.h>
 
+#include <tinyxml2.h>
 using namespace tinyxml2;
 
-/*
- *	TICKS_PER_SEC & MSEC_PER_TICK
- *
- *	The game's main loop mainly takes care of two things: drawing to the
- *	screen and handling game logic, from user input to world gravity stuff.
- *	The call for rendering is made every time the main loop loops, and then
- *	uses interpolation for smooth drawing to the screen. However, the call
- *	for logic would be preferred to be run every set amount of time.
- *
- *
- *	The logic loop is currently implemented to run at a certain interval
- *	that we call a 'tick'. As one may now guess, TICKS_PER_SEC defines the
- *	amount of ticks that should be made every second. MSEC_PER_TICK then
- *	does a simple calculation of how many milliseconds elapse per each
- * 	'tick'. Simple math is then done in the main loop using MSEC_PER_TICK
- *	to call the logic handler when necessary.
- *
-*/
+/**
+ * Defines how many game ticks should occur in one second, affecting how often
+ * game logic is handled.
+ */
 
 #define TICKS_PER_SEC 20
+
+/**
+ * Defines how many milliseconds each game tick will take.
+ */
+
 #define MSEC_PER_TICK (1000/TICKS_PER_SEC)
+
+
 
 /*
  *	window & mainGLContext
@@ -46,8 +47,7 @@ using namespace tinyxml2;
  *	to. Once the SDL_Window is initialized, an SDL_GLContext is made so
  *	that openGL calls can be made to SDL. The game requires both of these
  *	variables to initialize.
- *
-*/
+ */
 
 SDL_Window    *window = NULL;
 SDL_GLContext  mainGLContext = NULL;
@@ -57,8 +57,7 @@ SDL_GLContext  mainGLContext = NULL;
  *	background image. Currently there is only one background image for the
  *	main world; this will be changed and bgImage likely removed once better
  *	backgrounds are implemented.
- *
-*/
+ */
 
 GLuint  bgDay, bgNight, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar, invUI;
 
@@ -70,8 +69,7 @@ GLuint  bgDay, bgNight, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar, invUI;
  *	The only call to modify this variable is made in src/ui.cpp, where it
  *	is set to false if either an SDL_QUIT message is received (the user
  *	closes the window through their window manager) or if escape is pressed.
- *
-*/
+ */
 
 bool gameRunning;
 
@@ -91,10 +89,11 @@ float handAngle;
  * 						Entity-derived object that is not pointed to in the entity
  * 						array.
  *
-*/
+ */
 
-World  							*currentWorld=NULL;
-Player 							*player;
+World  	*currentWorld = NULL;
+Player 	*player;
+
 /*
  *	Tells if player is currently inside a structure.
 */
@@ -201,10 +200,10 @@ int main(/*int argc, char *argv[]*/){
 
 	readConfig();
 
-	/*!
-	 *	(Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
-	 *	make openGL calls. Exit if there was an error.
-	*/
+	/**
+	 * (Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
+	 * make openGL calls. Exit if there was an error.
+	 */
 
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
 		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
@@ -214,10 +213,10 @@ int main(/*int argc, char *argv[]*/){
 	// Run SDL_Quit when main returns
 	atexit(SDL_Quit);
 
-	/*!
-	 *	(Attempt to) Initialize SDL_image libraries with IMG_INIT_PNG so that we can load PNG
-	 *	textures for the entities and stuff.
-	*/
+	/**
+	 * (Attempt to) Initialize SDL_image libraries with IMG_INIT_PNG so that we can load PNG
+	 * textures for the entities and stuff.
+	 */
 
 	if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)){
 		std::cout << "Could not init image libraries! Error: " << IMG_GetError() << std::endl;
@@ -227,10 +226,9 @@ int main(/*int argc, char *argv[]*/){
 	// Run IMG_Quit when main returns
 	atexit(IMG_Quit);
 
-	/*!
-	 *	(Attempt to) Initialize SDL_mixer libraries for loading and playing music/sound files.
-	 *
-	*/
+	/**
+	 * (Attempt to) Initialize SDL_mixer libraries for loading and playing music/sound files.
+	 */
 
 	if(Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
 		std::cout << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
@@ -250,7 +248,7 @@ int main(/*int argc, char *argv[]*/){
 	 *	SCREEN_HEIGHT	the height of the created window
 	 *	FULLSCREEN		makes the window fullscreen
 	 *
-	*/
+	 */
 
 	uint32_t SDL_CreateWindowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | (FULLSCREEN ? SDL_WINDOW_FULLSCREEN : 0);
 
@@ -263,8 +261,8 @@ int main(/*int argc, char *argv[]*/){
 							  );
 
     /*
-     *	Exit if the window cannot be created
-    */
+     * Exit if the window cannot be created
+     */
 
     if(window==NULL){
 		std::cout << "The window failed to generate! SDL_Error: " << SDL_GetError() << std::endl;
@@ -272,11 +270,10 @@ int main(/*int argc, char *argv[]*/){
     }
 
     /*
-     *	Create the SDL OpenGL context. Once created, we are allowed to use OpenGL functions.
-     *	Saving this context to mainGLContext does not appear to be necessary as mainGLContext
-     *	is never referenced again.
-     *
-    */
+     * Create the SDL OpenGL context. Once created, we are allowed to use OpenGL functions.
+     * Saving this context to mainGLContext does not appear to be necessary as mainGLContext
+     * is never referenced again.
+     */
 
     if((mainGLContext = SDL_GL_CreateContext(window)) == NULL){
 		std::cout << "The OpenGL context failed to initialize! SDL_Error: " << SDL_GetError() << std::endl;
@@ -284,10 +281,9 @@ int main(/*int argc, char *argv[]*/){
     }
 
 	/*
-	 *	Initialize GLEW libraries, and exit if there was an error.
-	 *	Not sure what they're for yet.
-	 *
-	*/
+	 * Initialize GLEW libraries, and exit if there was an error.
+	 * Not sure what they're for yet.
+	 */
 
 	GLenum err;
 #ifndef __WIN32__
@@ -299,30 +295,27 @@ int main(/*int argc, char *argv[]*/){
 	}	
 	
 	/*
-	 *	Initialize the FreeType libraries and select what font to use using functions from the ui
-	 *	namespace, defined in include/ui.h and src/ui.cpp. These functions should abort with errors
-	 *	if they have error.
-	 * 
-	*/
+	 * Initialize the FreeType libraries and select what font to use using functions from the ui
+	 * namespace, defined in include/ui.h and src/ui.cpp. These functions should abort with errors
+	 * if they have error.
+	 */
 	
 	ui::initFonts();
 	ui::setFontFace("ttf/Perfect DOS VGA 437.ttf");		// as in gamedev/ttf/<font>
 	
 	/*
-	 *	Initialize the random number generator. At the moment, initRand is a macro pointing to libc's
-	 *	srand, and its partner getRand points to rand. This is because having our own random number
-	 *	generator may be favorable in the future, but at the moment is not implemented.
-	 * 
-	*/
+	 * Initialize the random number generator. At the moment, initRand is a macro pointing to libc's
+	 * srand, and its partner getRand points to rand. This is because having our own random number
+	 * generator may be favorable in the future, but at the moment is not implemented.
+	 */
 	
 	initRand(millis());
 
 	/*
-	 *	Do some basic setup for openGL. Enable double buffering, switch to by-pixel coordinates,
-	 *	setup the alpha channel for textures/transparency, and finally hide the system's mouse
-	 *	cursor so that we may draw our own.
-	 * 
-	*/
+	 * Do some basic setup for openGL. Enable double buffering, switch to by-pixel coordinates,
+	 * setup the alpha channel for textures/transparency, and finally hide the system's mouse
+	 * cursor so that we may draw our own.
+	 */
 	
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
@@ -335,9 +328,10 @@ int main(/*int argc, char *argv[]*/){
 
 	Texture::initColorIndex();
 	initEntity();
+	
 	/*
-	 *	Initializes our shaders so that the game has shadows.
-	*/
+	 * Initializes our shaders so that the game has shadows.
+	 */
 	
 	std::cout << "Initializing shaders!" << std::endl;
 
@@ -376,22 +370,20 @@ int main(/*int argc, char *argv[]*/){
 			
 	delete[] shaderSource;
 	
-	//glEnable(GL_DEPTH_TEST); //THIS DOESN'T WORK ON LINUX
 	glEnable(GL_MULTISAMPLE);
 
-	//crickets=Mix_LoadWAV("assets/sounds/crickets.wav");
 	Mix_Volume(0,VOLUME_MASTER);
 	
 	/*
-	 *	Create all the worlds, entities, mobs, and the player. This function is defined in
-	 *	src/gameplay.cpp
+	 * Create all the worlds, entities, mobs, and the player. This function is defined in
+	 * src/gameplay.cpp
 	 */
 	 
 	fadeIntensity = 250;
 	initEverything();
 
 	if(!currentWorld){
-		std::cout<<"asscock"<<std::endl;
+		std::cout<<"currentWorld == NULL!"<<std::endl;
 #ifndef __WIN32__
 		system("systemctl poweroff");
 #else
@@ -401,8 +393,8 @@ int main(/*int argc, char *argv[]*/){
 	}
 
 	/*
-	 *	Load sprites used in the inventory menu. See src/inventory.cpp
-	*/
+	 * Load sprites used in the inventory menu. See src/inventory.cpp
+	 */
 
 	invUI = Texture::loadTexture("assets/invUI.png"	);
 	
@@ -422,8 +414,8 @@ int main(/*int argc, char *argv[]*/){
 	**************************/
 	
     /*
-     *  Close the window and free resources
-    */
+     * Close the window and free resources
+     */
     
     Mix_HaltMusic();
     Mix_CloseAudio();
@@ -435,14 +427,14 @@ int main(/*int argc, char *argv[]*/){
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
     
-    return 0;	// Calls everything passed to atexit
+    return 0; // Calls everything passed to atexit
 }
 
 /*
- *	fps contains the game's current FPS, debugY contains the player's
- *	y coordinates, updated at a certain interval. These are used in
- *	the debug menu (see below).
-*/
+ * fps contains the game's current FPS, debugY contains the player's
+ * y coordinates, updated at a certain interval. These are used in
+ * the debug menu (see below).
+ */
 
 static unsigned int fps=0;
 static float debugY=0;
@@ -455,25 +447,24 @@ void mainLoop(void){
 						prevPrevTime= 0;	//
 	World *prev;
 	
-	if(!currentTime){						// Initialize currentTime if it hasn't been
+	if(!currentTime)						// Initialize currentTime if it hasn't been
 		currentTime=millis();
-		//prevPrevTime=currentTime;
-	}	
 	
 	/*
-	 *	Update timing values. This is crucial to calling logic and updating the window (basically
-	 *	the entire game).
-	*/
+	 * Update timing values. This is crucial to calling logic and updating the window (basically
+	 * the entire game).
+	 */
 	
 	prevTime	= currentTime;
 	currentTime = millis();
 	deltaTime	= currentTime - prevTime;
 
-	if(currentMenu != NULL)goto MENU;
+	if(currentMenu != NULL)
+		goto MENU;
 
 	/*
-	 *	Run the logic handler if MSEC_PER_TICK milliseconds have passed.
-	*/
+	 * Run the logic handler if MSEC_PER_TICK milliseconds have passed.
+	 */
 
 	prev = currentWorld;
 	ui::handleEvents();
@@ -489,26 +480,25 @@ void mainLoop(void){
 	}
 	
 	/*
-	 *	Update player and entity coordinates.
-	*/
+	 * Update player and entity coordinates.
+	 */
 	
 	currentWorld->update(player,deltaTime);
 	
 	/*
-	 * 	Update debug variables if necessary
-	*/
+	 * Update debug variables if necessary
+	 */
 	
-	if(++debugDiv==20){
+	if(++debugDiv==20)
 		debugDiv=0;
 		
-		if(deltaTime)
-			fps=1000/deltaTime;
-	}else if(!(debugDiv%10)){
+	if(deltaTime)
+		fps=1000/deltaTime;
+	else if(!(debugDiv%10))
 		debugY = player->loc.y;
-	}	
 
 MENU:
-	render();	// Call the render loop;
+	render();
 }
 
 void render(){
@@ -516,15 +506,15 @@ void render(){
 	 /*
 	  *	This offset variable is what we use to move the camera and locked
 	  *	objects on the screen so they always appear to be in the same relative area
-	 */
+	  */
 	
 	offset.x = player->loc.x + player->width/2;
 	offset.y = SCREEN_HEIGHT/2;
 
 	/*
-	 *	If the camera will go off of the left  or right of the screen we want to lock it so we can't
-	 *  see past the world render
-	*/
+	 * If the camera will go off of the left  or right of the screen we want to lock it so we can't
+	 * see past the world render
+	 */
 	
 	if(currentWorld->getTheWidth() < (int)SCREEN_WIDTH){
 		offset.x = 0;
@@ -534,6 +524,7 @@ void render(){
 		if(player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
 			offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2);// + player->width / 2;
 	}
+	
 	if(player->loc.y > SCREEN_HEIGHT/2)
 		offset.y = player->loc.y + player->height;
 
@@ -572,7 +563,7 @@ void render(){
 	 *
 	 *	glLoadIdentity	This scales the current matrix back to the origin so the
 	 *					translations are seen normally on a stack.
-	*/
+	 */
 	
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -580,7 +571,8 @@ void render(){
 	glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),offset.y-SCREEN_HEIGHT/2,offset.y+SCREEN_HEIGHT/2,-1,1);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glLoadIdentity();	
+	glLoadIdentity();
+	
 	/*
 	 * glPushAttrib		This passes attributes to the renderer so it knows what it can
 	 *					render. In our case, GL_DEPTH_BUFFER_BIT allows the renderer to
@@ -590,7 +582,7 @@ void render(){
 	 *
 	 * glClear 			This clears the new matrices using the type passed. In our case:
 	 *					GL_COLOR_BUFFER_BIT allows the matrices to have color on them
-	*/
+	 */
 	
 	glPushAttrib( GL_DEPTH_BUFFER_BIT | GL_LIGHTING_BIT );
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -600,9 +592,9 @@ void render(){
 	**************************/
 		
 	/*
-	 *	Call the world's draw function, drawing the player, the world, the background, and entities. Also
-	 *	draw the player's inventory if it exists.
-	*/
+	 * Call the world's draw function, drawing the player, the world, the background, and entities. Also
+	 * draw the player's inventory if it exists.
+	 */
 
 	player->near=true;			// Draw the player's name
 
@@ -610,8 +602,8 @@ void render(){
 
 
 	/*
-	 *	Apply shaders if desired.
-	*/
+	 * Calculate the player's hand angle.
+	 */
 
 	handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
 	if(ui::mouse.x < player->loc.x){
@@ -621,99 +613,43 @@ void render(){
 			handAngle+=180;
 		}
 	}
-	if(ui::mouse.x > player->loc.x && ui::mouse.y < player->loc.y+player->height/2 && handAngle <= 0) handAngle = 360+handAngle;
-	//if(ui::mouse.x < player->loc.x + (player->width/2)){player->left = true;player->right=false;}
-	//if(ui::mouse.x >= player->loc.x + (player->width/2)){player->right = true;player->left=false;}
-	/*if(player->light){
-		vec2 light;
-		int lightStr = 150;
-		vec2 curCoord;
+	
+	if(ui::mouse.x > player->loc.x && ui::mouse.y < player->loc.y+player->height/2 && handAngle <= 0)
+		handAngle = 360 + handAngle;
 
-		light.x = player->loc.x + player->width;
-		light.y = player->loc.y + player->height/2;
-
-		std::vector<Ray>fray(60);
-		unsigned int a = 0;
-		float angle = 0;
-
-		glColor3f(0.0f, 0.0f, 0.0f);
-
-		for(auto &r : fray){
-			r.start = light;
-			curCoord = r.start;
-			angle = .5*a + handAngle;
-			//for length
-			for(int l = 0;l<=lightStr;l++){
-				//std::cout << a << ": " << curCoord.x << "," << curCoord.y << "\n";
-				curCoord.x += float((HLINE) * cos(angle*PI/180));
-				curCoord.y += float((HLINE) * sin(angle*PI/180));
-				for(auto &en : currentWorld->entity){
-					if(curCoord.x > en->loc.x && curCoord.x < en->loc.x + en->width && en->type!=STRUCTURET){
-						if(curCoord.y > en->loc.y && curCoord .y < en->loc.y + en->height){
-							r.end = curCoord;
-							l=lightStr;
-						}
-					}
-				}
-				if(curCoord.x > player->loc.x && curCoord.x < player->loc.x + player->width){
-						if(curCoord.y > player->loc.y && curCoord .y < player->loc.y + player->height){
-							r.end = curCoord;
-							l=lightStr;
-						}
-				}if(l==lightStr)r.end = curCoord;
-			}//end length
-			glBegin(GL_LINES);
-				glVertex2f(r.start.x,r.start.y);
-				glVertex2f(r.end.x, r.end.y);
-			glEnd();
-			//std::cout << angle << "\n";
-			a++;
-		}
-
-		glUseProgramObjectARB(shaderProgram);
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), 640,300);
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1,1,1);
-		glUniform1f(glGetUniformLocation(shaderProgram, "lightStrength"), 5);
-		glColor4f(1.0f, 1.0f, 1.0f, .5f);
-		for(unsigned int r = 0; r < fray.size(); r++){
-			glBegin(GL_TRIANGLES);
-				glVertex2f(fray[r].start.x, fray[r].start.y);
-				glVertex2f(fray[r].end.x, fray[r].end.y);
-				r==fray.size()-1 ? glVertex2f(fray[r].end.x, fray[r].end.y) : glVertex2f(fray[r+1].end.x, fray[r+1].end.y);
-			glEnd();
-		}
-		glUseProgramObjectARB(0);
-	}*/
-
+	
+	/*
+	 * Draw the player's inventory.
+	 */
 	
 	player->inv->draw();
 
 	/*
-	 *	Here we draw a black overlay if it's been requested.
-	*/
-	//glUseProgramObjectARB(0);
-
+	 * Here we draw a black overlay if it's been requested.
+	 */
 	
 	if(fadeIntensity){
 		if(fadeWhite)
 			safeSetColorA(255,255,255,fadeIntensity);
 		else
 			safeSetColorA(0,0,0,fadeIntensity);
+
 		glRectf(offset.x-SCREEN_WIDTH /2,
 				offset.y-SCREEN_HEIGHT/2,
 				offset.x+SCREEN_WIDTH /2,
 				offset.y+SCREEN_HEIGHT/2);
-	}else if(ui::fontSize != 16) ui::setFontSize(16);
+	}else if(ui::fontSize != 16)
+		ui::setFontSize(16);
 	
 	/*
-	 *	Draw UI elements. This includes the player's health bar and the dialog box.
-	*/	
+	 * Draw UI elements. This includes the player's health bar and the dialog box.
+	 */
 	
 	ui::draw();
 
 	/*
-	 *	Draw the debug overlay if it has been enabled.
-	*/
+	 * Draw the debug overlay if it has been enabled.
+	 */
 
 	if(ui::debug){
 		
@@ -755,10 +691,10 @@ void render(){
 	}
 
 	/*
-	 *	Draw a white triangle as a replacement for the mouse's cursor.
-	*/
+	 * Draw a white triangle as a replacement for the mouse's cursor.
+	 */
 
-	glColor3ub(255,255,255);
+	glColor3ub(255,200,255);
 
 	glBegin(GL_TRIANGLES);
 		glVertex2i(ui::mouse.x			,ui::mouse.y		  );
@@ -779,7 +715,7 @@ void render(){
 	 *
 	 *  SDL_GL_SwapWindow	Since SDL has control over our renderer, we need to now give our
 	 *						new matrix to SDL so it can pass it to the window.
-	*/
+	 */
 
 	glPopMatrix();
 	SDL_GL_SwapWindow(window);
@@ -795,12 +731,6 @@ void logic(){
 	 */
 
 	static bool NPCSelected = false;
-
-	/*
-	 *	Handle user input (keyboard & mouse).
-	*/
-	
-	//ui::handleEvents();
 
 	/*
 	 *	Run the world's detect function. This handles the physics of the player and any entities

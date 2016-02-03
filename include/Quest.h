@@ -20,46 +20,20 @@
 
 #define DEBUG
 
-/**
- * The Quest class.
- * 
- * This contains information for a single quest, and should only really be interacted
- * with through QuestHandler.
- */
-
-class Quest {
-public:
-	
-	/**
-	 * Contains the title of the quest.
-	 */
-
-	char *title;
-	
-	/**
-	 * Contains the description of the quest.
-	 */
-	
-	char *desc;
-	
-	/**
-	 * Contains the single item that's given as a reward upon quest completion.
-	 */
-	
+typedef struct {
+	std::string title;
+	std::string desc;
 	struct item_t reward;
-	
-	/**
-	 * Populates the values contained in this class.
-	 */
-	
+} Quest;
+
+/*class Quest {
+public:
+	char *title;
+	char *desc;
+	struct item_t reward;
 	Quest(const char *t,const char *d,struct item_t r);
-	
-	/**
-	 * Frees memory allocated for the title and description text.
-	 */
-	
 	~Quest();
-};
+};*/
 
 /**
  * The Quest Handler class.
@@ -70,12 +44,7 @@ public:
 
 class QuestHandler {
 public:
-
-	/**
-	 * A vector containing all quests currently being taken by the handler.
-	 */
-
-	std::vector<const Quest *>current;
+	std::vector<Quest>current;
 	
 	/**
 	 * Adds a quest to the current quest vector by its title.
@@ -102,7 +71,5 @@ public:
 	
 	bool hasQuest(const char *t);
 };
-
-#include <entities.h>
 
 #endif // QUEST_H

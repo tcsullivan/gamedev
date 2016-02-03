@@ -221,13 +221,13 @@ namespace ui {
 			 *	making it white-on-black.
 			*/
 			
-			buf = new char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];	//(char *)malloc(ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows*4);
+			buf = new char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];
 		
 			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
 				buf[j*4  ]=fontColor[0];
 				buf[j*4+1]=fontColor[1];
 				buf[j*4+2]=fontColor[2];
-				buf[j*4+3]=ftf->glyph->bitmap.buffer[j];
+				buf[j*4+3]=ftf->glyph->bitmap.buffer[j] ? 255 : 0;
 			}
 			
 			ftexwh[i-33].x=ftf->glyph->bitmap.width;
@@ -631,7 +631,7 @@ namespace ui {
 				
 				for(auto &c : player->qh.current){
 					hub.y -= fontSize * 1.15;
-					putString(hub.x,hub.y,c->title);
+					putString(hub.x,hub.y,c.title.c_str());
 				}	
 			}
 		}
@@ -765,7 +765,9 @@ namespace ui {
 						offset.x+m.button.loc.x + m.button.dim.x, 
 						offset.y+m.button.loc.y + m.button.dim.y);
 				//draw the button text
-				putStringCentered(offset.x + m.button.loc.x + (m.button.dim.x/2), (offset.y + m.button.loc.y + (m.button.dim.y/2)) - ui::fontSize/2, m.button.text);
+				putStringCentered(offset.x + m.button.loc.x + (m.button.dim.x/2),
+								  (offset.y + m.button.loc.y + (m.button.dim.y/2)) - ui::fontSize/2,
+								  m.button.text);
 				
 				//tests if the mouse is over the button
 				if(mouse.x >= offset.x+m.button.loc.x && mouse.x <= offset.x+m.button.loc.x + m.button.dim.x){

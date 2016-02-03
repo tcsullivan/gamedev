@@ -426,8 +426,8 @@ public:
 
 class Arena : public World {
 private:
-	vec2	 pxy;
-	World	*exit;
+	//vec2	 pxy;
+	//World	*exit;
 	Mob 	*mmob;
 public:
 	Arena(World *leave,Player *p,Mob *m);
