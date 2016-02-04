@@ -976,7 +976,7 @@ namespace ui {
 		fwrite(&bgr, 1,3*SCREEN_WIDTH*SCREEN_HEIGHT,bmp);
 
 		delete[] pixels;
-
+		
 		fclose(bmp);
 	}
 
@@ -1000,8 +1000,10 @@ DONE:
 		if(dialogImportant){
 			dialogImportant = false;
 			setFontSize(16);
-			toggleBlack();
+			//toggleBlack();
 		}
+		/*if(ui::fontSize != 16)
+			setFontSize(16);*/
 
 		dialogBoxExists = false;
 	}

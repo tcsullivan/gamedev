@@ -608,3 +608,13 @@
 	- removed old, unused and commented codes
 	- began working on XML'ing quests
 	- improved mouse
+
+2/4/2016:
+=========
+
+	- fixed world boundary glitch
+	- began work on XML'ing triggers
+	- npcs can assign quests through XML
+	- screenshots
+	- improved memory management
+	- more audio sliders
