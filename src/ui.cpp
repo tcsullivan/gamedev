@@ -937,6 +937,8 @@ namespace ui {
 		fwrite(&bmih, 1,sizeof(BITMAPINFOHEADER),bmp);
 		fwrite(&bgr, 1,3*SCREEN_WIDTH*SCREEN_HEIGHT,bmp);
 
+		delete[] pixels;
+		fclose(bmp);
 	}
 
 	void dialogAdvance(void){
@@ -959,8 +961,10 @@ DONE:
 		if(dialogImportant){
 			dialogImportant = false;
 			setFontSize(16);
-			toggleBlack();
+			//toggleBlack();
 		}
+		/*if(ui::fontSize != 16)
+			setFontSize(16);*/
 
 		dialogBoxExists = false;
 	}
@@ -1191,7 +1195,8 @@ DONE:
 					break;
 				case SDLK_F12:
 					// Make the BYTE array, factor of 3 because it's RBG.
-					static GLubyte* pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
+					static GLubyte* pixels;
+					pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
 					glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
 					takeScreenshot(pixels);

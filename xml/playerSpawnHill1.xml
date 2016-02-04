@@ -5,13 +5,17 @@
 	
 	<link right="playerSpawnHill2.xml" />
 	
-	<mob type="1" aggressive="true" />
+	<mob type="1" aggressive="false" />
+	
+	<trigger x="-300" id="Test" />
 	
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="true" />
 	<structure type="5" inside="playerSpawnHill1_Building1.xml" />
 
 </World>
+
+<Trigger id="Test">It was a dark and stormy night...</Trigger>
 
 <Dialog name="Ralph">
 	
@@ -32,12 +36,12 @@
 </Dialog>
 
 <Dialog name="Johnny">
-	<text id="0" nextid="1" stop="true">
+	<text id="0" nextid="1" pause="true">
 		Sup bro!
 		<quest assign="Quest #1" />
 	</text>
 	
-	<text id="1" >
+	<text id="1" stop="true">
 		My name's Johnny.
 		<give id="Dank Maymay" count="1" />
 	</text>

@@ -895,10 +895,10 @@ void World::singleDetect(Entity *e){
 		 *	Insure that the entity doesn't fall off either edge of the world.
 		*/
 		
-		if(e->loc.x<x_start){												// Left bound
+		if(e->loc.x < x_start){												// Left bound
 			
 			e->vel.x=0;
-			e->loc.x=x_start + HLINE / 2;
+			e->loc.x=(float)x_start + HLINE / 2;
 			
 		}else if(e->loc.x + e->width + HLINE > x_start + getWidth(this)){	// Right bound
 			
@@ -1071,6 +1071,7 @@ char *World::setToRight(const char *file){
 
 World *World::goWorldLeft(Player *p){
 	World *tmp;
+	
 	if(toLeft && p->loc.x < x_start + HLINE * 15){
 		tmp = loadWorldFromXML(toLeft);
 		
@@ -1200,7 +1201,8 @@ void World::save(void){
 
 #include <sstream>
 
-extern int commonAIFunc(NPC *);
+extern int  commonAIFunc(NPC *);
+extern void commonTriggerFunc(Mob *);
 
 void World::load(void){
 	std::string save,data,line;
@@ -1449,8 +1451,6 @@ World *loadWorldFromXML(const char *path){
 	strcpy(currentXML,"xml/");
 	strcat(currentXML,path);
 	
-	//std::cout<<currentXML<<std::endl;
-	
 	xml.LoadFile(currentXML);
 	wxml = xml.FirstChildElement("World");
 
@@ -1523,7 +1523,11 @@ World *loadWorldFromXML(const char *path){
 				tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),getRand() % tmp->getTheWidth() / 2.0f,100,ptr);
 			else
 				tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),spawnx,wxml->FloatAttribute("y"),ptr);
+		}else if(!strcmp(name,"trigger")){
+			tmp->addMob(MS_TRIGGER,wxml->FloatAttribute("x"),0,commonTriggerFunc);
+			tmp->mob.back()->heyid = wxml->Attribute("id");
 		}
+		
 		wxml = wxml->NextSiblingElement();
 	}
 	

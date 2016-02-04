@@ -173,7 +173,7 @@ int commonAIFunc(NPC *speaker){
 						speaker->dialogIndex = 9999;
 						return 0;
 					}else if(exml->QueryBoolAttribute("pause",&stop) == XML_NO_ERROR && stop){
-						speaker->dialogIndex = 9999;
+						//speaker->dialogIndex = 9999;
 						return 1;
 					}else return commonAIFunc(speaker);
 				}else{
@@ -189,6 +189,38 @@ int commonAIFunc(NPC *speaker){
 	}while(exml);
 	
 	return 0;
+}
+
+void commonTriggerFunc(Mob *callee){
+	static bool lock = false;
+	XMLDocument xml;
+	XMLElement *exml;
+	
+	if(!lock){
+		lock = true;
+	
+		xml.LoadFile(currentXML);
+		exml = xml.FirstChildElement("Trigger");
+		
+		while(strcmp(exml->Attribute("id"),callee->heyid.c_str()))
+			exml = exml->NextSiblingElement();
+		
+		player->vel.x = 0;
+		
+		std::cout<<"1\n";
+		ui::toggleBlackFast();
+		std::cout<<"2\n";
+		ui::waitForCover();
+		std::cout<<"3\n";
+		ui::importantText(exml->GetText());
+		std::cout<<"4\n";
+		ui::waitForDialog();
+		std::cout<<"5\n";
+		ui::toggleBlackFast();
+		
+		callee->alive = false;
+		lock = false;
+	}
 }
 
 void destroyEverything(void);
@@ -227,17 +259,6 @@ void initEverything(void){
 		}
 	}
 
-	/*
-	 * Spawn the player and begin the game.
-	 */
-	
-	player = new Player();
-	player->spawn(200,100);
-
-	currentWorld->bgmPlay(NULL);
-	atexit(destroyEverything);
-	std::cout << "Hey";
-
 	pauseMenu.items.push_back(ui::createParentButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
 	pauseMenu.items.push_back(ui::createChildButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, "Options"));
 	pauseMenu.items.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
@@ -250,6 +271,16 @@ void initEverything(void){
 	optionsMenu.child = NULL;
 	optionsMenu.parent = &pauseMenu;
 	// optionsMenu.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), );
+	
+	/*
+	 * Spawn the player and begin the game.
+	 */
+	
+	player = new Player();
+	player->spawn(200,100);
+
+	currentWorld->bgmPlay(NULL);
+	atexit(destroyEverything);
 }
 
 extern std::vector<int (*)(NPC *)> AIpreload;
