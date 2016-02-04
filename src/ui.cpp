@@ -910,7 +910,7 @@ namespace ui {
 
 		bmfh.bfType = 0x4d42;
 
-		bmfh.bfOffBits = 0x36;
+		bmfh.bfOffBits = 54;
 		bmfh.bfSize = header_size;
 		bmfh.bfReserved1 = 0;
 		bmfh.bfReserved2 = 0;

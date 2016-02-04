@@ -55,8 +55,10 @@ public:
 	void gotoParent();
 };
 
-typedef unsigned long DWORD;
-typedef unsigned short WORD;
+typedef uint8_t BYTE;
+typedef uint16_t WORD;
+typedef uint32_t DWORD;
+typedef int32_t LONG;
 
 typedef struct{
 	WORD 	bfType;
@@ -67,14 +69,14 @@ typedef struct{
 
 typedef struct{
 	DWORD 	biSize; //size of header in bytes
-	long 	biWidth;
-	long 	biHeight;
+	LONG 	biWidth;
+	LONG 	biHeight;
 	WORD 	biPlanes;
 	WORD 	biBitCount; //how many bits are in a pixel
 	DWORD 	biCompression;
 	DWORD 	biSizeImage; //size of image in bytes
-	long 	biXPelsPerMeter;
-	long 	biYPelsPerMeter;
+	LONG 	biXPelsPerMeter;
+	LONG 	biYPelsPerMeter;
 	DWORD 	biClrUsed; //how many colors there are
 	DWORD 	biClrImportant; //important colors
 } __attribute__ ((packed)) BITMAPINFOHEADER;
