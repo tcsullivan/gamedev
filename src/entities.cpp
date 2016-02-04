@@ -19,7 +19,7 @@ std::string sTexLoc[] = {	"assets/townhall.png",
 							"assets/house1.png", 
 							"assets/fountain1.png",
 							"assets/lampPost1.png",
-							"assets/brazier.png"};
+							"assets/brazzier.png"};
 
 GLuint waterTex;
 

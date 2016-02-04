@@ -246,7 +246,9 @@ void initEverything(void){
 	pauseMenu.parent = NULL;
 
 
-	optionsMenu.items.push_back(ui::createSlider({-512/2,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "Shit", &VOLUME_MASTER));
+	optionsMenu.items.push_back(ui::createSlider({0-(float)SCREEN_WIDTH/4,0-(512/2)}, {50,512}, {0.0f, 0.0f, 0.0f}, 0, 100, "Master", &VOLUME_MASTER));
+	optionsMenu.items.push_back(ui::createSlider({-200,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "Music", &VOLUME_MUSIC));
+	optionsMenu.items.push_back(ui::createSlider({-200,000}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "SFX", &VOLUME_SFX));
 	optionsMenu.child = NULL;
 	optionsMenu.parent = &pauseMenu;
 	// optionsMenu.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), );

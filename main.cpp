@@ -189,7 +189,8 @@ unsigned int SCREEN_HEIGHT = 720;
 bool		 FULLSCREEN    = false;
 
 float 		 VOLUME_MASTER = 50;
-float 		 VOLUME_MUSIC =  25;
+float 		 VOLUME_MUSIC  = 25;
+float		 VOLUME_SFX    = 25;
 
 /*******************************************************************************
  * MAIN ************************************************************************

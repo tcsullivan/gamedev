@@ -12,7 +12,7 @@
 #include <world.h>
 #include <ft2build.h>
 #include <SDL2/SDL_opengl.h>
-#include <fstream>
+#include <thread>
 #include FT_FREETYPE_H
 
 #define DEBUG

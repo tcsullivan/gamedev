@@ -126,6 +126,7 @@ extern unsigned int HLINE;
 
 extern float VOLUME_MASTER;
 extern float VOLUME_MUSIC;
+extern float VOLUME_SFX;
 /**
  * A 'wrapper' for libc's srand(), as we hope to eventually have our own random number
  * generator.

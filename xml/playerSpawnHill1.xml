@@ -5,7 +5,7 @@
 	
 	<link right="playerSpawnHill2.xml" />
 	
-	<mob type="1" aggressive="true" />
+	<mob type="1" aggressive="false" />
 	
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="true" />

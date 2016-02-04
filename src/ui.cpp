@@ -88,7 +88,7 @@ void Menu::gotoParent(){
 
 void Menu::gotoChild(){
 	if(child == NULL){
-		currentMenu = this;
+		currentMenu = NULL;
 	}else{
 		currentMenu = child;
 	}
@@ -810,12 +810,21 @@ namespace ui {
 				char outSV[32];
 				sprintf(outSV, "%s: %.1f",m.slider.text, *m.slider.var);
 
-				//width of the slider handle
-				float sliderW = m.slider.dim.x * .05;
+				float sliderW, sliderH;
 
-				//location of the slider handle
-				m.slider.sliderLoc = m.slider.minValue + (*m.slider.var/m.slider.maxValue)*(m.slider.dim.x-sliderW);
-
+				if(m.slider.dim.y > m.slider.dim.x){
+					//width of the slider handle
+					sliderW = m.slider.dim.x;
+					sliderH = m.slider.dim.y * .05;
+					//location of the slider handle
+					m.slider.sliderLoc = m.slider.minValue + (*m.slider.var/m.slider.maxValue)*(m.slider.dim.y-sliderW);
+				}else{
+					//width of the slider handle
+					sliderW = m.slider.dim.x * .05;
+					sliderH = m.slider.dim.y;
+					//location of the slider handle
+					m.slider.sliderLoc = m.slider.minValue + (*m.slider.var/m.slider.maxValue)*(m.slider.dim.x-sliderW);
+				}
 				//draw the background of the slider
 				glColor4f(m.slider.color.red,m.slider.color.green,m.slider.color.blue, .5f);
 				glRectf(offset.x+m.slider.loc.x, 
@@ -825,14 +834,23 @@ namespace ui {
 
 				//draw the slider handle
 				glColor4f(m.slider.color.red,m.slider.color.green,m.slider.color.blue, 1.0f);
-				glRectf(offset.x+m.slider.loc.x+m.slider.sliderLoc,
-						offset.y+m.slider.loc.y,
-						offset.x+m.slider.loc.x + m.slider.sliderLoc + (m.slider.dim.x*.05),
-						offset.y+m.slider.loc.y + m.slider.dim.y);
+				if(m.slider.dim.y > m.slider.dim.x){
+					glRectf(offset.x+m.slider.loc.x,
+						offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05),
+						offset.x+m.slider.loc.x + sliderW,
+						offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH);
 
-				//draw the now combined slider text
-				putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y/2)) - ui::fontSize/2, outSV);
-				
+					//draw the now combined slider text
+					putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y*1.05)) - ui::fontSize/2, outSV);
+				}else{
+					glRectf(offset.x+m.slider.loc.x+m.slider.sliderLoc,
+							offset.y+m.slider.loc.y,
+							offset.x+m.slider.loc.x + m.slider.sliderLoc + sliderW,
+							offset.y+m.slider.loc.y + sliderH);
+
+					//draw the now combined slider text
+					putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y/2)) - ui::fontSize/2, outSV);
+				}				
 				//test if mouse is inside of the slider's borders
 				if(mouse.x >= offset.x+m.slider.loc.x && mouse.x <= offset.x+m.slider.loc.x + m.slider.dim.x){
 					if(mouse.y >= offset.y+m.slider.loc.y && mouse.y <= offset.y+m.slider.loc.y + m.slider.dim.y){
@@ -846,26 +864,45 @@ namespace ui {
 							glVertex2f(offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y+m.slider.dim.y);
 							glVertex2f(offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y);
 
-							//and a border around the slider handle
-							glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y);
-							glVertex2f(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y);
-							glVertex2f(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y+m.slider.dim.y);
-							glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y+m.slider.dim.y);
-							glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y);
+							if(m.slider.dim.y > m.slider.dim.x){
+								//and a border around the slider handle
+								glVertex2f(offset.x+m.slider.loc.x, 		  offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05));
+								glVertex2f(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05));
+								glVertex2f(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH);
+								glVertex2f(offset.x+m.slider.loc.x,           offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH);
+								glVertex2f(offset.x+m.slider.loc.x,           offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05));
+							}else{
+								//and a border around the slider handle
+								glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y);
+								glVertex2f(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y);
+								glVertex2f(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y+m.slider.dim.y);
+								glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y+m.slider.dim.y);
+								glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y);
+							}
 
 						glEnd();
 
 						//if we are inside the slider and click it will set the slider to that point
 						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 							//change handle location
-							*m.slider.var = (((mouse.x-offset.x) - m.slider.loc.x)/m.slider.dim.x)*100;
+							if(m.slider.dim.y > m.slider.dim.x){
+								*m.slider.var = (((mouse.y-offset.y) - m.slider.loc.y)/m.slider.dim.y)*100;
+								//draw a white box over the handle
+								glColor3f(1.0f,1.0f,1.0f);
+								glRectf(offset.x+m.slider.loc.x, 
+										offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05), 
+										offset.x+m.slider.loc.x + sliderW, 
+										offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH);
 
-							//draw a white box over the handle
-							glColor3f(1.0f,1.0f,1.0f);
-							glRectf(offset.x+m.slider.loc.x + m.slider.sliderLoc, 
-									offset.y+m.slider.loc.y, 
-									offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), 
-									offset.y+m.slider.loc.y + m.slider.dim.y);
+							}else{
+								*m.slider.var = (((mouse.x-offset.x) - m.slider.loc.x)/m.slider.dim.x)*100;
+								//draw a white box over the handle
+								glColor3f(1.0f,1.0f,1.0f);
+								glRectf(offset.x+m.slider.loc.x + m.slider.sliderLoc, 
+										offset.y+m.slider.loc.y, 
+										offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), 
+										offset.y+m.slider.loc.y + m.slider.dim.y);
+							}
 						}
 
 						//makes sure handle can't go below or above min and max values
@@ -899,8 +936,8 @@ namespace ui {
 		name += ".bmp";
 		FILE* bmp = fopen(name.c_str(), "w+");
 
-		unsigned long header_size = sizeof(BITMAPFILEHEADER) +
-									sizeof(BITMAPINFOHEADER);
+		// unsigned long header_size = sizeof(BITMAPFILEHEADER) +
+		// 							sizeof(BITMAPINFOHEADER);
 
 		BITMAPFILEHEADER bmfh;
 		BITMAPINFOHEADER bmih;
@@ -911,7 +948,8 @@ namespace ui {
 		bmfh.bfType = 0x4d42;
 
 		bmfh.bfOffBits = 54;
-		bmfh.bfSize = header_size;
+		bmfh.bfSize = sizeof(BITMAPFILEHEADER) +
+					  sizeof(BITMAPINFOHEADER);
 		bmfh.bfReserved1 = 0;
 		bmfh.bfReserved2 = 0;
 
@@ -937,6 +975,9 @@ namespace ui {
 		fwrite(&bmih, 1,sizeof(BITMAPINFOHEADER),bmp);
 		fwrite(&bgr, 1,3*SCREEN_WIDTH*SCREEN_HEIGHT,bmp);
 
+		delete[] pixels;
+
+		fclose(bmp);
 	}
 
 	void dialogAdvance(void){
@@ -1191,10 +1232,15 @@ DONE:
 					break;
 				case SDLK_F12:
 					// Make the BYTE array, factor of 3 because it's RBG.
-					static GLubyte* pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
+					static GLubyte* pixels;
+					pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
 					glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
-					takeScreenshot(pixels);
+					static std::thread scr;
+					scr = std::thread(takeScreenshot,pixels);
+					scr.detach();
+					//takeScreenshot(pixels);
+
 					std::cout << "Took screenshot" << std::endl;
 					break;
 				default:

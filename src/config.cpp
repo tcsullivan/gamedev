@@ -9,6 +9,7 @@ extern bool		 	FULLSCREEN;
 
 extern float 		 VOLUME_MASTER;
 extern float 		 VOLUME_MUSIC;
+extern float 		 VOLUME_SFX;
 
 XMLDocument xml;
 XMLElement *scr;
@@ -41,17 +42,19 @@ void readConfig(){
 
 	vol = xml.FirstChildElement("volume");
 	VOLUME_MASTER = vol->FirstChildElement("master")->FloatAttribute("volume");
-	VOLUME_MUSIC = vol->FirstChildElement("music")->FloatAttribute("volume");
+	VOLUME_MUSIC  = vol->FirstChildElement("music")->FloatAttribute("volume");
+	VOLUME_SFX    = vol->FirstChildElement("sfx")->FloatAttribute("volume");
 
 }
 
 void updateConfig(){
 	vol->FirstChildElement("master")->SetAttribute("volume",VOLUME_MASTER);
 	vol->FirstChildElement("music")->SetAttribute("volume",VOLUME_MUSIC);
+	vol->FirstChildElement("sfx")->SetAttribute("volume", VOLUME_SFX);
 
 	Mix_Volume(0,VOLUME_MASTER);
+	Mix_Volume(1,VOLUME_SFX);
 	Mix_VolumeMusic(VOLUME_MUSIC);
-
 }
 
 void saveConfig(){
