@@ -1,5 +1,7 @@
 #include <config.h>
 
+#include <ui.h>
+
 using namespace tinyxml2;
 
 extern unsigned int HLINE;
@@ -44,7 +46,10 @@ void readConfig(){
 	VOLUME_MASTER = vol->FirstChildElement("master")->FloatAttribute("volume");
 	VOLUME_MUSIC  = vol->FirstChildElement("music")->FloatAttribute("volume");
 	VOLUME_SFX    = vol->FirstChildElement("sfx")->FloatAttribute("volume");
-
+	
+	std::cout<<"Loading font through settings.xml..."<<std::endl;
+	ui::initFonts();
+	ui::setFontFace(xml.FirstChildElement("font")->Attribute("path"));
 }
 
 void updateConfig(){

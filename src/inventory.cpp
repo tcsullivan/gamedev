@@ -88,6 +88,12 @@ void initInventorySprites(void){
 }
 
 void destroyInventory(void){
+	
+	while(!itemMap.empty()){
+		delete itemMap.front();
+		itemMap.erase(itemMap.begin());
+	}
+	
 	Mix_FreeChunk(swordSwing);
 }
 

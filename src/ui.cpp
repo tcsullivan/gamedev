@@ -227,8 +227,8 @@ namespace ui {
 				buf[j*4  ]=fontColor[0];
 				buf[j*4+1]=fontColor[1];
 				buf[j*4+2]=fontColor[2];
-				//buf[j*4+3]=ftf->glyph->bitmap.buffer[j] == 255 ? 255 : 0;
-				buf[j*4+3]=ftf->glyph->bitmap.buffer[j];
+				buf[j*4+3]=ftf->glyph->bitmap.buffer[j] ? 255 : 0;
+				//buf[j*4+3]=ftf->glyph->bitmap.buffer[j];
 			}
 			
 			ftexwh[i-33].x=ftf->glyph->bitmap.width;
@@ -537,7 +537,7 @@ namespace ui {
 				  
 		dialogBoxExists = true;
 		dialogImportant = true;
-		toggleBlack();
+		//toggleBlack();
 	}
 	void draw(void){
 		unsigned char i;
@@ -976,7 +976,7 @@ namespace ui {
 		fwrite(&bgr, 1,3*SCREEN_WIDTH*SCREEN_HEIGHT,bmp);
 
 		delete[] pixels;
-
+		
 		fclose(bmp);
 	}
 
@@ -1000,8 +1000,10 @@ DONE:
 		if(dialogImportant){
 			dialogImportant = false;
 			setFontSize(16);
-			toggleBlack();
+			//toggleBlack();
 		}
+		/*if(ui::fontSize != 16)
+			setFontSize(16);*/
 
 		dialogBoxExists = false;
 	}

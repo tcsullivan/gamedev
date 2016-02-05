@@ -208,6 +208,7 @@ public:
 	bool aggressive;
 	double init_y;
 	void (*hey)(Mob *callee);
+	std::string heyid;
 	
 	Mob(int);
 	~Mob();

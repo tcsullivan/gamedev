@@ -302,8 +302,8 @@ int main(/*int argc, char *argv[]*/){
 	 * if they have error.
 	 */
 	
-	ui::initFonts();
-	ui::setFontFace("ttf/VCR_OSD_MONO_1.001.ttf");		// as in gamedev/ttf/<font>
+	//ui::initFonts();
+	//ui::setFontFace("ttf/FreePixel.ttf");		// as in gamedev/ttf/<font>
 	
 	/*
 	 * Initialize the random number generator. At the moment, initRand is a macro pointing to libc's
