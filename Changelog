@@ -625,3 +625,10 @@
 	- improved font rendering codes
 	- added font selection to settings.xml
 	- XML'd important text
+
+2/8/2016:
+=========
+
+	- partially fixed text drawing
+	- XML'd quest checking, working on quest requirements
+	- worked on XML'ing villages

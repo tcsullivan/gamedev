@@ -224,9 +224,9 @@ namespace ui {
 			buf = new char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];
 		
 			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
-				buf[j*4  ]=fontColor[0];
-				buf[j*4+1]=fontColor[1];
-				buf[j*4+2]=fontColor[2];
+				buf[j*4  ]=255;//fontColor[0];
+				buf[j*4+1]=255;//fontColor[1];
+				buf[j*4+2]=255;//fontColor[2];
 				buf[j*4+3]=ftf->glyph->bitmap.buffer[j] ? 255 : 0;
 				//buf[j*4+3]=ftf->glyph->bitmap.buffer[j];
 			}
@@ -258,8 +258,10 @@ namespace ui {
 	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
 	*/
 	
-	vec2 putChar(float x,float y,char c){
+	vec2 putChar(float xx,float yy,char c){
 		vec2 c1,c2;
+		
+		int x = xx, y = yy;
 		
 		/*
 		 *	Get the width and height of the rendered character.
@@ -332,9 +334,11 @@ namespace ui {
 		return xo;	// i.e. the string width
 	}
 	
-	float putStringCentered(const float x,const float y,const char *s){
+	float putStringCentered(const float xx,const float yy,const char *s){
 		unsigned int i = 0;
 		float width = 0;
+		
+		int x = xx,y = yy;
 		
 		do{
 			if(s[i]=='\n'){			//	Handle newlines
@@ -626,13 +630,13 @@ namespace ui {
 			
 			if(player->inv->invOpen){
 				hub.y = player->loc.y + fontSize * 8;
-				hub.x = player->loc.x;
+				hub.x = player->loc.x;// + player->width / 2;
 				
 				putStringCentered(hub.x,hub.y,"Current Quests:");
 				
 				for(auto &c : player->qh.current){
 					hub.y -= fontSize * 1.15;
-					putString(hub.x,hub.y,c.title.c_str());
+					putStringCentered(hub.x,hub.y,c.title.c_str());
 				}	
 			}
 		}
@@ -726,7 +730,7 @@ namespace ui {
 
 	void drawMenu(Menu *menu){
 
-		setFontSize(20);
+		setFontSize(24);
 		SDL_Event e;
 			
 		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);

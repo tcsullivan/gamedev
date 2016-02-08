@@ -33,6 +33,8 @@ int commonAIFunc(NPC *speaker){
 	XMLDocument xml;
 	XMLElement *exml,*oxml;
 	
+	static unsigned int oldidx = 9999;
+	
 	const char *name;
 	unsigned int idx = 0;
 	bool stop = false;
@@ -67,9 +69,30 @@ int commonAIFunc(NPC *speaker){
 	
 				if((oxml = exml->FirstChildElement("quest"))){
 					const char *qname;
+					Quest tmp;
 					while(oxml){
-						if((qname = oxml->Attribute("assign")))
-							player->qh.current.push_back((Quest){qname,"None",(struct item_t){0,0}});
+						if((qname = oxml->Attribute("assign"))){
+							tmp.title = qname;
+							tmp.desc = "None";
+							tmp.reward = (struct item_t){0,0};
+							
+							if(oxml->GetText()){
+								tmp.need.push_back(oxml->GetText());
+							}
+							
+							player->qh.current.push_back(tmp);
+						}else if((qname = oxml->Attribute("check"))){
+							if(player->qh.hasQuest(qname)){
+								ui::dialogBox(speaker->name,NULL,false,"Nice meme");
+								ui::waitForDialog();
+								return 0;
+							}else{
+								oldidx = speaker->dialogIndex;
+								speaker->dialogIndex = oxml->UnsignedAttribute("fail");
+								return commonAIFunc(speaker);
+							}
+						}	
+						
 						oxml = oxml->NextSiblingElement();
 					}
 				}
@@ -177,10 +200,16 @@ int commonAIFunc(NPC *speaker){
 						return 1;
 					}else return commonAIFunc(speaker);
 				}else{
-					speaker->dialogIndex = 9999;
-					return 0;
+					if(oldidx != 9999){
+						speaker->dialogIndex = oldidx;
+						oldidx = 9999;
+						return 1;
+					}else{
+						speaker->dialogIndex = 9999;
+						return 0;
+					}
 				}
-				return 1;
+				//return 1;
 			}
 		}
 		

@@ -10,7 +10,7 @@
 	<trigger x="-300" id="Test" />
 	
 	<npc name="Ralph" hasDialog="true" />
-	<npc name="Johnny" hasDialog="true" />
+	<npc name="Johnny" hasDialog="false" />
 	<structure type="5" inside="playerSpawnHill1_Building1.xml" />
 
 </World>
@@ -22,30 +22,33 @@ And it wasn't stormy.
 
 <Dialog name="Ralph">
 	
-	<text id="0">
-		Hello there!
-		<option text="Hello" nextid="1" />
-		<option text="Frig" nextid="2" />
+	<text id="0" nextid="1" >
+		Hello there! My name is Ralph.
 	</text>
 	
-	<text id="1">
-		gg.
+	<text id="1" nextid="2" call="Johnny" callid="0" pause="true" >
+		You should go talk to my friend Johnny. He's a pretty chill dude.
 	</text>
 	
-	<text id="2" call="Johnny" callid="1">
-		what you have done it to trick Microsoft
+	<text id="2" >
+		<quest check="Your First Quest" fail="3" />
+		Niice.
 	</text>
 	
+	<text id="3">
+		Go check out Johnny. He's cool.
+	</text>
 </Dialog>
 
 <Dialog name="Johnny">
-	<text id="0" nextid="1" pause="true">
-		Sup bro!
-		<quest assign="Quest #1" />
+	<text id="0" nextid="1" pause="true" >
+		Sup bro! Have a quest. To complete it, just go talk to Ralph again.
+		<quest assign="Your First Quest" >
+			Dank Maymay
+		</quest>
 	</text>
 	
-	<text id="1" stop="true">
-		My name's Johnny.
-		<give id="Dank Maymay" count="1" />
+	<text id="1" nextid="1" pause="true" >
+		Broooooooooooooo...
 	</text>
 </Dialog>

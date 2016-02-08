@@ -24,16 +24,8 @@ typedef struct {
 	std::string title;
 	std::string desc;
 	struct item_t reward;
+	std::vector<std::string> need;
 } Quest;
-
-/*class Quest {
-public:
-	char *title;
-	char *desc;
-	struct item_t reward;
-	Quest(const char *t,const char *d,struct item_t r);
-	~Quest();
-};*/
 
 /**
  * The Quest Handler class.
