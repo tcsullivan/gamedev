@@ -3,6 +3,13 @@
 	<style background="1" bgm="assets/music/theme_jazz.wav" />
 	<generation type="Random" width="300" />
 	
-	<npc name="Bob" />
+	<npc name="Bob" hasDialog="true" />
 
 </IndoorWorld>
+
+<Dialog name="Bob">
+	<text id="0">
+		Hey. Have a Dank Maymay :)
+		<give id="Dank MayMay" count="1" />
+	</text>
+</Dialog>

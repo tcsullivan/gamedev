@@ -53,22 +53,38 @@ int Inventory::addItem(std::string name,uint count){
 
 int Inventory::takeItem(std::string name,uint count){
 	unsigned int id = 999999;
+	
+	/*
+	 * Name to ID lookup
+	 */
+	
 	for(unsigned int i=0;i<itemMap.size();i++){
 		if(itemMap[i]->name == name){
 			id = i;
 			break;
 		}
 	}
+	
+	if(id == 999999)
+		return -1;
+	
+	/*
+	 * Inventory lookup
+	 */
+	
 	for(unsigned int i=0;i<items.size();i++){
 		if(items[i].id == id){
 			if(count > items[i].count)
-				items.erase(items.begin()+i);
-			else 
+				return -(items[i].count - count);
+			else{
 				items[i].count -= count;
+				if(!items[i].count)
+					items.erase(items.begin()+i);
+			}
 			return 0;
 		}
 	}
-	return -1;
+	return -2;
 }
 
 static GLuint *itemtex;

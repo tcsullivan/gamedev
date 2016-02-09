@@ -632,3 +632,10 @@
 	- partially fixed text drawing
 	- XML'd quest checking, working on quest requirements
 	- worked on XML'ing villages
+	
+2/9/2016:
+=========
+
+	- quests can require one item for completion
+	- better-er text drawing
+	- can set world themes through XML

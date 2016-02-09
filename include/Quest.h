@@ -55,13 +55,13 @@ public:
 	 * that gave the quest originally.
 	 */
 	
-	int finish(const char *t,void *completer);
+	int finish(std::string t);
 	
 	/**
 	 * Returns true if this handler is currently taking the quest.
 	 */
 	
-	bool hasQuest(const char *t);
+	bool hasQuest(std::string t);
 };
 
 #endif // QUEST_H

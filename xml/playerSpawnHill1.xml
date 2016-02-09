@@ -31,8 +31,8 @@ And it wasn't stormy.
 	</text>
 	
 	<text id="2" >
-		<quest check="Your First Quest" fail="3" />
 		Niice.
+		<quest check="Your First Quest" fail="3" />
 	</text>
 	
 	<text id="3">
@@ -43,9 +43,7 @@ And it wasn't stormy.
 <Dialog name="Johnny">
 	<text id="0" nextid="1" pause="true" >
 		Sup bro! Have a quest. To complete it, just go talk to Ralph again.
-		<quest assign="Your First Quest" >
-			Dank Maymay
-		</quest>
+		<quest assign="Your First Quest" >Dank MayMay</quest>
 	</text>
 	
 	<text id="1" nextid="1" pause="true" >

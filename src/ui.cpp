@@ -258,17 +258,15 @@ namespace ui {
 	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
 	*/
 	
-	vec2 putChar(float xx,float yy,char c){
+	vec2 putChar(float x,float y,char c){
 		vec2 c1,c2;
-		
-		int x = xx, y = yy;
 		
 		/*
 		 *	Get the width and height of the rendered character.
 		*/
 		
-		c1={x+ftexbl[c-33].x,
-		    y+ftexbl[c-33].y};
+		c1={(float)floor(x)+ftexbl[c-33].x,
+		    (float)floor(y)+ftexbl[c-33].y};
 		c2=ftexwh[c-33];
 		
 		/*
@@ -316,7 +314,10 @@ namespace ui {
 				if(s[i] == ' ')
 					i++;
 			}
-			if(s[i] == '\n' || s[i] == '\r' || s[i] == '\t'){
+			if(s[i] == '\n'){
+				yo-=fontSize*1.05;
+				xo=x;
+			}else if(s[i] == '\r' || s[i] == '\t'){
 			/*if(s[i] == '\n'){
 				yo-=fontSize*1.05;
 				xo=x;
@@ -325,7 +326,7 @@ namespace ui {
 			}else if(s[i]=='\b'){	//	Handle backspaces?
 				xo-=add.x;
 			}else{
-				add=putChar(xo,yo,s[i]);
+				add=putChar(floor(xo),floor(yo),s[i]);
 				xo+=add.x;
 				yo+=add.y;
 			}
@@ -334,11 +335,9 @@ namespace ui {
 		return xo;	// i.e. the string width
 	}
 	
-	float putStringCentered(const float xx,const float yy,const char *s){
+	float putStringCentered(const float x,const float y,const char *s){
 		unsigned int i = 0;
 		float width = 0;
-		
-		int x = xx,y = yy;
 		
 		do{
 			if(s[i]=='\n'){			//	Handle newlines
@@ -353,7 +352,7 @@ namespace ui {
 			}
 		}while(s[++i]);
 		
-		putString(x-width/2,y,s);
+		putString(floor(x-width/2),y,s);
 		return width;
 	}
 	
@@ -530,15 +529,15 @@ namespace ui {
 	}
 	void importantText(const char *text,...){
 		va_list textArgs;
-		
+
 		//if(!player->ground)return;
-		
+
 		memset(dialogBoxText,0,512);
-				
+
 		va_start(textArgs,text);
 		vsnprintf(dialogBoxText,512,text,textArgs);
 		va_end(textArgs);
-				  
+
 		dialogBoxExists = true;
 		dialogImportant = true;
 		//toggleBlack();
