@@ -69,21 +69,12 @@ int commonAIFunc(NPC *speaker){
 	
 				if((oxml = exml->FirstChildElement("quest"))){
 					const char *qname;
-					Quest tmp;
+					
 					while(oxml){
-						if((qname = oxml->Attribute("assign"))){
-							tmp.title = qname;
-							tmp.desc = "None";
-							tmp.reward = (struct item_t){0,0};
-							
-							if(oxml->GetText()){
-								tmp.need.push_back(oxml->GetText());
-							}
-							
-							player->qh.current.push_back(tmp);
-						}else if((qname = oxml->Attribute("check"))){
+						if((qname = oxml->Attribute("assign")))
+							player->qh.assign(qname,"None",(std::string)oxml->GetText());
+						else if((qname = oxml->Attribute("check"))){
 							if(player->qh.hasQuest(qname) && player->qh.finish(qname)){
-								player->qh.finish(qname);
 								goto CONT;
 							}else{
 								oldidx = speaker->dialogIndex;

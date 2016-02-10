@@ -20,11 +20,16 @@
 
 #define DEBUG
 
+struct need_t {
+	std::string name;
+	int n;
+};
+
 typedef struct {
 	std::string title;
 	std::string desc;
 	struct item_t reward;
-	std::vector<std::string> need;
+	std::vector<struct need_t> need;
 } Quest;
 
 /**
@@ -42,13 +47,13 @@ public:
 	 * Adds a quest to the current quest vector by its title.
 	 */
 	
-	int assign(const char *t);
+	int assign(std::string title,std::string desc,std::string req);
 	
 	/**
 	 * Drops a quest through its title.
 	 */
 	
-	int drop(const char *t);
+	int drop(std::string title);
 	
 	/**
 	 * Finishes a quest through it's title, also giving a pointer to the Entity

@@ -48,6 +48,7 @@ public:
 	
 	int addItem(std::string name,uint count);
 	int takeItem(std::string name,uint count);
+	int hasItem(std::string name);
 	
 	int useItem(void);
 	bool detectCollision(vec2,vec2);

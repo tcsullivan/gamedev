@@ -639,3 +639,11 @@
 	- quests can require one item for completion
 	- better-er text drawing
 	- can set world themes through XML
+
+2/10/2016:
+==========
+
+	- proper quest handling: multiple req's, re-classified, overall good
+	- began considering unique_ptr's because they're good
+	- fixed inventory everything
+	- themes work
