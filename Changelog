@@ -625,3 +625,25 @@
 	- improved font rendering codes
 	- added font selection to settings.xml
 	- XML'd important text
+
+2/8/2016:
+=========
+
+	- partially fixed text drawing
+	- XML'd quest checking, working on quest requirements
+	- worked on XML'ing villages
+	
+2/9/2016:
+=========
+
+	- quests can require one item for completion
+	- better-er text drawing
+	- can set world themes through XML
+
+2/10/2016:
+==========
+
+	- proper quest handling: multiple req's, re-classified, overall good
+	- began considering unique_ptr's because they're good
+	- fixed inventory everything
+	- themes work

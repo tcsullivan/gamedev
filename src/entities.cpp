@@ -3,6 +3,8 @@
 
 #include <istream>
 
+#define RAND_DIALOG_COUNT 13
+
 extern std::istream *names;
 extern unsigned int loops;
 
@@ -117,7 +119,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
 	
-	randDialog = rand() % 12 - 1;
+	randDialog = rand() % RAND_DIALOG_COUNT - 1;
 	dialogIndex = 0;
 }
 NPC::~NPC(){
@@ -383,7 +385,7 @@ void NPC::clearAIFunc(void){
 	aiFunc.clear();
 }
 
-const char *randomDialog[] = {
+const char *randomDialog[RAND_DIALOG_COUNT] = {
 	"What a beautiful day it is.",
 	"Have you ever went fast? I have.",
 	"I heard if you complete a quest, you'll get a special reward.",

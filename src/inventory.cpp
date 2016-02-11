@@ -13,7 +13,7 @@ static bool swing = false;
 static vec2 itemLoc;
 Mix_Chunk* swordSwing;
 
-std::vector<Item *> itemMap;
+static std::vector<Item *> itemMap;
 
 void items(void){
 	XMLDocument xml;
@@ -32,7 +32,7 @@ void items(void){
 		itemMap.back()->texloc = exml->Attribute("sprite");
 
 		exml = exml->NextSiblingElement();
-	}
+	}	
 }
 
 int Inventory::addItem(std::string name,uint count){
@@ -44,7 +44,7 @@ int Inventory::addItem(std::string name,uint count){
 					return 0;
 				}
 			}
-			items.push_back((item_t){i,count});
+			items.push_back((item_t){count,i});
 			return 0;
 		}
 	}
@@ -53,22 +53,59 @@ int Inventory::addItem(std::string name,uint count){
 
 int Inventory::takeItem(std::string name,uint count){
 	unsigned int id = 999999;
+	
+	/*
+	 * Name to ID lookup
+	 */
+	
 	for(unsigned int i=0;i<itemMap.size();i++){
 		if(itemMap[i]->name == name){
 			id = i;
 			break;
 		}
 	}
+	
+	if(id == 999999)
+		return -1;
+	
+	/*
+	 * Inventory lookup
+	 */
+	
 	for(unsigned int i=0;i<items.size();i++){
 		if(items[i].id == id){
 			if(count > items[i].count)
-				items.erase(items.begin()+i);
-			else 
+				return -(items[i].count - count);
+			else{
 				items[i].count -= count;
+				if(!items[i].count)
+					items.erase(items.begin()+i);
+			}
 			return 0;
 		}
 	}
-	return -1;
+	return -2;
+}
+
+int Inventory::hasItem(std::string name){
+	unsigned int id = 999999;
+
+	for(unsigned int i=0;i<itemMap.size();i++){
+		if(itemMap[i]->name == name){
+			id = i;
+			break;
+		}
+	}
+	
+	if(id == 999999)
+		return 0;
+
+	for(auto &i : items){
+		if(i.id == id)
+			return i.count;
+	}
+	
+	return 0;
 }
 
 static GLuint *itemtex;
@@ -211,7 +248,7 @@ void Inventory::draw(void){
 					}
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
-				ui::putText(r.end.x-(itemWide/2),r.end.y-(itemWide*.9),"%s",itemMap[items[a].id]->name);
+				ui::putText(r.end.x-(itemWide/2),r.end.y-(itemWide*.9),"%s",itemMap[items[a].id]->name.c_str());
 				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",items[a].count);
 			}
 

@@ -33,6 +33,8 @@ int commonAIFunc(NPC *speaker){
 	XMLDocument xml;
 	XMLElement *exml,*oxml;
 	
+	static unsigned int oldidx = 9999;
+	
 	const char *name;
 	unsigned int idx = 0;
 	bool stop = false;
@@ -67,13 +69,26 @@ int commonAIFunc(NPC *speaker){
 	
 				if((oxml = exml->FirstChildElement("quest"))){
 					const char *qname;
+					
 					while(oxml){
 						if((qname = oxml->Attribute("assign")))
-							player->qh.current.push_back((Quest){qname,"None",(struct item_t){0,0}});
+							player->qh.assign(qname,"None",(std::string)oxml->GetText());
+						else if((qname = oxml->Attribute("check"))){
+							if(player->qh.hasQuest(qname) && player->qh.finish(qname)){
+								goto CONT;
+							}else{
+								oldidx = speaker->dialogIndex;
+								speaker->dialogIndex = oxml->UnsignedAttribute("fail");
+								return commonAIFunc(speaker);
+							}
+						}	
+						
 						oxml = oxml->NextSiblingElement();
 					}
 				}
-				
+
+CONT:
+
 				/*
 				 * Handle any 'give' requests.
 				 */
@@ -129,7 +144,7 @@ int commonAIFunc(NPC *speaker){
 					 * Get the player's choice, then set the XMLElement to the option's block.
 					 */
 					
-					ui::dialogBox(speaker->name,optstr.c_str(),false,exml->GetText());
+					ui::dialogBox(speaker->name,optstr.c_str(),false,exml->GetText()+1);
 					ui::waitForDialog();
 					
 					if(ui::dialogOptChosen)
@@ -138,12 +153,12 @@ int commonAIFunc(NPC *speaker){
 					while(!dopt.empty())
 						dopt.pop_back();
 				}else{
-					
+										
 					/*
 					 * No options - simply print the text.
 					 */
 
-					ui::dialogBox(speaker->name,"",false,exml->GetText());
+					ui::dialogBox(speaker->name,NULL,false,exml->GetText());
 					ui::waitForDialog();
 				}
 				
@@ -177,10 +192,16 @@ int commonAIFunc(NPC *speaker){
 						return 1;
 					}else return commonAIFunc(speaker);
 				}else{
-					speaker->dialogIndex = 9999;
-					return 0;
+					if(oldidx != 9999){
+						speaker->dialogIndex = oldidx;
+						oldidx = 9999;
+						return 1;
+					}else{
+						speaker->dialogIndex = 9999;
+						return 0;
+					}
 				}
-				return 1;
+				//return 1;
 			}
 		}
 		

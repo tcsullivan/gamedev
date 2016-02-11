@@ -224,9 +224,9 @@ namespace ui {
 			buf = new char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];
 		
 			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
-				buf[j*4  ]=fontColor[0];
-				buf[j*4+1]=fontColor[1];
-				buf[j*4+2]=fontColor[2];
+				buf[j*4  ]=255;//fontColor[0];
+				buf[j*4+1]=255;//fontColor[1];
+				buf[j*4+2]=255;//fontColor[2];
 				buf[j*4+3]=ftf->glyph->bitmap.buffer[j] ? 255 : 0;
 				//buf[j*4+3]=ftf->glyph->bitmap.buffer[j];
 			}
@@ -267,8 +267,8 @@ namespace ui {
 		 *	Get the width and height of the rendered character.
 		*/
 		
-		c1={x+ftexbl[c-33].x,
-		    y+ftexbl[c-33].y};
+		c1={(float)floor(x)+ftexbl[c-33].x,
+		    (float)floor(y)+ftexbl[c-33].y};
 		c2=ftexwh[c-33];
 		
 		/*
@@ -316,7 +316,10 @@ namespace ui {
 				if(s[i] == ' ')
 					i++;
 			}
-			if(s[i] == '\n' || s[i] == '\r' || s[i] == '\t'){
+			if(s[i] == '\n'){
+				yo-=fontSize*1.05;
+				xo=x;
+			}else if(s[i] == '\r' || s[i] == '\t'){
 			/*if(s[i] == '\n'){
 				yo-=fontSize*1.05;
 				xo=x;
@@ -325,7 +328,7 @@ namespace ui {
 			}else if(s[i]=='\b'){	//	Handle backspaces?
 				xo-=add.x;
 			}else{
-				add=putChar(xo,yo,s[i]);
+				add=putChar(floor(xo),floor(yo),s[i]);
 				xo+=add.x;
 				yo+=add.y;
 			}
@@ -351,7 +354,7 @@ namespace ui {
 			}
 		}while(s[++i]);
 		
-		putString(x-width/2,y,s);
+		putString(floor(x-width/2),y,s);
 		return width;
 	}
 	
@@ -528,15 +531,15 @@ namespace ui {
 	}
 	void importantText(const char *text,...){
 		va_list textArgs;
-		
+
 		//if(!player->ground)return;
-		
+
 		memset(dialogBoxText,0,512);
-				
+
 		va_start(textArgs,text);
 		vsnprintf(dialogBoxText,512,text,textArgs);
 		va_end(textArgs);
-				  
+
 		dialogBoxExists = true;
 		dialogImportant = true;
 		//toggleBlack();
@@ -628,13 +631,13 @@ namespace ui {
 			
 			if(player->inv->invOpen){
 				hub.y = player->loc.y + fontSize * 8;
-				hub.x = player->loc.x;
+				hub.x = player->loc.x;// + player->width / 2;
 				
 				putStringCentered(hub.x,hub.y,"Current Quests:");
 				
 				for(auto &c : player->qh.current){
 					hub.y -= fontSize * 1.15;
-					putString(hub.x,hub.y,c.title.c_str());
+					putStringCentered(hub.x,hub.y,c.title.c_str());
 				}	
 			}
 		}
@@ -727,7 +730,7 @@ namespace ui {
 	*/
 
 	void drawMenu(Menu *menu){
-		setFontSize(18);
+		setFontSize(24);
 		SDL_Event e;
 			
 		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
