@@ -234,6 +234,9 @@ const char *readFile(const char *path);
 
 int strCreateFunc(const char *equ);
 
+template<typename N, size_t s>
+size_t arrAmt(N (&)[s]){return s;}
+
 extern void *NULLPTR;
 
 #endif // COMMON_H

@@ -1,9 +1,8 @@
 <?xml version="1.0"?>
 <World>
-	<style background="0" bgm="assets/music/embark.wav" />
+	<style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/" />
 	<generation type="Random" width="1600" />
-	
-	<link right="playerSpawnHill2.xml" />
+	<link left="playerSpawnHill2.xml" />
 	
 	<mob type="1" aggressive="false" />
 	
@@ -11,7 +10,10 @@
 	
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="true" />
-	<structure type="5" inside="playerSpawnHill1_Building1.xml" />
+	<structure type="5" inside="playerSpawnHill1_Building1.xml"/>
+	<village>
+
+	</village>
 
 </World>
 
@@ -33,7 +35,7 @@ And it wasn't stormy.
 	</text>
 	
 	<text id="2" call="Johnny" callid="1">
-		what you have done it to trick Microsoft
+		what you have done it to trick Microsoft?
 	</text>
 	
 </Dialog>

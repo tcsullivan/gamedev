@@ -146,10 +146,10 @@ namespace ui {
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
-		dialogClick = Mix_LoadWAV("assets/click.wav");
+		dialogClick = Mix_LoadWAV("assets/sounds/click.wav");
 		battleStart = Mix_LoadWAV("assets/sounds/frig.wav");
 		sanic = Mix_LoadWAV("assets/sounds/sanic.wav");
-		Mix_Volume(1,50);
+		//Mix_Volume(1,50);
 	}
 	
 	void destroyFonts(void){
@@ -258,9 +258,11 @@ namespace ui {
 	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
 	*/
 	
-	vec2 putChar(float x,float y,char c){
+	vec2 putChar(float xx,float yy,char c){
 		vec2 c1,c2;
-		
+
+		int x = xx, y = yy;
+				
 		/*
 		 *	Get the width and height of the rendered character.
 		*/
@@ -725,8 +727,7 @@ namespace ui {
 	*/
 
 	void drawMenu(Menu *menu){
-
-		setFontSize(20);
+		setFontSize(18);
 		SDL_Event e;
 			
 		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
@@ -1229,7 +1230,7 @@ DONE:
 					//currentWorld->addVillage(player->loc.x, player->loc.y, 5, 10, 100, NULL);
 					break;
 				case SDLK_b:
-					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, NULL);
+					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, NULL, NULL);
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
 				case SDLK_F12:

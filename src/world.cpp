@@ -17,23 +17,49 @@ bool worldInside = false;		// True if player is inside a structure
 
 WEATHER weather = SUNNY;
 
-const char *bgPaths[2][7]={
-	{"assets/bg.png",				// Daytime background
-	"assets/bgn.png",				// Nighttime background
-	"assets/bgFarMountain.png",		// Furthest layer
-	"assets/forestTileBack.png",	// Closer layer
-	"assets/forestTileMid.png",		// Near layer
-	"assets/forestTileFront.png",	// Closest layer
-	"assets/dirt.png"},				// Dirt
-	{"assets/bgWoodTile.png",
-	 NULL,
-	 NULL,
-	 NULL,
-	 NULL,
-	 NULL}
+// const char *bgPaths[2][7]={
+// 	{"assets/bg.png",				// Daytime background
+// 	 "assets/bgn.png",				// Nighttime background
+// 	 "assets/bgFarMountain.png",		// Furthest layer
+// 	 "assets/forestTileBack.png",	// Closer layer
+// 	 "assets/forestTileMid.png",		// Near layer
+// 	 "assets/forestTileFront.png",	// Closest layer
+// 	 "assets/dirt.png"},				// Dirt
+// 	{"assets/bgWoodTile.png",
+// 	 NULL,
+// 	 NULL,
+// 	 NULL,
+// 	 NULL,
+// 	 NULL}
+// };
+
+const std::string bgPaths[2][8]={
+	{"bg.png",					// Daytime background
+	 "bgn.png",					// Nighttime background
+	 "bgFarMountain.png",		// Furthest layer
+	 "forestTileBack.png",		// Closer layer
+	 "forestTileMid.png",		// Near layer
+	 "forestTileFront.png",		// Closest layer
+	 "dirt.png",				// Dirt
+	 "grass.png"},				// Grass
+	{"bgWoodTile.png",
+	 "bgWoodTile.png",
+	 "bgWoodTile.png",
+	 "bgWoodTile.png",
+	 "bgWoodTile.png",
+	 "bgWoodTile.png",
+	 "bgWoodTile.png",
+	 "bgWoodTile.png"}
 };
 
-Texturec *grassT;
+const std::string buildPaths[] = {	"townhall.png",
+									"house1.png", 
+									"house2.png", 
+									"house1.png", 
+									"house1.png", 
+									"fountain1.png",
+									"lampPost1.png",
+									"brazzier.png"};
 
 const float bgDraw[3][3]={
 	{100,240,.6 },
@@ -56,11 +82,31 @@ void World::setBackground(WORLD_BG_TYPE bgt){
 	bgType = bgt;
 	switch(bgt){
 	case BG_FOREST:
-		bgTex = new Texturec(7,bgPaths[0]);
+		bgTex = new Texturec(bgFiles);
 		break;
 	case BG_WOODHOUSE:
-		bgTex = new Texturec(1,bgPaths[1]);
+		bgTex = new Texturec(bgFilesIndoors);
 		break;
+	}
+}
+
+void World::setStyle(const char* pre){
+	std::string prefix = pre ? pre : "assets/style/classic/";
+	for(uint i = 0; i < arrAmt(buildPaths);i++){
+		sTexLoc.push_back(prefix);
+		sTexLoc.back() += buildPaths[i];
+		std::cout << sTexLoc.back() << std::endl;
+	}
+	prefix += "bg/";
+	for(uint i = 0; i < arrAmt(bgPaths[0]);i++){
+		bgFiles.push_back(prefix);
+		bgFiles.back() += bgPaths[0][i];
+		std::cout << bgFiles.back() << std::endl;
+	}
+	for(uint i = 0; i < arrAmt(bgPaths[1]);i++){
+		bgFilesIndoors.push_back(prefix);
+		bgFilesIndoors.back() += bgPaths[1][i];
+		std::cout << bgFilesIndoors.back() << std::endl;
 	}
 }
 
@@ -78,7 +124,6 @@ World::World(void){
 	
 	star = new vec2[100];
 	memset(star,0,100 * sizeof(vec2));
-	grassT = new Texturec(1,"assets/grass.png");
 }
 
 void World::deleteEntities(void){
@@ -595,10 +640,10 @@ void World::draw(Player *p){
 			hey=true;
 			glColor4ub(0,0,0,255);
 		}else safeSetColorA(150+shade*2,150+shade*2,150+shade*2,255);
-		glTexCoord2i(0,0);glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
-		glTexCoord2i(1,0);glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
+		glTexCoord2i(0,0);									glVertex2i(cx_start+i*HLINE      ,cline[i].y-GRASS_HEIGHT);
+		glTexCoord2i(1,0);									glVertex2i(cx_start+i*HLINE+HLINE,cline[i].y-GRASS_HEIGHT);
 		glTexCoord2i(1,(int)(cline[i].y/64)+cline[i].color);glVertex2i(cx_start+i*HLINE+HLINE,0);
-		glTexCoord2i(0,(int)(cline[i].y/64)+cline[i].color);glVertex2i(cx_start+i*HLINE	   ,0);
+		glTexCoord2i(0,(int)(cline[i].y/64)+cline[i].color);glVertex2i(cx_start+i*HLINE	   	 ,0);
 		cline[i].y-=(yoff-DRAW_Y_OFFSET);															// Restore the line's y value
 		if(hey){
 			hey=false;
@@ -616,7 +661,7 @@ void World::draw(Player *p){
 
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
-	grassT->bind(0);
+	bgTex->bindNext();
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);		
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
@@ -948,10 +993,12 @@ void World::detect(Player *p){
 		goto LOOOOP;
 	}*/
 }
-void World::addStructure(BUILD_SUB sub, float x,float y,const char *inside){
+void World::addStructure(BUILD_SUB sub, float x,float y, char *tex, const char *inside){
 	build.push_back(new Structures());
+	build.back()->inWorld = this;
+	build.back()->textureLoc = tex;
 	build.back()->spawn(sub,x,y);
-	
+
 	if(inside)
 		strcpy((build.back()->inside = new char[1 + strlen(inside)]),inside);
 	else
@@ -1071,8 +1118,7 @@ char *World::setToRight(const char *file){
 
 World *World::goWorldLeft(Player *p){
 	World *tmp;
-	
-	if(toLeft && p->loc.x < x_start + HLINE * 15){
+	if(toLeft && p->loc.x < x_start + (int)HLINE * 15){
 		tmp = loadWorldFromXML(toLeft);
 		
 		p->loc.x = -tmp->x_start - HLINE * 10;
@@ -1474,6 +1520,7 @@ World *loadWorldFromXML(const char *path){
 				tmp->setToRight(ptr);
 			else abort();
 		}else if(!strcmp(name,"style")){
+			tmp->setStyle(wxml->Attribute("folder"));
 			tmp->setBackground((WORLD_BG_TYPE)wxml->UnsignedAttribute("background"));
 			tmp->setBGM(wxml->Attribute("bgm"));
 		}else if(!strcmp(name,"generation")){
@@ -1519,10 +1566,13 @@ World *loadWorldFromXML(const char *path){
 			
 		}else if(!strcmp(name,"structure")){
 			ptr = wxml->Attribute("inside");
-			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
-				tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),getRand() % tmp->getTheWidth() / 2.0f,100,ptr);
-			else
-				tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),spawnx,wxml->FloatAttribute("y"),ptr);
+			tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),
+							   wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR ? 
+							   			getRand() % tmp->getTheWidth() / 2.0f : 
+							   			spawnx,
+							   100,
+							   (char*)wxml->Attribute("texture"),
+							   ptr);
 		}else if(!strcmp(name,"trigger")){
 			tmp->addMob(MS_TRIGGER,wxml->FloatAttribute("x"),0,commonTriggerFunc);
 			tmp->mob.back()->heyid = wxml->Attribute("id");
