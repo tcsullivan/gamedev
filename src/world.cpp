@@ -284,10 +284,7 @@ void World::update(Player *p,unsigned int delta){
 	
 	p->loc.y += p->vel.y			 * delta;
 	p->loc.x +=(p->vel.x * p->speed) * delta;
-	/*if(p->inv->usingi){
-		p->inv->useItem();
-	}*/
-
+	
 	/*
 	 *	Update coordinates of all entities except for structures.
 	*/
@@ -329,20 +326,20 @@ void World::update(Player *p,unsigned int delta){
 	}
 }
 
-void World::setBGM(const char *path){
-	if(!bgm) delete[] bgm;
-	if(path != NULL){
-		bgm = new char[strlen(path) + 1];
-		strcpy(bgm,path);
-		bgmObj = Mix_LoadMUS(bgm);
-	}else{
-		bgm = new char[1];
-		bgm[0] = '\0';
-	}
+void World::setBGM(std::string path){
+	bgm = new char[path.size()];
+	strcpy(bgm,path.c_str());
+	bgmObj = Mix_LoadMUS(bgm);
 }
 
 void World::bgmPlay(World *prev){
-	if(prev && strcmp(bgm,prev->bgm)){
+	if(prev){
+		if(bgm != prev->bgm){
+			Mix_FadeOutMusic(800);
+			Mix_VolumeMusic(50);
+			Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
+		}
+	}else{
 		Mix_FadeOutMusic(800);
 		Mix_VolumeMusic(50);
 		Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
@@ -1431,6 +1428,15 @@ char *currentXML = NULL;
 extern World *currentWorld;
 
 World *loadWorldFromXML(const char *path){
+	if(currentXML){
+		currentWorld->save();
+		delete[] currentXML;
+	}
+	
+	return loadWorldFromXMLNoSave(path);
+}
+
+World *loadWorldFromXMLNoSave(const char *path){
 	XMLDocument xml;
 	XMLElement *wxml;
 	
@@ -1441,11 +1447,6 @@ World *loadWorldFromXML(const char *path){
 	const char *ptr,*name;
 	
 	unsigned int size = 5 + strlen(path);
-	
-	if(currentXML){
-		currentWorld->save();
-		delete[] currentXML;
-	}
 	
 	memset((currentXML = new char[size]),0,size);
 	strcpy(currentXML,"xml/");

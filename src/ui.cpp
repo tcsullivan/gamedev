@@ -59,7 +59,7 @@ extern Menu* currentMenu;
 extern Menu pauseMenu;
 
 
-Mix_Chunk *dialogClick;
+static Mix_Chunk *dialogClick;
 
 extern void mainLoop(void);
 
@@ -146,7 +146,12 @@ namespace ui {
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
-		dialogClick = Mix_LoadWAV("assets/click.wav");
+
+		dialogClick = Mix_LoadWAV("assets/sounds/click.wav");
+		if(dialogClick == NULL){
+			std::cout<<Mix_GetError()<<std::endl;
+			abort();
+		}
 		battleStart = Mix_LoadWAV("assets/sounds/frig.wav");
 		sanic = Mix_LoadWAV("assets/sounds/sanic.wav");
 		Mix_Volume(1,50);
@@ -1178,6 +1183,7 @@ DONE:
 				if(SDL_KEY == SDLK_ESCAPE){
 					//gameRunning = false;
 					currentMenu = &pauseMenu;
+					player->save();
 					return;
 				}
 				switch(SDL_KEY){

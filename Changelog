@@ -647,3 +647,21 @@
 	- began considering unique_ptr's because they're good
 	- fixed inventory everything
 	- themes work
+	- pushed template settings.xml
+
+2/11/2016:
+==========
+
+	- fixed text drawing for good
+	- fixed player boundary checks
+	- made importantText passive-able
+	- began work on saving player stats
+	- fixed dialogClick stuffs
+	- added readConfig checks
+	- added background layers and whatnot
+
+2/12/2016:
+==========
+
+	- made saving functionality for player coordinates, inventory, health and current world
+	- addded structured villages

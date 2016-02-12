@@ -200,8 +200,6 @@ int main(/*int argc, char *argv[]*/){
 	
 	gameRunning=false;
 
-	readConfig();
-
 	/**
 	 * (Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
 	 * make openGL calls. Exit if there was an error.
@@ -240,6 +238,12 @@ int main(/*int argc, char *argv[]*/){
 
 	// Run Mix_Quit when main returns
 	atexit(Mix_Quit);
+
+	/**
+	 * Load saved settings into the game (see config/settings.xml)
+	 */
+
+	readConfig();
 
 	/*
 	 *	Create a window for SDL to draw to. Most parameters are the default, except for the
@@ -382,6 +386,7 @@ int main(/*int argc, char *argv[]*/){
 	 */
 	 
 	fadeIntensity = 250;
+	
 	initEverything();
 
 	if(!currentWorld){
@@ -570,7 +575,7 @@ void render(){
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),offset.y-SCREEN_HEIGHT/2,offset.y+SCREEN_HEIGHT/2,-1,1);
+	glOrtho(floor(offset.x-SCREEN_WIDTH/2),floor(offset.x+SCREEN_WIDTH/2),floor(offset.y-SCREEN_HEIGHT/2),floor(offset.y+SCREEN_HEIGHT/2),-1,1);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -729,7 +734,7 @@ void render(){
 	SDL_GL_SwapWindow(window);
 }
 
-static volatile bool objectInteracting = false;
+static bool objectInteracting = false;
 
 void logic(){
 

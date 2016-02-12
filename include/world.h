@@ -342,7 +342,7 @@ public:
 	 * playable.
 	 */
 	
-	void setBGM(const char *path);
+	void setBGM(std::string path);
 	
 	/**
 	 * Plays/stops this world's BGM. If `prev` is not NULL, that world's BGM
@@ -439,5 +439,6 @@ extern int worldShade;
 extern char *currentXML;
 
 World *loadWorldFromXML(const char *path);
+World *loadWorldFromXMLNoSave(const char *path);
 
 #endif // WORLD_H
