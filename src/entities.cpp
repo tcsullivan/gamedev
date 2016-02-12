@@ -14,15 +14,6 @@ extern Player *player;
 
 extern const char *itemName;
 
-std::string sTexLoc[] = {	"assets/townhall.png",
-							"assets/house1.png", 
-							"assets/house2.png", 
-							"assets/house1.png", 
-							"assets/house1.png", 
-							"assets/fountain1.png",
-							"assets/lampPost1.png",
-							"assets/brazzier.png"};
-
 GLuint waterTex;
 
 void initEntity(){
@@ -97,15 +88,15 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	subtype = 0;	
 	health = maxHealth = 100;
 	speed = 1;
-	tex = new Texturec(9, 	"assets/playerk.png",
-							"assets/playerk1.png",
-							"assets/playerk2.png",
-							"assets/playerk3.png",
-							"assets/playerk4.png",
-							"assets/playerk5.png",
-							"assets/playerk6.png",
-							"assets/playerk7.png",
-							"assets/playerk8.png");
+	tex = new Texturec(9, 	"assets/player/playerk.png",
+							"assets/player/playerk1.png",
+							"assets/player/playerk2.png",
+							"assets/player/playerk3.png",
+							"assets/player/playerk4.png",
+							"assets/player/playerk5.png",
+							"assets/player/playerk6.png",
+							"assets/player/playerk7.png",
+							"assets/player/playerk8.png");
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
 Player::~Player(){
@@ -461,6 +452,7 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 	alive = true;
 
 	bsubtype = sub;
+	dim2 dim;
 	
 	/*
 	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
@@ -469,33 +461,11 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 
 	//unsigned int tempN = (getRand() % 5 + 2);
 	switch(sub){
-		case TOWN_HALL:
-			tex = new Texturec(1, sTexLoc[sub].c_str());
-			width =  50 * HLINE;
-			height = 40 * HLINE;
-
-			break;
-		case HOUSE:
-			tex = new Texturec(1, sTexLoc[sub].c_str());
-			width =  50 * HLINE;
-			height = 40 * HLINE;
-			break;
-		case FOUNTAIN:
-			tex = new Texturec(1, sTexLoc[sub].c_str());
-			width =  50 * HLINE;
-			height = 40 * HLINE;
-			break;
-		case LAMP_POST:
-			tex = new Texturec(1, sTexLoc[sub].c_str());
-			width =  10 * HLINE;
-			height = 40 * HLINE;
-			break;
-		case FIRE_PIT:
-			tex = new Texturec(1, sTexLoc[sub].c_str());
-			width =  12 * HLINE;
-			height = 12 * HLINE;
-			break;
 		default:
+			tex = new Texturec(1, textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
+			dim = Texture::imageDim(textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
+			width = dim.x;
+			height = dim.y;
 			break;
 	}
 	return 0;

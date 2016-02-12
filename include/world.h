@@ -145,7 +145,7 @@ protected:
 	 */
 	
 	Texturec *bgTex;
-	
+
 	/**
 	 * Defines the set of background images that should be used for this world.
 	 */
@@ -163,6 +163,8 @@ protected:
 	 */
 	
 	char *bgm;
+	std::vector<std::string>bgFiles;
+	std::vector<std::string>bgFilesIndoors;
 	
 public:
 
@@ -234,7 +236,14 @@ public:
 	 * A vector of all light elements in this world.
 	 */
 	
-	std::vector<Light        >  light;
+	std::vector<Light      	 >  light;
+
+	/**
+	 * Vector of all building textures for the current world style
+	 */
+
+	std::vector<std::string  >  sTexLoc;
+
 	
 	/**
 	 * NULLifies pointers and allocates necessary memory. This should be
@@ -257,7 +266,7 @@ public:
 	 * the structure.
 	 */
 	
-	void addStructure(BUILD_SUB subtype,float x,float y,const char *inside);
+	void addStructure(BUILD_SUB subtype,float x,float y, char* tex, const char *inside);
 	//void addVillage(int buildingCount, int npcMin, int npcMax,const char *inside);
 	
 	/**
@@ -343,6 +352,12 @@ public:
 	 */
 	
 	void setBGM(std::string path);
+
+	/**
+	 *	Sets the worlds style folder
+	 */
+
+	void setStyle(const char* pre); 
 	
 	/**
 	 * Plays/stops this world's BGM. If `prev` is not NULL, that world's BGM

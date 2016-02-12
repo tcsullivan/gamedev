@@ -4,6 +4,7 @@
 struct texture_t {
 	char *name;
 	GLuint tex;
+	dim2 dim;
 } __attribute__ ((packed));
 
 struct index_t{
@@ -59,16 +60,27 @@ namespace Texture{
 					 GL_UNSIGNED_BYTE, 
 					 image->pixels
 					 );
-
-		SDL_FreeSurface(image);	// Free the surface
 		
 		LoadedTexture[LoadedTextureCounter]		  = new struct texture_t;		//(struct texture_t *)malloc(sizeof(struct texture_t));
 		LoadedTexture[LoadedTextureCounter]->name = new char[strlen(fileName)+1];	//(char *)malloc(safe_strlen(fileName));
 		LoadedTexture[LoadedTextureCounter]->tex  = object;
 		strcpy(LoadedTexture[LoadedTextureCounter]->name,fileName);
+		LoadedTexture[LoadedTextureCounter]->dim.x = image->w;
+		LoadedTexture[LoadedTextureCounter]->dim.y = image->h;
 		LoadedTextureCounter++;
 		
+		SDL_FreeSurface(image);	// Free the surface
+
 		return object;
+	}
+
+	dim2 imageDim(const char *fileName){
+		for(unsigned int i=0;i<LoadedTextureCounter;i++){
+			if(!strcmp(LoadedTexture[i]->name,fileName)){
+				return LoadedTexture[i]->dim;
+			}
+		}
+		return {0,0};
 	}
 	
 	void freeTextures(void){
@@ -156,6 +168,14 @@ Texturec::Texturec(uint amt, ...){
 		image[i] = Texture::loadTexture(va_arg(fNames, char *));
 	}
 	va_end(fNames);
+}
+
+Texturec::Texturec(std::vector<std::string>v){
+	texState = 0;
+	image = new GLuint[v.size()];
+	for(unsigned int i = 0; i < v.size(); i++){
+		image[i] = Texture::loadTexture(v[i].c_str());
+	}
 }
 
 Texturec::Texturec(uint amt,const char **paths){

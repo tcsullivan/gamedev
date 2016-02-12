@@ -28,7 +28,7 @@ enum _TYPE {
 enum GENDER{
 	MALE,
 	FEMALE,
-	NONE 
+	TRANSBULLSHIT
 };
 
 enum MOB_SUB {
@@ -198,7 +198,9 @@ public:
 class Structures : public Entity{
 public:
 	BUILD_SUB bsubtype;
+	World *inWorld;
 	char *inside;
+	char *textureLoc;
 	
 	Structures();
 	~Structures();

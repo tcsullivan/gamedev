@@ -33,6 +33,7 @@ namespace Texture{
 	
 	void initColorIndex();
 	vec2 getIndex(Color c);
+	dim2 imageDim(const char *fileName);
 }
 
 /**
@@ -71,6 +72,7 @@ public:
 	 */
 	
 	Texturec(uint amt,const char **paths);
+	Texturec(std::vector<std::string>vec);
 	
 	/**
 	 * Frees memory taken by the image array.
