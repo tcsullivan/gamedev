@@ -52,7 +52,6 @@ static char dialogBoxText[512];
 static char *dialogOptText[4];
 static float dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
-static bool dialogPassive = false;
 static bool typeOutDone = true;
 
 extern Menu* currentMenu;
@@ -114,6 +113,8 @@ namespace ui {
 	
 	bool debug=false;
 	bool posFlag=false;
+	bool dialogPassive = false;
+
 	
 	/*
 	 *	Dialog stuff that needs to be 'public'.
@@ -555,9 +556,10 @@ namespace ui {
 			
 			if(dialogImportant){
 				setFontColor(255,255,255);
-				if(fadeIntensity == 255){
+				if(fadeIntensity == 255 || dialogPassive){
 					setFontSize(24);
 					putStringCentered(offset.x,offset.y,rtext);
+					setFontSize(16);
 				}
 			}else{
 			
@@ -602,7 +604,7 @@ namespace ui {
 				Mix_PlayChannel(1,dialogClick,0);
 			}
 			
-		}else if(!dialogImportant && !fadeIntensity){
+		}if(!fadeIntensity){
 			vec2 hub = {
 				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
 				(offset.y+SCREEN_HEIGHT/2)-fontSize
@@ -1182,6 +1184,10 @@ DONE:
 					return;
 				}
 				switch(SDL_KEY){
+				case SDLK_w:
+					dialogPassive = true;
+					importantText("Welcome to Meme-Town");
+					break;
 				case SDLK_a:
 					left = false;
 					break;

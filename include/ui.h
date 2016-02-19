@@ -102,6 +102,7 @@ namespace ui {
 	extern bool			 dialogBoxExists;
 	extern unsigned char dialogOptChosen;
 	extern bool dialogImportant;
+	extern bool dialogPassive;
 
 	extern unsigned int textWrapLimit;
 

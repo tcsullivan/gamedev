@@ -237,6 +237,7 @@ int main(/*int argc, char *argv[]*/){
 		return -1;
 	}
 	Mix_AllocateChannels(8);
+	updateConfig();
 
 	// Run Mix_Quit when main returns
 	atexit(Mix_Quit);
@@ -373,8 +374,6 @@ int main(/*int argc, char *argv[]*/){
 	delete[] shaderSource;
 	
 	glEnable(GL_MULTISAMPLE);
-
-	Mix_Volume(0,VOLUME_MASTER);
 	
 	/*
 	 * Create all the worlds, entities, mobs, and the player. This function is defined in
@@ -524,7 +523,7 @@ void render(){
 		if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
 			offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
 		if(player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
-			offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2);// + player->width / 2;
+			offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2) - player->width / 2;
 	}
 	
 	if(player->loc.y > SCREEN_HEIGHT/2)
@@ -570,7 +569,7 @@ void render(){
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),offset.y-SCREEN_HEIGHT/2,offset.y+SCREEN_HEIGHT/2,-1,1);
+	glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),(offset.y-SCREEN_HEIGHT/2),(offset.y+SCREEN_HEIGHT/2),-1,1);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -892,7 +891,7 @@ void logic(){
 			}
 		}
 	}
-	for(auto &b : currentWorld->build){
+	/*for(auto &b : currentWorld->build){
 		switch(b->bsubtype){
 			case FOUNTAIN:
 				for(int r = 0; r < (rand()%25)+10;r++){
@@ -917,7 +916,7 @@ void logic(){
 				break;
 			default: break;
 		}
-	}
+	}*/
 	
 	/*
 	 *	Switch between day and night (SUNNY and DARK) if necessary.

@@ -81,13 +81,29 @@ typedef struct line_t {
 	unsigned char color;	/**< Lightness of dirt (brown) */
 } line_t;
 
+/*
+ * Handle all logic that has to do with villages
+ */
+
+
+struct Village{
+	std::string name;
+
+	std::vector<std::shared_ptr<Entity>>	 entity;
+	std::vector<std::shared_ptr<Structures>> build;
+	std::vector<std::shared_ptr<NPC>>		 npc;
+
+	Village(const char *meme){
+		name = meme;
+	}
+};
+
 /**
  * The world class. This class does everything a world should do.
  */
 
 class World {
 protected:
-	
 	/**
 	 * The line array.
 	 * This array is created through 'new' in World::generate(), with an amount
@@ -113,6 +129,8 @@ protected:
 	 */
 	
 	void singleDetect(Entity *e);
+
+	static void villageLogic(World *world);
 	
 	/**
 	 * Empties all entity vectors.
@@ -243,6 +261,8 @@ public:
 	 */
 
 	std::vector<std::string  >  sTexLoc;
+
+	std::vector<Village>village;
 
 	
 	/**
