@@ -381,12 +381,12 @@ void World::bgmPlay(World *prev){
 	if(prev){
 		if(bgm != prev->bgm){
 			Mix_FadeOutMusic(800);
-			Mix_VolumeMusic(50);
+			//Mix_VolumeMusic(50);
 			Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
 		}
 	}else{
 		Mix_FadeOutMusic(800);
-		Mix_VolumeMusic(50);
+		//Mix_VolumeMusic(50);
 		Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
 	}
 }

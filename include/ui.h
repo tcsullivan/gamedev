@@ -158,8 +158,6 @@ namespace ui {
 	 *	Draw various menu items
 	*/
 	void quitGame();
-	void quitMenu();
-	void optionsMenuF();
 	void drawMenu(Menu* menu);
 
 

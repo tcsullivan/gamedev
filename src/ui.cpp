@@ -648,11 +648,7 @@ namespace ui {
 		updateConfig();
 		saveConfig();
 	}
-
-	void quitMenu(){
-		currentMenu = NULL;
-	}
-
+	
 	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f){
 		menuItem temp;
 		temp.member = 0;
@@ -717,20 +713,13 @@ namespace ui {
 		return temp;
 	}
 
-	char* stradd(const char* a, const char* b){
-		size_t len = strlen(a) + strlen(b);
-		char *ret = (char*)malloc(len * sizeof(char) + 1);
-		*ret = '\0';
-
-		return strcat(strcat(ret,a),b);
-	}
-
 	/*
 	 *	Draws the menu
 	*/
 
 	void drawMenu(Menu *menu){
 		setFontSize(24);
+		updateConfig();
 		SDL_Event e;
 			
 		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);

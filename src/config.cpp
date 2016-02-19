@@ -49,25 +49,22 @@ void readConfig(){
 	if(vol->FirstChildElement("sfx")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
 		VOLUME_SFX = fval;
 	else VOLUME_SFX = 50;
-	
-	Mix_Volume(0,VOLUME_MASTER);
-	Mix_Volume(1,VOLUME_SFX);
-	Mix_VolumeMusic(VOLUME_MUSIC);
-	
+		
 	ui::initFonts();
 	ui::setFontFace(xml.FirstChildElement("font")->Attribute("path"));
+	updateConfig();
 }
 
 void updateConfig(){
+	Mix_Volume(0,VOLUME_MASTER);
+	Mix_Volume(1,VOLUME_SFX * (VOLUME_MASTER/100.0f));
+	Mix_VolumeMusic(VOLUME_MUSIC * (VOLUME_MASTER/100.0f));
+}
+
+void saveConfig(){
 	vol->FirstChildElement("master")->SetAttribute("volume",VOLUME_MASTER);
 	vol->FirstChildElement("music")->SetAttribute("volume",VOLUME_MUSIC);
 	vol->FirstChildElement("sfx")->SetAttribute("volume", VOLUME_SFX);
 
-	Mix_Volume(0,VOLUME_MASTER);
-	Mix_Volume(1,VOLUME_SFX);
-	Mix_VolumeMusic(VOLUME_MUSIC);
-}
-
-void saveConfig(){
 	xml.SaveFile("config/settings.xml", false);
 }

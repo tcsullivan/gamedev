@@ -377,8 +377,6 @@ int main(/*int argc, char *argv[]*/){
 	delete[] shaderSource;
 	
 	glEnable(GL_MULTISAMPLE);
-
-	Mix_Volume(0,VOLUME_MASTER);
 	
 	/*
 	 * Create all the worlds, entities, mobs, and the player. This function is defined in
