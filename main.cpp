@@ -124,8 +124,6 @@ GLuint shaderProgram;
 GLuint colorIndex;
 GLuint mouseTex;
 
-Mix_Chunk *crickets;
-
 /*
  *	loops is used for texture animation. It is believed to be passed to entity
  *	draw functions, although it may be externally referenced instead.
@@ -170,27 +168,25 @@ void mainLoop(void);
 
 vec2 offset;																			/*	OFFSET!!!!!!!!!!!!!!!!!!!! */
 
-float shit = 0;
-Menu* currentMenu;
-Menu pauseMenu;
+Menu *currentMenu;
 Menu optionsMenu;
-
+Menu pauseMenu;
 
 extern WEATHER weather;
 
+extern int  fadeIntensity;
 extern bool fadeEnable;
 extern bool fadeWhite;
 extern bool fadeFast;
-extern int  fadeIntensity;
 
-unsigned int HLINE		   = 3;
-unsigned int SCREEN_WIDTH  = 1280;
-unsigned int SCREEN_HEIGHT = 720;
-bool		 FULLSCREEN    = false;
+unsigned int SCREEN_WIDTH;
+unsigned int SCREEN_HEIGHT;
+unsigned int HLINE;
+bool FULLSCREEN;
 
-float 		 VOLUME_MASTER = 50;
-float 		 VOLUME_MUSIC  = 25;
-float		 VOLUME_SFX    = 25;
+float VOLUME_MASTER;
+float VOLUME_MUSIC;
+float VOLUME_SFX;
 
 /*******************************************************************************
  * MAIN ************************************************************************

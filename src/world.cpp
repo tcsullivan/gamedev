@@ -95,18 +95,18 @@ void World::setStyle(const char* pre){
 	for(uint i = 0; i < arrAmt(buildPaths);i++){
 		sTexLoc.push_back(prefix);
 		sTexLoc.back() += buildPaths[i];
-		std::cout << sTexLoc.back() << std::endl;
+		//std::cout << sTexLoc.back() << std::endl;
 	}
 	prefix += "bg/";
 	for(uint i = 0; i < arrAmt(bgPaths[0]);i++){
 		bgFiles.push_back(prefix);
 		bgFiles.back() += bgPaths[0][i];
-		std::cout << bgFiles.back() << std::endl;
+		//std::cout << bgFiles.back() << std::endl;
 	}
 	for(uint i = 0; i < arrAmt(bgPaths[1]);i++){
 		bgFilesIndoors.push_back(prefix);
 		bgFilesIndoors.back() += bgPaths[1][i];
-		std::cout << bgFilesIndoors.back() << std::endl;
+		//std::cout << bgFilesIndoors.back() << std::endl;
 	}
 }
 
@@ -336,10 +336,13 @@ void World::update(Player *p,unsigned int delta){
 
 	for(auto &e : entity){
 		e->loc.y += e->vel.y * delta;
+		
 		if(e->type != STRUCTURET && e->canMove){
 			e->loc.x += e->vel.x * delta;
+			
 			if(e->vel.x < 0)e->left = true;
 	   else if(e->vel.x > 0)e->left = false;
+	   
 		}
 	}
 
@@ -372,7 +375,7 @@ void World::update(Player *p,unsigned int delta){
 }
 
 void World::setBGM(std::string path){
-	bgm = new char[path.size()];
+	bgm = new char[path.size() + 1];
 	strcpy(bgm,path.c_str());
 	bgmObj = Mix_LoadMUS(bgm);
 }
@@ -834,13 +837,13 @@ void World::singleDetect(Entity *e){
 					break;
 				case MOBT:
 					std::cout<<"Killed a mob..."<<std::endl;
-					for(j=0;j<mob.size();j++){
+					/*for(j=0;j<mob.size();j++){
 						if(mob[j]==e){
 							delete mob[j];
 							mob.erase(mob.begin()+j);
 							break;
 						}
-					}
+					}*/
 					break;
 				case OBJECTT:
 					std::cout<<"Killed an object..."<<std::endl;
@@ -936,7 +939,7 @@ void World::singleDetect(Entity *e){
 		/*
 		 *	Insure that the entity doesn't fall off either edge of the world.
 		*/
-		
+
 		if(e->loc.x < x_start){												// Left bound
 			
 			e->vel.x=0;
@@ -952,7 +955,6 @@ void World::singleDetect(Entity *e){
 }
 
 void World::detect(Player *p){
-	World *hey = this;
 	
 	/*
 	 *	Handle the player. 
@@ -964,10 +966,9 @@ void World::detect(Player *p){
 	 *	Handle all remaining entities in this world. 
 	*/
 	
-//LOOOOP:
-	static int what = 0;
-	for(auto &e : hey->entity)
-		hey->singleDetect(e);
+	for(auto &e : entity)
+		singleDetect(e);
+		
 	for(auto &part : particles){
 		int l;
 		unsigned int i;
@@ -983,12 +984,7 @@ void World::detect(Player *p){
 		}else{
 			if(part->gravity && part->vely > -2)part->vely-=.003 * deltaTime;
 		}
-		what++;
-	}what=0;
-	/*if(hey->infront){
-		hey = hey->infront;
-		goto LOOOOP;
-	}*/
+	}
 }
 void World::addStructure(BUILD_SUB sub, float x,float y, char *tex, const char *inside){
 	build.push_back(new Structures());
@@ -1234,6 +1230,7 @@ void World::save(void){
 	for(auto &m : mob){
 		data.append(std::to_string((int)m->loc.x) + "\n");
 		data.append(std::to_string((int)m->loc.y) + "\n");
+		data.append(std::to_string((int)m->alive) + "\n");
 	}
 	
 	data.append("dOnE\0");
@@ -1287,6 +1284,9 @@ void World::load(void){
 		std::getline(iss,line);
 		if(line == "dOnE")return;
 		m->loc.y = std::stoi(line);
+		std::getline(iss,line);
+		if(line == "dOnE")return;
+		m->alive = std::stoi(line);
 	}
 	
 	while(std::getline(iss,line)){
@@ -1493,7 +1493,9 @@ World *loadWorldFromXMLNoSave(const char *path){
 	const char *ptr,*name;
 	
 	unsigned int size = 5 + strlen(path);
-	
+
+	if(currentXML)
+		delete[] currentXML;
 	memset((currentXML = new char[size]),0,size);
 	strcpy(currentXML,"xml/");
 	strcat(currentXML,path);

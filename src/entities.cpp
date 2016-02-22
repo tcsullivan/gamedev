@@ -133,7 +133,7 @@ NPC::~NPC(){
 }
 
 Structures::Structures(){ //sets the structure type
-	health = maxHealth = 25;
+	health = maxHealth = 1;
 	
 	alive = false;
 	near  = false;
@@ -450,6 +450,7 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 	type = STRUCTURET;
 
 	alive = true;
+	canMove = false;
 
 	bsubtype = sub;
 	dim2 dim;
