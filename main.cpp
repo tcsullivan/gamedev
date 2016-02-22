@@ -628,7 +628,6 @@ void render(){
 	player->inv->draw();
 
 	/*
-<<<<<<< HEAD
 	 *	Here we draw a black overlay if it's been requested.
 	*/
 
