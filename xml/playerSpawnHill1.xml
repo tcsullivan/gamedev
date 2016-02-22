@@ -29,14 +29,9 @@ And it wasn't stormy.
 		You should go talk to my friend Johnny. He's a pretty chill dude.
 	</text>
 	
-<<<<<<< HEAD
-	<text id="2" call="Johnny" callid="1">
-		what you have done it to trick Microsoft?
-=======
 	<text id="2" >
 		Niice.
 		<quest check="Your First Quest" fail="3" />
->>>>>>> 3033594b89f23e65b6152daa6610f991307f2f67
 	</text>
 	
 	<text id="3">
