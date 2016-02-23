@@ -323,8 +323,10 @@ void World::update(Player *p,unsigned int delta){
 
 	for(auto &e : entity){
 		e->loc.y += e->vel.y * delta;
+		
 		if(e->type != STRUCTURET && e->canMove){
 			e->loc.x += e->vel.x * delta;
+			
 			if(e->vel.x < 0)e->left = true;
 	   		else if(e->vel.x > 0)e->left = false;
 		}
@@ -359,7 +361,7 @@ void World::update(Player *p,unsigned int delta){
 }
 
 void World::setBGM(std::string path){
-	bgm = new char[path.size()];
+	bgm = new char[path.size() + 1];
 	strcpy(bgm,path.c_str());
 	bgmObj = Mix_LoadMUS(bgm);
 }
@@ -819,13 +821,13 @@ void World::singleDetect(Entity *e){
 					break;
 				case MOBT:
 					std::cout<<"Killed a mob..."<<std::endl;
-					for(j=0;j<mob.size();j++){
+					/*for(j=0;j<mob.size();j++){
 						if(mob[j]==e){
 							delete mob[j];
 							mob.erase(mob.begin()+j);
 							break;
 						}
-					}
+					}*/
 					break;
 				case OBJECTT:
 					std::cout<<"Killed an object..."<<std::endl;
@@ -921,7 +923,7 @@ void World::singleDetect(Entity *e){
 		/*
 		 *	Insure that the entity doesn't fall off either edge of the world.
 		*/
-		
+
 		if(e->loc.x < x_start){												// Left bound
 			
 			e->vel.x=0;
@@ -950,7 +952,6 @@ void World::detect(Player *p){
 	*/
 	
 //LOOOOP:
-	static int what = 0;
 	for(auto &e : entity)
 		std::thread(&World::singleDetect,this,e).detach();
 		//hey->singleDetect(e);
@@ -969,8 +970,7 @@ void World::detect(Player *p){
 		}else{
 			if(part->gravity && part->vely > -2)part->vely-=.003 * deltaTime;
 		}
-		what++;
-	}what=0;
+	}
 	for(auto &b : build){
 		switch(b->bsubtype){
 			case FOUNTAIN:
@@ -1259,6 +1259,7 @@ void World::save(void){
 	for(auto &m : mob){
 		data.append(std::to_string((int)m->loc.x) + "\n");
 		data.append(std::to_string((int)m->loc.y) + "\n");
+		data.append(std::to_string((int)m->alive) + "\n");
 	}
 	
 	data.append("dOnE\0");
@@ -1312,6 +1313,9 @@ void World::load(void){
 		std::getline(iss,line);
 		if(line == "dOnE")return;
 		m->loc.y = std::stoi(line);
+		std::getline(iss,line);
+		if(line == "dOnE")return;
+		m->alive = std::stoi(line);
 	}
 	
 	while(std::getline(iss,line)){
@@ -1519,7 +1523,9 @@ World *loadWorldFromXMLNoSave(const char *path){
 	const char *ptr,*name;
 	
 	unsigned int size = 5 + strlen(path);
-	
+
+	if(currentXML)
+		delete[] currentXML;
 	memset((currentXML = new char[size]),0,size);
 	strcpy(currentXML,"xml/");
 	strcat(currentXML,path);

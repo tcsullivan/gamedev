@@ -61,10 +61,10 @@ public:
 	void gotoParent();
 };
 
-typedef uint8_t BYTE;
+typedef uint8_t  BYTE;
 typedef uint16_t WORD;
 typedef uint32_t DWORD;
-typedef int32_t LONG;
+typedef  int32_t LONG;
 
 typedef struct{
 	WORD 	bfType;
@@ -101,12 +101,14 @@ namespace ui {
 	/*
 	 *	These flags are used elsewhere.
 	*/
-
+	
+	extern unsigned int fontSize;
+	
 	extern bool debug;
 	extern bool posFlag;
-	extern unsigned int fontSize;
-	extern bool			 dialogBoxExists;
+	
 	extern unsigned char dialogOptChosen;
+	extern bool dialogBoxExists;
 	extern bool dialogImportant;
 	extern bool dialogPassive;
 

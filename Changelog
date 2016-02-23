@@ -665,3 +665,13 @@
 
 	- made saving functionality for player coordinates, inventory, health and current world
 	- addded structured villages
+
+2/22/2016:
+==========
+
+	- found weird memory leak bug with structure inits
+	- mob deaths are saved
+	- fixed building spawning
+	- volumes are better
+	
+	~ 5 month Changelog anniversary!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
