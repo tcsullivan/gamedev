@@ -9,9 +9,9 @@ extern unsigned int SCREEN_WIDTH;
 extern unsigned int SCREEN_HEIGHT;
 extern bool		 	FULLSCREEN;
 
-extern float 		 VOLUME_MASTER;
-extern float 		 VOLUME_MUSIC;
-extern float 		 VOLUME_SFX;
+extern float VOLUME_MASTER;
+extern float VOLUME_MUSIC;
+extern float VOLUME_SFX;
 
 XMLDocument xml;
 XMLElement *scr;
@@ -19,6 +19,7 @@ XMLElement *vol;
 
 void readConfig(){
 	unsigned int uval;
+	float fval;
 	bool bval;
 
 	xml.LoadFile("config/settings.xml");
@@ -36,32 +37,34 @@ void readConfig(){
 	if(xml.FirstChildElement("hline")->QueryUnsignedAttribute("size",&uval) == XML_NO_ERROR)
 		HLINE = uval;
 	else HLINE = 3;
-	
-	/*SCREEN_WIDTH  = scr->UnsignedAttribute("width");
-	SCREEN_HEIGHT = scr->UnsignedAttribute("height");
-	FULLSCREEN    = scr->BoolAttribute("fullscreen");
-	HLINE         = xml.FirstChildElement("hline")->UnsignedAttribute("size");*/
 
 	vol = xml.FirstChildElement("volume");
-	VOLUME_MASTER = vol->FirstChildElement("master")->FloatAttribute("volume");
-	VOLUME_MUSIC  = vol->FirstChildElement("music")->FloatAttribute("volume");
-	VOLUME_SFX    = vol->FirstChildElement("sfx")->FloatAttribute("volume");
 	
-	std::cout<<"Loading font through settings.xml..."<<std::endl;
+	if(vol->FirstChildElement("master")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
+		VOLUME_MASTER = fval;
+	else VOLUME_MASTER = 50;
+	if(vol->FirstChildElement("music")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
+		VOLUME_MUSIC = fval;
+	else VOLUME_MUSIC = 50;
+	if(vol->FirstChildElement("sfx")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
+		VOLUME_SFX = fval;
+	else VOLUME_SFX = 50;
+		
 	ui::initFonts();
 	ui::setFontFace(xml.FirstChildElement("font")->Attribute("path"));
+	updateConfig();
 }
 
 void updateConfig(){
+	Mix_Volume(0,VOLUME_MASTER);
+	Mix_Volume(1,VOLUME_SFX * (VOLUME_MASTER/100.0f));
+	Mix_VolumeMusic(VOLUME_MUSIC * (VOLUME_MASTER/100.0f));
+}
+
+void saveConfig(){
 	vol->FirstChildElement("master")->SetAttribute("volume",VOLUME_MASTER);
 	vol->FirstChildElement("music")->SetAttribute("volume",VOLUME_MUSIC);
 	vol->FirstChildElement("sfx")->SetAttribute("volume", VOLUME_SFX);
 
-	Mix_Volume(0,VOLUME_MASTER);
-	Mix_Volume(1,VOLUME_SFX);
-	Mix_VolumeMusic(VOLUME_MUSIC);
-}
-
-void saveConfig(){
 	xml.SaveFile("config/settings.xml", false);
 }

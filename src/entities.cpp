@@ -62,7 +62,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	right	= true;
 	left	= false;
 	near	= false;
-	canMove	= true;
+	//canMove	= true;
 	ground	= false;
 	hit 	= false;
 	
@@ -88,6 +88,8 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	subtype = 0;	
 	health = maxHealth = 100;
 	speed = 1;
+	canMove = true;
+
 	tex = new Texturec(9, 	"assets/player/playerk.png",
 							"assets/player/playerk1.png",
 							"assets/player/playerk2.png",
@@ -115,6 +117,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	health = maxHealth = 100;
 	
 	maxHealth = health = 100;
+	canMove = true;
 	
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
@@ -141,6 +144,7 @@ Structures::Structures(){ //sets the structure type
 	name = NULL;
 	
 	inv = NULL;
+	canMove = false;
 }
 Structures::~Structures(){
 	delete tex;
@@ -155,6 +159,7 @@ Mob::Mob(int sub){
 	aggressive = false;
 	
 	maxHealth = health = 50;
+	canMove = true;
 	
 	switch((subtype = sub)){
 	case MS_RABBIT:
@@ -198,6 +203,7 @@ Object::Object(){
 	near = false;
 	width  = 0;
 	height = 0;
+	canMove = false;
 
 	maxHealth = health = 1;
 	
@@ -267,7 +273,7 @@ void Entity::draw(void){		//draws the entities
 	switch(type){
 	case PLAYERT:
 		static int texState = 0;
-		if(speed && !(loops % (int)(2.0f/(float)speed))){
+		if(speed && !(loops % ((2.0f/speed) < 1 ? 1 : (int)((float)2.0f/(float)speed)))){
 			if(++texState==9)texState=1;
 			glActiveTexture(GL_TEXTURE0);
 			tex->bind(texState);
@@ -330,9 +336,6 @@ NOPE:
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 	if(near)ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
-}
-
-void Player::interact(){
 }
 
 /*
@@ -544,5 +547,69 @@ void Mob::wander(int timeRun){
 		break;
 	default:
 		break;
+	}
+}
+
+void Player::save(void){
+	std::string data;
+	std::ofstream out ("xml/main.dat",std::ios::out | std::ios::binary);
+	std::cout<<"Saving player data..."<<std::endl;
+	data.append(std::to_string((int)loc.x) + "\n");
+	data.append(std::to_string((int)loc.y) + "\n");
+	data.append(std::to_string((int)health) + "\n");
+	data.append(std::to_string((int)maxHealth) + "\n");
+	
+	data.append(std::to_string((int)inv->items.size()) + "\n");
+	for(auto &i : inv->items)
+		data.append(std::to_string((int)i.count) + "\n" + std::to_string((int)i.id) + "\n");
+	
+	data.append((std::string)(currentXML+4) + "\n");
+	
+	data.append("dOnE\0");
+	out.write(data.c_str(),data.size());
+	out.close();	
+}
+
+void Player::sspawn(float x,float y){
+	unsigned int i;
+	uint count;
+	std::ifstream in ("xml/main.dat",std::ios::in | std::ios::binary);
+	spawn(x,y);
+	
+	if(in.good()){
+		std::istringstream data;
+		std::string ddata;
+		std::streampos len;
+		
+		in.seekg(0,std::ios::end);
+		len = in.tellg();
+		in.seekg(0,std::ios::beg);
+		
+		std::vector<char> buf (len,'\0');
+		in.read(buf.data(),buf.size());
+		
+		data.rdbuf()->pubsetbuf(buf.data(),buf.size());
+		
+		std::getline(data,ddata);
+		loc.x = std::stoi(ddata);
+		std::getline(data,ddata);
+		loc.y = std::stoi(ddata);
+		std::getline(data,ddata);
+		health = std::stoi(ddata);
+		std::getline(data,ddata);
+		maxHealth = std::stoi(ddata);
+	
+		std::getline(data,ddata);
+		for(i = std::stoi(ddata);i;i--){
+			std::getline(data,ddata);
+			count = std::stoi(ddata);
+			std::getline(data,ddata);
+			inv->items.push_back((item_t){count,(uint)std::stoi(ddata)});
+		}
+		
+		std::getline(data,ddata);
+		currentWorld = loadWorldFromXMLNoSave(ddata.c_str());
+		
+		in.close();
 	}
 }

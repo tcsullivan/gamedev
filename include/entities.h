@@ -6,6 +6,8 @@
 #include <inventory.h>
 #include <Texture.h>
 
+#include <sstream>
+
 #define DEBUG
 
 #define NPCp(n)			((NPC *)n)
@@ -175,7 +177,8 @@ public:
 	
 	Player();
 	~Player();
-	void interact();
+	void save(void);
+	void sspawn(float x,float y);
 };
 
 class NPC : public Entity{

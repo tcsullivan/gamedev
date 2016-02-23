@@ -58,7 +58,7 @@ extern Menu* currentMenu;
 extern Menu pauseMenu;
 
 
-Mix_Chunk *dialogClick;
+static Mix_Chunk *dialogClick;
 
 extern void mainLoop(void);
 
@@ -114,6 +114,7 @@ namespace ui {
 	bool debug=false;
 	bool posFlag=false;
 	bool dialogPassive = false;
+	int dialogPassiveTime = 0;
 
 	
 	/*
@@ -545,6 +546,24 @@ namespace ui {
 		dialogImportant = true;
 		//toggleBlack();
 	}
+	void passiveImportantText(int duration, const char *text,...){
+		va_list textArgs;
+
+		//if(!player->ground)return;
+
+		memset(dialogBoxText,0,512);
+
+		va_start(textArgs,text);
+		vsnprintf(dialogBoxText,512,text,textArgs);
+		va_end(textArgs);
+
+		dialogBoxExists = true;
+		dialogImportant = true;
+		dialogPassive = true;
+		dialogPassiveTime = duration;
+	}
+
+
 	void draw(void){
 		unsigned char i;
 		float x,y,tmp;
@@ -556,6 +575,14 @@ namespace ui {
 			
 			if(dialogImportant){
 				setFontColor(255,255,255);
+				if(dialogPassive){
+					dialogPassiveTime -= deltaTime;
+					if(dialogPassiveTime < 0){
+						dialogPassive = false;
+						dialogImportant = false;
+						dialogBoxExists = false;
+					}
+				}
 				if(fadeIntensity == 255 || dialogPassive){
 					setFontSize(24);
 					putStringCentered(offset.x,offset.y,rtext);
@@ -646,15 +673,14 @@ namespace ui {
 	}
 
 	void quitGame(){
+		dialogBoxExists = false;
+		currentMenu = NULL;
+		delete[] currentMenu;
 		gameRunning = false;
 		updateConfig();
 		saveConfig();
 	}
-
-	void quitMenu(){
-		currentMenu = NULL;
-	}
-
+	
 	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f){
 		menuItem temp;
 		temp.member = 0;
@@ -719,20 +745,13 @@ namespace ui {
 		return temp;
 	}
 
-	char* stradd(const char* a, const char* b){
-		size_t len = strlen(a) + strlen(b);
-		char *ret = (char*)malloc(len * sizeof(char) + 1);
-		*ret = '\0';
-
-		return strcat(strcat(ret,a),b);
-	}
-
 	/*
 	 *	Draws the menu
 	*/
 
 	void drawMenu(Menu *menu){
 		setFontSize(24);
+		updateConfig();
 		SDL_Event e;
 			
 		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
@@ -1181,13 +1200,10 @@ DONE:
 				if(SDL_KEY == SDLK_ESCAPE){
 					//gameRunning = false;
 					currentMenu = &pauseMenu;
+					player->save();
 					return;
 				}
 				switch(SDL_KEY){
-				case SDLK_w:
-					dialogPassive = true;
-					importantText("Welcome to Meme-Town");
-					break;
 				case SDLK_a:
 					left = false;
 					break;

@@ -82,18 +82,18 @@ void World::setStyle(const char* pre){
 	for(uint i = 0; i < arrAmt(buildPaths);i++){
 		sTexLoc.push_back(prefix);
 		sTexLoc.back() += buildPaths[i];
-		std::cout << sTexLoc.back() << std::endl;
+		//std::cout << sTexLoc.back() << std::endl;
 	}
 	prefix += "bg/";
 	for(uint i = 0; i < arrAmt(bgPaths[0]);i++){
 		bgFiles.push_back(prefix);
 		bgFiles.back() += bgPaths[0][i];
-		std::cout << bgFiles.back() << std::endl;
+		//std::cout << bgFiles.back() << std::endl;
 	}
 	for(uint i = 0; i < arrAmt(bgPaths[1]);i++){
 		bgFilesIndoors.push_back(prefix);
 		bgFilesIndoors.back() += bgPaths[1][i];
-		std::cout << bgFilesIndoors.back() << std::endl;
+		//std::cout << bgFilesIndoors.back() << std::endl;
 	}
 }
 
@@ -316,10 +316,7 @@ void World::update(Player *p,unsigned int delta){
 	
 	p->loc.y += p->vel.y			 * delta;
 	p->loc.x +=(p->vel.x * p->speed) * delta;
-	/*if(p->inv->usingi){
-		p->inv->useItem();
-	}*/
-
+	
 	/*
 	 *	Update coordinates of all entities except for structures.
 	*/
@@ -361,22 +358,22 @@ void World::update(Player *p,unsigned int delta){
 	}
 }
 
-void World::setBGM(const char *path){
-	if(!bgm) delete[] bgm;
-	if(path != NULL){
-		bgm = new char[strlen(path) + 1];
-		strcpy(bgm,path);
-		bgmObj = Mix_LoadMUS(bgm);
-	}else{
-		bgm = new char[1];
-		bgm[0] = '\0';
-	}
+void World::setBGM(std::string path){
+	bgm = new char[path.size()];
+	strcpy(bgm,path.c_str());
+	bgmObj = Mix_LoadMUS(bgm);
 }
 
 void World::bgmPlay(World *prev){
-	if(prev && strcmp(bgm,prev->bgm)){
+	if(prev){
+		if(bgm != prev->bgm){
+			Mix_FadeOutMusic(800);
+			//Mix_VolumeMusic(50);
+			Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
+		}
+	}else{
 		Mix_FadeOutMusic(800);
-		Mix_VolumeMusic(50);
+		//Mix_VolumeMusic(50);
 		Mix_PlayMusic(bgmObj,-1);	// Loop infinitely
 	}
 }
@@ -940,17 +937,13 @@ void World::singleDetect(Entity *e){
 }
 
 void World::detect(Player *p){
-	//static std::thread villageThread;
-	World *hey = this;
 	
 	/*
 	 *	Handle the player. 
 	*/
 	
-	singleDetect(p);
-	//villageLogic(this);
-	//villageThread = std::thread(villageLogic, this);
-
+	//auto pl = std::async(&World::singleDetect,this,p);
+	std::thread(&World::singleDetect,this, p).detach();
 		
 	/*
 	 *	Handle all remaining entities in this world. 
@@ -958,8 +951,9 @@ void World::detect(Player *p){
 	
 //LOOOOP:
 	static int what = 0;
-	for(auto &e : hey->entity)
-		hey->singleDetect(e);
+	for(auto &e : entity)
+		std::thread(&World::singleDetect,this,e).detach();
+		//hey->singleDetect(e);
 	for(auto &part : particles){
 		int l;
 		unsigned int i;
@@ -1004,12 +998,23 @@ void World::detect(Player *p){
 		}
 	}
 
+	for(auto &v : village){
+		if(p->loc.x > v.start.x && p->loc.x < v.end.x){
+			if(!v.in){
+				ui::passiveImportantText(5000,"Welcome to %s",v.name.c_str());
+				v.in = true;
+			}
+		}else{
+			v.in = false;
+		}
+	}
+
 	/*if(hey->infront){
 		hey = hey->infront;
 		goto LOOOOP;
 	}*/
-	//villageThread.join();
 }
+
 void World::addStructure(BUILD_SUB sub, float x,float y, char *tex, const char *inside){
 	build.push_back(new Structures());
 	build.back()->inWorld = this;
@@ -1494,22 +1499,26 @@ char *currentXML = NULL;
 extern World *currentWorld;
 
 World *loadWorldFromXML(const char *path){
+	if(currentXML){
+		currentWorld->save();
+		delete[] currentXML;
+	}
+	
+	return loadWorldFromXMLNoSave(path);
+}
+
+World *loadWorldFromXMLNoSave(const char *path){
 	XMLDocument xml;
 	XMLElement *wxml;
 	XMLElement *vil;
 	
 	World *tmp;
-	float spawnx;
+	float spawnx, randx;
 	bool dialog,Indoor;
 	
 	const char *ptr,*name;
 	
 	unsigned int size = 5 + strlen(path);
-	
-	if(currentXML){
-		currentWorld->save();
-		delete[] currentXML;
-	}
 	
 	memset((currentXML = new char[size]),0,size);
 	strcpy(currentXML,"xml/");
@@ -1523,11 +1532,6 @@ World *loadWorldFromXML(const char *path){
 		wxml = wxml->FirstChildElement();
 		Indoor = false;
 		tmp = new World();
-		if(vil){
-			vil = vil->FirstChildElement();
-			//tmp->village.push_back(vil->Attribute("name"));
-
-		}
 	}else if((wxml = xml.FirstChildElement("IndoorWorld"))){
 		wxml = wxml->FirstChildElement();
 		Indoor = true;
@@ -1604,20 +1608,38 @@ World *loadWorldFromXML(const char *path){
 		wxml = wxml->NextSiblingElement();
 	}
 
+	if(vil){
+		tmp->village.push_back(vil->Attribute("name"));
+
+		vil = vil->FirstChildElement();
+	}
+
 	while(vil){
 		name = vil->Name();
+		randx = getRand() % tmp->getTheWidth() - (tmp->getTheWidth() / 2.0f);
+
+		/**
+		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
+		 */
 		if(!strcmp(name,"structure")){
 			ptr = vil->Attribute("inside");
 			tmp->addStructure((BUILD_SUB)vil->UnsignedAttribute("type"),
-							   vil->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR ? 
-							   			getRand() % tmp->getTheWidth() / 2.0f : 
-							   			spawnx,
+							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
+							   randx : spawnx,
 							   100,
 							   (char*)vil->Attribute("texture"),
 							   ptr);
 
-			//tmp->village.back().build.push_back(tmp->build.back());
+			tmp->village.back().build.push_back(tmp->build.back());
 		}
+		if(tmp->village.back().build.back()->loc.x < tmp->village.back().start.x){
+			tmp->village.back().start.x = tmp->village.back().build.back()->loc.x;
+		}
+		if(tmp->village.back().build.back()->loc.x + tmp->village.back().build.back()->width > tmp->village.back().end.x){
+			tmp->village.back().end.x = tmp->village.back().build.back()->loc.x + tmp->village.back().build.back()->width;
+		}
+
+		//go to the next element in the village block
 		vil = vil->NextSiblingElement();
 	}
 	

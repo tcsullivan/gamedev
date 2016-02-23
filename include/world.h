@@ -88,13 +88,16 @@ typedef struct line_t {
 
 struct Village{
 	std::string name;
+	vec2 start;
+	vec2 end;
+	bool in;
 
-	std::vector<std::shared_ptr<Entity>>	 entity;
-	std::vector<std::shared_ptr<Structures>> build;
-	std::vector<std::shared_ptr<NPC>>		 npc;
-
+	std::vector<Structures *> build;
 	Village(const char *meme){
 		name = meme;
+		end.x = -0xffffffff;
+		start.x = 0xffffffff;
+		in = false;
 	}
 };
 
@@ -371,7 +374,7 @@ public:
 	 * playable.
 	 */
 	
-	void setBGM(const char *path);
+	void setBGM(std::string path);
 
 	/**
 	 *	Sets the worlds style folder
@@ -474,5 +477,6 @@ extern int worldShade;
 extern char *currentXML;
 
 World *loadWorldFromXML(const char *path);
+World *loadWorldFromXMLNoSave(const char *path);
 
 #endif // WORLD_H

@@ -50,6 +50,12 @@ public:
 	std::vector<menuItem>items;
 	Menu *child;
 	Menu *parent;
+	~Menu(){
+		child = NULL;
+		parent = NULL;
+		delete child;
+		delete parent;
+	}
 
 	void gotoChild();
 	void gotoParent();
@@ -147,6 +153,7 @@ namespace ui {
 	*/
 	
 	void importantText(const char *text,...);
+	void passiveImportantText(int duration,const char *text,...);
 	
 	/*
 	 *	Draw various UI elements (dialogBox, player health)
@@ -159,8 +166,6 @@ namespace ui {
 	 *	Draw various menu items
 	*/
 	void quitGame();
-	void quitMenu();
-	void optionsMenuF();
 	void drawMenu(Menu* menu);
 
 

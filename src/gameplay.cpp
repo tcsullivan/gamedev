@@ -278,7 +278,7 @@ void initEverything(void){
 	 */
 	
 	for(unsigned int i=0;i<xmlFiles.size();i++){
-		if(strncmp(xmlFiles[i].c_str(),".",1) && strncmp(xmlFiles[i].c_str(),"..",2)){
+		if(xmlFiles[i] != "." && xmlFiles[i] != ".." && strcmp(xmlFiles[i].c_str()+xmlFiles[i].size()-3,"dat")){
 			
 			/*
 			 * Read in the XML file.
@@ -307,9 +307,9 @@ void initEverything(void){
 	/*
 	 * Spawn the player and begin the game.
 	 */
-	
+
 	player = new Player();
-	player->spawn(200,100);
+	player->sspawn(0,100);
 
 	currentWorld->bgmPlay(NULL);
 	atexit(destroyEverything);

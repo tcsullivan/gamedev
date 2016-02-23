@@ -31,10 +31,10 @@ struct item_t{
 
 class Inventory {
 private:
-	std::vector<item_t> items;
 	unsigned int size;
 	int os = 0;
 public:
+	std::vector<item_t> items;
 	unsigned int sel;
 	bool invOpen = false;
 	bool invOpening = false;

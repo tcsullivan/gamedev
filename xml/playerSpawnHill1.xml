@@ -10,10 +10,10 @@
 	
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="false" />
-	<structure type="5" inside="playerSpawnHill1_Building1.xml" />
+	<!-- <structure type="5" inside="playerSpawnHill1_Building1.xml" /> -->
 	<village name="Meme-Town">
-		<structure type="0" inside="playerSpawnHill1_Building1.xml" />
-		<structure type="5" inside="playerSpawnHill1_Building1.xml" />
+		<structure type="0" x="-100" inside="playerSpawnHill1_Building1.xml"/>
+		<structure type="5" x="-500" inside="playerSpawnHill1_Building1.xml"/>
 	</village>
 
 </World>
