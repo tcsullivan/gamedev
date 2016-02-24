@@ -50,6 +50,12 @@ public:
 	std::vector<menuItem>items;
 	Menu *child;
 	Menu *parent;
+	~Menu(){
+		child = NULL;
+		parent = NULL;
+		delete child;
+		delete parent;
+	}
 
 	void gotoChild();
 	void gotoParent();
@@ -104,6 +110,7 @@ namespace ui {
 	extern unsigned char dialogOptChosen;
 	extern bool dialogBoxExists;
 	extern bool dialogImportant;
+	extern bool dialogPassive;
 
 	extern unsigned int textWrapLimit;
 
@@ -148,6 +155,7 @@ namespace ui {
 	*/
 	
 	void importantText(const char *text,...);
+	void passiveImportantText(int duration,const char *text,...);
 	
 	/*
 	 *	Draw various UI elements (dialogBox, player health)

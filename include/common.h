@@ -16,6 +16,8 @@
 #include <string>
 #include <fstream>	
 #include <thread>
+#include <mutex>
+#include <future>
 
 #define GLEW_STATIC
 #include <GL/glew.h>

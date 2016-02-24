@@ -52,7 +52,6 @@ static char dialogBoxText[512];
 static char *dialogOptText[4];
 static float dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
-static bool dialogPassive = false;
 static bool typeOutDone = true;
 
 extern Menu* currentMenu;
@@ -114,6 +113,9 @@ namespace ui {
 	
 	bool debug=false;
 	bool posFlag=false;
+	bool dialogPassive = false;
+	int dialogPassiveTime = 0;
+
 	
 	/*
 	 *	Dialog stuff that needs to be 'public'.
@@ -544,6 +546,24 @@ namespace ui {
 		dialogImportant = true;
 		//toggleBlack();
 	}
+	void passiveImportantText(int duration, const char *text,...){
+		va_list textArgs;
+
+		//if(!player->ground)return;
+
+		memset(dialogBoxText,0,512);
+
+		va_start(textArgs,text);
+		vsnprintf(dialogBoxText,512,text,textArgs);
+		va_end(textArgs);
+
+		dialogBoxExists = true;
+		dialogImportant = true;
+		dialogPassive = true;
+		dialogPassiveTime = duration;
+	}
+
+
 	void draw(void){
 		unsigned char i;
 		float x,y,tmp;
@@ -555,9 +575,18 @@ namespace ui {
 			
 			if(dialogImportant){
 				setFontColor(255,255,255);
-				if(fadeIntensity == 255){
+				if(dialogPassive){
+					dialogPassiveTime -= deltaTime;
+					if(dialogPassiveTime < 0){
+						dialogPassive = false;
+						dialogImportant = false;
+						dialogBoxExists = false;
+					}
+				}
+				if(fadeIntensity == 255 || dialogPassive){
 					setFontSize(24);
 					putStringCentered(offset.x,offset.y,rtext);
+					setFontSize(16);
 				}
 			}else{
 			
@@ -602,7 +631,7 @@ namespace ui {
 				Mix_PlayChannel(1,dialogClick,0);
 			}
 			
-		}else if(!dialogImportant && !fadeIntensity){
+		}if(!fadeIntensity){
 			vec2 hub = {
 				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
 				(offset.y+SCREEN_HEIGHT/2)-fontSize
@@ -644,6 +673,9 @@ namespace ui {
 	}
 
 	void quitGame(){
+		dialogBoxExists = false;
+		currentMenu = NULL;
+		delete[] currentMenu;
 		gameRunning = false;
 		updateConfig();
 		saveConfig();

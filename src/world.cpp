@@ -17,39 +17,25 @@ bool worldInside = false;		// True if player is inside a structure
 
 WEATHER weather = SUNNY;
 
-// const char *bgPaths[2][7]={
-// 	{"assets/bg.png",				// Daytime background
-// 	 "assets/bgn.png",				// Nighttime background
-// 	 "assets/bgFarMountain.png",		// Furthest layer
-// 	 "assets/forestTileBack.png",	// Closer layer
-// 	 "assets/forestTileMid.png",		// Near layer
-// 	 "assets/forestTileFront.png",	// Closest layer
-// 	 "assets/dirt.png"},				// Dirt
-// 	{"assets/bgWoodTile.png",
-// 	 NULL,
-// 	 NULL,
-// 	 NULL,
-// 	 NULL,
-// 	 NULL}
-// };
 
-const std::string bgPaths[2][8]={
-	{"bg.png",					// Daytime background
-	 "bgn.png",					// Nighttime background
-	 "bgFarMountain.png",		// Furthest layer
-	 "forestTileBack.png",		// Closer layer
-	 "forestTileMid.png",		// Near layer
-	 "forestTileFront.png",		// Closest layer
-	 "dirt.png",				// Dirt
-	 "grass.png"},				// Grass
-	{"bgWoodTile.png",
-	 "bgWoodTile.png",
-	 "bgWoodTile.png",
-	 "bgWoodTile.png",
-	 "bgWoodTile.png",
-	 "bgWoodTile.png",
-	 "bgWoodTile.png",
-	 "bgWoodTile.png"}
+const std::string bgPaths[2][9]={
+								   {"bg.png",					// Daytime background
+									"bgn.png",					// Nighttime background
+									"bgFarMountain.png",		// Furthest layer
+									"forestTileFar.png",		// Furthest away Tree Layer
+									"forestTileBack.png",		// Closer layer
+									"forestTileMid.png",		// Near layer
+									"forestTileFront.png",		// Closest layer
+									"dirt.png",					// Dirt
+									"grass.png"},				// Grass
+								   {"bgWoodTile.png",
+									"bgWoodTile.png",
+									"bgWoodTile.png",
+									"bgWoodTile.png",
+									"bgWoodTile.png",
+									"bgWoodTile.png",
+									"bgWoodTile.png",
+									"bgWoodTile.png"}
 };
 
 const std::string buildPaths[] = {	"townhall.png",
@@ -61,10 +47,11 @@ const std::string buildPaths[] = {	"townhall.png",
 									"lampPost1.png",
 									"brazzier.png"};
 
-const float bgDraw[3][3]={
+const float bgDraw[4][3]={
 	{100,240,.6 },
 	{150,250,.4 },
-	{255,255,.25}
+	{200,255,.25},
+	{255,255,.1}
 };
 
 float worldGetYBase(World *w){
@@ -341,8 +328,7 @@ void World::update(Player *p,unsigned int delta){
 			e->loc.x += e->vel.x * delta;
 			
 			if(e->vel.x < 0)e->left = true;
-	   else if(e->vel.x > 0)e->left = false;
-	   
+	   		else if(e->vel.x > 0)e->left = false;
 		}
 	}
 
@@ -489,10 +475,10 @@ void World::draw(Player *p){
 	glEnd();
 	
 	/*
-	 *	Draw three layers of trees.
+	 *	Draw four layers of trees.
 	*/
 
-	for(i = 0; i < 3; i++){
+	for(i = 0; i < 4; i++){
 		bgTex->bindNext();
 		safeSetColorA(bgDraw[i][0]-bgshade,bgDraw[i][0]-bgshade,bgDraw[i][0]-bgshade,bgDraw[i][1]);
 	
@@ -590,8 +576,7 @@ void World::draw(Player *p){
 	}
 	for(auto &b : current->build){
 		b->draw();
-	}
-	
+	}	
 	/*
 	 *	Draw the layer up until the grass portion, which is done later.
 	*/
@@ -735,7 +720,6 @@ void World::draw(Player *p){
 			o->loc.y-=(yoff-DRAW_Y_OFFSET);
 		}
 	}
-
 	
 	/*
 	 *	If we're drawing the closest/last world, handle and draw the player.
@@ -960,15 +944,17 @@ void World::detect(Player *p){
 	 *	Handle the player. 
 	*/
 	
-	singleDetect(p);
+	//auto pl = std::async(&World::singleDetect,this,p);
+	std::thread(&World::singleDetect,this, p).detach();
 		
 	/*
 	 *	Handle all remaining entities in this world. 
 	*/
 	
+//LOOOOP:
 	for(auto &e : entity)
-		singleDetect(e);
-		
+		std::thread(&World::singleDetect,this,e).detach();
+		//hey->singleDetect(e);
 	for(auto &part : particles){
 		int l;
 		unsigned int i;
@@ -985,7 +971,50 @@ void World::detect(Player *p){
 			if(part->gravity && part->vely > -2)part->vely-=.003 * deltaTime;
 		}
 	}
+	for(auto &b : build){
+		switch(b->bsubtype){
+			case FOUNTAIN:
+				for(int r = 0; r < (rand()%25)+10;r++){
+					addParticle(	rand()%HLINE*3 + b->loc.x + b->width/2,
+												b->loc.y + b->height, 
+												HLINE*1.25,
+												HLINE*1.25, 
+												rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,
+												((4+rand()%6)*.05), 
+												{0,0,255}, 
+												2500);
+
+					particles.back()->fountain = true;
+				}
+				break;
+			case FIRE_PIT:
+				for(int r = 0; r < (rand()%20)+10;r++){
+					addParticle(rand()%(int)(b->width/2) + b->loc.x+b->width/4, b->loc.y+3*HLINE, HLINE, HLINE, rand()%2 == 0?-(rand()%3)*.01:(rand()%3)*.01,((4+rand()%6)*.005), {255,0,0}, 400);
+					particles.back()->gravity = false;
+					particles.back()->behind = true;
+				}
+				break;
+			default: break;
+		}
+	}
+
+	for(auto &v : village){
+		if(p->loc.x > v.start.x && p->loc.x < v.end.x){
+			if(!v.in){
+				ui::passiveImportantText(5000,"Welcome to %s",v.name.c_str());
+				v.in = true;
+			}
+		}else{
+			v.in = false;
+		}
+	}
+
+	/*if(hey->infront){
+		hey = hey->infront;
+		goto LOOOOP;
+	}*/
 }
+
 void World::addStructure(BUILD_SUB sub, float x,float y, char *tex, const char *inside){
 	build.push_back(new Structures());
 	build.back()->inWorld = this;
@@ -1128,7 +1157,7 @@ World *World::goWorldRight(Player *p){
 	if(toRight && p->loc.x + p->width > -x_start - HLINE * 15){
 		tmp = loadWorldFromXML(toRight);
 		
-		p->loc.x = tmp->x_start + HLINE * 10;
+		p->loc.x = tmp->x_start + (int)HLINE * 10;
 		p->loc.y = tmp->line[0].y;
 		
 		return tmp;
@@ -1485,9 +1514,10 @@ World *loadWorldFromXML(const char *path){
 World *loadWorldFromXMLNoSave(const char *path){
 	XMLDocument xml;
 	XMLElement *wxml;
+	XMLElement *vil;
 	
 	World *tmp;
-	float spawnx;
+	float spawnx, randx;
 	bool dialog,Indoor;
 	
 	const char *ptr,*name;
@@ -1502,6 +1532,7 @@ World *loadWorldFromXMLNoSave(const char *path){
 	
 	xml.LoadFile(currentXML);
 	wxml = xml.FirstChildElement("World");
+	vil = xml.FirstChildElement("World")->FirstChildElement("village");
 
 	if(wxml){
 		wxml = wxml->FirstChildElement();
@@ -1515,7 +1546,6 @@ World *loadWorldFromXMLNoSave(const char *path){
 	
 	while(wxml){
 		name = wxml->Name();
-
 		if(!strcmp(name,"link")){
 			if((ptr = wxml->Attribute("left")))
 				tmp->setToLeft(ptr);
@@ -1580,8 +1610,43 @@ World *loadWorldFromXMLNoSave(const char *path){
 			tmp->addMob(MS_TRIGGER,wxml->FloatAttribute("x"),0,commonTriggerFunc);
 			tmp->mob.back()->heyid = wxml->Attribute("id");
 		}
-		
+
 		wxml = wxml->NextSiblingElement();
+	}
+
+	if(vil){
+		tmp->village.push_back(vil->Attribute("name"));
+
+		vil = vil->FirstChildElement();
+	}
+
+	while(vil){
+		name = vil->Name();
+		randx = getRand() % tmp->getTheWidth() - (tmp->getTheWidth() / 2.0f);
+
+		/**
+		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
+		 */
+		if(!strcmp(name,"structure")){
+			ptr = vil->Attribute("inside");
+			tmp->addStructure((BUILD_SUB)vil->UnsignedAttribute("type"),
+							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
+							   randx : spawnx,
+							   100,
+							   (char*)vil->Attribute("texture"),
+							   ptr);
+
+			tmp->village.back().build.push_back(tmp->build.back());
+		}
+		if(tmp->village.back().build.back()->loc.x < tmp->village.back().start.x){
+			tmp->village.back().start.x = tmp->village.back().build.back()->loc.x;
+		}
+		if(tmp->village.back().build.back()->loc.x + tmp->village.back().build.back()->width > tmp->village.back().end.x){
+			tmp->village.back().end.x = tmp->village.back().build.back()->loc.x + tmp->village.back().build.back()->width;
+		}
+
+		//go to the next element in the village block
+		vil = vil->NextSiblingElement();
 	}
 	
 	std::ifstream dat (((std::string)currentXML + ".dat").c_str());

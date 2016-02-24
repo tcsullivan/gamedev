@@ -62,7 +62,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	right	= true;
 	left	= false;
 	near	= false;
-	canMove	= true;
+	//canMove	= true;
 	ground	= false;
 	hit 	= false;
 	
@@ -88,6 +88,8 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	subtype = 0;	
 	health = maxHealth = 100;
 	speed = 1;
+	canMove = true;
+
 	tex = new Texturec(9, 	"assets/player/playerk.png",
 							"assets/player/playerk1.png",
 							"assets/player/playerk2.png",
@@ -115,6 +117,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	health = maxHealth = 100;
 	
 	maxHealth = health = 100;
+	canMove = true;
 	
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
@@ -141,6 +144,7 @@ Structures::Structures(){ //sets the structure type
 	name = NULL;
 	
 	inv = NULL;
+	canMove = false;
 }
 Structures::~Structures(){
 	delete tex;
@@ -155,6 +159,7 @@ Mob::Mob(int sub){
 	aggressive = false;
 	
 	maxHealth = health = 50;
+	canMove = true;
 	
 	switch((subtype = sub)){
 	case MS_RABBIT:
@@ -198,6 +203,7 @@ Object::Object(){
 	near = false;
 	width  = 0;
 	height = 0;
+	canMove = false;
 
 	maxHealth = health = 1;
 	
@@ -267,7 +273,7 @@ void Entity::draw(void){		//draws the entities
 	switch(type){
 	case PLAYERT:
 		static int texState = 0;
-		if(speed && !(loops % (int)(2.0f/(float)speed))){
+		if(speed && !(loops % ((2.0f/speed) < 1 ? 1 : (int)((float)2.0f/(float)speed)))){
 			if(++texState==9)texState=1;
 			glActiveTexture(GL_TEXTURE0);
 			tex->bind(texState);
