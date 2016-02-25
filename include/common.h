@@ -53,6 +53,11 @@ extern GLuint colorIndex;
  */
 
 typedef struct {
+	int x;
+	int y;
+} ivec2;
+
+typedef struct {
 	float x;
 	float y;
 } vec2;
@@ -74,7 +79,7 @@ typedef struct {
 	vec2 end;
 } Ray;
 
-struct col{
+struct col {
 	float red;
 	float green;
 	float blue;

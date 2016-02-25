@@ -675,3 +675,17 @@
 	- volumes are better
 	
 	~ 5 month Changelog anniversary!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+2/23/2016:
+==========
+
+	- began re-write of font rendering functions
+	- began documenting main.cpp
+	- improved game efficiency
+
+2/25/2016:
+==========
+
+	- very neatly documented/optimized ui.cpp (very neat)
+	- looked into better automated Makefiles
+	- improving villages, began work on shops

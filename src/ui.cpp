@@ -1,158 +1,210 @@
 #include <ui.h>
 
-/*
- *	Create a macro to easily access SDL keypresses
-*/
+/**
+ * A macro for easier SDL key reading
+ */
 
 #define SDL_KEY e.key.keysym.sym
 
-extern std::vector<menuItem>optionsMenu;
+/*
+ * Important to have..
+ */
 
-extern SDL_Window *window;
+extern SDL_Window	*window;
+extern Player		*player;
+extern World		*currentWorld;
+extern bool			 gameRunning;
 
 /*
- *	External references for updating player coords / current world.
-*/
-
-extern Player *player;
-extern World  *currentWorld;
-
-/*
- *	In the case of dialog, some NPC quests can be preloaded so that they aren't assigned until
- *	the dialog box closes. Reference variables for that here.
-*/
+ * NPC AI functions are given to the NPCs within UI loops.
+ */
 
 extern std::vector<int (*)(NPC *)> AIpreload;
 extern std::vector<NPC *> AIpreaddr;
 
 /*
- *	Pressing ESC or closing the window will set this to false.
-*/
+ * Variables and objects used with the FreeType library and font rendering.
+ */
 
-extern bool gameRunning;
+#define FT_CHAR_COUNT	93
 
-/*
- *	Freetype variables, and a GLuint for referencing rendered letters.
-*/
+typedef struct {
+	GLuint	tex;	/**< OpenGL texture object				 */
+	ivec2	wh;		/**< Width and height of the character	 */
+	ivec2	bl;		/**< Offset for drawing the character?	 */
+	ivec2	ad;		/**< Number of pixels to advance cursor. */
+} FT_Tex;
+
+static FT_Tex ftmap[FT_CHAR_COUNT];
 
 static FT_Library   ftl;
 static FT_Face      ftf;
-static GLuint       ftex[93];
-static vec2			ftexwh[93];
-static vec2			ftexbl[93];
-static vec2			ftexad[93];
-
 static unsigned char fontColor[3] = {255,255,255};
 
 /*
  *	Variables for dialog boxes / options.
-*/
+ */
 
-static char dialogBoxText[512];
-static char *dialogOptText[4];
-static float dialogOptLoc[4][3];
+static char			 dialogBoxText[512];
+static char			*dialogOptText[4];
+static float	 	 dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
-static bool typeOutDone = true;
+static bool			 typeOutDone = true;
+static int 			 dialogPassiveTime = 0;
 
-extern Menu* currentMenu;
+/*
+ * Menu-related objects
+ */
+
+extern Menu *currentMenu;
 extern Menu pauseMenu;
 
+/**
+ * The sound made when displaying characters with dialogBox or importantText.
+ */
 
 static Mix_Chunk *dialogClick;
+
+/*
+ * Other sounds
+ */
+
+Mix_Chunk *battleStart;
+Mix_Chunk *sanic;
+
+/**
+ * A reference to the main loop function for functions like waitForCover().
+ */
 
 extern void mainLoop(void);
 
 /*
- *	Toggled by pressing 'q', disables some controls when true.
-*/
+ * Overlay variables
+ */
 
 bool fadeEnable = false;
-bool fadeWhite = false;
-bool fadeFast = false;
+bool fadeWhite  = false;
+bool fadeFast   = false;
+
 unsigned int fadeIntensity = 0;
 
-bool inBattle = false;
-Mix_Chunk *battleStart;
+/**
+ * Set to true when the player is in a battle area (i.e. currentWorld points to
+ * an Arena).
+ */
 
-Mix_Chunk *sanic;
+bool inBattle = false;
+
+
 
 void Menu::gotoParent(){
-	if(parent == NULL){
+	if(!parent){
 		currentMenu = NULL;
 		updateConfig();
-	}else{
+	}else
 		currentMenu = parent;
-	}
 }
 
 void Menu::gotoChild(){
-	if(child == NULL){
+	if(!child)
 		currentMenu = NULL;
-	}else{
+	else
 		currentMenu = child;
-	}
 }
+
+static vec2 premouse={0,0};
 
 namespace ui {
 	
-	/*
-	 *	Mouse coordinates.
-	*/
+	/**
+	 * The current position of the mouse.
+	 */
 	
 	vec2 mouse;
-	static vec2 premouse={0,0};		
 
-	/*
-	 *	Variety of keydown bools
-	*/
-	bool edown;
-
-	/*
-	 *	Debugging flags.
-	*/
+	/**
+	 * If true, debug information will be drawn to the screen.
+	 */
 	
-	bool debug=false;
+	bool debug = false;
+	
+	/**
+	 * If true, lines should be drawn to the player when the debug menu is open.
+	 */
+	
 	bool posFlag=false;
-	bool dialogPassive = false;
-	int dialogPassiveTime = 0;
-
 	
-	/*
-	 *	Dialog stuff that needs to be 'public'.
-	*/
+	/**
+	 * If true, the player will be able to move when the current dialog box is
+	 * displayed.
+	 */
+	
+	bool dialogPassive = false;
+
+	/**
+	 * When set to true the dialog box will attempt to display.
+	 */
 	
 	bool dialogBoxExists = false;
+	
+	/**
+	 * When set to true the text will display as 'important' text.
+	 */
+	
 	bool dialogImportant = false;
+	
+	/**
+	 * Contains the last chosen dialog option.
+	 */
+	
 	unsigned char dialogOptChosen = 0;
+	
+	/**
+	 * Determines how many characters can be displayed in a dialog box before
+	 * a new line is required.
+	 */
 	
 	unsigned int textWrapLimit = 110;
 	
-	/*
-	 *	Current font size. Changing this WILL NOT change the font size, see setFontSize() for
-	 *	actual font size changing.
-	*/
+	/**
+	 * The current font size.
+	 * 
+	 * DO NOT change this directly, use setFontSize() instead.
+	 */
 	
 	unsigned int fontSize;
 
-	/*
-	 *	Initialises the Freetype library, and sets a font size.
-	*/
+	/**
+	 * Initializes the Freetype library, and other UI related variables.
+	 */
 
 	void initFonts(void){
+		
+		// init the FreeType library
 		if(FT_Init_FreeType(&ftl)){
-			std::cout<<"Error! Couldn't initialize freetype."<<std::endl;
+			std::cout<<"Error! Couldn't initialize the FreeType library."<<std::endl;
 			abort();
 		}
-		fontSize=0;
-		memset(&ftex,0,93*sizeof(GLuint));
+		
+		fontSize = 0;
+		memset(&ftmap, 0, FT_CHAR_COUNT * sizeof(FT_Tex));
+		
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
+
+		/*
+		 * Load UI related sounds.
+		 */
+
 		dialogClick = Mix_LoadWAV("assets/sounds/click.wav");
 		battleStart = Mix_LoadWAV("assets/sounds/frig.wav");
-		sanic = Mix_LoadWAV("assets/sounds/sanic.wav");
-		//Mix_Volume(1,50);
+		sanic		= Mix_LoadWAV("assets/sounds/sanic.wav");
 	}
+	
+	/**
+	 * Frees resources taken by the UI facilities
+	 */
 	
 	void destroyFonts(void){
 		FT_Done_Face(ftf);
@@ -163,92 +215,94 @@ namespace ui {
 		Mix_FreeChunk(sanic);
 	}
 	
-	/*
-	 *	Sets a new font family to use (*.ttf).
-	*/
+	/**
+	 * Sets a new font face to use (*.ttf).
+	 */
 	
 	void setFontFace(const char *ttf){
 		if(FT_New_Face(ftl,ttf,0,&ftf)){
 			std::cout<<"Error! Couldn't open "<<ttf<<"."<<std::endl;
 			abort();
 		}
+		
 #ifdef DEBUG
 		DEBUG_printf("Using font %s\n",ttf);
 #endif // DEBUG
+
 	}
 	
-	/*
-	 *	Sets a new font size (default: 12).
-	*/
+	/**
+	 * Sets a new font size and renders the necessary characters (default font
+	 * size: 16; 24 for importantText).
+	 */
 	
 	void setFontSize(unsigned int size){
 		unsigned int i,j;
-		char *buf;
 		
-		fontSize=size;
-		FT_Set_Pixel_Sizes(ftf,0,fontSize);
+		std::unique_ptr<uint8_t[]> rgbaBuf;
+		size_t rgbaBufSize = 0;
 		
-		/*
-		 *	Pre-render 'all' the characters.
-		*/
+		FT_Set_Pixel_Sizes(ftf,0,(fontSize = size));
 		
-		glDeleteTextures(93,ftex);	//	delete[] any already-rendered textures
-		glGenTextures(93,ftex);		//	Generate new texture name/locations?
+		// delete old characters, make space for new ones
+		for(i=0; i < FT_CHAR_COUNT; i++){
+			glDeleteTextures(1, &ftmap[i].tex);
+			glGenTextures(1, &ftmap[i].tex);
+		}
 		
+		// Load all characters we expect to use
 		for(i=33;i<126;i++){
 		
-			/*
-			 *	Load the character from the font family file.
-			*/
-		
+			// Load the bitmap for the current character.
 			if(FT_Load_Char(ftf,i,FT_LOAD_RENDER)){
 				std::cout<<"Error! Unsupported character "<<(char)i<<" ("<<i<<")."<<std::endl;
 				abort();
 			}
 			
 			/*
-			 *	Transfer the character's bitmap (?) to a texture for rendering.
-			*/
+			 * Set up the OpenGL texture thing.
+			 */
 		
-			glBindTexture(GL_TEXTURE_2D,ftex[i-33]);
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S		,GL_CLAMP_TO_EDGE);
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T		,GL_CLAMP_TO_EDGE);
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER	,GL_LINEAR		 );
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER	,GL_LINEAR		 );
-			glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+			glBindTexture(GL_TEXTURE_2D, ftmap[i-33].tex);
+			
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S		, GL_CLAMP_TO_EDGE);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T		, GL_CLAMP_TO_EDGE);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER	, GL_LINEAR		 );
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER	, GL_LINEAR		 );
+			
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		
 			/*
-			 *	The just-created texture will render red-on-black if we don't do anything to it, so
-			 *	here we create a buffer 4 times the size and transform the texture into an RGBA array,
-			 *	making it white-on-black.
-			*/
-			
-			buf = new char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];
+			 * Convert the bitmap font given to us from FreeType into an RGBA
+			 * format, for ease of drawing.
+			 */
 		
-			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
-				buf[j*4  ]=255;//fontColor[0];
-				buf[j*4+1]=255;//fontColor[1];
-				buf[j*4+2]=255;//fontColor[2];
-				buf[j*4+3]=ftf->glyph->bitmap.buffer[j] ? 255 : 0;
-				//buf[j*4+3]=ftf->glyph->bitmap.buffer[j];
+			rgbaBuf.reset(new uint8_t [(rgbaBufSize = ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4)]);
+			rgbaBufSize /= 4;
+		
+			// populate the buffer
+			for(j=0; j < rgbaBufSize; j++){
+				rgbaBuf[j * 4    ] = 
+				rgbaBuf[j * 4 + 1] = 
+				rgbaBuf[j * 4 + 2] = 255;
+				rgbaBuf[j * 4 + 3] = ftf->glyph->bitmap.buffer[j] ? 255 : 0;
 			}
 			
-			ftexwh[i-33].x=ftf->glyph->bitmap.width;
-			ftexwh[i-33].y=ftf->glyph->bitmap.rows;
-			ftexbl[i-33].x=ftf->glyph->bitmap_left;
-			ftexbl[i-33].y=ftf->glyph->bitmap_top;
-			ftexad[i-33].x=ftf->glyph->advance.x>>6;
-			ftexad[i-33].y=ftf->glyph->advance.y>>6;
+			// save important character information
+			ftmap[i-33].wh = { (int)ftf->glyph->bitmap.width, (int)ftf->glyph->bitmap.rows };
+			ftmap[i-33].bl = { ftf->glyph->bitmap_left,		  ftf->glyph->bitmap_top       };
+			ftmap[i-33].ad = { ftf->glyph->advance.x >> 6,	  ftf->glyph->advance.y >> 6   };
 		
-			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf);	
+			// do the thing
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ftf->glyph->bitmap.width, ftf->glyph->bitmap.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbaBuf.get());
 			
-			delete[] buf;	//free(buf);
+			rgbaBuf.release();
 		}
 	}
 	
-	/*
-	 *	Set a color for font rendering (default: white).
-	*/
+	/**
+	 * Set a color for font rendering (default: white).
+	 */
 	
 	void setFontColor(unsigned char r,unsigned char g,unsigned char b){
 		fontColor[0]=r;
@@ -256,429 +310,472 @@ namespace ui {
 		fontColor[2]=b;
 	}
 	
-	/*
-	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
-	*/
+	/**
+	 * Draws a character at the specified coordinates, aborting if the character is undrawable.
+	 */
 	
-	vec2 putChar(float xx,float yy,char c){
-		vec2 c1,c2;
+	ivec2 putChar(float x,float y,char c){
+		ivec2 c1,c2;
 
-		int x = xx, y = yy;
-				
-		/*
-		 *	Get the width and height of the rendered character.
-		*/
-		
-		c1={(float)floor(x)+ftexbl[c-33].x,
-		    (float)floor(y)+ftexbl[c-33].y};
-		c2=ftexwh[c-33];
+		// calculate coordinates
+		c1 = { (int)floor(x) + ftmap[c-33].bl.x,
+		       (int)floor(y) + ftmap[c-33].bl.y };
+		c2 = ftmap[c-33].wh;
 		
 		/*
-		 *	Draw the character:
-		*/
+		 *	Draw the character
+		 */
 		
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D,ftex[c-33]);
+		glBindTexture(GL_TEXTURE_2D, ftmap[c-33].tex);
+		
 		glPushMatrix();
 		glTranslatef(0,-c2.y,0);
+		
 		glBegin(GL_QUADS);
-			glColor3ub(fontColor[0],fontColor[1],fontColor[2]);
-			glTexCoord2f(0,1);glVertex2f(c1.x     ,c1.y		);
-			glTexCoord2f(1,1);glVertex2f(c1.x+c2.x,c1.y		);
-			glTexCoord2f(1,0);glVertex2f(c1.x+c2.x,c1.y+c2.y);
-			glTexCoord2f(0,0);glVertex2f(c1.x     ,c1.y+c2.y);
+			glColor3ub(fontColor[0], fontColor[1], fontColor[2]);
+			
+			glTexCoord2f(0, 1); glVertex2f(c1.x       , c1.y	   );
+			glTexCoord2f(1, 1); glVertex2f(c1.x + c2.x, c1.y	   );
+			glTexCoord2f(1, 0); glVertex2f(c1.x + c2.x, c1.y + c2.y);
+			glTexCoord2f(0, 0); glVertex2f(c1.x       , c1.y + c2.y);
+			
 		glEnd();
+		
 		glPopMatrix();
 		glDisable(GL_TEXTURE_2D);
-		
-		/*
-		 * return the width.
-		*/
-		
-		return ftexad[c-33];//(vec2){c2.x,ftexad[c-33].y};
+
+		// return the number of pixels the cursor should move
+		return ftmap[c-33].ad;
 	}
 	
-	/*
-	 *	Draw a string at the specified coordinates.
-	*/
+	/**
+	 * Draw a string at the specified coordinates.
+	 */
 	
 	float putString(const float x,const float y,const char *s){
-		unsigned int i=0;
-		float xo=x,yo=y;
-		vec2 add;
+		unsigned int i = 0;
+		ivec2 add;
+		vec2 off = { (float)floor(x), (float)floor(y) };
 		
 		/*
 		 *	Loop on each character:
-		*/
+		 */
 		
 		do{
-			if(i && ((i / 110.0) == (i / 110))){
-				yo-=fontSize*1.05;
-				xo=x;
+			// wrap text if necessary
+			if(i && (i / (float)textWrapLimit == i / textWrapLimit)){
+				off.y -= fontSize * 1.05;
+				off.x = x;
+				
+				// skip a space if it's there since we just newline'd
 				if(s[i] == ' ')
 					i++;
 			}
+			
+			// handle newlines
 			if(s[i] == '\n'){
-				yo-=fontSize*1.05;
-				xo=x;
+				off.y -= fontSize * 1.05;
+				off.x  = x;
+
+			// (TODO) handle carriage returns and tabs
 			}else if(s[i] == '\r' || s[i] == '\t'){
-			/*if(s[i] == '\n'){
-				yo-=fontSize*1.05;
-				xo=x;
-			*/}else if(s[i]==' '){	//	Handle spaces
-				xo+=fontSize/2;
-			}else if(s[i]=='\b'){	//	Handle backspaces?
-				xo-=add.x;
+
+			// handle spaces
+			}else if(s[i]==' '){
+				off.x += fontSize / 2;
+				
+			// handle backspaces
+			}else if(s[i]=='\b'){
+				off.x -= add.x;
+
+			// handle everything else
 			}else{
-				add=putChar(floor(xo),floor(yo),s[i]);
-				xo+=add.x;
-				yo+=add.y;
+				add = putChar(off.x, off.y, s[i]);
+				off.x += add.x;
+				off.y += add.y;
 			}
+			
 		}while(s[++i]);
 		
-		return xo;	// i.e. the string width
+		// return string width
+		return off.x;
 	}
+	
+	/**
+	 * Print a string center-aligned on the specified coordinate.
+	 */
 	
 	float putStringCentered(const float x,const float y,const char *s){
 		unsigned int i = 0;
 		float width = 0;
 		
-		do{
-			if(s[i]=='\n'){			//	Handle newlines
-				// TODO
-			}else if(s[i]==' '){	//	Handle spaces
-				width+=fontSize/2;
-			}else if(s[i]=='\b'){	//	Handle backspaces?
-				// Why?
-				// Cuz
-			}else{
-				width+=ftexwh[i].x+fontSize*.1;
-			}
-		}while(s[++i]);
+		/*
+		 * Calculate the string's width by cycling through each character.
+		 */
 		
-		putString(floor(x-width/2),y,s);
-		return width;
+		do{
+			// handle newlines
+			if(s[i]=='\n'){
+
+			// handle spaces
+			}else if(s[i]==' '){
+				width += fontSize / 2;
+
+			// handle backspaces
+			}else if(s[i]=='\b'){
+
+			// handle everything else
+			}else
+				width += ftmap[i].wh.x + fontSize * .1;
+
+		}while(s[++i]);
+
+		// print the string
+		return putString(floor(x - width / 2), y, s);
 	}
 	
-	/*
-	 *	Draw a string in a typewriter-esque fashion. Each letter is rendered as calls are made
-	 *	to this function. Passing a different string to the function will reset the counters.
-	*/
+	/**
+	 * Draw a string in a typewriter-esque fashion.
+	 * 
+	 * This function is expected to be called as it is rendered, slowly allowing
+	 * more characters to be drawn as it is looped on. Only one call to this
+	 * function can be handled at a time.
+	 */
 
-	static char *ret = NULL;
+	static char *typeOutStr = NULL;
 	char *typeOut(char *str){
-		static unsigned int sinc,	//	Acts as a delayer for the space between each character.
+		static unsigned int sinc=0,	//	Acts as a delayer for the space between each character.
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
-		//static char *ret = NULL;
-		
-		/*
-		 *	Create a well-sized buffer if we haven't yet.
-		*/
-		
-		if(!ret){
-			ret = new char[512];	//(char *)calloc(512,sizeof(char));
-			memset(ret,0,512*sizeof(char));
+
+		// allocate memory for the string if necessary
+		if(!typeOutStr){
+			typeOutStr = new char[512];
+			memset(typeOutStr, 0, 512 * sizeof(char));
 		}
 		
 		/*
 		 *	Reset values if a new string is being passed.
-		*/
+		 */
 		
-		if(strncmp(ret,str,linc-1)){
-			memset(ret,0,512);		//	Zero the buffer
-			size=strlen(str);		//	Set the new target string size
-			linc=0;					//	Reset the incrementers
-			sinc=1;
+		if(strncmp(typeOutStr, str, linc - 1)){
+			memset(typeOutStr, 0, 512);		// Zero the buffer
+			size = strlen(str);				// Set the new target string size
+			linc = 0;						// Reset the incrementers
+			sinc = 1;						//
 			typeOutDone = false;
 		}
 		
 		/*
 		 *	Draw the next letter if necessary.
-		*/
+		 */
 		
 		if(typeOutDone)
 			return str;
-		else if(++sinc==2){
-			sinc=0;
+		else if(++sinc == 2){
+			sinc = 0;
 			
-			strncpy(ret+linc,str+linc,1);	//	Get next character
+			// add next character to output string
+			strncpy(typeOutStr + linc,str + linc, 1);
 			
-			if(linc<size)
+			if(linc < size)
 				linc++;
 			else
 				typeOutDone = true;
 		}
-		
-		return ret;		//	The buffered string.
+
+		// return the string
+		return typeOutStr;
 	}
 	
-	/*
-	 *	Draw a formatted string to the specified coordinates.
-	*/
+	/**
+	 * Draw a formatted string to the specified coordinates.
+	 */
 	
 	float putText(const float x,const float y,const char *str,...){
 		va_list args;
-		char *buf;
-		float width;
+		std::unique_ptr<char[]> buf (new char[512]);
 		
-		/*
-		 *	Create a wimpy buffer.
-		*/
-		
-		buf = new char[512];	//(char *)calloc(128,sizeof(char));
-		memset(buf,0,512*sizeof(char));
-		
-		/*
-		 *	Handle the formatted string, printing it to the buffer.
-		*/
-		
-		va_start(args,str);
-		vsnprintf(buf,512,str,args);
+		// create the formatted string
+		va_start(args, str);
+		vsnprintf(buf.get(), 512, str, args);
 		va_end(args);
 		
-		/*
-		 *	Draw the string, free resources, return the width of the string.
-		*/
-		
-		width=putString(x,y,buf);
-		delete[] buf;	//free(buf);
-		
-		return width;
+		return putString(x, y, buf.get());
 	}
+	
+	/**
+	 * Prints a character dialog box.
+	 * 
+	 * This function sets up the variables necessary to draw a dialog box. If
+	 * `opt` contains a valid string, options will be printed with the dialog
+	 * box. If the box is passive, the player will be allowed to move while it
+	 * is being displayed.
+	 */
+	
 	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...){
 		va_list dialogArgs;
-		unsigned int len;
-		char *sopt,*soptbuf;
+		size_t len;
 		
 		dialogPassive = passive;
 		
-		/*
-		 *	Set up the text buffer.
-		*/
+		// clear the buffer
+		memset(dialogBoxText, '\0', 512);
 		
-		memset(dialogBoxText,0,512);
+		// create the string
+		strcpy(dialogBoxText, name);
+		strcat(dialogBoxText, ": ");
 		
-		/*
-		 *	Get the text ready for rendering.
-		*/
-		
-		len=strlen(name);
-		strcpy(dialogBoxText    ,name);
-		strcpy(dialogBoxText+len,": ");
-		len+=2;
-		
+		len=strlen(dialogBoxText);
 		va_start(dialogArgs,text);
-		vsnprintf(dialogBoxText+len,512-len,text,dialogArgs);
+		vsnprintf(dialogBoxText + len, 512 - len, text, dialogArgs);
 		va_end(dialogArgs);
 				
-		/*
-		 *	Set up option text.
-		*/
-		
+		// free old option text
 		while(dialogOptCount){
 			if(dialogOptText[dialogOptCount]){
-				delete[] dialogOptText[dialogOptCount];	//free(dialogOptText[dialogOptCount]);
+				delete[] dialogOptText[dialogOptCount];
 				dialogOptText[dialogOptCount] = NULL;
 			}
+			
 			dialogOptCount--;
 		};
 
-		dialogOptCount = 0;
 		dialogOptChosen = 0;
-		memset(&dialogOptLoc,0,sizeof(float)*12);
+		memset(&dialogOptLoc, 0, sizeof(float) * 12);
 		
-		if(opt != NULL){
-			
-			soptbuf = new char[strlen(opt)+1];
-			strcpy(soptbuf,opt);
-			
-			sopt=strtok(soptbuf,":");
-			while(sopt != NULL){
-				dialogOptText[dialogOptCount] = new char[strlen(sopt)+1];	//(char *)malloc(strlen(sopt));
-				strcpy(dialogOptText[dialogOptCount++],sopt);
-				sopt=strtok(NULL,":");
-			}
-			
-			delete[] soptbuf;
+		// handle options if desired
+		if(opt){
+			std::unique_ptr<char[]> soptbuf (new char[strlen(opt) + 1]);
+			char *sopt = strtok(soptbuf.get(), ":");
 
+			// cycle through options
+			while(sopt){
+				strcpy( (dialogOptText[dialogOptCount++] = new char[strlen(sopt) + 1]), sopt);
+				sopt = strtok(NULL,":");
+			}
 		}
 		
-		/*
-		 *	Tell draw() that the box is ready. 
-		*/
-		
+		// allow box to be displayed
 		dialogBoxExists = true;
 		dialogImportant = false;
 		
-		if(ret)
-			ret[0] = '\0';
+		// kill the string created by typeOut if it contains something
+		if(typeOutStr)
+			*typeOutStr = '\0';
 	}
+	
+	/**
+	 * Wait for a dialog box to be dismissed.
+	 */
+	
 	void waitForDialog(void){
 		do{
 			mainLoop();
 		}while(ui::dialogBoxExists);
 	}
+	
+	/**
+	 * Wait for the screen to be fully covered through toggle___().
+	 */
+	
 	void waitForCover(void){
 		do{
 			mainLoop();
 		}while(fadeIntensity < 255);
 		fadeIntensity = 255;
 	}
-	void waitForNothing(unsigned int ms){
-		unsigned int target = millis() + ms;
-		do{
-			mainLoop();
-		}while(millis() < target);
-	}
+	
+	/**
+	 * Prepare formatted 'important' string for drawing.
+	 * 
+	 * "Important" text will display in a bigger font size at the center of the
+	 * screen. Usually accompanied by a cover from toggle___() and limits on
+	 * player controls.
+	 */
+	
 	void importantText(const char *text,...){
 		va_list textArgs;
 
-		//if(!player->ground)return;
+		// clear dialog buffer (we share the same)
+		memset(dialogBoxText, '\0', 512);
 
-		memset(dialogBoxText,0,512);
-
+		// format the string
 		va_start(textArgs,text);
-		vsnprintf(dialogBoxText,512,text,textArgs);
+		vsnprintf(dialogBoxText, 512, text, textArgs);
 		va_end(textArgs);
 
+		// set draw flags
 		dialogBoxExists = true;
 		dialogImportant = true;
-		//toggleBlack();
 	}
+	
+	/**
+	 * Draw a passive 'important' text for a certain duration.
+	 */
+	
 	void passiveImportantText(int duration, const char *text,...){
 		va_list textArgs;
 
-		//if(!player->ground)return;
+		// clear buffer
+		memset(dialogBoxText, '\0', 512);
 
-		memset(dialogBoxText,0,512);
-
+		// format the string
 		va_start(textArgs,text);
-		vsnprintf(dialogBoxText,512,text,textArgs);
+		vsnprintf(dialogBoxText, 512, text, textArgs);
 		va_end(textArgs);
 
+		// set draw flags
 		dialogBoxExists = true;
 		dialogImportant = true;
 		dialogPassive = true;
 		dialogPassiveTime = duration;
 	}
 
+	/**
+	 * Draws all UI-related elements to the screen.
+	 */
 
 	void draw(void){
 		unsigned char i;
 		float x,y,tmp;
 		char *rtext;
 		
+		// handle dialog box / important text
 		if(dialogBoxExists){
 			
-			rtext=typeOut(dialogBoxText);
+			rtext = typeOut(dialogBoxText);
 			
 			if(dialogImportant){
-				setFontColor(255,255,255);
-				if(dialogPassive){
-					dialogPassiveTime -= deltaTime;
-					if(dialogPassiveTime < 0){
-						dialogPassive = false;
-						dialogImportant = false;
-						dialogBoxExists = false;
-					}
+				setFontColor(255, 255, 255);
+				
+				// handle timeout
+				if(dialogPassive && (dialogPassiveTime -= deltaTime) <= 0){
+					dialogPassive = false;
+					dialogImportant = false;
+					dialogBoxExists = false;
 				}
+				
+				// draw text
 				if(fadeIntensity == 255 || dialogPassive){
 					setFontSize(24);
-					putStringCentered(offset.x,offset.y,rtext);
+					putStringCentered(offset.x, offset.y, rtext);
 					setFontSize(16);
 				}
-			}else{
+			}else{ // normal dialog box
+				x =  offset.x - SCREEN_WIDTH  / 2  + HLINE * 8;
+				y = (offset.y + SCREEN_HEIGHT / 2) - HLINE * 8;
 			
-				x=offset.x-SCREEN_WIDTH/2+HLINE*8;
-				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
-			
-			
-				glColor3ub(255,255,255);
+				// draw white border
+				glColor3ub(255, 255, 255);
 				glBegin(GL_LINE_STRIP);
-					glVertex2f(x-1						,y+1);
-					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y+1);
-					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y-1-SCREEN_HEIGHT/4);
-					glVertex2f(x-1						,y-1-SCREEN_HEIGHT/4);
-					glVertex2f(x						,y+1);
+					glVertex2f(x - 1							, y + 1						);
+					glVertex2f(x + 1 + SCREEN_WIDTH - HLINE * 16, y + 1						);
+					glVertex2f(x + 1 + SCREEN_WIDTH - HLINE * 16, y - 1 - SCREEN_HEIGHT / 4 );
+					glVertex2f(x - 1							, y - 1 - SCREEN_HEIGHT / 4 );
+					glVertex2f(x								, y + 1						);
 				glEnd();
 			
-				glColor3ub(0,0,0);
-				glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
+				// draw black box
+				glColor3ub(0, 0, 0);
+				glRectf(x, y, x + SCREEN_WIDTH - HLINE * 16, y - SCREEN_HEIGHT / 4);
 			
-				rtext=typeOut(dialogBoxText);
+				// draw typeOut'd text
+				putString(x + HLINE, y - fontSize - HLINE, (rtext = typeOut(dialogBoxText)));
 			
-				putString(x+HLINE,y-fontSize-HLINE,rtext);
-			
-				for(i=0;i<dialogOptCount;i++){
-					setFontColor(255,255,255);
-					tmp = putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+				// draw / handle dialog options if they exist
+				for(i = 0; i < dialogOptCount; i++){
+					setFontColor(255, 255, 255);
+					
+					// draw option
+					tmp = putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i]);
+					
+					// get coordinate information on option
 					dialogOptLoc[i][2] = offset.x + tmp;
 					dialogOptLoc[i][0] = offset.x - tmp;
 					dialogOptLoc[i][1] = y - SCREEN_HEIGHT / 4 + (fontSize + HLINE) * (i + 1);
-					if(mouse.x > dialogOptLoc[i][0] &&
-					   mouse.x < dialogOptLoc[i][2] &&
-					   mouse.y > dialogOptLoc[i][1] &&
-					   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
-						  setFontColor(255,255,0);
-						  putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+					
+					// make text yellow if the mouse hovers over the text
+					if(mouse.x > dialogOptLoc[i][0] && mouse.x < dialogOptLoc[i][2] &&
+					   mouse.y > dialogOptLoc[i][1] && mouse.y < dialogOptLoc[i][1] + 16 ){
+						  setFontColor(255, 255, 0);
+						  putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i]);
 					}
 				}
-				setFontColor(255,255,255);
+				
+				setFontColor(255, 255, 255);
 			}
 			
-			if(strcmp(rtext,dialogBoxText)){
-				Mix_PlayChannel(1,dialogClick,0);
-			}
+			// make click for each character update
+			if(strcmp(rtext, dialogBoxText))
+				Mix_PlayChannel(1, dialogClick, 0);
 			
-		}if(!fadeIntensity){
+		}
+		
+		// draw information stuffs
+		if(!fadeIntensity){
+			
 			vec2 hub = {
-				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
-				(offset.y+SCREEN_HEIGHT/2)-fontSize
+				(offset.x + SCREEN_WIDTH  / 2) - fontSize * 10,
+				(offset.y + SCREEN_HEIGHT / 2) - fontSize
 			};
 			
-			putText(hub.x,hub.y,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
-												(unsigned)player->maxHealth
-												);
+			// health text
+			putText(hub.x,
+					hub.y,
+					"Health: %.0f/%.0f",
+					player->health > 0 ? player->health : 0,
+					player->maxHealth
+					);
+
+			// health bar
 			if(player->alive){
-				glColor3ub(150,0,0);
-				hub.y-=fontSize*1.15;
+				hub.y -= fontSize * 1.15;
+				
+				glColor3ub(150, 0, 0);
 				glRectf(hub.x,
 						hub.y,
-						hub.x+150,
-						hub.y+12);
+						hub.x + 150,
+						hub.y + 12
+						);
+						
 				glColor3ub(255,0,0);
 				glRectf(hub.x,
 						hub.y,
-						hub.x+(player->health/player->maxHealth * 150),
-						hub.y+12);
+						hub.x + (player->health / player->maxHealth * 150),
+						hub.y + 12
+						);
 			}
 			
-			/*
-			 *	Lists all of the quests the player is currently taking.
-			*/
-			
+			// inventory
 			if(player->inv->invOpen){
 				hub.y = player->loc.y + fontSize * 8;
-				hub.x = player->loc.x;// + player->width / 2;
+				hub.x = player->loc.x;
 				
-				putStringCentered(hub.x,hub.y,"Current Quests:");
+				putStringCentered(hub.x, hub.y, "Current Quests:");
 				
-				for(auto &c : player->qh.current){
-					hub.y -= fontSize * 1.15;
-					putStringCentered(hub.x,hub.y,c.title.c_str());
-				}	
+				for(auto &q : player->qh.current)
+					putStringCentered(hub.x, (hub.y -= fontSize * 1.15), q.title.c_str());
 			}
 		}
 	}
 
+	/**
+	 * Safely exits the game.
+	 */
+
 	void quitGame(){
-		dialogBoxExists = false;
+		// clean menu stuff
 		currentMenu = NULL;
 		delete[] currentMenu;
-		gameRunning = false;
+		
+		// save options
 		updateConfig();
 		saveConfig();
+		
+		// tell main loop to exit
+		gameRunning = false;
 	}
 	
 	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f){
@@ -1005,33 +1102,38 @@ namespace ui {
 		fclose(bmp);
 	}
 
+	/**
+	 * Handles dialog box closing, option selecting and stuff.
+	 */
+
 	void dialogAdvance(void){
 		unsigned char i;
+		
+		// if typeOut hasn't finished, tell it to then try again
 		if(!typeOutDone){
 			typeOutDone = true;
 			return;
 		}
 
-		for(i=0;i<dialogOptCount;i++){
-			if(mouse.x > dialogOptLoc[i][0] &&
-			   mouse.x < dialogOptLoc[i][2] &&
-			   mouse.y > dialogOptLoc[i][1] &&
-			   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
+		// check for selected option
+		for(i = 0; i < dialogOptCount; i++){
+			if(mouse.x > dialogOptLoc[i][0] && mouse.x < dialogOptLoc[i][2] &&
+			   mouse.y > dialogOptLoc[i][1] && mouse.y < dialogOptLoc[i][1] + 16 ){
 				dialogOptChosen = i + 1;
-				goto DONE;
+				break;
 			}
 		}
-DONE:
+		
+		// handle important text
 		if(dialogImportant){
 			dialogImportant = false;
 			setFontSize(16);
-			//toggleBlack();
 		}
-		/*if(ui::fontSize != 16)
-			setFontSize(16);*/
 
+		// kill the dialog box
 		dialogBoxExists = false;
 	}
+	
 	void handleEvents(void){
 		static bool left=true,right=false;
 		static int heyOhLetsGo = 0;
@@ -1172,7 +1274,6 @@ DONE:
 						if(debug)posFlag ^= true;
 						break;
 					case SDLK_e:
-						edown=true;
 						if(!heyOhLetsGo){
 							heyOhLetsGo = loops;
 							player->inv->mouseSel = false;
@@ -1220,7 +1321,6 @@ DONE:
 					player->speed = 1;
 					break;
 				case SDLK_e:
-					edown=false;
 					if(player->inv->invHover){
 						player->inv->invHover = false;
 					}else{
@@ -1293,25 +1393,46 @@ DONE:
 		}
 	}
 	
+	/**
+	 * Toggle a slow fade to/from black.
+	 */
+	
 	void toggleBlack(void){
 		fadeEnable ^= true;
 		fadeWhite = false;
 		fadeFast = false;
 	}
+	
+	/**
+	 * Toggle a fast fade to/from black.
+	 */
+	
 	void toggleBlackFast(void){
 		fadeEnable ^= true;
 		fadeWhite = false;
 		fadeFast = true;
 	}
+	
+	/**
+	 * Toggle a slow fade to/from white.
+	 */
+	
 	void toggleWhite(void){
 		fadeEnable ^= true;
 		fadeWhite = true;
 		fadeFast = false;
 	}
+	
+	/**
+	 * Toggle a fast fade to/from white. This should only be used for battle
+	 * initiations, so the 'battle start' sound is played as well.
+	 */
+	
 	void toggleWhiteFast(void){
 		fadeEnable ^= true;
 		fadeWhite = true;
 		fadeFast = true;
-		Mix_PlayChannel(1,battleStart,0);
+		
+		Mix_PlayChannel(1, battleStart, 0);
 	}
 }

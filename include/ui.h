@@ -186,7 +186,6 @@ namespace ui {
 	void toggleWhiteFast(void);
 	void waitForCover(void);
 	
-	void waitForNothing(unsigned int);
 }
 
 #endif // UI_H
