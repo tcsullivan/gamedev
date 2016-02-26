@@ -108,9 +108,9 @@ namespace ui {
 	extern bool posFlag;
 	
 	extern unsigned char dialogOptChosen;
-	extern bool dialogBoxExists;
-	extern bool dialogImportant;
-	extern bool dialogPassive;
+	extern bool 		 dialogBoxExists;
+	extern bool 		 dialogImportant;
+	extern bool 		 dialogPassive;
 
 	extern unsigned int textWrapLimit;
 
@@ -148,6 +148,7 @@ namespace ui {
 	*/
 	
 	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...);
+	void merchantBox(const char *name,const char *opt,bool passive,const char *text,...);
 	void waitForDialog(void);
 	
 	/*

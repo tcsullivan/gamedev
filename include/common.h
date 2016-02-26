@@ -18,6 +18,7 @@
 #include <thread>
 #include <mutex>
 #include <future>
+#include <threadpool.h>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -113,6 +114,8 @@ extern unsigned int SCREEN_WIDTH;
 extern unsigned int SCREEN_HEIGHT;
 
 extern bool FULLSCREEN;
+extern bool uiLoop;
+extern std::mutex mtx;
 
 /**
  * Define the length of a single HLINE.

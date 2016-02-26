@@ -122,6 +122,10 @@ void World::deleteEntities(void){
 		delete npc.back();
 		npc.pop_back();
 	}
+	while(!merchant.empty()){
+		delete merchant.back();
+		merchant.pop_back();
+	}
 	while(!build.empty()){
 		delete build.back();
 		build.pop_back();
@@ -945,7 +949,8 @@ void World::detect(Player *p){
 	*/
 	
 	//auto pl = std::async(&World::singleDetect,this,p);
-	std::thread(&World::singleDetect,this, p).detach();
+	//std::thread(&World::singleDetect,this, p).detach();
+	 singleDetect(p);
 		
 	/*
 	 *	Handle all remaining entities in this world. 
@@ -953,8 +958,8 @@ void World::detect(Player *p){
 	
 //LOOOOP:
 	for(auto &e : entity)
-		std::thread(&World::singleDetect,this,e).detach();
-		//hey->singleDetect(e);
+		//std::thread(&World::singleDetect,this,e).detach();
+		singleDetect(e);
 	for(auto &part : particles){
 		int l;
 		unsigned int i;
@@ -1067,6 +1072,14 @@ void World::addNPC(float x,float y){
 	npc.push_back(new NPC());
 	npc.back()->spawn(x,y);
 	
+	entity.push_back(npc.back());
+}
+
+void World::addMerchant(float x, float y){
+	merchant.push_back(new Merchant());
+	merchant.back()->spawn(x,y);
+
+	npc.push_back(merchant.back());
 	entity.push_back(npc.back());
 }
 
@@ -1636,8 +1649,29 @@ World *loadWorldFromXMLNoSave(const char *path){
 							   (char*)vil->Attribute("texture"),
 							   ptr);
 
-			tmp->village.back().build.push_back(tmp->build.back());
+		}else if(!strcmp(name, "stall")){
+			if(!strcmp(vil->Attribute("type"),"market")){
+				std::cout << "Market" << std::endl;
+				tmp->addStructure((BUILD_SUB)70,
+							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
+							   randx : spawnx,
+							   100,
+							   (char*)vil->Attribute("texture"),
+							   ptr);
+				tmp->addMerchant(0,100);
+				strcpy(tmp->merchant.back()->name,"meme");
+
+			}else if(!strcmp(vil->Attribute("type"),"trader")){
+				std::cout << "Trader" << std::endl;
+				tmp->addStructure((BUILD_SUB)71,
+							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
+							   randx : spawnx,
+							   100,
+							   (char*)vil->Attribute("texture"),
+							   ptr);
+			}
 		}
+		tmp->village.back().build.push_back(tmp->build.back());
 		if(tmp->village.back().build.back()->loc.x < tmp->village.back().start.x){
 			tmp->village.back().start.x = tmp->village.back().build.back()->loc.x;
 		}

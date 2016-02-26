@@ -114,6 +114,7 @@ namespace ui {
 	bool debug=false;
 	bool posFlag=false;
 	bool dialogPassive = false;
+	bool dialogMerchant = false;
 	int dialogPassiveTime = 0;
 
 	
@@ -182,10 +183,12 @@ namespace ui {
 	*/
 	
 	void setFontSize(unsigned int size){
+		mtx.lock();
 		unsigned int i,j;
 		char *buf;
 		
 		fontSize=size;
+
 		FT_Set_Pixel_Sizes(ftf,0,fontSize);
 		
 		/*
@@ -200,7 +203,7 @@ namespace ui {
 			/*
 			 *	Load the character from the font family file.
 			*/
-		
+			//uiLoop ? std::cout << "Loop while render\n" : std::cout << "No loop while render\n";		
 			if(FT_Load_Char(ftf,i,FT_LOAD_RENDER)){
 				std::cout<<"Error! Unsupported character "<<(char)i<<" ("<<i<<")."<<std::endl;
 				abort();
@@ -244,6 +247,7 @@ namespace ui {
 			
 			delete[] buf;	//free(buf);
 		}
+		mtx.unlock();
 	}
 	
 	/*
@@ -514,6 +518,76 @@ namespace ui {
 		if(ret)
 			ret[0] = '\0';
 	}
+	void merchantBox(const char *name,const char *opt,bool passive,const char *text,...){
+		std::cout << "Buying and selling on the bi-weekly!" << std::endl;
+		va_list dialogArgs;
+		unsigned int len;
+		char *sopt,*soptbuf;
+		
+		dialogPassive = passive;
+		
+		/*
+		 *	Set up the text buffer.
+		*/
+		
+		memset(dialogBoxText,0,512);
+		
+		/*
+		 *	Get the text ready for rendering.
+		*/
+		
+		len=strlen(name);
+		strcpy(dialogBoxText    ,name);
+		strcpy(dialogBoxText+len,": ");
+		len+=2;
+		
+		va_start(dialogArgs,text);
+		vsnprintf(dialogBoxText+len,512-len,text,dialogArgs);
+		va_end(dialogArgs);
+				
+		/*
+		 *	Set up option text.
+		*/
+		
+		while(dialogOptCount){
+			if(dialogOptText[dialogOptCount]){
+				delete[] dialogOptText[dialogOptCount];	//free(dialogOptText[dialogOptCount]);
+				dialogOptText[dialogOptCount] = NULL;
+			}
+			dialogOptCount--;
+		};
+
+		dialogOptCount = 0;
+		dialogOptChosen = 0;
+		memset(&dialogOptLoc,0,sizeof(float)*12);
+		
+		if(opt != NULL){
+			
+			soptbuf = new char[strlen(opt)+1];
+			strcpy(soptbuf,opt);
+			
+			sopt=strtok(soptbuf,":");
+			while(sopt != NULL){
+				dialogOptText[dialogOptCount] = new char[strlen(sopt)+1];	//(char *)malloc(strlen(sopt));
+				strcpy(dialogOptText[dialogOptCount++],sopt);
+				sopt=strtok(NULL,":");
+			}
+			
+			delete[] soptbuf;
+
+		}
+		
+		/*
+		 *	Tell draw() that the box is ready. 
+		*/
+		
+		dialogBoxExists = true;
+		dialogImportant = false;
+		dialogMerchant = true;
+		
+		if(ret)
+			ret[0] = '\0';
+	}
 	void waitForDialog(void){
 		do{
 			mainLoop();
@@ -565,6 +639,7 @@ namespace ui {
 
 
 	void draw(void){
+		uiLoop = true;
 		unsigned char i;
 		float x,y,tmp;
 		char *rtext;
@@ -588,6 +663,42 @@ namespace ui {
 					putStringCentered(offset.x,offset.y,rtext);
 					setFontSize(16);
 				}
+			}else if(dialogMerchant){
+				/*static std::string merchOpt[3] = {"Accept",
+										 		  "Cancel"};*/
+
+				x=offset.x-SCREEN_WIDTH/6;
+				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
+			
+			
+				glColor3ub(255,255,255);
+				glBegin(GL_LINE_STRIP);
+					glVertex2f(x-1				 	  ,y+1);
+					glVertex2f(x+1+(SCREEN_WIDTH/3),y+1);
+					glVertex2f(x+1+(SCREEN_WIDTH/3),y-1-SCREEN_HEIGHT*.6);
+					glVertex2f(x-1,y-1-SCREEN_HEIGHT*.6);
+					glVertex2f(x,y+1);
+				glEnd();
+			
+				glColor3ub(0,0,0);
+				glRectf(x,y,x+SCREEN_WIDTH/3,y-SCREEN_HEIGHT*.6);
+				
+				for(i=0;i<dialogOptCount;i++){
+					dialogOptLoc[i][1] = (y-SCREEN_HEIGHT*.55) - i*fontSize;
+					setFontColor(255,255,255);
+					tmp = putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+					dialogOptLoc[i][2] = offset.x + tmp;
+					dialogOptLoc[i][0] = offset.x - tmp;
+					//merchOptLoc[i][1] = y - SCREEN_HEIGHT / 4 + (fontSize + HLINE) * (i + 1);
+					if(mouse.x > dialogOptLoc[i][0] &&
+					   mouse.x < dialogOptLoc[i][2] &&
+					   mouse.y > dialogOptLoc[i][1] &&
+					   mouse.y < dialogOptLoc[i][1] + fontSize){ // fontSize
+						  setFontColor(255,255,0);
+						  putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+					}
+				}
+				setFontColor(255,255,255);	
 			}else{
 			
 				x=offset.x-SCREEN_WIDTH/2+HLINE*8;
@@ -670,6 +781,7 @@ namespace ui {
 				}	
 			}
 		}
+		uiLoop = false;
 	}
 
 	void quitGame(){
@@ -1030,8 +1142,10 @@ DONE:
 		/*if(ui::fontSize != 16)
 			setFontSize(16);*/
 
+		if(dialogMerchant) dialogMerchant = false;
 		dialogBoxExists = false;
 	}
+
 	void handleEvents(void){
 		static bool left=true,right=false;
 		static int heyOhLetsGo = 0;

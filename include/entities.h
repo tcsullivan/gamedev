@@ -22,13 +22,13 @@ enum _TYPE {
 	STRUCTURET,
 	PLAYERT,
 	NPCT,
+	MERCHT,
 	MOBT
 };
 
 enum GENDER{
 	MALE,
-	FEMALE,
-	TRANSBULLSHIT
+	FEMALE
 };
 
 enum MOB_SUB {
@@ -47,7 +47,9 @@ enum BUILD_SUB{
 	HOUSE4 = 4,
 	FOUNTAIN = 5,
 	LAMP_POST = 6,
-	FIRE_PIT = 7
+	FIRE_PIT = 7,
+	STALL_MARKET = 70,
+	STALL_TRADER = 71
 };
 
 class World;
@@ -191,8 +193,28 @@ public:
 	
 	void addAIFunc(int (*func)(NPC *),bool preload);
 	void clearAIFunc(void);
-	void interact();
+	virtual void interact();
 	void wander(int);
+};
+
+class Merchant : public NPC{
+public:
+	union BSINV{
+		struct EQUAL{
+			std::string item1;
+			std::string item2;
+		};
+
+		struct COST{
+			std::string item;
+			int price;
+		};
+	};
+	std::vector<BSINV>bsinv;
+	void interact();
+
+	Merchant();
+	~Merchant();
 };
 
 class Structures : public Entity{

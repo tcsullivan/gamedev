@@ -101,6 +101,8 @@ struct Village{
 	}
 };
 
+extern Player *player;
+
 /**
  * The world class. This class does everything a world should do.
  */
@@ -215,6 +217,10 @@ public:
 	
 	char *setToRight(const char *file);
 
+	void callUpdate(){
+		this->update(player,deltaTime);
+	}
+
 
 	/**
 	 * A vector of pointers to every NPC, Structure, Mob, and Object in this
@@ -228,6 +234,7 @@ public:
 	 */
 
 	std::vector<NPC			*>	npc;
+	std::vector<Merchant    *>  merchant;
 	
 	/**
 	 * A vector of all Structures in this world.
@@ -310,6 +317,7 @@ public:
 	 */
 	
 	void addNPC(float x,float y);
+	void addMerchant(float x, float y);
 	
 	/**
 	 * Adds an object to the world with the specified item id and coordinates.

@@ -3,7 +3,7 @@
 
 #include <istream>
 
-#define RAND_DIALOG_COUNT 13
+#define RAND_DIALOG_COUNT 14
 
 extern std::istream *names;
 extern unsigned int loops;
@@ -125,7 +125,38 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	randDialog = rand() % RAND_DIALOG_COUNT - 1;
 	dialogIndex = 0;
 }
+
 NPC::~NPC(){
+	while(!aiFunc.empty()){
+		aiFunc.pop_back();
+	}
+	
+	delete inv;
+	delete tex;
+	delete[] name;
+}
+
+Merchant::Merchant(){	//sets all of the Merchant specific traits on object creation
+	width = HLINE * 10;
+	height = HLINE * 16;
+	
+	type	= MERCHT; //sets type to merchant
+	subtype = 0;
+
+	health = maxHealth = 100;
+	
+	maxHealth = health = 100;
+	canMove = true;
+	
+	//tex = new Texturec(1,"assets/NPC.png");
+	//inv = new Inventory(NPC_INV_SIZE);
+	inv = NULL;
+
+	//randDialog = rand() % RAND_DIALOG_COUNT - 1;
+	dialogIndex = 0;
+}
+
+Merchant::~Merchant(){
 	while(!aiFunc.empty()){
 		aiFunc.pop_back();
 	}
@@ -143,7 +174,7 @@ Structures::Structures(){ //sets the structure type
 	
 	name = NULL;
 	
-	inv = NULL;
+	//inv = NULL;
 	canMove = false;
 }
 Structures::~Structures(){
@@ -401,7 +432,8 @@ const char *randomDialog[RAND_DIALOG_COUNT] = {
 	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
 	"Frig.",
 	"The sine of theta equals the opposite over the hypotenuese.",
-	"Did you know the developers spelt brazier as brazzier."
+	"Did you know the developers spelt brazier as brazzier.",
+	"My dad once said to me, \"Boy, you are in a game.\" I never knew what he meant by that."
 };
 
 void NPC::interact(){ //have the npc's interact back to the player
@@ -423,6 +455,10 @@ void NPC::interact(){ //have the npc's interact back to the player
 	}
 	ui::waitForDialog();
 	canMove=true;
+}
+
+void Merchant::interact(){
+	ui::merchantBox(name, ":Accept:Good Bye", false, "Welcome to smithy\'s. Buy your sausages here you freaking mean lording screw-face");
 }
 
 void Object::interact(void){
@@ -468,11 +504,18 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 
 	//unsigned int tempN = (getRand() % 5 + 2);
 	switch(sub){
+		case STALL_MARKET:
+			tex = new Texturec(1, textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
+			dim = Texture::imageDim(textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
+			width = dim.x;
+			height = dim.y;
+			break;
 		default:
 			tex = new Texturec(1, textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
 			dim = Texture::imageDim(textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
 			width = dim.x;
 			height = dim.y;
+			inv = NULL;
 			break;
 	}
 	return 0;
