@@ -68,7 +68,7 @@ typedef struct {
 	float z;
 } vec3;
 
-typedef vec2 dim2;
+typedef ivec2 dim2;
 
 /**
  * This structure contains two sets of coordinates for ray drawing.

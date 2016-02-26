@@ -689,3 +689,11 @@
 	- very neatly documented/optimized ui.cpp (very neat)
 	- looked into better automated Makefiles
 	- improving villages, began work on shops
+
+2/26/2015:
+==========
+
+	- made fonts more memory-efficient
+	- C++-ified loaded texture handlers
+	- documented more stuff
+	- made merchant menu

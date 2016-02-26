@@ -140,6 +140,11 @@ void World::deleteEntities(void){
 	while(!light.empty()){
 		light.pop_back();
 	}
+	while(!village.empty()){
+		delete village.back();
+		village.pop_back();
+	}
+	
 }
 
 World::~World(void){
