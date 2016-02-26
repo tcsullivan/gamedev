@@ -186,23 +186,6 @@ extern unsigned int loops;
 extern GLuint shaderProgram;
 
 /**
- * This class contains a string for identification and a value. It can be used to
- * save certain events for and decisions so that they can be recalled later.
- */
-
-class Condition {
-private:
-	char *id;
-	void *value;
-public:
-	Condition(const char *_id,void *val);
-	~Condition();
-	
-	bool sameID(const char *s);
-	void *getValue(void);
-};
-
-/**
  *	Prints a formatted debug message to the console, along with the callee's file and line
  *	number.
  */
@@ -243,7 +226,5 @@ int strCreateFunc(const char *equ);
 
 template<typename N, size_t s>
 size_t arrAmt(N (&)[s]){return s;}
-
-extern void *NULLPTR;
 
 #endif // COMMON_H

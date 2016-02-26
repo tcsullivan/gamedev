@@ -999,13 +999,13 @@ void World::detect(Player *p){
 	}
 
 	for(auto &v : village){
-		if(p->loc.x > v.start.x && p->loc.x < v.end.x){
-			if(!v.in){
-				ui::passiveImportantText(5000,"Welcome to %s",v.name.c_str());
-				v.in = true;
+		if(p->loc.x > v->start.x && p->loc.x < v->end.x){
+			if(!v->in){
+				ui::passiveImportantText(5000,"Welcome to %s",v->name.c_str());
+				v->in = true;
 			}
 		}else{
-			v.in = false;
+			v->in = false;
 		}
 	}
 
@@ -1614,8 +1614,11 @@ World *loadWorldFromXMLNoSave(const char *path){
 		wxml = wxml->NextSiblingElement();
 	}
 
+	Village *vptr;
+
 	if(vil){
-		tmp->village.push_back(vil->Attribute("name"));
+		tmp->village.push_back(new Village(vil->Attribute("name"), tmp));
+		vptr = tmp->village.back();
 
 		vil = vil->FirstChildElement();
 	}
@@ -1627,22 +1630,22 @@ World *loadWorldFromXMLNoSave(const char *path){
 		/**
 		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
 		 */
+		 
 		if(!strcmp(name,"structure")){
 			ptr = vil->Attribute("inside");
 			tmp->addStructure((BUILD_SUB)vil->UnsignedAttribute("type"),
-							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
-							   randx : spawnx,
+							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? randx : spawnx,
 							   100,
 							   (char*)vil->Attribute("texture"),
 							   ptr);
 
-			tmp->village.back().build.push_back(tmp->build.back());
+			vptr->build.push_back(tmp->build.back());
 		}
-		if(tmp->village.back().build.back()->loc.x < tmp->village.back().start.x){
-			tmp->village.back().start.x = tmp->village.back().build.back()->loc.x;
+		if(vptr->build.back()->loc.x < vptr->start.x){
+			vptr->start.x = vptr->build.back()->loc.x;
 		}
-		if(tmp->village.back().build.back()->loc.x + tmp->village.back().build.back()->width > tmp->village.back().end.x){
-			tmp->village.back().end.x = tmp->village.back().build.back()->loc.x + tmp->village.back().build.back()->width;
+		if(vptr->build.back()->loc.x + vptr->build.back()->width > vptr->end.x){
+			vptr->end.x = vptr->build.back()->loc.x + vptr->build.back()->width;
 		}
 
 		//go to the next element in the village block
@@ -1656,4 +1659,11 @@ World *loadWorldFromXMLNoSave(const char *path){
 	}
 
 	return tmp;
+}
+
+Village::Village(const char *meme, World *w){
+	name = meme;
+	start.x = w->getTheWidth() / 2.0f;
+	end.x = -start.x;
+	in = false;
 }

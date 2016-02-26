@@ -81,24 +81,54 @@ typedef struct line_t {
 	unsigned char color;	/**< Lightness of dirt (brown) */
 } line_t;
 
-/*
- * Handle all logic that has to do with villages
+class World;
+
+/**
+ * The village class, used to group structures into villages.
  */
 
+class Village {
+public:
 
-struct Village{
+	/**
+	 * The name of the village.
+	 */
+
 	std::string name;
+	
+	/**
+	 * The coordinate of where the village starts.
+	 * 
+	 * This is used to check if the player has entered the village's area.
+	 */
+	
 	vec2 start;
+	
+	/**
+	 * The coordinate of where the village ends.
+	 * 
+	 * This is used to check if the player has entered the village's area.
+	 */
+	
 	vec2 end;
+	
+	/**
+	 * TODO
+	 */
+	
 	bool in;
 
+	/**
+	 * A vector of all structures that are associated with this village.
+	 */
+
 	std::vector<Structures *> build;
-	Village(const char *meme){
-		name = meme;
-		end.x = -0xffffffff;
-		start.x = 0xffffffff;
-		in = false;
-	}
+	
+	/**
+	 * Creates a village of name `meme` in the world `w`.
+	 */
+	
+	Village(const char *meme, World *w);
 };
 
 /**
@@ -132,8 +162,6 @@ protected:
 	 */
 	
 	void singleDetect(Entity *e);
-
-	static void villageLogic(World *world);
 	
 	/**
 	 * Empties all entity vectors.
@@ -253,6 +281,11 @@ public:
 	
 	std::vector<Particles	*>	particles;
 	
+	
+	
+	
+	std::vector<Village *	 >	village;
+	
 	/**
 	 * A vector of all light elements in this world.
 	 */
@@ -264,9 +297,6 @@ public:
 	 */
 
 	std::vector<std::string  >  sTexLoc;
-
-	std::vector<Village>village;
-
 	
 	/**
 	 * NULLifies pointers and allocates necessary memory. This should be

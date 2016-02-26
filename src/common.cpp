@@ -10,8 +10,6 @@
 #include <vector>
 #endif // __WIN32__
 
-void *NULLPTR = NULL;
-
 #ifndef __WIN32__
 
 unsigned int millis(void){
@@ -20,22 +18,6 @@ unsigned int millis(void){
 }
 
 #endif // __WIN32__
-
-Condition::Condition(const char *_id,void *val){
-	id = new char[strlen(_id)+1];
-	strcpy(id,_id);
-	value = val;
-}
-Condition::~Condition(){
-	delete[] id;
-}
-
-bool Condition::sameID(const char *s){
-	return !strcmp(id,s);
-}
-void *Condition::getValue(void){
-	return value;
-}
 
 void DEBUG_prints(const char* file, int line, const char *s,...){
 	va_list args;
