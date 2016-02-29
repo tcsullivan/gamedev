@@ -11,24 +11,11 @@
 #include <common.h>
 #include <entities.h>
 
-/**
- * Defines at what interval y values should be calculated for the array 'line'.
- */
+#define GROUND_HEIGHT_INITIAL   80
+#define GROUND_HEIGHT_MINIMUM   60
+#define GROUND_HEIGHT_MAXIMUM   110
 
-#define GEN_INC 10
-
-/**
- * Defines the lowest possible y value for a world line.
- */
-
-#define GEN_MIN  80
-
-/**
- * Defines the highest possible y value for a randomly generated world line.
- */
-
-#define GEN_MAX  110
-
+#define GROUND_HILLINESS        10
 
 /**
  * Defines how many game ticks it takes for a day to elapse.
@@ -44,7 +31,7 @@
 
 typedef enum {
 	BG_FOREST,		/**< A forest theme. */
-	BG_WOODHOUSE	/**< An indoor wooden house theme. */
+	BG_WOODHOUSE,	/**< An indoor wooden house theme. */
 } WORLD_BG_TYPE;
 
 /**
@@ -74,12 +61,12 @@ typedef struct {
  * lines. Dirt color and grass properties are also kept track of here.
  */
 
-typedef struct line_t {
-	float y;				/**< Height of this vertical line */
-	bool gs;				/**< Show grass */
-	float gh[2];			/**< Height of glass (2 blades per line) */
-	unsigned char color;	/**< Lightness of dirt (brown) */
-} line_t;
+typedef struct {
+    bool          grassUnpressed;
+    int           grassHeight[2];
+    float         groundHeight;
+    unsigned char groundColor;
+} WorldData;
 
 class World;
 
@@ -149,7 +136,7 @@ protected:
 	 * of elements provided by the function.
 	 */
 	 
-	struct line_t *line;
+	std::vector<WorldData> worldData;
 	
 	/**
 	 * Starting x coordinate.
@@ -157,7 +144,7 @@ protected:
 	 * calculate the width of the world.
 	 */
 	
-	int x_start;
+	int worldStart;
 	
 	/**
 	 * Handle physics for a single entity.
@@ -193,7 +180,7 @@ protected:
 	 * An array of star coordinates.
 	 */
 	
-	vec2 *star;
+	std::vector<vec2> star;
 	
 	/**
 	 * The Texturec object that holds the background sprites for this world.
@@ -308,7 +295,7 @@ public:
 	 * generate().
 	 */
 	
-	World(void);
+	World( void );
 	
 	/**
 	 * Frees resources taken by the world.
@@ -387,14 +374,6 @@ public:
 	 */
 	
 	virtual void generate(unsigned int width);
-	
-	/**
-	 * Generates a world of the provided width using the given function to
-	 * determine ground coordinates. The given y coordinates from the function
-	 * are limited to a certain range, most likely from GEN_MIN to 2000.
-	 */
-	
-	void generateFunc(unsigned int width,float(*func)(float));
 	
 	/**
 	 * Sets the background theme, collecting the required textures into a
@@ -476,12 +455,6 @@ public:
 	void save(void);
 	void load(void);
 };
-
-/*
- *	Gets a good base y value for background rendering.
-*/
-
-float worldGetYBase(World *w);
 
 /*
  *	IndoorWorld - Indoor settings stored in a World class ;)

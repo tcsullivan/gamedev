@@ -283,12 +283,12 @@ void initEverything(void){
 			/*
 			 * Read in the XML file.
 			 */
-			
+		
 			currentWorld = loadWorldFromXML(xmlFiles[i].c_str());
 			break;
 		}
 	}
-
+	
 	pauseMenu.items.push_back(ui::createParentButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
 	pauseMenu.items.push_back(ui::createChildButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, "Options"));
 	pauseMenu.items.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));

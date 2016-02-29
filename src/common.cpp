@@ -95,6 +95,13 @@ const char *readFile(const char *path){
 	return buf;
 }
 
+void
+UserError( std::string reason )
+{
+    std::cout << "User error: " << reason << "!" << std::endl;
+    abort();
+}
+
 /*int strCreateFunc(const char *equ){
 	static unsigned int size;
 	static char *filebuf;

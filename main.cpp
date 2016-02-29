@@ -78,12 +78,6 @@ World  	*currentWorld = NULL;
 Player 	*player;
 
 /**
- * Tells if player is currently inside a world entered through a Structure.
- */
-
-extern bool worldInside;
-
-/**
  * TODO
  */
 
@@ -450,7 +444,7 @@ void mainLoop(void){
 						currentTime = 0,	//
 						prevPrevTime= 0;	//
 	World *prev;
-	
+    
 	if(!currentTime)						// Initialize currentTime if it hasn't been
 		currentTime=millis();
 	
@@ -471,12 +465,12 @@ void mainLoop(void){
 
 	prev = currentWorld;
 	ui::handleEvents();
-	
+    
 	if(prev != currentWorld){
 		currentWorld->bgmPlay(prev);
 		ui::dialogBoxExists = false;
 	}
-	
+    
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
 		logic();
 		prevPrevTime = currentTime;
@@ -485,9 +479,9 @@ void mainLoop(void){
 	/*
 	 * Update player and entity coordinates.
 	 */
-	
+     
 	currentWorld->update(player,deltaTime);
-	
+    
 	/*
 	 * Update debug variables if necessary
 	 */
@@ -499,7 +493,6 @@ void mainLoop(void){
 		fps=1000/deltaTime;
 	else if(!(debugDiv%10))
 		debugY = player->loc.y;
-
 MENU:
 	render();
 }
@@ -521,7 +514,7 @@ void render(){
 	
 	if(currentWorld->getTheWidth() < (int)SCREEN_WIDTH){
 		offset.x = 0;
-	}else if(!worldInside){
+	}else{
 		if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
 			offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
 		if(player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
@@ -628,11 +621,6 @@ void render(){
 	player->inv->draw();
 
 	/*
-<<<<<<< HEAD
-	 *	Here we draw a black overlay if it's been requested.
-	*/
-
-	 /*
 	 * Here we draw a black overlay if it's been requested.
 	 */
 	
