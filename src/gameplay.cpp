@@ -43,7 +43,7 @@ int commonAIFunc(NPC *speaker){
 	 * Load the current world's XML file into memory for reading.
 	 */
 	
-	xml.LoadFile(currentXML);
+	xml.LoadFile(currentXML.c_str());
 	exml = xml.FirstChildElement("Dialog");
 	
 	/*
@@ -222,7 +222,7 @@ void commonTriggerFunc(Mob *callee){
 	if(!lock){
 		lock = true;
 	
-		xml.LoadFile(currentXML);
+		xml.LoadFile(currentXML.c_str());
 		exml = xml.FirstChildElement("Trigger");
 		
 		while(strcmp(exml->Attribute("id"),callee->heyid.c_str()))
@@ -321,7 +321,7 @@ extern std::vector<NPC *> AIpreaddr;
 void destroyEverything(void){
 	currentWorld->save();
 	delete currentWorld;
-	delete[] currentXML;
+	//delete[] currentXML;
 	
 	while(!AIpreload.empty())
 		AIpreload.pop_back();

@@ -246,7 +246,7 @@ generate( unsigned int width )
     
     // give every GROUND_HILLINESSth entry a groundHeight value
     for(unsigned int i = GROUND_HILLINESS; i < worldData.size(); i += GROUND_HILLINESS, wditer += GROUND_HILLINESS)
-        worldData[i].groundHeight = (*wditer).groundHeight + (randGet() % 12 - 6);
+        worldData[i].groundHeight = (*wditer).groundHeight + (randGet() % 8 - 4);
 
     // create slopes from the points that were just defined, populate the rest of the WorldData structure
     
@@ -261,9 +261,14 @@ generate( unsigned int width )
         (*wditer).grassHeight[0] = (randGet() % 16) / 3 + 2;
         (*wditer).grassHeight[1] = (randGet() % 16) / 3 + 2;
         
-        // dirty fix for bug -- please fix the bug
-        if( (*wditer).groundHeight <= 0 )
-            (*wditer).groundHeight = (*(wditer - 1)).groundHeight;
+        // bound checks
+        if ( (*wditer).groundHeight < GROUND_HEIGHT_MINIMUM )
+            (*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
+        else if ( (*wditer).groundHeight > GROUND_HEIGHT_MAXIMUM )
+			(*wditer).groundHeight = GROUND_HEIGHT_MAXIMUM;
+		
+		if( (*wditer).groundHeight <= 0 )
+			(*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
     }
     
     // define x-coordinate of world's leftmost 'line'
@@ -303,26 +308,26 @@ update( Player *p, unsigned int delta )
 	}
 
     // iterate through particles
-    for ( std::vector<Particles *>::iterator pi = particles.begin(); pi != particles.end(); pi++ ) {
-        if ( (*pi)->kill(delta) ) {
-            //delete[] (*pi);
-            particles.erase(pi);
-        } else if ( (*pi)->canMove ) {
-            (*pi)->loc.x += (*pi)->velx * delta;
-            (*pi)->loc.y += (*pi)->vely * delta;
-            
-            for ( auto &b : build ) {
-                if ( b->subtype == FOUNTAIN ) {
-                    if ( (*pi)->loc.x >= b->loc.x && (*pi)->loc.x <= b->loc.x + b->width ) {
-                        if ( (*pi)->loc.y <= b->loc.y + b->height * 0.25f ) {
-                            //delete[] (*pi);
-                            particles.erase(pi);
-                        }
-                    }
-                }
-            }
-        }
-    }
+    for(unsigned int i=0;i<particles.size();i++){
+		if(particles[i]->kill(deltaTime)){
+			delete particles[i];
+			particles.erase(particles.begin()+i);
+		}else if(particles[i]->canMove){
+			particles[i]->loc.y += particles[i]->vely * deltaTime;
+			particles[i]->loc.x += particles[i]->velx * deltaTime;
+
+			for(auto &b : build){
+				if(b->bsubtype==FOUNTAIN){
+					if(particles[i]->loc.x >= b->loc.x && particles[i]->loc.x <= b->loc.x + b->width){
+						if(particles[i]->loc.y <= b->loc.y + b->height * .25){
+							delete particles[i];
+							particles.erase(particles.begin()+i);
+						}
+					}
+				}
+			}
+		}
+	}
 	
     // handle music fades
 	if ( ui::dialogImportant )
@@ -394,7 +399,7 @@ draw( Player *p )
     int i, iStart, iEnd;
     
     // shade value for draws -- may be unnecessary
-	int shadeBackground = worldShade;
+	int shadeBackground = 0;
     
     // player's offset in worldData[]
 	int pOffset;
@@ -532,8 +537,8 @@ draw( Player *p )
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 	
 	glUseProgram( shaderProgram );
-	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0);
-	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 0.5f );
+	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0 );
+	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 1 );
 	
 	if ( p->light ) {
 		pointArray[light.size() + 1][0] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
@@ -561,8 +566,8 @@ draw( Player *p )
         glTexCoord2i(0 ,1);glVertex2i(pOffset - (SCREEN_WIDTH / 1.5),GROUND_HEIGHT_MINIMUM);*/
 
         for ( i = iStart; i < iEnd; i++ ) {
-            if ( !worldData[i].groundHeight ) {
-                worldData[i].groundHeight = GROUND_HEIGHT_MINIMUM;
+            if ( worldData[i].groundHeight <= 0 ) {
+                worldData[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
                 glColor4ub( 0, 0, 0, 255 );
             } else
                 safeSetColorA( 150, 150, 150, 255 );
@@ -573,7 +578,7 @@ draw( Player *p )
             glTexCoord2i( 1, (int)(worldData[i].groundHeight / 64) + worldData[i].groundColor ); glVertex2i(worldStart + i * HLINE + HLINE, 0 );
             glTexCoord2i( 0, (int)(worldData[i].groundHeight / 64) + worldData[i].groundColor ); glVertex2i(worldStart + i * HLINE	      , 0 );
             
-            if ( worldData[i].groundHeight == GROUND_HEIGHT_MINIMUM )
+            if ( worldData[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1 )
                 worldData[i].groundHeight = 0;
         }
 	
@@ -1004,16 +1009,17 @@ World *World::goWorldRight(Player *p){
 	return this;
 }
 
-std::vector<char *>inside;
-World *World::goInsideStructure(Player *p){
+std::vector<std::string> inside;
+World *World::
+goInsideStructure( Player *p )
+{
 	World *tmp;
 	char *current;
 	if(inside.empty()){
 		for(auto &b : build){
 			if(p->loc.x            > b->loc.x            &&
 			   p->loc.x + p->width < b->loc.x + b->width ){
-				inside.push_back(new char[1 + strlen(currentXML)]);
-				strcpy(inside.back(),(char *)(currentXML+4));
+				inside.push_back((std::string)(currentXML.c_str() + 4));
 				
 				tmp = loadWorldFromXML(b->inside);
 				
@@ -1025,12 +1031,11 @@ World *World::goInsideStructure(Player *p){
 			}
 		}
 	}else{
-		strcpy((current = new char[strlen((char *)(currentXML + 4)) + 1]),(char *)(currentXML + 4));
-		tmp = loadWorldFromXML(inside.back());
+		strcpy((current = new char[strlen((const char *)(currentXML.c_str() + 4)) + 1]),(const char *)(currentXML.c_str() + 4));
+		tmp = loadWorldFromXML(inside.back().c_str());
 		for(auto &b : tmp->build){
 			if(!strcmp(current,b->inside)){
 				p->loc.x = b->loc.x + (b->width / 2);
-				delete[] inside.back();
 				inside.pop_back();
 
 				ui::toggleBlackFast();
@@ -1301,16 +1306,14 @@ World *Arena::exitArena(Player *p){
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
-char *currentXML = NULL;
+std::string currentXML = "\0";
 
 extern World *currentWorld;
 
 World *loadWorldFromXML(const char *path){
-	if(currentXML){
+	if ( currentXML != "\0" )
 		currentWorld->save();
-		delete[] currentXML;
-	}
-	
+
 	return loadWorldFromXMLNoSave(path);
 }
 
@@ -1324,25 +1327,20 @@ World *loadWorldFromXMLNoSave(const char *path){
 	bool dialog,Indoor;
 	
 	const char *ptr,*name;
-	
-	unsigned int size = 5 + strlen(path);
+		
+	currentXML = (std::string)"xml/" + path;
 
-	if(currentXML)
-		delete[] currentXML;
-	memset((currentXML = new char[size]),0,size);
-	strcpy(currentXML,"xml/");
-	strcat(currentXML,path);
-	
-	xml.LoadFile(currentXML);
+	xml.LoadFile(currentXML.c_str());
 	wxml = xml.FirstChildElement("World");
-	vil = xml.FirstChildElement("World")->FirstChildElement("village");
-
+	
 	if(wxml){
 		wxml = wxml->FirstChildElement();
+		vil = xml.FirstChildElement("World")->FirstChildElement("village");
 		Indoor = false;
 		tmp = new World();
 	}else if((wxml = xml.FirstChildElement("IndoorWorld"))){
 		wxml = wxml->FirstChildElement();
+		vil = NULL;
 		Indoor = true;
 		tmp = new IndoorWorld();
 	}

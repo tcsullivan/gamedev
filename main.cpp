@@ -486,13 +486,14 @@ void mainLoop(void){
 	 * Update debug variables if necessary
 	 */
 	
-	if(++debugDiv==20)
+	if ( ++debugDiv == 20 ) {
 		debugDiv=0;
 		
-	if(deltaTime)
-		fps=1000/deltaTime;
-	else if(!(debugDiv%10))
-		debugY = player->loc.y;
+		if ( deltaTime )
+			fps = 1000 / deltaTime;
+		else if(!(debugDiv%10))
+			debugY = player->loc.y;
+	}
 MENU:
 	render();
 }

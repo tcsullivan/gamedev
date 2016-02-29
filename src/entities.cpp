@@ -564,7 +564,7 @@ void Player::save(void){
 	for(auto &i : inv->items)
 		data.append(std::to_string((int)i.count) + "\n" + std::to_string((int)i.id) + "\n");
 	
-	data.append((std::string)(currentXML+4) + "\n");
+	data.append((std::string)(currentXML.c_str() + 4) + "\n");
 	
 	data.append("dOnE\0");
 	out.write(data.c_str(),data.size());

@@ -63,7 +63,7 @@ typedef struct {
 
 typedef struct {
     bool          grassUnpressed;
-    int           grassHeight[2];
+    float         grassHeight[2];
     float         groundHeight;
     unsigned char groundColor;
 } WorldData;
@@ -481,7 +481,7 @@ public:
 };
 
 extern int worldShade;
-extern char *currentXML;
+extern std::string currentXML;
 
 World *loadWorldFromXML(const char *path);
 World *loadWorldFromXMLNoSave(const char *path);
