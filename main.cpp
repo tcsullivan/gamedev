@@ -321,6 +321,7 @@ int main(/*int argc, char *argv[]*/){
 	 */
 	
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetSwapInterval(0);
 	
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	
@@ -407,6 +408,7 @@ int main(/*int argc, char *argv[]*/){
 	****     GAMELOOP      ****
 	**************************/
 	
+	std::cout << "Num threads: " << std::thread::hardware_concurrency() << std::endl;
 	gameRunning = true;
 	while(gameRunning){
 		mainLoop();
@@ -462,6 +464,7 @@ void mainLoop(void){
 	currentTime = millis();
 	deltaTime	= currentTime - prevTime;
 
+
 	if(currentMenu)goto MENU;
 
 	/*
@@ -475,7 +478,6 @@ void mainLoop(void){
 		currentWorld->bgmPlay(prev);
 		ui::dialogBoxExists = false;
 	}
-	
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
 		logic();
 		prevPrevTime = currentTime;

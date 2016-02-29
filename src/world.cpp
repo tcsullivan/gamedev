@@ -333,12 +333,12 @@ void World::update(Player *p,unsigned int delta){
 	}
 
 	for(unsigned int i=0;i<particles.size();i++){
-		if(particles[i]->kill(deltaTime)){
+		if(particles[i]->kill(delta)){
 			delete particles[i];
 			particles.erase(particles.begin()+i);
 		}else if(particles[i]->canMove){
-			particles[i]->loc.y += particles[i]->vely * deltaTime;
-			particles[i]->loc.x += particles[i]->velx * deltaTime;
+			particles[i]->loc.y += particles[i]->vely * delta;
+			particles[i]->loc.x += particles[i]->velx * delta;
 
 			for(auto &b : build){
 				if(b->bsubtype==FOUNTAIN){
