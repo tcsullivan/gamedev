@@ -108,10 +108,36 @@ GLuint fragShader;
 GLuint shaderProgram;
 
 /**
+ *	Threads and various variables to be used when multithreading the game,
+ *  mutex will prevent multiple threads from changing the same data,
+ *  and the condition_variable will wait for threads to reach the same point
+ */
+
+std::mutex mtx;
+std::condition_variable cv;
+ThreadPool pool(10);
+
+
+/*
+ *	loops is used for texture animation. It is believed to be passed to entity
+ *	draw functions, although it may be externally referenced instead.
+*/
+
+/**
  * TODO
  */
 
 GLuint colorIndex;
+
+/*
+ *	initEverything
+ *
+ *	Before the main loop, things like the player, entities, and worlds should
+ *	be created. This game has not reached the point that these can be scripted
+ *	or programmed, so this function substitues for that. It is defined in
+ *	src/gameplay.cpp.
+ *
+*/
 
 /**
  * TODO
@@ -457,14 +483,17 @@ void mainLoop(void){
 	 */
 
 	prev = currentWorld;
+
+	//pool.Enqueue(ui::handleEvents);
 	ui::handleEvents();
-    
+
 	if(prev != currentWorld){
 		currentWorld->bgmPlay(prev);
 		ui::dialogBoxExists = false;
 	}
     
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
+		//pool.Enqueue(logic);
 		logic();
 		prevPrevTime = currentTime;
 	}
@@ -472,7 +501,11 @@ void mainLoop(void){
 	/*
 	 * Update player and entity coordinates.
 	 */
-     
+	
+	/*pool.Enqueue([](){
+		currentWorld->update(player,deltaTime);
+	});*/
+	
 	currentWorld->update(player,deltaTime);
     
 	/*
@@ -630,7 +663,7 @@ void render(){
 				offset.y+SCREEN_HEIGHT/2);
 	}else if(ui::fontSize != 16)
 		ui::setFontSize(16);
-	
+
 	/*
 	 * Draw UI elements. This includes the player's health bar and the dialog box.
 	 */
@@ -748,19 +781,12 @@ void logic(){
 			 *	that the NPC doesn't move when it talks to the player.
 			 */
 
-/*<<<<<<< HEAD
-			if(n->canMove) n->wander((rand() % 120 + 30));
-
-			if(!player->inv->usingi) n->hit = false;
-			if(player->inv->usingi && !n->hit && player->inv->detectCollision(vec2{n->loc.x, n->loc.y},vec2{n->loc.x+n->width,n->loc.y+n->height})){
-=======*/
 			if(n->canMove)
 				n->wander((rand() % 120 + 30));
 			
 			/*if(!player->inv->usingi) n->hit = false;
 			
 			if(player->inv->usingi && !n->hit && player->inv->detectCollision((vec2){n->loc.x, n->loc.y},(vec2){n->loc.x+n->width,n->loc.y+n->height})){
->>>>>>> 7ab072caaaec09720ad79cfed5738e89bc60c44f
 				n->health -= 25;
 				n->hit = true;
 				for(int r = 0; r < (rand()%5);r++)

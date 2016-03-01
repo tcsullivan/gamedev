@@ -217,8 +217,7 @@ void commonTriggerFunc(Mob *callee){
 	XMLDocument xml;
 	XMLElement *exml;
 	
-	char *text,*pch;
-	
+	char *text,*pch;	
 	if(!lock){
 		lock = true;
 	

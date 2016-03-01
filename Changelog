@@ -706,3 +706,9 @@
 	- considered more formal coding? (as in documentation and indentation)
 	- fixed dialog boxes and options
 	- broke screenshots
+
+3/1/2016:
+=========
+
+	- merged 'remake' with 'master', fixed font issues and world stuffs
+	- continued work on merchant dialog

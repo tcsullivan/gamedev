@@ -148,9 +148,11 @@ deleteEntities( void )
 		delete mob.back();
 		mob.pop_back();
 	}
-    
-    // free npcs
-	while ( !npc.empty() ) {
+
+	while(!merchant.empty()){
+		merchant.pop_back();
+	}
+	while(!npc.empty()){
 		delete npc.back();
 		npc.pop_back();
 	}
@@ -187,7 +189,6 @@ deleteEntities( void )
 		delete village.back();
 		village.pop_back();
 	}
-	
 }
 
 /**
@@ -813,7 +814,6 @@ singleDetect( Entity *e )
 void World::
 detect( Player *p )
 {
-	
 	// handle the player
 	std::thread( &World::singleDetect, this, p).detach();
 		
@@ -932,6 +932,14 @@ void World::addNPC(float x,float y){
 	npc.push_back(new NPC());
 	npc.back()->spawn(x,y);
 	
+	entity.push_back(npc.back());
+}
+
+void World::addMerchant(float x, float y){
+	merchant.push_back(new Merchant());
+	merchant.back()->spawn(x,y);
+
+	npc.push_back(merchant.back());
 	entity.push_back(npc.back());
 }
 
@@ -1342,7 +1350,7 @@ World *loadWorldFromXMLNoSave(const char *path){
 
 	xml.LoadFile(currentXML.c_str());
 	wxml = xml.FirstChildElement("World");
-	
+
 	if(wxml){
 		wxml = wxml->FirstChildElement();
 		vil = xml.FirstChildElement("World")->FirstChildElement("village");
@@ -1451,8 +1459,34 @@ World *loadWorldFromXMLNoSave(const char *path){
 							   (char*)vil->Attribute("texture"),
 							   ptr);
 
-			vptr->build.push_back(tmp->build.back());
+		}else if(!strcmp(name, "stall")){
+			if(!strcmp(vil->Attribute("type"),"market")){
+				std::cout << "Market" << std::endl;
+				tmp->addStructure((BUILD_SUB)70,
+							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
+							   randx : spawnx,
+							   100,
+							   (char*)vil->Attribute("texture"),
+							   ptr);
+				tmp->addMerchant(0,100);
+				if(!strcmp(name,"buy")){
+					std::cout << "Buying";
+				}else if(!strcmp(name,"sell")){
+					std::cout << "Selling";
+				}
+				strcpy(tmp->merchant.back()->name,"meme");
+
+			}else if(!strcmp(vil->Attribute("type"),"trader")){
+				std::cout << "Trader" << std::endl;
+				tmp->addStructure((BUILD_SUB)71,
+							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
+							   randx : spawnx,
+							   100,
+							   (char*)vil->Attribute("texture"),
+							   ptr);
+			}
 		}
+			vptr->build.push_back(tmp->build.back());
 		if(vptr->build.back()->loc.x < vptr->start.x){
 			vptr->start.x = vptr->build.back()->loc.x;
 		}

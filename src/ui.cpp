@@ -48,11 +48,16 @@ static unsigned char fontColor[3] = {255,255,255};
  *	Variables for dialog boxes / options.
 */
 
-static char dialogBoxText[512];
-static char *dialogOptText[4];
-static float dialogOptLoc[4][3];
+static char			 dialogBoxText[512];
+static char			*dialogOptText[4];
+static float         merchAOptLoc[2][3];
+static float	 	 dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
-static bool typeOutDone = true;
+static bool			 typeOutDone = true;
+
+/*
+ * Menu-related objects
+ */
 
 extern Menu* currentMenu;
 extern Menu pauseMenu;
@@ -114,6 +119,8 @@ namespace ui {
 	bool debug=false;
 	bool posFlag=false;
 	bool dialogPassive = false;
+	bool dialogMerchant = false;
+	std::vector<BuySell> *minv;
 	int dialogPassiveTime = 0;
 
 	
@@ -447,6 +454,7 @@ namespace ui {
 		return width;
 	}
 	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...){
+		textWrapLimit = 110;
 		va_list dialogArgs;
 		unsigned int len;
 		char *sopt,*soptbuf;
@@ -514,6 +522,74 @@ namespace ui {
 		if(ret)
 			ret[0] = '\0';
 	}
+
+	void merchantBox(const char *name,std::vector<BuySell> *bsinv,const char *opt,bool passive,const char *text,...){
+		std::cout << "Buying and selling on the bi-weekly!" << std::endl;
+		va_list dialogArgs;
+		size_t len;
+		
+		minv = bsinv;
+		dialogPassive = passive;
+		
+		// clear the buffer
+		memset(dialogBoxText, '\0', 512);
+		
+		// create the string
+		strcpy(dialogBoxText, name);
+		strcat(dialogBoxText, ": ");
+		
+		len=strlen(dialogBoxText);
+		va_start(dialogArgs,text);
+		vsnprintf(dialogBoxText + len, 512 - len, text, dialogArgs);
+		va_end(dialogArgs);
+				
+		// free old option text
+		while(dialogOptCount){
+			if(dialogOptText[dialogOptCount]){
+				delete[] dialogOptText[dialogOptCount];
+				dialogOptText[dialogOptCount] = NULL;
+			}
+			
+			dialogOptCount--;
+		};
+
+		dialogOptChosen = 0;
+		memset(&dialogOptLoc, 0, sizeof(float) * 12);
+		
+		// handle options if desired
+		if(opt){
+			//std::unique_ptr<char[]> soptbuf (new char[strlen(opt) + 1]);
+			char soptbuf[255];
+			strcpy(soptbuf, opt);
+			char *sopt = strtok(soptbuf, ":");
+
+			// cycle through options
+			while(sopt){
+				strcpy( (dialogOptText[dialogOptCount++] = new char[strlen(sopt) + 1]), sopt);
+				sopt = strtok(NULL,":");
+			}
+		}
+		
+		// allow box to be displayed
+		dialogBoxExists = true;
+		dialogImportant = false;
+		dialogMerchant = true;
+		textWrapLimit = 50;
+		
+		// kill the string created by typeOut if it contains something
+		if(ret)
+			*ret = '\0';
+	}
+	
+	void merchantBox(){
+		textWrapLimit = 50;
+		dialogMerchant = true;
+	}
+	
+	/**
+	 * Wait for a dialog box to be dismissed.
+	 */
+	
 	void waitForDialog(void){
 		do{
 			mainLoop();
@@ -588,13 +664,80 @@ namespace ui {
 					putStringCentered(offset.x,offset.y,rtext);
 					setFontSize(16);
 				}
-			}else{
-			
-				x=offset.x-SCREEN_WIDTH/2+HLINE*8;
+			}else if(dialogMerchant){
+				x=offset.x-SCREEN_WIDTH/6;
 				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
 			
 			
 				glColor3ub(255,255,255);
+				glBegin(GL_LINE_STRIP);
+					glVertex2f(x-1				 	  ,y+1);
+					glVertex2f(x+1+(SCREEN_WIDTH/3),y+1);
+					glVertex2f(x+1+(SCREEN_WIDTH/3),y-1-SCREEN_HEIGHT*.6);
+					glVertex2f(x-1,y-1-SCREEN_HEIGHT*.6);
+					glVertex2f(x,y+1);
+				glEnd();
+			
+				glColor3ub(0,0,0);
+				glRectf(x,y,x+SCREEN_WIDTH/3,y-SCREEN_HEIGHT*.6);
+				
+				// draw typeOut'd text
+				putString(x + HLINE, y - fontSize - HLINE, (rtext = typeOut(dialogBoxText)));
+				merchAOptLoc[0][0] = offset.x - (SCREEN_WIDTH / 6.5) - 16;
+				merchAOptLoc[0][1] = offset.x + (SCREEN_WIDTH / 6.5);
+				merchAOptLoc[1][0] = offset.y + (SCREEN_HEIGHT *.25);
+				merchAOptLoc[1][1] = offset.y + (SCREEN_HEIGHT *.25);
+				merchAOptLoc[2][0] = offset.x - (SCREEN_WIDTH / 6.5);
+				merchAOptLoc[2][1] = offset.x + (SCREEN_WIDTH / 6.5) + 16;
+
+				for(i = 0; i < 2; i++){
+					if(mouse.x > merchAOptLoc[0][i] && mouse.x < merchAOptLoc[2][i] &&
+					   mouse.y > merchAOptLoc[1][i] - 8 && mouse.y < merchAOptLoc[1][i] + 8){
+						glColor3ub(255, 255, 0);
+					}else{
+						glColor3ub(255,255,255);
+					}
+				}
+
+				glBegin(GL_TRIANGLES);
+					glVertex2f(merchAOptLoc[0][0],merchAOptLoc[1][0]);
+					glVertex2f(merchAOptLoc[2][0],merchAOptLoc[1][0]-8);
+					glVertex2f(merchAOptLoc[2][0],merchAOptLoc[1][0]+8);
+
+					glVertex2f(merchAOptLoc[2][1],merchAOptLoc[1][1]);
+					glVertex2f(merchAOptLoc[0][1],merchAOptLoc[1][1]-8);
+					glVertex2f(merchAOptLoc[0][1],merchAOptLoc[1][1]+8);
+				glEnd();
+			
+				// draw / handle dialog options if they exist
+				for(i = 0; i < dialogOptCount; i++){
+					setFontColor(255, 255, 255);
+					
+					// draw option
+					tmp = putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i]);
+					
+					// get coordinate information on option
+					dialogOptLoc[i][2] = offset.x + tmp;
+					dialogOptLoc[i][0] = offset.x - tmp;
+					dialogOptLoc[i][1] = y - SCREEN_HEIGHT / 2 - (fontSize + HLINE) * (i + 1);
+					
+					// make text yellow if the mouse hovers over the text
+					if(mouse.x > dialogOptLoc[i][0] && mouse.x < dialogOptLoc[i][2] &&
+					   mouse.y > dialogOptLoc[i][1] && mouse.y < dialogOptLoc[i][1] + 16 ){
+						  setFontColor(255, 255, 0);
+						  putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i]);
+					}
+				}
+				
+				setFontColor(255, 255, 255);
+			}else{ //normal dialog box
+			
+				x=offset.x-SCREEN_WIDTH/2+HLINE*8;
+				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
+						
+				// draw white border
+				glColor3ub(255, 255, 255);
+
 				glBegin(GL_LINE_STRIP);
 					glVertex2f(x-1						,y+1);
 					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y+1);
@@ -1022,16 +1165,18 @@ namespace ui {
 			}
 		}
 DONE:
+
+		
+		// handle important text
 		if(dialogImportant){
 			dialogImportant = false;
 			setFontSize(16);
-			//toggleBlack();
 		}
-		/*if(ui::fontSize != 16)
-			setFontSize(16);*/
 
+		if(dialogMerchant) dialogMerchant = false;
 		dialogBoxExists = false;
 	}
+
 	void handleEvents(void){
 		static bool left=true,right=false;
 		static int heyOhLetsGo = 0;
@@ -1270,10 +1415,10 @@ DONE:
 					pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
 					glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
-					static std::thread scr;
-					scr = std::thread(takeScreenshot,pixels);
-					scr.detach();
-					//takeScreenshot(pixels);
+					//static std::thread scr;
+					//scr = std::thread(takeScreenshot,pixels);
+					//scr.detach();
+					takeScreenshot(pixels);
 
 					std::cout << "Took screenshot" << std::endl;
 					break;

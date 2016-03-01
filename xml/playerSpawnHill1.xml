@@ -11,9 +11,16 @@
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="false" />
 	<!-- <structure type="5" inside="playerSpawnHill1_Building1.xml" /> -->
-	<village name="Meme-Town">
-		<structure type="0" x="-100" inside="playerSpawnHill1_Building1.xml"/>
+	<village name="the Cranmore Tubing Park">
+		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
 		<structure type="5" x="-500" inside="playerSpawnHill1_Building1.xml"/>
+		<stall type="market" texture="assets/style/classic/stall.png">
+			<buy item="Dank MayMay" cost="420"/>
+			<sell item="Dank MayMay" cost="666"/>
+		</stall>
+		<stall type="trader" texture="assets/style/classic/stall.png">
+			<trade item="Dank MayMay" item1="Sword"/>
+		</stall>
 	</village>
 
 </World>
