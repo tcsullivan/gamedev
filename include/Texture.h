@@ -27,13 +27,13 @@ namespace Texture{
 	 * later referencing of the texture.
 	 */
 	
-	GLuint loadTexture(const char *fileName);
+	GLuint loadTexture(std::string fileName);
 	
 	void freeTextures(void);
 	
 	void initColorIndex();
 	vec2 getIndex(Color c);
-	dim2 imageDim(const char *fileName);
+	dim2 imageDim(std::string fileName);
 }
 
 /**

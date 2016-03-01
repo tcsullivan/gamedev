@@ -35,7 +35,9 @@ typedef struct {
 	ivec2	ad;		/**< Number of pixels to advance cursor. */
 } FT_Tex;
 
-static FT_Tex ftmap[FT_CHAR_COUNT];
+static FT_Tex ftmap16[FT_CHAR_COUNT],
+			  ftmap24[FT_CHAR_COUNT],
+			  *ftmapptr;
 
 static FT_Library   ftl;
 static FT_Face      ftf;
@@ -189,8 +191,13 @@ namespace ui {
 			abort();
 		}
 		
-		fontSize = 0;
-		memset(&ftmap, 0, FT_CHAR_COUNT * sizeof(FT_Tex));
+		fontSize = 16;
+		
+		//ftmap16 = new FT_Tex[FT_CHAR_COUNT];
+		//ftmap24 = new FT_Tex[FT_CHAR_COUNT];
+		
+		memset(&ftmap16, 0, FT_CHAR_COUNT * sizeof(FT_Tex));
+		memset(&ftmap24, 0, FT_CHAR_COUNT * sizeof(FT_Tex));
 		
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
@@ -210,6 +217,9 @@ namespace ui {
 	 */
 	
 	void destroyFonts(void){
+		//delete[] ftmap16;
+		//delete[] ftmap24;
+		
 		FT_Done_Face(ftf);
 		FT_Done_FreeType(ftl);
 		
@@ -223,8 +233,13 @@ namespace ui {
 	 */
 	
 	void setFontFace(const char *ttf){
-		if(FT_New_Face(ftl,ttf,0,&ftf)){
-			std::cout<<"Error! Couldn't open "<<ttf<<"."<<std::endl;
+		std::unique_ptr<uint8_t[]> rgbaBuf;
+		size_t rgbaBufSize, ftsize;
+		unsigned int i,j;
+		FT_Error fte;
+		
+		if((fte = FT_New_Face(ftl,ttf,0,&ftf))){
+			std::cout<<"Error! Couldn't open "<<ttf<<" (Error "<<fte<<")."<<std::endl;
 			abort();
 		}
 		
@@ -232,6 +247,77 @@ namespace ui {
 		DEBUG_printf("Using font %s\n",ttf);
 #endif // DEBUG
 
+		/*
+		 * Load the font in the two sizes we use, 16px and 24px.
+		 */
+		
+		ftmapptr = ftmap16;
+		ftsize = 16;
+
+		do{
+			FT_Set_Pixel_Sizes(ftf, 0, ftsize);
+			
+			// allocate texture space
+			for(i=0; i < FT_CHAR_COUNT; i++)
+				glGenTextures(1, &ftmapptr[i].tex);
+			
+			// Load all characters we expect to use
+			for(i=33; i<126; i++){
+			
+				// Load the bitmap for the current character.
+				if(FT_Load_Char(ftf,i,FT_LOAD_RENDER)){
+					std::cout<<"Error! Unsupported character "<<(char)i<<" ("<<i<<")."<<std::endl;
+					abort();
+				}
+				
+				/*
+				 * Set up the OpenGL texture thing.
+				 */
+			
+				glBindTexture(GL_TEXTURE_2D, ftmapptr[i-33].tex);
+				
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S		, GL_CLAMP_TO_EDGE);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T		, GL_CLAMP_TO_EDGE);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER	, GL_LINEAR		 );
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER	, GL_LINEAR		 );
+				
+				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			
+				/*
+				 * Convert the bitmap font given to us from FreeType into an RGBA
+				 * format, for ease of drawing.
+				 */
+			
+				rgbaBuf.reset(new uint8_t [(rgbaBufSize = ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4)]);
+				rgbaBufSize /= 4;
+			
+				// populate the buffer
+				for(j=0; j < rgbaBufSize; j++){
+					rgbaBuf[j * 4] = rgbaBuf[j * 4 + 1] = rgbaBuf[j * 4 + 2] = 255;
+					rgbaBuf[j * 4 + 3] = ftf->glyph->bitmap.buffer[j] ? 255 : 0;
+				}
+				
+				// save important character information
+				ftmapptr[i-33].wh = { (int)ftf->glyph->bitmap.width, (int)ftf->glyph->bitmap.rows };
+				ftmapptr[i-33].bl = { ftf->glyph->bitmap_left,		  ftf->glyph->bitmap_top       };
+				ftmapptr[i-33].ad = { ftf->glyph->advance.x >> 6,	  ftf->glyph->advance.y >> 6   };
+			
+				// do the thing
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ftf->glyph->bitmap.width, ftf->glyph->bitmap.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbaBuf.get());
+				rgbaBuf.reset();
+			}
+
+			// repeat for 24px, or exit
+			if(ftmapptr == ftmap16){
+				ftmapptr = ftmap24;
+				ftsize = 24;
+			}else{
+				break;
+			}
+			
+		}while(1);
+
+		setFontSize(16);
 	}
 	
 	/**
@@ -241,66 +327,14 @@ namespace ui {
 	
 	void setFontSize(unsigned int size){
 		mtx.lock();
-		unsigned int i,j;
-		
-		std::unique_ptr<uint8_t[]> rgbaBuf;
-		size_t rgbaBufSize = 0;
-		
-		FT_Set_Pixel_Sizes(ftf,0,(fontSize = size));
-		
-		// delete old characters, make space for new ones
-		for(i=0; i < FT_CHAR_COUNT; i++){
-			glDeleteTextures(1, &ftmap[i].tex);
-			glGenTextures(1, &ftmap[i].tex);
-		}
-		
-		// Load all characters we expect to use
-		for(i=33;i<126;i++){
-		
-			// Load the bitmap for the current character.
-			if(FT_Load_Char(ftf,i,FT_LOAD_RENDER)){
-				std::cout<<"Error! Unsupported character "<<(char)i<<" ("<<i<<")."<<std::endl;
-				abort();
-			}
-			
-			/*
-			 * Set up the OpenGL texture thing.
-			 */
-		
-			glBindTexture(GL_TEXTURE_2D, ftmap[i-33].tex);
-			
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S		, GL_CLAMP_TO_EDGE);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T		, GL_CLAMP_TO_EDGE);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER	, GL_LINEAR		 );
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER	, GL_LINEAR		 );
-			
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		
-			/*
-			 * Convert the bitmap font given to us from FreeType into an RGBA
-			 * format, for ease of drawing.
-			 */
-		
-			rgbaBuf.reset(new uint8_t [(rgbaBufSize = ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4)]);
-			rgbaBufSize /= 4;
-		
-			// populate the buffer
-			for(j=0; j < rgbaBufSize; j++){
-				rgbaBuf[j * 4    ] = 
-				rgbaBuf[j * 4 + 1] = 
-				rgbaBuf[j * 4 + 2] = 255;
-				rgbaBuf[j * 4 + 3] = ftf->glyph->bitmap.buffer[j] ? 255 : 0;
-			}
-			
-			// save important character information
-			ftmap[i-33].wh = { (int)ftf->glyph->bitmap.width, (int)ftf->glyph->bitmap.rows };
-			ftmap[i-33].bl = { ftf->glyph->bitmap_left,		  ftf->glyph->bitmap_top       };
-			ftmap[i-33].ad = { ftf->glyph->advance.x >> 6,	  ftf->glyph->advance.y >> 6   };
-		
-			// do the thing
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ftf->glyph->bitmap.width, ftf->glyph->bitmap.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbaBuf.get());
-			
-			rgbaBuf.release();
+		switch((fontSize = size)){
+		case 24:
+			ftmapptr = ftmap24;
+			break;
+		default:
+		case 16:
+			ftmapptr = ftmap16;
+			break;
 		}
 		mtx.unlock();
 	}
@@ -323,16 +357,16 @@ namespace ui {
 		ivec2 c1,c2;
 
 		// calculate coordinates
-		c1 = { (int)floor(x) + ftmap[c-33].bl.x,
-		       (int)floor(y) + ftmap[c-33].bl.y };
-		c2 = ftmap[c-33].wh;
+		c1 = { (int)floor(x) + ftmapptr[c-33].bl.x,
+		       (int)floor(y) + ftmapptr[c-33].bl.y };
+		c2 = ftmapptr[c-33].wh;
 		
 		/*
 		 *	Draw the character
 		 */
 		
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, ftmap[c-33].tex);
+		glBindTexture(GL_TEXTURE_2D, ftmapptr[c-33].tex);
 		
 		glPushMatrix();
 		glTranslatef(0,-c2.y,0);
@@ -351,7 +385,7 @@ namespace ui {
 		glDisable(GL_TEXTURE_2D);
 
 		// return the number of pixels the cursor should move
-		return ftmap[c-33].ad;
+		return ftmapptr[c-33].ad;
 	}
 	
 	/**
@@ -432,7 +466,7 @@ namespace ui {
 
 			// handle everything else
 			}else
-				width += ftmap[i].wh.x + fontSize * .1;
+				width += ftmapptr[i].wh.x + fontSize * .1;
 
 		}while(s[++i]);
 
@@ -757,18 +791,30 @@ namespace ui {
 				
 				// draw typeOut'd text
 				putString(x + HLINE, y - fontSize - HLINE, (rtext = typeOut(dialogBoxText)));
-				merchAOptLoc[0][0] = offset.x - (SCREEN_WIDTH / 5.5);
-				merchAOptLoc[0][1] = offset.x + (SCREEN_WIDTH / 5.5);
+				merchAOptLoc[0][0] = offset.x - (SCREEN_WIDTH / 6.5) - 16;
+				merchAOptLoc[0][1] = offset.x + (SCREEN_WIDTH / 6.5);
 				merchAOptLoc[1][0] = offset.y + (SCREEN_HEIGHT *.25);
 				merchAOptLoc[1][1] = offset.y + (SCREEN_HEIGHT *.25);
-				merchAOptLoc[2][0] = offset.x - (SCREEN_WIDTH / 5.5) - 16;
-				merchAOptLoc[2][1] = offset.x + (SCREEN_WIDTH / 5.5) + 16;
+				merchAOptLoc[2][0] = offset.x - (SCREEN_WIDTH / 6.5);
+				merchAOptLoc[2][1] = offset.x + (SCREEN_WIDTH / 6.5) + 16;
 
-				glColor3ub(255,255,255);
+				for(i = 0; i < 2; i++){
+					if(mouse.x > merchAOptLoc[0][i] && mouse.x < merchAOptLoc[2][i] &&
+					   mouse.y > merchAOptLoc[1][i] - 8 && mouse.y < merchAOptLoc[1][i] + 8){
+						glColor3ub(255, 255, 0);
+					}else{
+						glColor3ub(255,255,255);
+					}
+				}
+
 				glBegin(GL_TRIANGLES);
-					glVertex2f(merchAOptLoc[2][0],merchAOptLoc[1][0]);
-					glVertex2f(merchAOptLoc[0][0],merchAOptLoc[1][0]-8);
-					glVertex2f(merchAOptLoc[0][0],merchAOptLoc[1][0]+8);
+					glVertex2f(merchAOptLoc[0][0],merchAOptLoc[1][0]);
+					glVertex2f(merchAOptLoc[2][0],merchAOptLoc[1][0]-8);
+					glVertex2f(merchAOptLoc[2][0],merchAOptLoc[1][0]+8);
+
+					glVertex2f(merchAOptLoc[2][1],merchAOptLoc[1][1]);
+					glVertex2f(merchAOptLoc[0][1],merchAOptLoc[1][1]-8);
+					glVertex2f(merchAOptLoc[0][1],merchAOptLoc[1][1]+8);
 				glEnd();
 			
 				// draw / handle dialog options if they exist

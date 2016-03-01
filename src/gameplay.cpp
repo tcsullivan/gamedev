@@ -320,6 +320,7 @@ extern std::vector<NPC *> AIpreaddr;
 void destroyEverything(void){
 	currentWorld->save();
 	delete currentWorld;
+	delete[] currentXML;
 	
 	while(!AIpreload.empty())
 		AIpreload.pop_back();

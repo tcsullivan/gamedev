@@ -129,6 +129,12 @@ public:
 	 */
 	
 	Village(const char *meme, World *w);
+	
+	/**
+	 * Destructor...
+	 */
+	 
+	~Village(void){}
 };
 
 extern Player *player;
@@ -289,9 +295,7 @@ public:
 	std::vector<Particles	*>	particles;
 	
 	
-	
-	
-	std::vector<Village *	 >	village;
+	std::vector<Village 	*>	village;
 	
 	/**
 	 * A vector of all light elements in this world.
