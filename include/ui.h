@@ -22,7 +22,6 @@ typedef void(*menuFunc)();
 struct menuItem{
 	int member;
 	union{
-
 		struct{
 			vec2 loc;
 			dim2 dim;
@@ -30,7 +29,6 @@ struct menuItem{
 			const char* text;
 			menuFunc func;
 		}button;
-
 		struct{
 			vec2 loc;
 			dim2 dim;
@@ -148,7 +146,8 @@ namespace ui {
 	*/
 	
 	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...);
-	void merchantBox(const char *name,const char *opt,bool passive,const char *text,...);
+	void merchantBox(const char *name, std::vector<BuySell> *items, const char *opt,bool passive,const char *text,...);
+	void merchantBox();
 	void waitForDialog(void);
 	
 	/*
@@ -187,7 +186,6 @@ namespace ui {
 	void toggleWhiteFast(void);
 	void waitForCover(void);
 	
-	void waitForNothing(unsigned int);
 }
 
 #endif // UI_H

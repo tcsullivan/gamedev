@@ -150,20 +150,20 @@ Merchant::Merchant(){	//sets all of the Merchant specific traits on object creat
 	
 	//tex = new Texturec(1,"assets/NPC.png");
 	//inv = new Inventory(NPC_INV_SIZE);
-	inv = NULL;
-
+	//inv = new Inventory(1);
+                                                                                                            
 	//randDialog = rand() % RAND_DIALOG_COUNT - 1;
 	dialogIndex = 0;
 }
 
 Merchant::~Merchant(){
-	while(!aiFunc.empty()){
+	/*while(!aiFunc.empty()){
 		aiFunc.pop_back();
-	}
+	}*/
 	
-	delete inv;
-	delete tex;
-	delete[] name;
+	//delete inv;
+	//delete tex;
+	//delete[] name;
 }
 
 Structures::Structures(){ //sets the structure type
@@ -458,7 +458,9 @@ void NPC::interact(){ //have the npc's interact back to the player
 }
 
 void Merchant::interact(){
-	ui::merchantBox(name, ":Accept:Good Bye", false, "Welcome to smithy\'s. Buy your sausages here you freaking mean lording screw-face");
+	ui::merchantBox(name, &bsinv, ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
+	//ui::merchantBox();
+	ui::waitForDialog();
 }
 
 void Object::interact(void){

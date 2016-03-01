@@ -11,6 +11,9 @@
 #include <istream>
 #include <thread>
 
+#include <tinyxml2.h>
+using namespace tinyxml2;
+
 /*
  * Game includes
  */
@@ -20,9 +23,6 @@
 #include <world.h>
 #include <ui.h>
 #include <entities.h>
-
-#include <tinyxml2.h>
-using namespace tinyxml2;
 
 /**
  * Defines how many game ticks should occur in one second, affecting how often
@@ -37,105 +37,103 @@ using namespace tinyxml2;
 
 #define MSEC_PER_TICK (1000/TICKS_PER_SEC)
 
-
-
-/*
- *	window & mainGLContext
- *
- *	In order to draw using SDL and its openGL facilities SDL requires
- *	an SDL_Window object, which spawns a window for the program to draw
- *	to. Once the SDL_Window is initialized, an SDL_GLContext is made so
- *	that openGL calls can be made to SDL. The game requires both of these
- *	variables to initialize.
+/**
+ * The window object returned by SDL when we create the main window.
  */
 
-SDL_Window    *window = NULL;
-SDL_GLContext  mainGLContext = NULL;
+SDL_Window *window = NULL;
 
-/*
- *	bgImage contains the GLuint returned when creating a texture for the
- *	background image. Currently there is only one background image for the
- *	main world; this will be changed and bgImage likely removed once better
- *	backgrounds are implemented.
- */
-
-GLuint  bgDay, bgNight, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar, invUI;
-
-/*
- *	gameRunning
- *
- *	This is one of the most important variables in the program. The main
- *	loop of the game is set to break once this variable is set to false.
- *	The only call to modify this variable is made in src/ui.cpp, where it
- *	is set to false if either an SDL_QUIT message is received (the user
- *	closes the window through their window manager) or if escape is pressed.
+/**
+ * Determines when the game should exit. This variable is set to true right
+ * before the main loop is entered, once set to false the game will exit/
+ * free resources.
  */
 
 bool gameRunning;
 
+/**
+ * TODO
+ */
+
+GLuint invUI;
+
+/**
+ * Contains an angle based off of the player's location and the mouse's
+ * location.
+ */
+
 float handAngle;
 
-/*
- *	currentWorld 	-	This is a pointer to the current world that the player
- * 						is in. Most drawing/entity handling is done through this
- * 						variable. This should only be changed when layer switch
- * 						buttons are pressed (see src/ui.cpp), or when the player
- * 						enters a Structure/Indoor World (see src/ui.cpp again).
- *
- *	player			-	This points to a Player object, containing everything for
- * 						the player. Most calls made with currentWorld require a
- * 						Player object as an argument, and glOrtho is set based
- * 						off of the player's coordinates. This is probably the one
- * 						Entity-derived object that is not pointed to in the entity
- * 						array.
- *
+/**
+ * Contains a pointer to the world that the player is currently in. All render/
+ * logic operations have to go access members of this object in order to work.
  */
 
 World  	*currentWorld = NULL;
+
+/**
+ * The player object.
+ */
+
 Player 	*player;
 
-/*
- *	Tells if player is currently inside a structure.
-*/
+/**
+ * Tells if player is currently inside a world entered through a Structure.
+ */
 
 extern bool worldInside;
 
-extern Menu* currentMenu;
+/**
+ * TODO
+ */
 
-/*
- *	tickCount contains the number of ticks generated since main loop entrance.
- *	This variable might be used anywhere.
- *
- *	deltaTime is used for interpolation stuff.
- *
- *	Pretty sure these variables are considered static as they might be externally
- *	referenced somewhere.
-*/
+extern Menu *currentMenu;
+
+/**
+ * The current number of ticks, used for logic operations and day/night cycles.
+ */
 
 unsigned int tickCount = DAY_CYCLE;
+
+/**
+ * TODO
+ */
+
 unsigned int deltaTime = 0;
 
-/*
- *
-*/
+/**
+ * TODO
+ */
 
 GLuint fragShader;
-GLuint shaderProgram;
-GLuint colorIndex;
-GLuint mouseTex;
 
-bool uiLoop = false;
+/**
+ * TODO
+ */
+ 
+GLuint shaderProgram;
+
+/**
+ *	Threads and various variables to be used when multithreading the game,
+ *  mutex will prevent multiple threads from changing the same data,
+ *  and the condition_variable will wait for threads to reach the same point
+ */
+
 std::mutex mtx;
 std::condition_variable cv;
+ThreadPool pool(10);
+
 
 /*
  *	loops is used for texture animation. It is believed to be passed to entity
  *	draw functions, although it may be externally referenced instead.
 */
 
-unsigned int loops = 0;	// Used for texture animation
+/**
+ * TODO
+ */
 
-ThreadPool pool(10);
+GLuint colorIndex;
 
 /*
  *	initEverything
@@ -147,32 +145,25 @@ ThreadPool pool(10);
  *
 */
 
-extern void initEverything(void);
+/**
+ * TODO
+ */
 
-/*
- *	mainLoop is in fact the main loop, which runs 'infinitely' (as long as gameRunning
- *
- *
- *
- *	is set). Each loop updates timing values (tickCount and deltaTime), runs logic()
- *	if MSEC_PER_TICK milliseconds have passed, and then runs render().
- *
- *	logic handles all user input and entity/world physics.
- *
- *	render handles all drawing to the window, calling draw functions for everything.
- *
-*/
+GLuint mouseTex;
 
-void logic(void);
-void render(void);
-void mainLoop(void);
+/**
+ * Used for texture animation. It is externally referenced by ui.cpp
+ * and entities.cpp.
+ */
 
-/*
- *	This offset is used as the player offset in the world drawing so
- *	everything can be moved according to the player
-*/
+unsigned int loops = 0;
 
-vec2 offset;																			/*	OFFSET!!!!!!!!!!!!!!!!!!!! */
+/**
+ * Gives a coordinate based off of the player's location to allow for drawing to
+ * be in a constant 'absolute' place on the window.
+ */
+
+vec2 offset;
 
 Menu *currentMenu;
 Menu optionsMenu;
@@ -194,11 +185,41 @@ float VOLUME_MASTER;
 float VOLUME_MUSIC;
 float VOLUME_SFX;
 
+/**
+ * Defined in gameplay.cpp, should result in `currentWorld` containing a pointer
+ * to a valid World.
+ */
+
+extern void initEverything(void);
+
+/**
+ * The game logic function, should handle all logic-related operations for the
+ * game.
+ */
+
+void logic(void);
+
+/**
+ * The game render function, should handle all drawing to the window.
+ */
+
+void render(void);
+
+/**
+ * The main loop, calls logic(), render(), and does timing operations in the
+ * appropriate order.
+ */
+
+void mainLoop(void);
+
+
+
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
 int main(/*int argc, char *argv[]*/){
 	// *argv = (char *)argc;
+	SDL_GLContext mainGLContext = NULL;
 	
 	gameRunning=false;
 
@@ -617,6 +638,7 @@ void render(){
 	/*
 	 * Calculate the player's hand angle.
 	 */
+	 
 	handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
 	if(ui::mouse.x < player->loc.x){
 		if(handAngle <= 0)

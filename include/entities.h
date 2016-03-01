@@ -52,6 +52,24 @@ enum BUILD_SUB{
 	STALL_TRADER = 71
 };
 
+class BuySell{
+public:
+	int member;
+	union{
+		struct{
+			std::string item1;
+			std::string item2;
+		}trade;
+		struct{
+			enum type{BUY,SELL};
+			std::string item;
+			int price;
+		}cost;
+	};
+	BuySell(){}
+	~BuySell(){}
+};
+
 class World;
 
 class Particles{
@@ -199,18 +217,7 @@ public:
 
 class Merchant : public NPC{
 public:
-	union BSINV{
-		struct EQUAL{
-			std::string item1;
-			std::string item2;
-		};
-
-		struct COST{
-			std::string item;
-			int price;
-		};
-	};
-	std::vector<BSINV>bsinv;
+	std::vector<BuySell>bsinv;
 	void interact();
 
 	Merchant();

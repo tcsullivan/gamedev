@@ -118,13 +118,12 @@ void World::deleteEntities(void){
 		delete mob.back();
 		mob.pop_back();
 	}
+	while(!merchant.empty()){
+		merchant.pop_back();
+	}
 	while(!npc.empty()){
 		delete npc.back();
 		npc.pop_back();
-	}
-	while(!merchant.empty()){
-		delete merchant.back();
-		merchant.pop_back();
 	}
 	while(!build.empty()){
 		delete build.back();
@@ -143,6 +142,10 @@ void World::deleteEntities(void){
 	}
 	while(!light.empty()){
 		light.pop_back();
+	}
+	while(!village.empty()){
+		delete village.back();
+		village.pop_back();
 	}
 }
 
@@ -1004,13 +1007,13 @@ void World::detect(Player *p){
 	}
 
 	for(auto &v : village){
-		if(p->loc.x > v.start.x && p->loc.x < v.end.x){
-			if(!v.in){
-				ui::passiveImportantText(5000,"Welcome to %s",v.name.c_str());
-				v.in = true;
+		if(p->loc.x > v->start.x && p->loc.x < v->end.x){
+			if(!v->in){
+				ui::passiveImportantText(5000,"Welcome to %s",v->name.c_str());
+				v->in = true;
 			}
 		}else{
-			v.in = false;
+			v->in = false;
 		}
 	}
 
@@ -1545,14 +1548,15 @@ World *loadWorldFromXMLNoSave(const char *path){
 	
 	xml.LoadFile(currentXML);
 	wxml = xml.FirstChildElement("World");
-	vil = xml.FirstChildElement("World")->FirstChildElement("village");
 
 	if(wxml){
 		wxml = wxml->FirstChildElement();
+		vil = xml.FirstChildElement("World")->FirstChildElement("village");
 		Indoor = false;
 		tmp = new World();
 	}else if((wxml = xml.FirstChildElement("IndoorWorld"))){
 		wxml = wxml->FirstChildElement();
+		vil = NULL;
 		Indoor = true;
 		tmp = new IndoorWorld();
 	}
@@ -1627,8 +1631,11 @@ World *loadWorldFromXMLNoSave(const char *path){
 		wxml = wxml->NextSiblingElement();
 	}
 
+	Village *vptr;
+
 	if(vil){
-		tmp->village.push_back(vil->Attribute("name"));
+		tmp->village.push_back(new Village(vil->Attribute("name"), tmp));
+		vptr = tmp->village.back();
 
 		vil = vil->FirstChildElement();
 	}
@@ -1640,11 +1647,11 @@ World *loadWorldFromXMLNoSave(const char *path){
 		/**
 		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
 		 */
+		 
 		if(!strcmp(name,"structure")){
 			ptr = vil->Attribute("inside");
 			tmp->addStructure((BUILD_SUB)vil->UnsignedAttribute("type"),
-							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
-							   randx : spawnx,
+							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? randx : spawnx,
 							   100,
 							   (char*)vil->Attribute("texture"),
 							   ptr);
@@ -1659,6 +1666,11 @@ World *loadWorldFromXMLNoSave(const char *path){
 							   (char*)vil->Attribute("texture"),
 							   ptr);
 				tmp->addMerchant(0,100);
+				if(!strcmp(name,"buy")){
+					std::cout << "Buying";
+				}else if(!strcmp(name,"sell")){
+					std::cout << "Selling";
+				}
 				strcpy(tmp->merchant.back()->name,"meme");
 
 			}else if(!strcmp(vil->Attribute("type"),"trader")){
@@ -1671,12 +1683,12 @@ World *loadWorldFromXMLNoSave(const char *path){
 							   ptr);
 			}
 		}
-		tmp->village.back().build.push_back(tmp->build.back());
-		if(tmp->village.back().build.back()->loc.x < tmp->village.back().start.x){
-			tmp->village.back().start.x = tmp->village.back().build.back()->loc.x;
+			vptr->build.push_back(tmp->build.back());
+		if(vptr->build.back()->loc.x < vptr->start.x){
+			vptr->start.x = vptr->build.back()->loc.x;
 		}
-		if(tmp->village.back().build.back()->loc.x + tmp->village.back().build.back()->width > tmp->village.back().end.x){
-			tmp->village.back().end.x = tmp->village.back().build.back()->loc.x + tmp->village.back().build.back()->width;
+		if(vptr->build.back()->loc.x + vptr->build.back()->width > vptr->end.x){
+			vptr->end.x = vptr->build.back()->loc.x + vptr->build.back()->width;
 		}
 
 		//go to the next element in the village block
@@ -1690,4 +1702,11 @@ World *loadWorldFromXMLNoSave(const char *path){
 	}
 
 	return tmp;
+}
+
+Village::Village(const char *meme, World *w){
+	name = meme;
+	start.x = w->getTheWidth() / 2.0f;
+	end.x = -start.x;
+	in = false;
 }
