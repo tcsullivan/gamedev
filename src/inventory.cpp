@@ -142,6 +142,14 @@ const char *getItemTexturePath(std::string name){
 	return NULL;
 }
 
+Texturec *getItemTexture(std::string name){
+	for(auto &i : itemMap){
+		if(i->name == name)
+			return i->tex;
+	}
+	return NULL;
+}
+
 float getItemWidth(std::string name){
 	for(auto &i : itemMap){
 		if(i->name == name)

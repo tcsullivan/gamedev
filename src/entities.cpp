@@ -459,8 +459,12 @@ void NPC::interact(){ //have the npc's interact back to the player
 
 void Merchant::interact(){
 	ui::merchantBox(name, &bsinv, ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
-	//ui::merchantBox();
 	ui::waitForDialog();
+	if(ui::dialogOptChosen == 1){
+		std::cout << "Gimme ye' munny" << std::endl;
+	}else{
+		std::cout << "See ye!" << std::endl;
+	}
 }
 
 void Object::interact(void){

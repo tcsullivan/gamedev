@@ -773,6 +773,8 @@ namespace ui {
 					setFontSize(16);
 				}
 			}else if(dialogMerchant){
+				static int dispItem;
+
 				x=offset.x-SCREEN_WIDTH/6;
 				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
 			
@@ -792,30 +794,32 @@ namespace ui {
 				// draw typeOut'd text
 				putString(x + HLINE, y - fontSize - HLINE, (rtext = typeOut(dialogBoxText)));
 				merchAOptLoc[0][0] = offset.x - (SCREEN_WIDTH / 6.5) - 16;
-				merchAOptLoc[0][1] = offset.x + (SCREEN_WIDTH / 6.5);
-				merchAOptLoc[1][0] = offset.y + (SCREEN_HEIGHT *.25);
+				merchAOptLoc[1][0] = offset.x + (SCREEN_WIDTH / 6.5);
+				merchAOptLoc[0][1] = offset.y + (SCREEN_HEIGHT *.25);
 				merchAOptLoc[1][1] = offset.y + (SCREEN_HEIGHT *.25);
-				merchAOptLoc[2][0] = offset.x - (SCREEN_WIDTH / 6.5);
-				merchAOptLoc[2][1] = offset.x + (SCREEN_WIDTH / 6.5) + 16;
+				merchAOptLoc[0][2] = offset.x - (SCREEN_WIDTH / 6.5);
+				merchAOptLoc[1][2] = offset.x + (SCREEN_WIDTH / 6.5) + 16;
 
 				for(i = 0; i < 2; i++){
-					if(mouse.x > merchAOptLoc[0][i] && mouse.x < merchAOptLoc[2][i] &&
-					   mouse.y > merchAOptLoc[1][i] - 8 && mouse.y < merchAOptLoc[1][i] + 8){
-						glColor3ub(255, 255, 0);
+					if(mouse.x > merchAOptLoc[i][0] && mouse.x < merchAOptLoc[i][2] &&
+					   mouse.y > merchAOptLoc[i][1] - 8 && mouse.y < merchAOptLoc[i][1] + 8){
+					   	dispItem++;
+						glColor3ub(255,255,  0);
 					}else{
 						glColor3ub(255,255,255);
 					}
 				}
 
 				glBegin(GL_TRIANGLES);
-					glVertex2f(merchAOptLoc[0][0],merchAOptLoc[1][0]);
-					glVertex2f(merchAOptLoc[2][0],merchAOptLoc[1][0]-8);
-					glVertex2f(merchAOptLoc[2][0],merchAOptLoc[1][0]+8);
+					glVertex2f(merchAOptLoc[0][0],merchAOptLoc[0][1]);
+					glVertex2f(merchAOptLoc[0][2],merchAOptLoc[0][1]-8);
+					glVertex2f(merchAOptLoc[0][2],merchAOptLoc[0][1]+8);
 
-					glVertex2f(merchAOptLoc[2][1],merchAOptLoc[1][1]);
-					glVertex2f(merchAOptLoc[0][1],merchAOptLoc[1][1]-8);
-					glVertex2f(merchAOptLoc[0][1],merchAOptLoc[1][1]+8);
+					glVertex2f(merchAOptLoc[1][2],merchAOptLoc[1][1]);
+					glVertex2f(merchAOptLoc[1][0],merchAOptLoc[1][1]-8);
+					glVertex2f(merchAOptLoc[1][0],merchAOptLoc[1][1]+8);
 				glEnd();
+
 			
 				// draw / handle dialog options if they exist
 				for(i = 0; i < dialogOptCount; i++){
