@@ -690,10 +690,25 @@
 	- looked into better automated Makefiles
 	- improving villages, began work on shops
 
-2/26/2015:
+2/26/2016:
 ==========
 
 	- made fonts more memory-efficient
 	- C++-ified loaded texture handlers
 	- documented more stuff
 	- made merchant menu
+
+2/29/2016:
+==========
+
+	- renewed branch 'remake': re-wrote world.cpp and pushed
+	- fixed world linkage errors
+	- considered more formal coding? (as in documentation and indentation)
+	- fixed dialog boxes and options
+	- broke screenshots
+
+3/1/2016:
+=========
+
+	- merged 'remake' with 'master', fixed font issues and world stuffs
+	- continued work on merchant dialog

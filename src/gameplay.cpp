@@ -43,7 +43,7 @@ int commonAIFunc(NPC *speaker){
 	 * Load the current world's XML file into memory for reading.
 	 */
 	
-	xml.LoadFile(currentXML);
+	xml.LoadFile(currentXML.c_str());
 	exml = xml.FirstChildElement("Dialog");
 	
 	/*
@@ -221,7 +221,7 @@ void commonTriggerFunc(Mob *callee){
 	if(!lock){
 		lock = true;
 	
-		xml.LoadFile(currentXML);
+		xml.LoadFile(currentXML.c_str());
 		exml = xml.FirstChildElement("Trigger");
 		
 		while(strcmp(exml->Attribute("id"),callee->heyid.c_str()))
@@ -282,12 +282,12 @@ void initEverything(void){
 			/*
 			 * Read in the XML file.
 			 */
-			
+		
 			currentWorld = loadWorldFromXML(xmlFiles[i].c_str());
 			break;
 		}
 	}
-
+	
 	pauseMenu.items.push_back(ui::createParentButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
 	pauseMenu.items.push_back(ui::createChildButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, "Options"));
 	pauseMenu.items.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
@@ -320,7 +320,7 @@ extern std::vector<NPC *> AIpreaddr;
 void destroyEverything(void){
 	currentWorld->save();
 	delete currentWorld;
-	delete[] currentXML;
+	//delete[] currentXML;
 	
 	while(!AIpreload.empty())
 		AIpreload.pop_back();

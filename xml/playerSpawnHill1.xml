@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <World>
 	<style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/" />
-	<generation type="Random" width="1600" />
+	<generation type="Random" width="500" />
 	<link left="playerSpawnHill2.xml" />
 	
 	<mob type="1" aggressive="false" />

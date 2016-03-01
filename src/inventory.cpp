@@ -415,6 +415,8 @@ int Inventory::useItem(void){
 }
 
 bool Inventory::detectCollision(vec2 one, vec2 two){
+	(void)one;
+	(void)two;
 	//float i = 0.0f;
 	
 	/*if(items.empty() || !items[sel].count)
@@ -441,6 +443,6 @@ bool Inventory::detectCollision(vec2 one, vec2 two){
 			i+=HLINE;
 		}
 	}*/
-	return !(one.x == two.y);
+	return false;
 }
 

@@ -151,6 +151,9 @@ extern float VOLUME_SFX;
 
 #define getRand() rand()
 
+#define randGet     rand
+#define randInit    srand
+
 /**
  * Included in common.h is a prototype for DEBUG_prints, which writes a formatted
  * string to the console containing the callee's file and line number. This macro simplifies
@@ -229,5 +232,7 @@ int strCreateFunc(const char *equ);
 
 template<typename N, size_t s>
 size_t arrAmt(N (&)[s]){return s;}
+
+void UserError(std::string reason);
 
 #endif // COMMON_H

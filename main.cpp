@@ -78,12 +78,6 @@ World  	*currentWorld = NULL;
 Player 	*player;
 
 /**
- * Tells if player is currently inside a world entered through a Structure.
- */
-
-extern bool worldInside;
-
-/**
  * TODO
  */
 
@@ -217,9 +211,11 @@ void mainLoop(void);
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
-int main(/*int argc, char *argv[]*/){
-	// *argv = (char *)argc;
-	SDL_GLContext mainGLContext = NULL;
+int main(int argc, char *argv[]){
+	(void)argc;
+	(void)argv;
+	
+	static SDL_GLContext mainGLContext = NULL;
 	
 	gameRunning=false;
 
@@ -322,16 +318,7 @@ int main(/*int argc, char *argv[]*/){
 	if((err=glewInit()) != GLEW_OK){
 		std::cout << "GLEW was not able to initialize! Error: " << glewGetErrorString(err) << std::endl;
 		return -1;
-	}	
-	
-	/*
-	 * Initialize the FreeType libraries and select what font to use using functions from the ui
-	 * namespace, defined in include/ui.h and src/ui.cpp. These functions should abort with errors
-	 * if they have error.
-	 */
-	
-	//ui::initFonts();
-	//ui::setFontFace("ttf/FreePixel.ttf");		// as in gamedev/ttf/<font>
+	}
 	
 	/*
 	 * Initialize the random number generator. At the moment, initRand is a macro pointing to libc's
@@ -476,7 +463,7 @@ void mainLoop(void){
 						currentTime = 0,	//
 						prevPrevTime= 0;	//
 	World *prev;
-	
+    
 	if(!currentTime)						// Initialize currentTime if it hasn't been
 		currentTime=millis();
 	
@@ -496,14 +483,15 @@ void mainLoop(void){
 	 */
 
 	prev = currentWorld;
-	pool.Enqueue(ui::handleEvents);
-	//ui::handleEvents();
+
+	//pool.Enqueue(ui::handleEvents);
+	ui::handleEvents();
 
 	if(prev != currentWorld){
 		currentWorld->bgmPlay(prev);
 		ui::dialogBoxExists = false;
 	}
-	
+    
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
 		//pool.Enqueue(logic);
 		logic();
@@ -517,20 +505,21 @@ void mainLoop(void){
 	/*pool.Enqueue([](){
 		currentWorld->update(player,deltaTime);
 	});*/
-	currentWorld->update(player,deltaTime);
 	
+	currentWorld->update(player,deltaTime);
+    
 	/*
 	 * Update debug variables if necessary
 	 */
 	
-	if(++debugDiv==20)
+	if ( ++debugDiv == 20 ) {
 		debugDiv=0;
 		
-	if(deltaTime)
-		fps=1000/deltaTime;
-	else if(!(debugDiv%10))
-		debugY = player->loc.y;
-
+		if ( deltaTime )
+			fps = 1000 / deltaTime;
+		else if(!(debugDiv%10))
+			debugY = player->loc.y;
+	}
 MENU:
 	render();
 }
@@ -552,7 +541,7 @@ void render(){
 	
 	if(currentWorld->getTheWidth() < (int)SCREEN_WIDTH){
 		offset.x = 0;
-	}else if(!worldInside){
+	}else{
 		if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
 			offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
 		if(player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
@@ -659,11 +648,6 @@ void render(){
 	player->inv->draw();
 
 	/*
-<<<<<<< HEAD
-	 *	Here we draw a black overlay if it's been requested.
-	*/
-
-	 /*
 	 * Here we draw a black overlay if it's been requested.
 	 */
 	
