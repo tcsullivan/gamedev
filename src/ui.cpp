@@ -1039,42 +1039,48 @@ DONE:
 		vec2 oldpos,tmppos;
 		SDL_Event e;
 		
-		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
-		mouse.y=(offset.y+SCREEN_HEIGHT/2)-premouse.y;
+		// update mouse coords
+		mouse.x = premouse.x + offset.x - ( SCREEN_WIDTH / 2 );
+		mouse.y = ( offset.y + SCREEN_HEIGHT / 2 ) - premouse.y;
 		
 		while(SDL_PollEvent(&e)){
 			switch(e.type){
+				
+			// escape - quit game
 			case SDL_QUIT:
 				gameRunning=false;
 				break;
+				
+			// mouse movement - update mouse vector
 			case SDL_MOUSEMOTION:
 				premouse.x=e.motion.x;
 				premouse.y=e.motion.y;
 				break;
+				
+			// mouse clicks
 			case SDL_MOUSEBUTTONDOWN:
-				if((e.button.button & SDL_BUTTON_RIGHT) && dialogBoxExists)
+				// right click advances dialog
+				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && dialogBoxExists )
 					dialogAdvance();
-				if((e.button.button & SDL_BUTTON_LEFT) && !dialogBoxExists)
+				// left click uses item
+				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )
 					player->inv->usingi = true;
 				break;
-			/*
-				KEYDOWN
-			*/
+			
+			// key presses
 			case SDL_KEYDOWN:
-				/*if(SDL_KEY == SDLK_ESCAPE){
-					//gameRunning = false;
-					pMenu = true;
-					return;
-				}else */if(SDL_KEY == SDLK_SPACE){
-					/*if(dialogBoxExists)
-						dialogAdvance();
-					else */if(player->ground){
-						player->vel.y=.4;
-						player->loc.y+=HLINE*2;
-						player->ground=false;
+			
+				// space - make player jump
+				if ( SDL_KEY == SDLK_SPACE ) {
+					if ( player->ground ) {
+						player->loc.y += HLINE * 2;
+						player->vel.y = .4;
+						player->ground = false;
 					}
 					break;
-				}else if(!dialogBoxExists || dialogPassive){
+
+				// only let other keys be handled if dialog allows it
+				} else if ( !dialogBoxExists || dialogPassive ) {
 					tmp = currentWorld;
 					switch(SDL_KEY){
 					case SDLK_a:

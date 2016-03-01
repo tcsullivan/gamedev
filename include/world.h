@@ -281,7 +281,7 @@ public:
 	 * A vector of all light elements in this world.
 	 */
 	
-	std::vector<Light      	 >  light;
+	std::vector<Light>  light;
 
 	/**
 	 * Vector of all building textures for the current world style

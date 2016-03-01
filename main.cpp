@@ -185,9 +185,11 @@ void mainLoop(void);
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
-int main(/*int argc, char *argv[]*/){
-	// *argv = (char *)argc;
-	SDL_GLContext mainGLContext = NULL;
+int main(int argc, char *argv[]){
+	(void)argc;
+	(void)argv;
+	
+	static SDL_GLContext mainGLContext = NULL;
 	
 	gameRunning=false;
 
@@ -290,16 +292,7 @@ int main(/*int argc, char *argv[]*/){
 	if((err=glewInit()) != GLEW_OK){
 		std::cout << "GLEW was not able to initialize! Error: " << glewGetErrorString(err) << std::endl;
 		return -1;
-	}	
-	
-	/*
-	 * Initialize the FreeType libraries and select what font to use using functions from the ui
-	 * namespace, defined in include/ui.h and src/ui.cpp. These functions should abort with errors
-	 * if they have error.
-	 */
-	
-	//ui::initFonts();
-	//ui::setFontFace("ttf/FreePixel.ttf");		// as in gamedev/ttf/<font>
+	}
 	
 	/*
 	 * Initialize the random number generator. At the moment, initRand is a macro pointing to libc's

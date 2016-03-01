@@ -252,6 +252,7 @@ generate( unsigned int width )
     
     for(wditer = worldData.begin(); wditer != worldData.end(); wditer++){
         if ((*wditer).groundHeight)
+			// wditer + GROUND_HILLINESS can go out of bounds (invalid read)
             geninc = ( (*(wditer + GROUND_HILLINESS)).groundHeight - (*wditer).groundHeight ) / (float)GROUND_HILLINESS;
         else
             (*wditer).groundHeight = (*(wditer - 1)).groundHeight + geninc;
@@ -260,7 +261,7 @@ generate( unsigned int width )
         (*wditer).grassUnpressed = true;
         (*wditer).grassHeight[0] = (randGet() % 16) / 3 + 2;
         (*wditer).grassHeight[1] = (randGet() % 16) / 3 + 2;
-        
+
         // bound checks
         if ( (*wditer).groundHeight < GROUND_HEIGHT_MINIMUM )
             (*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
@@ -269,6 +270,7 @@ generate( unsigned int width )
 		
 		if( (*wditer).groundHeight <= 0 )
 			(*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
+
     }
     
     // define x-coordinate of world's leftmost 'line'
@@ -674,11 +676,17 @@ draw( Player *p )
 	p->draw();
 }
 
-/*
- * TODO
+/**
+ * Handles physics and such for a single entity.
+ * 
+ * This function is kept private, as World::detect() should be used instead to
+ * handle stuffs for all entities at once.
  */
 
-void World::singleDetect(Entity *e){
+void World::
+singleDetect( Entity *e )
+{
+	std::string killed;
 	unsigned int i,j;
 	int l;
 	
@@ -686,12 +694,12 @@ void World::singleDetect(Entity *e){
 	 *	Kill any dead entities.
 	*/
 	
-	if(!e->alive||e->health<=0){
-		for(i=0;i<entity.size();i++){
-			if(entity[i]==e){
-				switch(e->type){
+	if ( !e->alive || e->health <= 0 ) {
+		for ( i = 0; i < entity.size(); i++) {
+			if ( entity[i] == e ){
+				switch ( e->type ) {
 				case STRUCTURET:
-					std::cout<<"Killed a building..."<<std::endl;
+					killed = "structure";
 					for(j=0;j<build.size();j++){
 						if(build[j]==e){
 							delete build[j];
@@ -701,7 +709,7 @@ void World::singleDetect(Entity *e){
 					}
 					break;
 				case NPCT:
-					std::cout<<"Killed an NPC..."<<std::endl;
+					killed = "NPC";
 					for(j=0;j<npc.size();j++){
 						if(npc[j]==e){
 							delete npc[j];
@@ -711,7 +719,7 @@ void World::singleDetect(Entity *e){
 					}
 					break;
 				case MOBT:
-					std::cout<<"Killed a mob..."<<std::endl;
+					killed = "mob";
 					/*for(j=0;j<mob.size();j++){
 						if(mob[j]==e){
 							delete mob[j];
@@ -721,7 +729,7 @@ void World::singleDetect(Entity *e){
 					}*/
 					break;
 				case OBJECTT:
-					std::cout<<"Killed an object..."<<std::endl;
+					killed = "object";
 					for(j=0;j<object.size();j++){
 						if(object[j]==e){
 							delete object[j];
@@ -733,6 +741,7 @@ void World::singleDetect(Entity *e){
 				default:
 					break;
 				}
+				std::cout << "Killed a " << killed << "..." << std::endl;
 				entity.erase(entity.begin()+i);
 				return;
 			}
@@ -884,8 +893,6 @@ void World::addStructure(BUILD_SUB sub, float x,float y, char *tex, const char *
 	else
 		strcpy((build.back()->inside = new char[1]),"\0");
 		
-	//strcpy((build.back()->outside = new char[1 + strlen((char *)(currentXML+4))]),(char *)(currentXML+4));
-	
 	entity.push_back(build.back());
 }
 	
@@ -1010,6 +1017,7 @@ World *World::goWorldRight(Player *p){
 }
 
 std::vector<std::string> inside;
+
 World *World::
 goInsideStructure( Player *p )
 {
@@ -1035,11 +1043,13 @@ goInsideStructure( Player *p )
 		tmp = loadWorldFromXML(inside.back().c_str());
 		for(auto &b : tmp->build){
 			if(!strcmp(current,b->inside)){
-				p->loc.x = b->loc.x + (b->width / 2);
 				inside.pop_back();
 
 				ui::toggleBlackFast();
 				ui::waitForCover();
+				
+				p->loc.x = b->loc.x + (b->width / 2);
+				
 				ui::toggleBlackFast();
 				
 				return tmp;
