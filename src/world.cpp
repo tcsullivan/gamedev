@@ -1446,6 +1446,7 @@ World *loadWorldFromXMLNoSave(const char *path){
 	while(vil){
 		name = vil->Name();
 		randx = 0;
+		//static BuySell bs;
 
 		/**
 		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
@@ -1469,10 +1470,17 @@ World *loadWorldFromXMLNoSave(const char *path){
 							   (char*)vil->Attribute("texture"),
 							   ptr);
 				tmp->addMerchant(0,100);
-				if(!strcmp(name,"buy")){
-					std::cout << "Buying";
-				}else if(!strcmp(name,"sell")){
-					std::cout << "Selling";
+				if(vil->FirstChildElement("buy")){
+					std::cout << "Buy" << std::endl;
+					/*bs.member = 0;
+					bs.cost.type = 0;
+					bs.cost.item = vil->FirstChildElement("buy")->Attribute("item");
+					bs.cost.price =vil->FirstChildElement("buy")->IntAttribute("cost");*/
+					tmp->merchant.back()->bsinv.push_back({0,"Dank MayMay",420});
+				}if(vil->FirstChildElement("sell")){
+					std::cout << "Sell" << std::endl;
+				}if(vil->FirstChildElement("trade")){
+					std::cout << "Trade" << std::endl;
 				}
 				strcpy(tmp->merchant.back()->name,"meme");
 

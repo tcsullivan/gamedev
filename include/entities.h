@@ -55,19 +55,35 @@ enum BUILD_SUB{
 class BuySell{
 public:
 	int member;
+	// 0 = Buy/Sell
+	// 1 = Trade
 	union{
 		struct{
-			std::string item1;
-			std::string item2;
+			std::string item;
+			std::string itemt;
 		}trade;
 		struct{
-			enum type{BUY,SELL};
+			int type;
+			// 0 = buy
+			// 1 = sell
 			std::string item;
 			int price;
 		}cost;
 	};
-	BuySell(){}
+	BuySell(int typ, std::string itm, int prc){
+		this->cost.type = typ;
+		this->cost.item = itm;
+		this->cost.price = prc;
+		this->member = 0;
+	}
+	BuySell(std::string itm, std::string itmt){
+		this->trade.item = itm;
+		this->trade.itemt = itmt;
+		this->member = 1;
+	}
 	~BuySell(){}
+	BuySell(const BuySell&){}
+	BuySell(){}
 };
 
 class World;
