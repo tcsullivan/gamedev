@@ -1,5 +1,9 @@
 #include "threadpool.h"
 
+/**
+ * Stolen from some guy.
+ */
+
 // Constructor.
 ThreadPool::ThreadPool(int threads) :
 	terminate(false),
