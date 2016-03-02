@@ -12,7 +12,7 @@ extern SDL_Window *window;
 
 /*
  *	External references for updating player coords / current world.
-*/
+ */
 
 extern Player *player;
 extern World  *currentWorld;
