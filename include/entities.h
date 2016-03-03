@@ -254,11 +254,11 @@ class Object : public Entity{
 private:
 	std::string iname;
 public:
-	char *pickupDialog;
+	std::string pickupDialog;
 	bool questObject = false;
 	
 	Object();
-	Object(std::string in,const char *pd);
+	Object(std::string in,std::string pd);
 	~Object();
 	
 	void reloadTexture(void);

@@ -15,11 +15,15 @@
 
 #define INDOOR_FLOOR_HEIGHT     100
 
+
+extern Player *player;
+
+
 /**
  * Contains the current weather, used in many other places/files.
  */
 
-WEATHER weather = SUNNY;
+WorldWeather weather = WorldWeather::Sunny;
 
 const std::string bgPaths[2][9]={
     {"bg.png",					// Daytime background
@@ -71,15 +75,15 @@ const float bgDraw[4][3]={
  */
 
 void World::
-setBackground( WORLD_BG_TYPE bgt )
+setBackground( WorldBGType bgt )
 {
     // load textures with a limit check
 	switch ( (bgType = bgt) ) {
-	case BG_FOREST:
+	case WorldBGType::Forest:
 		bgTex = new Texturec( bgFiles );
 		break;
         
-	case BG_WOODHOUSE:
+	case WorldBGType::WoodHouse:
 		bgTex = new Texturec( bgFilesIndoors );
 		break;
 
@@ -97,12 +101,12 @@ setBackground( WORLD_BG_TYPE bgt )
  */
 
 void World::
-setStyle( const char *pre )
+setStyle( std::string pre )
 {
     unsigned int i;
     
     // get folder prefix
-	std::string prefix = pre ? pre : "assets/style/classic/";
+	std::string prefix = pre.empty() ? "assets/style/classic/" : pre;
     
 	for ( i = 0; i < arrAmt(buildPaths); i++ )
 		sTexLoc.push_back( prefix + buildPaths[i] );
@@ -127,9 +131,7 @@ setStyle( const char *pre )
 World::
 World( void )
 {
-    // nullify strings
-	bgm = NULL;
-	bgmObj = NULL;
+    bgmObj = NULL;
     
 	toLeft = NULL;
 	toRight = NULL;
@@ -199,10 +201,6 @@ World::
 	if(bgmObj)
 		Mix_FreeMusic(bgmObj);
     
-    // bgm path
-	if(bgm)
-		delete[] bgm;
-
 	delete bgTex;
 	
 	delete[] toLeft;
@@ -339,7 +337,8 @@ update( Player *p, unsigned int delta )
 void World::
 setBGM( std::string path )
 {
-	bgmObj = Mix_LoadMUS( strcpy( (bgm = new char[ path.size() + 1 ]), path.c_str()) );
+	if( !path.empty() )
+		bgmObj = Mix_LoadMUS( (bgm = path).c_str() );
 }
 
 /**
@@ -349,7 +348,7 @@ setBGM( std::string path )
  */
 
 void World::
-bgmPlay( World *prev )
+bgmPlay( World *prev ) const
 {
 	if ( prev ) {
 		if ( bgm != prev->bgm ) {
@@ -432,8 +431,8 @@ draw( Player *p )
 	
 	// draw the stars if the time deems it appropriate
 	
-	if (((( weather == DARK  ) & ( tickCount % DAY_CYCLE )) < DAY_CYCLE / 2)   ||
-	    ((( weather == SUNNY ) & ( tickCount % DAY_CYCLE )) > DAY_CYCLE * .75) ){
+	if (((( weather == WorldWeather::Dark  ) & ( tickCount % DAY_CYCLE )) < DAY_CYCLE / 2)   ||
+	    ((( weather == WorldWeather::Sunny ) & ( tickCount % DAY_CYCLE )) > DAY_CYCLE * .75) ){
 
 		if (tickCount % DAY_CYCLE) {	// The above if statement doesn't check for exact midnight.
 				
@@ -872,6 +871,7 @@ void World::addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::s
 	build.push_back(new Structures());
 	build.back()->inWorld = this;
 	build.back()->textureLoc = tex;
+	
 	build.back()->spawn(sub,x,y);
 	
 	build.back()->inside = inside;
@@ -909,7 +909,7 @@ void World::addMerchant(float x, float y){
 	entity.push_back(npc.back());
 }
 
-void World::addObject(/*ITEM_ID i*/std::string in,const char *p, float x, float y){
+void World::addObject( std::string in, std::string p, float x, float y){
 	object.push_back(new Object(in,p));
 	object.back()->spawn(x,y);
 
@@ -925,18 +925,10 @@ addParticle( float x, float y, float w, float h, float vx, float vy, Color color
 
 void World::addLight(vec2 loc, Color color){
 	if(light.size() < 64){
-		light.push_back(Light());
+		light.emplace_back();
 		light.back().loc = loc;
 		light.back().color = color;
 	}
-}
-
-NPC *World::getAvailableNPC(void){
-	for(auto &n : npc){
-		if(n->aiFunc.empty())
-			return n;
-	}
-	return (NPC *)NULL;
 }
 
 char *World::setToLeft(const char *file){
@@ -1043,7 +1035,9 @@ void World::addHole(unsigned int start,unsigned int end){
 	}
 }
 
-int World::getTheWidth(void){
+int World::
+getTheWidth( void ) const
+{
 	return worldStart * -2;
 }
 
@@ -1300,7 +1294,7 @@ std::string currentXML;
 
 extern World *currentWorld;
 
-World *loadWorldFromXML(const char *path){
+World *loadWorldFromXML(std::string path){
 	if ( !currentXML.empty() )
 		currentWorld->save();
 
@@ -1312,7 +1306,7 @@ World *loadWorldFromXML(const char *path){
  */
 
 World *
-loadWorldFromXMLNoSave( const char *path ) {
+loadWorldFromXMLNoSave( std::string path ) {
 	XMLDocument xml;
 	XMLElement *wxml;
 	XMLElement *vil;
@@ -1351,9 +1345,9 @@ loadWorldFromXMLNoSave( const char *path ) {
 			else
 				abort();
 		}else if(!strcmp(name,"style")){
-			tmp->setStyle(wxml->Attribute("folder"));
-			tmp->setBackground((WORLD_BG_TYPE)wxml->UnsignedAttribute("background"));
-			tmp->setBGM(wxml->Attribute("bgm"));
+			tmp->setStyle(wxml->StrAttribute("folder"));
+			tmp->setBackground((WorldBGType)wxml->UnsignedAttribute("background"));
+			tmp->setBGM(wxml->StrAttribute("bgm"));
 		}else if(!strcmp(name,"generation")){
 			if(!strcmp(wxml->Attribute("type"),"Random")){
 				if(Indoor)
@@ -1395,14 +1389,13 @@ loadWorldFromXMLNoSave( const char *path ) {
 			else tmp->npc.back()->dialogIndex = 9999;
 			
 		}else if(!strcmp(name,"structure")){
-			ptr = wxml->Attribute("inside");
 			tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),
 							   wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR ? 
 							   			getRand() % tmp->getTheWidth() / 2.0f : 
 							   			spawnx,
 							   100,
-							   (char*)wxml->Attribute("texture"),
-							   ptr);
+							   wxml->StrAttribute("texture"),
+							   wxml->StrAttribute("inside"));
 		}else if(!strcmp(name,"trigger")){
 			tmp->addMob(MS_TRIGGER,wxml->FloatAttribute("x"),0,commonTriggerFunc);
 			tmp->mob.back()->heyid = wxml->Attribute("id");
@@ -1428,13 +1421,12 @@ loadWorldFromXMLNoSave( const char *path ) {
 		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
 		 */
 		 
-		if(!strcmp(name,"structure")){		
+		if(!strcmp(name,"structure")){
 			tmp->addStructure((BUILD_SUB)vil->UnsignedAttribute("type"),
 							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? randx : spawnx,
 							   100,
 							   vil->StrAttribute("texture"),
 							   vil->StrAttribute("inside"));
-
 		}else if(!strcmp(name, "stall")){
 			if(!strcmp(vil->Attribute("type"),"market")){
 				std::cout << "Market" << std::endl;
@@ -1462,10 +1454,13 @@ loadWorldFromXMLNoSave( const char *path ) {
 							   vil->StrAttribute("inside"));
 			}
 		}
-			vptr->build.push_back(tmp->build.back());
+		
+		vptr->build.push_back(tmp->build.back());
+		
 		if(vptr->build.back()->loc.x < vptr->start.x){
 			vptr->start.x = vptr->build.back()->loc.x;
 		}
+		
 		if(vptr->build.back()->loc.x + vptr->build.back()->width > vptr->end.x){
 			vptr->end.x = vptr->build.back()->loc.x + vptr->build.back()->width;
 		}
