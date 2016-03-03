@@ -228,8 +228,8 @@ class Structures : public Entity{
 public:
 	BUILD_SUB bsubtype;
 	World *inWorld;
-	char *inside;
-	char *textureLoc;
+	std::string inside;
+	std::string textureLoc;
 	
 	Structures();
 	~Structures();

@@ -712,3 +712,13 @@
 
 	- merged 'remake' with 'master', fixed font issues and world stuffs
 	- continued work on merchant dialog
+
+3/2/2016,
+3/3/2016:
+=========
+
+	- made particle vector not pointers
+	- improved efficiency of code using newly learned C++11 tricks
+	- added StrAttribute() to TinyXML2
+	- more merchant stuff, trading????
+	- improved village XML loading

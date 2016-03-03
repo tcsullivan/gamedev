@@ -117,7 +117,6 @@ std::mutex mtx;
 std::condition_variable cv;
 ThreadPool pool(10);
 
-
 /*
  *	loops is used for texture animation. It is believed to be passed to entity
  *	draw functions, although it may be externally referenced instead.

@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <world.h>
 #include <ui.h>
 
@@ -149,9 +151,7 @@ deleteEntities( void )
 		mob.pop_back();
 	}
 
-	while(!merchant.empty()){
-		merchant.pop_back();
-	}
+	merchant.clear();
 	while(!npc.empty()){
 		delete npc.back();
 		npc.pop_back();
@@ -170,19 +170,13 @@ deleteEntities( void )
 	}
     
     // clear entity array
-	while ( !entity.empty() ) {
-		entity.pop_back();
-	}
+	entity.clear();
     
     // free particles
-	while ( !particles.empty() ) {
-		delete particles.back();
-		particles.pop_back();
-	}
+	particles.clear();
     
     // clear light array
-	while ( !light.empty() )
-		light.pop_back();
+	light.clear();
 
     // free villages
 	while ( !village.empty() ) {
@@ -311,21 +305,17 @@ update( Player *p, unsigned int delta )
 	}
 
     // iterate through particles
-    for(unsigned int i=0;i<particles.size();i++){
-		if(particles[i]->kill(deltaTime)){
-			delete particles[i];
-			particles.erase(particles.begin()+i);
-		}else if(particles[i]->canMove){
-			particles[i]->loc.y += particles[i]->vely * deltaTime;
-			particles[i]->loc.x += particles[i]->velx * deltaTime;
+    particles.erase( std::remove_if( particles.begin(), particles.end(), [&delta](Particles part){ return part.kill( delta ); }), particles.end());
+    for ( auto part = particles.begin(); part != particles.end(); part++ ) {
+		if ( (*part).canMove ) {
+			(*part).loc.y += (*part).vely * delta;
+			(*part).loc.x += (*part).velx * delta;
 
-			for(auto &b : build){
-				if(b->bsubtype==FOUNTAIN){
-					if(particles[i]->loc.x >= b->loc.x && particles[i]->loc.x <= b->loc.x + b->width){
-						if(particles[i]->loc.y <= b->loc.y + b->height * .25){
-							delete particles[i];
-							particles.erase(particles.begin()+i);
-						}
+			for ( auto &b : build ) {
+				if ( b->bsubtype == FOUNTAIN ) {
+					if ( (*part).loc.x >= b->loc.x && (*part).loc.x <= b->loc.x + b->width ) {
+						if ( (*part).loc.y <= b->loc.y + b->height * .25)
+							particles.erase( part );
 					}
 				}
 			}
@@ -475,7 +465,7 @@ draw( Player *p )
 		}
 	glEnd();
 	
-	for ( i = 0; i < 4; i++ ) {
+	for ( i = 4; i--; ) {
 		bgTex->bindNext();
 		safeSetColorA( bgDraw[i][0] - shadeBackground, bgDraw[i][0] - shadeBackground, bgDraw[i][0] - shadeBackground, bgDraw[i][1] );
 	
@@ -513,11 +503,8 @@ draw( Player *p )
 		iEnd = GROUND_HILLINESS;
 
 	// draw particles and buildings
-	
-	for ( auto &part : particles ) {
-		if ( part->behind )
-			part->draw();
-	}
+
+	std::for_each( particles.begin(), particles.end(), [](Particles part) { if ( part.behind ) part.draw(); });
 	
 	for ( auto &b : build )
 		b->draw();
@@ -640,10 +627,7 @@ draw( Player *p )
      * Draw remaining entities.
      */
 	
-	for ( auto &part : particles ) {
-		if( !part->behind )
-			part->draw();
-	}
+	std::for_each( particles.begin(), particles.end(), [](Particles part) { if ( !part.behind ) part.draw(); });
 	
 	for ( auto &n : npc )
 		n->draw();
@@ -757,7 +741,8 @@ singleDetect( Entity *e )
     
 	if(e->alive){
 	  
-		if(e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER)return;
+		if ( e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER )
+			return;
 	  
 		/*
 		 *	Calculate the line that this entity is currently standing on.
@@ -825,17 +810,18 @@ detect( Player *p )
 	for ( auto &part : particles ) {
 		int l;
 		unsigned int i;
-		l=(part->loc.x + part->width / 2 - worldStart) / HLINE;
+		l=(part.loc.x + part.width / 2 - worldStart) / HLINE;
 		if(l < 0) l=0;
 		i = l;
 		if(i > lineCount-1) i=lineCount-1;
-		if(part->loc.y < worldData[i].groundHeight){
-			part->loc.y = worldData[i].groundHeight;
-			part->vely = 0;
-			part->velx = 0;
-			part->canMove = false;
+		if(part.loc.y < worldData[i].groundHeight){
+			part.loc.y = worldData[i].groundHeight;
+			part.vely = 0;
+			part.velx = 0;
+			part.canMove = false;
 		}else{
-			if(part->gravity && part->vely > -2)part->vely-=.003 * deltaTime;
+			if(part.gravity && part.vely > -2)
+				part.vely-=.003 * deltaTime;
 		}
 	}
 	for(auto &b : build){
@@ -851,14 +837,14 @@ detect( Player *p )
 												{0,0,255}, 
 												2500);
 
-					particles.back()->fountain = true;
+					particles.back().fountain = true;
 				}
 				break;
 			case FIRE_PIT:
 				for(int r = 0; r < (rand()%20)+10;r++){
 					addParticle(rand()%(int)(b->width/2) + b->loc.x+b->width/4, b->loc.y+3*HLINE, HLINE, HLINE, rand()%2 == 0?-(rand()%3)*.01:(rand()%3)*.01,((4+rand()%6)*.005), {255,0,0}, 400);
-					particles.back()->gravity = false;
-					particles.back()->behind = true;
+					particles.back().gravity = false;
+					particles.back().behind = true;
 				}
 				break;
 			default: break;
@@ -882,36 +868,16 @@ detect( Player *p )
 	}*/
 }
 
-void World::addStructure(BUILD_SUB sub, float x,float y, char *tex, const char *inside){
+void World::addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::string inside){
 	build.push_back(new Structures());
 	build.back()->inWorld = this;
 	build.back()->textureLoc = tex;
 	build.back()->spawn(sub,x,y);
-
-	if(inside)
-		strcpy((build.back()->inside = new char[1 + strlen(inside)]),inside);
-	else
-		strcpy((build.back()->inside = new char[1]),"\0");
+	
+	build.back()->inside = inside;
 		
 	entity.push_back(build.back());
 }
-	
-/*void World::addVillage(int bCount, int npcMin, int npcMax,const char *inside){
-	std::cout << npcMin << ", " << npcMax << std::endl;
-	//int xwasd;
-	for(int i = 0; i < bCount; i++){
-		addStructure(HOUSE,x_start + (i * 300),100,inside);
-		std::cout<<"1\n";
-		HERE:
-		xwasd = (rand()%(int)x+1000*HLINE);
-		for(auto &bu : build){
-			if(xwasd > bu->loc.x && xwasd < bu->loc.x+bu->width)goto HERE;
-		}
-		std::cout<<"2\n";
-		addStructure(t,HOUSE,xwasd,y,inside);
-		std::cout<<"3\n";
-	}
-}*/
 
 void World::addMob(int t,float x,float y){
 	mob.push_back(new Mob(t));
@@ -950,9 +916,11 @@ void World::addObject(/*ITEM_ID i*/std::string in,const char *p, float x, float 
 	entity.push_back(object.back());
 }
 
-void World::addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d){
-	particles.push_back(new Particles(x,y,w,h,vx,vy,color,d));
-	particles.back()->canMove = true;
+void World::
+addParticle( float x, float y, float w, float h, float vx, float vy, Color color, int d )
+{
+	particles.emplace_back( x, y, w, h, vx, vy, color, d );
+	particles.back().canMove = true;
 }
 
 void World::addLight(vec2 loc, Color color){
@@ -1037,7 +1005,7 @@ goInsideStructure( Player *p )
 			   p->loc.x + p->width < b->loc.x + b->width ){
 				inside.push_back((std::string)(currentXML.c_str() + 4));
 				
-				tmp = loadWorldFromXML(b->inside);
+				tmp = loadWorldFromXML(b->inside.c_str());
 				
 				ui::toggleBlackFast();
 				ui::waitForCover();
@@ -1050,7 +1018,7 @@ goInsideStructure( Player *p )
 		strcpy((current = new char[strlen((const char *)(currentXML.c_str() + 4)) + 1]),(const char *)(currentXML.c_str() + 4));
 		tmp = loadWorldFromXML(inside.back().c_str());
 		for(auto &b : tmp->build){
-			if(!strcmp(current,b->inside)){
+			if(!strcmp(current,b->inside.c_str())){
 				inside.pop_back();
 
 				ui::toggleBlackFast();
@@ -1269,8 +1237,12 @@ void IndoorWorld::draw(Player *p){
 	 *	Draw all entities.
 	*/
 	
-	for(auto &part : particles) part->draw();
-	for(auto &e : entity) e->draw();
+	for ( auto &part : particles )
+		part.draw();
+
+	for ( auto &e : entity )
+		e->draw();
+
 	p->draw();
 }
 
@@ -1324,18 +1296,23 @@ World *Arena::exitArena(Player *p){
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
-std::string currentXML = "\0";
+std::string currentXML;
 
 extern World *currentWorld;
 
 World *loadWorldFromXML(const char *path){
-	if ( currentXML != "\0" )
+	if ( !currentXML.empty() )
 		currentWorld->save();
 
 	return loadWorldFromXMLNoSave(path);
 }
 
-World *loadWorldFromXMLNoSave(const char *path){
+/**
+ * Loads a world from the given XML file.
+ */
+
+World *
+loadWorldFromXMLNoSave( const char *path ) {
 	XMLDocument xml;
 	XMLElement *wxml;
 	XMLElement *vil;
@@ -1451,13 +1428,12 @@ World *loadWorldFromXMLNoSave(const char *path){
 		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
 		 */
 		 
-		if(!strcmp(name,"structure")){
-			ptr = vil->Attribute("inside");
+		if(!strcmp(name,"structure")){		
 			tmp->addStructure((BUILD_SUB)vil->UnsignedAttribute("type"),
 							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? randx : spawnx,
 							   100,
-							   (char*)vil->Attribute("texture"),
-							   ptr);
+							   vil->StrAttribute("texture"),
+							   vil->StrAttribute("inside"));
 
 		}else if(!strcmp(name, "stall")){
 			if(!strcmp(vil->Attribute("type"),"market")){
@@ -1466,8 +1442,8 @@ World *loadWorldFromXMLNoSave(const char *path){
 							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
 							   randx : spawnx,
 							   100,
-							   (char*)vil->Attribute("texture"),
-							   ptr);
+							   vil->StrAttribute("texture"),
+							   vil->StrAttribute("inside"));
 				tmp->addMerchant(0,100);
 				if(!strcmp(name,"buy")){
 					std::cout << "Buying";
@@ -1482,8 +1458,8 @@ World *loadWorldFromXMLNoSave(const char *path){
 							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
 							   randx : spawnx,
 							   100,
-							   (char*)vil->Attribute("texture"),
-							   ptr);
+							   vil->StrAttribute("texture"),
+							   vil->StrAttribute("inside"));
 			}
 		}
 			vptr->build.push_back(tmp->build.back());

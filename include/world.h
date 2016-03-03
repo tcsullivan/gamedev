@@ -279,7 +279,7 @@ public:
 	 * A vector of all particles in this world.
 	 */
 	
-	std::vector<Particles	*>	particles;
+	std::vector<Particles> particles;
 	
 	
 	std::vector<Village 	*>	village;
@@ -294,7 +294,7 @@ public:
 	 * Vector of all building textures for the current world style
 	 */
 
-	std::vector<std::string  >  sTexLoc;
+	std::vector<std::string> sTexLoc;
 	
 	/**
 	 * NULLifies pointers and allocates necessary memory. This should be
@@ -317,8 +317,7 @@ public:
 	 * the structure.
 	 */
 	
-	void addStructure(BUILD_SUB subtype,float x,float y, char* tex, const char *inside);
-	//void addVillage(int buildingCount, int npcMin, int npcMax,const char *inside);
+	void addStructure(BUILD_SUB subtype,float x,float y, std::string tex, std::string inside);
 	
 	/**
 	 * Adds a Mob to the world with the specified type and coordinates.
@@ -346,7 +345,7 @@ public:
 	 * upon object interaction.
 	 */
 	
-	void addObject(/*ITEM_ID id*/std::string in,const char *pickupDialog, float x, float y);
+	void addObject(std::string in, const char *pickupDialog, float x, float y);
 	
 	/**
 	 * Adds a particle to the world with the specified coordinates, dimensions,
@@ -479,8 +478,6 @@ public:
 
 class Arena : public World {
 private:
-	//vec2	 pxy;
-	//World	*exit;
 	Mob 	*mmob;
 public:
 	Arena(World *leave,Player *p,Mob *m);

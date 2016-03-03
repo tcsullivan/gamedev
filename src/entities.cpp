@@ -179,10 +179,9 @@ Structures::Structures(){ //sets the structure type
 }
 Structures::~Structures(){
 	delete tex;
+	
 	if(name)
 		delete[] name;
-	if(inside)
-		delete[] inside;
 }
 
 Mob::Mob(int sub){
@@ -505,16 +504,20 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 	*/
 
 	//unsigned int tempN = (getRand() % 5 + 2);
+	
+	if ( textureLoc.empty() )
+		textureLoc = inWorld->sTexLoc[sub];
+	
 	switch(sub){
 		case STALL_MARKET:
-			tex = new Texturec(1, textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
-			dim = Texture::imageDim(textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
+			tex = new Texturec({ textureLoc });
+			dim = Texture::imageDim( textureLoc );
 			width = dim.x;
 			height = dim.y;
 			break;
 		default:
-			tex = new Texturec(1, textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
-			dim = Texture::imageDim(textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
+			tex = new Texturec({ textureLoc });
+			dim = Texture::imageDim( textureLoc );
 			width = dim.x;
 			height = dim.y;
 			inv = NULL;
