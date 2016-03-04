@@ -179,10 +179,9 @@ Structures::Structures(){ //sets the structure type
 }
 Structures::~Structures(){
 	delete tex;
+	
 	if(name)
 		delete[] name;
-	if(inside)
-		delete[] inside;
 }
 
 Mob::Mob(int sub){
@@ -242,18 +241,11 @@ Object::Object(){
 	inv = NULL;
 }
 
-Object::Object(std::string in, const char *pd){
+Object::Object(std::string in, std::string pd){
 	iname = in;
 
-	if(pd){
-		pickupDialog = new char[strlen(pd)+1];
-		strcpy(pickupDialog,pd);
-		questObject = true;
-	}else{
-		pickupDialog = new char[1];
-		*pickupDialog = '\0';
-		questObject = false;
-	}
+	pickupDialog = pd;
+	questObject = !pd.empty();
 
 	type = OBJECTT;
 	alive = true;
@@ -266,7 +258,6 @@ Object::Object(std::string in, const char *pd){
 	inv = NULL;
 }
 Object::~Object(){
-	delete[] pickupDialog;
 	delete tex;
 	delete[] name;
 }
@@ -469,10 +460,10 @@ void Merchant::interact(){
 
 void Object::interact(void){
 	if(questObject && alive){
-		ui::dialogBox(player->name,":Yes:No",false,pickupDialog);		
+		ui::dialogBox( player->name, ":Yes:No", false, pickupDialog.c_str());
 		ui::waitForDialog();
 		if(ui::dialogOptChosen == 1){
-			player->inv->addItem(/*(ITEM_ID)(identifier)*/iname, 1);
+			player->inv->addItem( iname, 1 );
 			alive = false;
 		}
 	}else{
@@ -509,21 +500,26 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 	*/
 
 	//unsigned int tempN = (getRand() % 5 + 2);
+	
+	if ( textureLoc.empty() )
+		textureLoc = inWorld->sTexLoc[sub];
+	
 	switch(sub){
 		case STALL_MARKET:
-			tex = new Texturec(1, textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
-			dim = Texture::imageDim(textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
+			tex = new Texturec({ textureLoc });
+			dim = Texture::imageDim( textureLoc );
 			width = dim.x;
 			height = dim.y;
 			break;
 		default:
-			tex = new Texturec(1, textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
-			dim = Texture::imageDim(textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
+			tex = new Texturec({ textureLoc });
+			dim = Texture::imageDim( textureLoc );
 			width = dim.x;
 			height = dim.y;
 			inv = NULL;
 			break;
 	}
+	
 	return 0;
 }
 
@@ -542,7 +538,7 @@ void Mob::wander(int timeRun){
 	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
 	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height ){
 		Arena *a = new Arena(currentWorld,player,this);
-		a->setBackground(BG_FOREST);
+		a->setBackground( WorldBGType::Forest );
 		a->setBGM("assets/music/embark.wav");
 		ui::toggleWhiteFast();
 		YAYA = true;

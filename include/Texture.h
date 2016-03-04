@@ -58,7 +58,7 @@ public:
 	 * Contains an array of the GLuints returned from Texture::loadTexture().
 	 */
 
-	GLuint *image = NULL;
+	std::vector<GLuint> image;
 	
 	/**
 	 * Populates the image array from a list of strings, with each string as a
@@ -73,6 +73,7 @@ public:
 	
 	Texturec(uint amt,const char **paths);
 	Texturec(std::vector<std::string>vec);
+	Texturec( std::initializer_list<std::string> l );
 	
 	/**
 	 * Frees memory taken by the image array.

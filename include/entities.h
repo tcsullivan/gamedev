@@ -244,8 +244,8 @@ class Structures : public Entity{
 public:
 	BUILD_SUB bsubtype;
 	World *inWorld;
-	char *inside;
-	char *textureLoc;
+	std::string inside;
+	std::string textureLoc;
 	
 	Structures();
 	~Structures();
@@ -270,11 +270,11 @@ class Object : public Entity{
 private:
 	std::string iname;
 public:
-	char *pickupDialog;
+	std::string pickupDialog;
 	bool questObject = false;
 	
 	Object();
-	Object(std::string in,const char *pd);
+	Object(std::string in,std::string pd);
 	~Object();
 	
 	void reloadTexture(void);

@@ -68,12 +68,12 @@ int commonAIFunc(NPC *speaker){
 				 */
 	
 				if((oxml = exml->FirstChildElement("quest"))){
-					const char *qname;
+					std::string qname;
 					
-					while(oxml){
-						if((qname = oxml->Attribute("assign")))
+					while ( oxml ) {
+						if ( !(qname = oxml->StrAttribute("assign")).empty() )
 							player->qh.assign(qname,"None",(std::string)oxml->GetText());
-						else if((qname = oxml->Attribute("check"))){
+						else if( !(qname = oxml->StrAttribute("check")).empty() ){
 							if(player->qh.hasQuest(qname) && player->qh.finish(qname)){
 								goto CONT;
 							}else{
@@ -283,7 +283,7 @@ void initEverything(void){
 			 * Read in the XML file.
 			 */
 		
-			currentWorld = loadWorldFromXML(xmlFiles[i].c_str());
+			currentWorld = loadWorldFromXML(xmlFiles[i]);
 			break;
 		}
 	}

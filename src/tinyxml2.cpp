@@ -1400,6 +1400,18 @@ const XMLAttribute* XMLElement::FindAttribute( const char* name ) const
     return 0;
 }
 
+std::string XMLElement::StrAttribute( const char* name, const char* value ) const
+{
+	std::string str;
+    const XMLAttribute* a = FindAttribute( name );
+    if ( a ) {
+		if ( !value || XMLUtil::StringEqual( a->Value(), value )) {
+			str = a->Value();
+			return str;
+		}
+	}
+    return str;
+}
 
 const char* XMLElement::Attribute( const char* name, const char* value ) const
 {
@@ -1412,7 +1424,6 @@ const char* XMLElement::Attribute( const char* name, const char* value ) const
     }
     return 0;
 }
-
 
 const char* XMLElement::GetText() const
 {

@@ -38,6 +38,8 @@ distribution.
 #   include <cstring>
 #endif
 
+#include <string>
+
 /*
    TODO: intern strings instead of allocation.
 */
@@ -1186,6 +1188,11 @@ public:
     	@endverbatim
     */
     const char* Attribute( const char* name, const char* value=0 ) const;
+
+	/** Functions the same as Attribute(), but returns the result
+	    as a std::string.
+	*/
+	std::string StrAttribute( const char* name, const char* value=0 ) const;
 
     /** Given an attribute name, IntAttribute() returns the value
     	of the attribute interpreted as an integer. 0 will be

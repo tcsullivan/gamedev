@@ -25,6 +25,9 @@ EXEC = main
 
 all: $(EXEC)
 
+dirty:
+	rm -rf out/world.o
+
 clean:
 	rm -f $(EXEC)
 	rm -f out/*.o

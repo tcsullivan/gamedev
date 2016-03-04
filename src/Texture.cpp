@@ -1,5 +1,7 @@
+#include <algorithm>
+#include <string>
+
 #include <Texture.h>
-#include <string.h>
 
 /**
  * A structure for keeping track of loaded textures.
@@ -173,32 +175,30 @@ namespace Texture{
 Texturec::Texturec(uint amt, ...){
 	va_list fNames;
 	texState = 0;
-	image = new GLuint[amt];
 	va_start(fNames, amt);
-	for(unsigned int i = 0; i < amt; i++){
-		image[i] = Texture::loadTexture(va_arg(fNames, char *));
-	}
+	for(unsigned int i = 0; i < amt; i++)
+		image.push_back( Texture::loadTexture(va_arg(fNames, char *)) );
 	va_end(fNames);
+}
+
+Texturec::Texturec( std::initializer_list<std::string> l )
+{
+	texState = 0;
+	std::for_each( l.begin(), l.end(), [&](std::string s){ image.push_back( Texture::loadTexture( s ) ); });
 }
 
 Texturec::Texturec(std::vector<std::string>v){
 	texState = 0;
-	image = new GLuint[v.size()];
-	for(unsigned int i = 0; i < v.size(); i++){
-		image[i] = Texture::loadTexture(v[i].c_str());
-	}
+	std::for_each( v.begin(), v.end(), [&](std::string s){ image.push_back( Texture::loadTexture( s ) ); });
 }
 
 Texturec::Texturec(uint amt,const char **paths){
 	texState = 0;
-	image = new GLuint[amt];
-	for(unsigned int i = 0; i < amt; i++){
-		image[i] = Texture::loadTexture(paths[i]);
-	}
+	for(unsigned int i = 0; i < amt; i++)
+		image.push_back( Texture::loadTexture(paths[i]) );
 }
 
 Texturec::~Texturec(){
-	delete[] image;
 }
 
 void Texturec::bind(unsigned int bn){

@@ -117,7 +117,6 @@ std::mutex mtx;
 std::condition_variable cv;
 ThreadPool pool(10);
 
-
 /*
  *	loops is used for texture animation. It is believed to be passed to entity
  *	draw functions, although it may be externally referenced instead.
@@ -163,7 +162,7 @@ Menu *currentMenu;
 Menu optionsMenu;
 Menu pauseMenu;
 
-extern WEATHER weather;
+extern WorldWeather weather;
 
 extern int  fadeIntensity;
 extern bool fadeEnable;
@@ -934,10 +933,10 @@ void logic(){
 	 *	Switch between day and night (SUNNY and DARK) if necessary.
 	*/
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
-		if(weather==SUNNY){
-			weather=DARK;
-		}else{
-			weather=SUNNY;
+		if ( weather == WorldWeather::Sunny )
+			weather = WorldWeather::Dark;
+		else {
+			weather = WorldWeather::Sunny;
 			Mix_Pause(2);
 		}
 	}

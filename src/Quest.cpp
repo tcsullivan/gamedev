@@ -33,39 +33,41 @@ int QuestHandler::assign(std::string title,std::string desc,std::string req){
 	return 0;
 }
 
+#include <algorithm>
+
 int QuestHandler::drop(std::string title){
-	for(unsigned int i=0;i<current.size();i++){
-		if(current[i].title == title){
-			current.erase(current.begin()+i);
-			return 0;
-		}
-	}
-	return -1;
+	current.erase( std::remove_if( current.begin(),
+								   current.end(),
+								   [&](Quest q){ return q.title == title; }),
+				   current.end() );
+	
+	return 0;
 }
 
 int QuestHandler::finish(std::string t){
-	for(unsigned int i=0;i<current.size();i++){
-		if(current[i].title == t){
-			for(auto &n : current[i].need){
-				if(player->inv->hasItem(n.name) < n.n)
+	for ( auto c = current.begin(); c != current.end(); c++ ) {
+		if ( (*c).title == t ) {
+			for ( auto &n : (*c).need ) {
+				if ( player->inv->hasItem( n.name ) < n.n )
 					return 0;
 			}
 			
-			for(auto &n : current[i].need){
-				player->inv->takeItem(n.name,n.n);
-			}
+			for ( auto &n : (*c).need )
+				player->inv->takeItem( n.name, n.n );
 			
-			current.erase(current.begin()+i);
+			current.erase( c );
 			return 1;
 		}
 	}
+	
 	return 0;
 }
 
 bool QuestHandler::hasQuest(std::string t){
-	for(unsigned int i=0;i<current.size();i++){
-		if(current[i].title == t)
+	for ( auto &c : current ) {
+		if ( c.title == t )
 			return true;
 	}
+	
 	return false;
 }
