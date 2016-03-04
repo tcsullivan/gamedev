@@ -190,7 +190,7 @@ namespace ui {
 	
 	void setFontSize(unsigned int size){
 		unsigned int i,j;
-		char *buf;
+		unsigned char *buf;
 		
 		fontSize=size;
 		FT_Set_Pixel_Sizes(ftf,0,fontSize);
@@ -230,7 +230,7 @@ namespace ui {
 			 *	making it white-on-black.
 			*/
 			
-			buf = new char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];
+			buf = new unsigned char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];
 		
 			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
 				buf[j*4  ]=255;//fontColor[0];
@@ -1084,7 +1084,8 @@ namespace ui {
 	}
 
 	void takeScreenshot(GLubyte* pixels){
-		GLubyte bgr[SCREEN_WIDTH*SCREEN_HEIGHT*3];
+		std::vector<GLubyte> bgr (SCREEN_WIDTH * SCREEN_HEIGHT * 3, 0);
+		
 		for(uint x = 0; x < SCREEN_WIDTH*SCREEN_HEIGHT*3; x+=3){
 			bgr[x] = pixels[x+2];
 			bgr[x+1] = pixels[x+1];

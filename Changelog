@@ -722,3 +722,14 @@
 	- added StrAttribute() to TinyXML2
 	- more merchant stuff, trading????
 	- improved village XML loading
+
+3/4/2016:
+=========
+
+	- added following functionality to entities
+	- fixed some world shading issues
+	- re-added stars, but stars draw midday
+	- restarted work on arenas
+	- began implementing currency system
+	- made the moon!
+	- merchants are a-o-kay

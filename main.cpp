@@ -164,10 +164,10 @@ Menu pauseMenu;
 
 extern WorldWeather weather;
 
-extern int  fadeIntensity;
-extern bool fadeEnable;
-extern bool fadeWhite;
-extern bool fadeFast;
+extern int  fadeIntensity;	// ui.cpp
+extern bool fadeEnable;		// ui.cpp
+extern bool fadeWhite;		// ui.cpp
+extern bool fadeFast;		// ui.cpp
 
 unsigned int SCREEN_WIDTH;
 unsigned int SCREEN_HEIGHT;
@@ -216,7 +216,7 @@ int main(int argc, char *argv[]){
 	
 	static SDL_GLContext mainGLContext = NULL;
 	
-	gameRunning=false;
+	gameRunning = false;
 
 	/**
 	 * (Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
@@ -420,6 +420,8 @@ int main(int argc, char *argv[]){
 	****     GAMELOOP      ****
 	**************************/
 	
+	//currentWorld->mob.back()->followee = player;
+	
 	gameRunning = true;
 	while(gameRunning){
 		mainLoop();
@@ -482,6 +484,7 @@ void mainLoop(void){
 	 */
 
 	prev = currentWorld;
+	
 
 	//pool.Enqueue(ui::handleEvents);
 	ui::handleEvents();
@@ -490,13 +493,13 @@ void mainLoop(void){
 		currentWorld->bgmPlay(prev);
 		ui::dialogBoxExists = false;
 	}
-    
+
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
 		//pool.Enqueue(logic);
 		logic();
 		prevPrevTime = currentTime;
 	}
-	
+
 	/*
 	 * Update player and entity coordinates.
 	 */
@@ -902,36 +905,11 @@ void logic(){
 			}
 		}
 	}
-	/*for(auto &b : currentWorld->build){
-		switch(b->bsubtype){
-			case FOUNTAIN:
-				for(int r = 0; r < (rand()%25)+10;r++){
-					currentWorld->addParticle(	rand()%HLINE*3 + b->loc.x + b->width/2,
-												b->loc.y + b->height, 
-												HLINE*1.25,
-												HLINE*1.25, 
-												rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,
-												((4+rand()%6)*.05), 
-												{0,0,255}, 
-												2500);
-
-					currentWorld->particles.back()->fountain = true;
-				}
-				break;
-			case FIRE_PIT:
-				for(int r = 0; r < (rand()%20)+10;r++){
-					currentWorld->addParticle(rand()%(int)(b->width/2) + b->loc.x+b->width/4, b->loc.y+3*HLINE, HLINE, HLINE, rand()%2 == 0?-(rand()%3)*.01:(rand()%3)*.01,((4+rand()%6)*.005), {255,0,0}, 400);
-					currentWorld->particles.back()->gravity = false;
-					currentWorld->particles.back()->behind = true;
-				}
-				break;
-			default: break;
-		}
-	}*/
 	
 	/*
 	 *	Switch between day and night (SUNNY and DARK) if necessary.
-	*/
+	 */
+	 
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
 		if ( weather == WorldWeather::Sunny )
 			weather = WorldWeather::Dark;

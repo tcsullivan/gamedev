@@ -8,16 +8,17 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+// holy moly
 #include <iostream>
 #include <cstdlib>
 #include <string>
 #include <vector>
-#include <math.h>
 #include <string>
 #include <fstream>	
 #include <thread>
 #include <mutex>
 #include <future>
+#include <math.h>
 #include <threadpool.h>
 
 #define GLEW_STATIC
@@ -47,7 +48,7 @@ N abso(N v){
 		return v;
 }
 
-extern GLuint colorIndex;
+extern GLuint colorIndex;	// Texture.cpp?
 
 /**
  * This structure contains a set of coordinates for ease of coding.
@@ -104,7 +105,7 @@ typedef col Color;
  * Define the game's name (displayed in the window title).
  */
 
-#define GAME_NAME		"Independent Study v.0.5 alpha - NOW WITH SOUND!"
+#define GAME_NAME		"Independent Study v.0.6 alpha - NOW WITH more c++"
 
 /**
  * The desired width of the game window.

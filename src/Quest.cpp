@@ -1,5 +1,6 @@
-#include <Quest.h>
+#include <algorithm>
 
+#include <Quest.h>
 #include <entities.h>
 
 extern Player *player;
@@ -32,8 +33,6 @@ int QuestHandler::assign(std::string title,std::string desc,std::string req){
 
 	return 0;
 }
-
-#include <algorithm>
 
 int QuestHandler::drop(std::string title){
 	current.erase( std::remove_if( current.begin(),

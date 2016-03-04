@@ -1,20 +1,37 @@
+#include <istream>
+
 #include <entities.h>
 #include <ui.h>
 
-#include <istream>
+extern std::istream *names;
+
+extern Player *player;			// main.cpp
+extern World *currentWorld;		// main.cpp
+extern unsigned int loops;		// main.cpp
+
+GLuint waterTex;
+
+std::vector<int (*)(NPC *)> AIpreload;	// A dynamic array of AI functions that are being preloaded
+std::vector<NPC *> AIpreaddr;			// A dynamic array of pointers to the NPC's that are being assigned the preloads
 
 #define RAND_DIALOG_COUNT 14
 
-extern std::istream *names;
-extern unsigned int loops;
-
-extern World *currentWorld;
-
-extern Player *player;
-
-extern const char *itemName;
-
-GLuint waterTex;
+const char *randomDialog[RAND_DIALOG_COUNT] = {
+	"What a beautiful day it is.",
+	"Have you ever went fast? I have.",
+	"I heard if you complete a quest, you'll get a special reward.",
+	"How much wood could a woodchuck chuck if a woodchuck could chuck wood?",
+	"I don\'t think anyone has ever been able to climb up that hill.",
+	"If you ever see a hole in the ground, watch out; it could mean the end for you.",
+	"Did you know this game has over 5000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
+	"HELP MY CAPS LOCK IS STUCK",
+	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
+	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
+	"Frig.",
+	"The sine of theta equals the opposite over the hypotenuese.",
+	"Did you know the developers spelt brazier as brazzier.",
+	"My dad once said to me, \"Boy, you are in a game.\" I never knew what he meant by that."
+};
 
 void initEntity(){
 	waterTex = Texture::loadTexture("assets/waterTex.png");
@@ -78,6 +95,8 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	
 	name = new char[32];
 	getRandomName(this);
+	
+	followee = NULL;
 }
 
 Player::Player(){ //sets all of the player specific traits on object creation
@@ -360,42 +379,38 @@ NOPE:
 	if(near)ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
 }
 
-/*
- *	NPC::wander, this makes the npcs wander around the near area
- *
- *	timeRun					This variable is the amount of gameloop ticks the entity will wander for
-*/
+/**
+ * Handles NPC movement, usually just random walking.
+ */
 
-void NPC::wander(int timeRun){
-	
-	/*
-	 *	Direction is the variable that decides what direction the entity will travel in
-	 *	the value is either -1, 0, or 1. -1 being left, 0 means that the npc will stay still
-	 *	and a value of 1 makes the entity move to the right
-	*/
-	
+void NPC::
+wander( int timeRun )
+{
 	static int direction;
 	
-	/*
-	 *	Ticks to use is a variable in the entity class that counts the total ticks that need to be used
-	 *
-	 *	This loop only runs when ticksToUse is 0, this means that the speed, direction, etc... Will be
-	 *	calculated only after the npc has finished his current walking state
-	*/
-	
-	if(ticksToUse == 0){
+	if ( followee ) {
+		if ( loc.x < followee->loc.x - 40 )
+			direction = 1;
+		else if ( loc.x > followee->loc.x + 40 )
+			direction = -1;
+		else
+			direction = 0;
+		
+		vel.x = .018 * HLINE * direction;
+	} else if ( ticksToUse == 0 ) {
 		ticksToUse = timeRun;
-		vel.x = .008*HLINE;					//sets the inital velocity of the entity
-		direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
-											//this lets the entity move left, right, or stay still
-		if(direction==0)ticksToUse*=2;
-		vel.x *= direction;					//changes the velocity based off of the direction
+		
+		vel.x = .008 * HLINE;
+		direction = (getRand() % 3 - 1);
+		
+		if ( direction == 0 )
+			ticksToUse *= 2;
+		
+		vel.x *= direction;
 	}
-	ticksToUse--;							 //removes one off of the entities timer
+	
+	ticksToUse--;
 }
-
-std::vector<int (*)(NPC *)> AIpreload;	// A dynamic array of AI functions that are being preloaded
-std::vector<NPC *> AIpreaddr;			// A dynamic array of pointers to the NPC's that are being assigned the preloads
 
 void NPC::addAIFunc(int (*func)(NPC *),bool preload){
 	if(preload){										// Preload AI functions so that they're given after 
@@ -409,23 +424,6 @@ void NPC::addAIFunc(int (*func)(NPC *),bool preload){
 void NPC::clearAIFunc(void){
 	aiFunc.clear();
 }
-
-const char *randomDialog[RAND_DIALOG_COUNT] = {
-	"What a beautiful day it is.",
-	"Have you ever went fast? I have.",
-	"I heard if you complete a quest, you'll get a special reward.",
-	"How much wood could a woodchuck chuck if a woodchuck could chuck wood?",
-	"I don\'t think anyone has ever been able to climb up that hill.",
-	"If you ever see a hole in the ground, watch out; it could mean the end for you.",
-	"Did you know this game has over 5000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
-	"HELP MY CAPS LOCK IS STUCK",
-	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
-	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
-	"Frig.",
-	"The sine of theta equals the opposite over the hypotenuese.",
-	"Did you know the developers spelt brazier as brazzier.",
-	"My dad once said to me, \"Boy, you are in a game.\" I never knew what he meant by that."
-};
 
 void NPC::interact(){ //have the npc's interact back to the player
 	int (*func)(NPC *);
@@ -466,6 +464,12 @@ void Object::interact(void){
 		alive = false;
 		player->inv->addItem(iname, 1);
 	}
+}
+
+void Entity::
+follow( Entity *e )
+{
+	followee = e;
 }
 
 /*
@@ -530,12 +534,25 @@ void Mob::wander(int timeRun){
 	static unsigned int heya=0,hi=0;
 	static bool YAYA = false;
 	
+	if ( followee ) {
+		if ( loc.x < followee->loc.x - 40 )
+			direction = 1;
+		else if ( loc.x > followee->loc.x + 40 )
+			direction = -1;
+		else
+			direction = 0;
+		
+		vel.x = .018 * HLINE * direction;
+		return;
+	}
+	
 	if(aggressive && !YAYA &&
 	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
 	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height ){
 		Arena *a = new Arena(currentWorld,player,this);
 		a->setBackground( WorldBGType::Forest );
 		a->setBGM("assets/music/embark.wav");
+		
 		ui::toggleWhiteFast();
 		YAYA = true;
 		ui::waitForCover();
@@ -646,7 +663,7 @@ void Player::sspawn(float x,float y){
 			std::getline(data,ddata);
 			count = std::stoi(ddata);
 			std::getline(data,ddata);
-			inv->items.push_back((item_t){count,(uint)std::stoi(ddata)});
+			inv->items.push_back(item_t{count,(uint)std::stoi(ddata)});
 		}
 		
 		std::getline(data,ddata);

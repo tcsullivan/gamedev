@@ -1,7 +1,11 @@
 #include <algorithm>
+#include <sstream>
 
 #include <world.h>
 #include <ui.h>
+
+#include <tinyxml2.h>
+using namespace tinyxml2;
 
 /**
  * Defines how many HLINEs tall a blade of grass can be.
@@ -16,8 +20,22 @@
 #define INDOOR_FLOOR_HEIGHT     100
 
 
-extern Player *player;
+extern Player *player;						// main.cpp?
+extern World  *currentWorld;				// main.cpp
+extern int     commonAIFunc(NPC *);			// entities.cpp
+extern void    commonTriggerFunc(Mob *);	// entities.cpp
+extern bool    inBattle;
 
+extern unsigned int tickCount;				// main.cpp
+
+int worldShade = 0;
+
+std::string currentXML;
+
+std::vector<std::string> inside;		// tracks indoor worlds
+
+std::vector<World *>     battleNest;	// tracks arenas
+std::vector<vec2>        battleNestLoc;	// keeps arena locations
 
 /**
  * Contains the current weather, used in many other places/files.
@@ -230,7 +248,7 @@ generate( unsigned int width )
         UserError("Invalid world dimensions");
 
     // allocate space for world
-    worldData = std::vector<WorldData> (width + GROUND_HILLINESS, (WorldData) { false, {0,0}, 0, 0 });
+    worldData = std::vector<WorldData> (width + GROUND_HILLINESS, WorldData { false, {0,0}, 0, 0 });
     lineCount = worldData.size();
     
     // prepare for generation
@@ -270,7 +288,11 @@ generate( unsigned int width )
     worldStart = (width - GROUND_HILLINESS) * HLINE / 2 * -1;
 	
     // create empty star array, should be filled here as well...
-	star = std::vector<vec2> (100, (vec2) { 0, 0 } );
+	star = std::vector<vec2> (100, vec2 { 0, 400 } );
+	for ( auto &s : star ) {
+		s.x = (getRand() % (-worldStart * 2)) + worldStart;
+		s.y = (getRand() % SCREEN_HEIGHT) + 100.0f;
+	}
 }
 
 /**
@@ -364,20 +386,6 @@ bgmPlay( World *prev ) const
 }
 
 /**
- * Variables used by World::draw().
- * @{
- */
-
-extern vec2 offset;
-extern unsigned int tickCount;
-
-int worldShade = 0;
-
-/**
- * @}
- */
-
-/**
  * The world draw function.
  * 
  * This function will draw the background layers, entities, and player to the
@@ -436,7 +444,7 @@ draw( Player *p )
 
 		if (tickCount % DAY_CYCLE) {	// The above if statement doesn't check for exact midnight.
 				
-			safeSetColorA( 255, 255, 255, shadeBackground + getRand() % 30 - 15 );
+			safeSetColorA( 255, 255, 255, 255 - (getRand() % 30 - 15) );
 			
 			for ( i = 0; i < 100; i++ ) {
 				glRectf(star[i].x + offset.x * .9,
@@ -446,7 +454,7 @@ draw( Player *p )
 						);
 			}
 		}
-	}
+	} 
 	
 	// draw remaining background items
 	
@@ -464,7 +472,7 @@ draw( Player *p )
 		}
 	glEnd();
 	
-	for ( i = 4; i--; ) {
+	for ( i = 0; i < 4; i++ ) {
 		bgTex->bindNext();
 		safeSetColorA( bgDraw[i][0] - shadeBackground, bgDraw[i][0] - shadeBackground, bgDraw[i][0] - shadeBackground, bgDraw[i][1] );
 	
@@ -515,7 +523,11 @@ draw( Player *p )
 	glActiveTexture( GL_TEXTURE0 );
 	bgTex->bindNext();
 	
-	GLfloat pointArray[ light.size() + (int)p->light ][2];
+	// help me
+	std::unique_ptr<GLfloat[][2]> pointArrayBuf = std::make_unique<GLfloat[][2]> (light.size() + p->light);
+	auto pointArray = pointArrayBuf.get();
+	
+	//GLfloat pointArray[ light.size() + (int)p->light ][2];
 	
 	for ( i = 0; i < (int)light.size(); i++ ) {
 		pointArray[i][0] = light[i].loc.x - offset.x;
@@ -527,7 +539,7 @@ draw( Player *p )
 	
 	glUseProgram( shaderProgram );
 	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0 );
-	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 1 );
+	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 0.5f - worldShade / 50.0f );
 	
 	if ( p->light ) {
 		pointArray[light.size() + 1][0] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
@@ -984,8 +996,6 @@ World *World::goWorldRight(Player *p){
 	return this;
 }
 
-std::vector<std::string> inside;
-
 World *World::
 goInsideStructure( Player *p )
 {
@@ -1072,11 +1082,6 @@ void World::save(void){
 	out.close();
 }
 
-#include <sstream>
-
-extern int  commonAIFunc(NPC *);
-extern void commonTriggerFunc(Mob *);
-
 void World::load(void){
 	std::string save,data,line;
 	const char *filedata;
@@ -1143,7 +1148,7 @@ void IndoorWorld::generate(unsigned int width){		// Generates a flat area of wid
 	lineCount=width+GROUND_HILLINESS;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
 	if(lineCount<=0)abort();
 	
-	worldData = std::vector<WorldData> (lineCount, (WorldData) { false, {0,0}, INDOOR_FLOOR_HEIGHT, 0 });
+	worldData = std::vector<WorldData> (lineCount, WorldData { false, {0,0}, INDOOR_FLOOR_HEIGHT, 0 });
 	
 	worldStart = (width - GROUND_HILLINESS) * HLINE / 2 * -1;
 }
@@ -1159,7 +1164,9 @@ void IndoorWorld::draw(Player *p){
 	
 	glEnable(GL_TEXTURE_2D);
 	
-	GLfloat pointArray[light.size()][2];
+	std::unique_ptr<GLfloat[][2]> pointArrayBuf = std::make_unique<GLfloat[][2]> (light.size());
+	auto pointArray = pointArrayBuf.get();
+	
 	for(uint w = 0; w < light.size(); w++){
 		pointArray[w][0] = light[w].loc.x - offset.x;
 		pointArray[w][1] = light[w].loc.y;
@@ -1240,11 +1247,6 @@ void IndoorWorld::draw(Player *p){
 	p->draw();
 }
 
-extern bool inBattle;
-
-std::vector<World *> battleNest;
-std::vector<vec2>    battleNestLoc;
-
 Arena::Arena(World *leave,Player *p,Mob *m){
 	generate(800);
 	addMob(MS_DOOR,100,100);
@@ -1286,13 +1288,6 @@ World *Arena::exitArena(Player *p){
 		return this;
 	}
 }
-
-#include <tinyxml2.h>
-using namespace tinyxml2;
-
-std::string currentXML;
-
-extern World *currentWorld;
 
 World *loadWorldFromXML(std::string path){
 	if ( !currentXML.empty() )

@@ -7,11 +7,11 @@
  * A structure for keeping track of loaded textures.
  */
 
-struct texture_t {
+typedef struct {
 	std::string name;	/**< The file path of the texture.		*/
 	GLuint tex;			/**< The GLuint for the loaded texture. */
 	dim2 dim;			/**< The dimensions of the texture.		*/
-};
+} texture_t;
 
 struct index_t {
 	Color color;
@@ -26,7 +26,7 @@ struct index_t {
  * this array and reuse GLuint's to save memory.
  */
 
-static std::vector<struct texture_t> LoadedTexture;
+static std::vector<texture_t> LoadedTexture;
 
 namespace Texture{
 	Color pixels[8][4];
@@ -81,7 +81,7 @@ namespace Texture{
 					 );
 		
 		// add texture to LoadedTexture
-		LoadedTexture.push_back((struct texture_t){fileName,object,{image->w,image->h}});		
+		LoadedTexture.push_back(texture_t{fileName,object,{image->w,image->h}});		
 		
 		// free the SDL_Surface
 		SDL_FreeSurface(image);

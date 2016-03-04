@@ -132,6 +132,7 @@ void initEntity();
 
 class Entity{
 public:
+	Entity *followee;
 	Inventory *inv;
 
 	/*
@@ -186,6 +187,8 @@ public:
 	
 	virtual void wander(int){}
 	virtual void interact(){}
+
+	void follow(Entity *e);
 	
 	virtual ~Entity(){}
 };

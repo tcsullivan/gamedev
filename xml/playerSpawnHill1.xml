@@ -4,7 +4,7 @@
 	<generation type="Random" width="500" />
 	<link left="playerSpawnHill2.xml" />
 	
-	<mob type="1" aggressive="false" />
+	<mob x="300" type="1" aggressive="true" />
 	
 	<trigger x="-300" id="Test" />
 	

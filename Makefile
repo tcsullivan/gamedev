@@ -12,9 +12,9 @@ ifeq ($(TARGET_OS),win32)
 	       -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
 endif
 
-CXXFLAGS = -m$(TARGET_BITS) -std=c++11
+CXXFLAGS = -m$(TARGET_BITS) -std=c++14
 CXXINC   = -Iinclude -Iinclude/freetype2
-CXXWARN  = -Wall -Wextra -Werror
+CXXWARN  = -Wall -Wextra -Werror -pedantic-errors
 
 CXXSRCDIR = src
 CXXOUTDIR = out
@@ -32,7 +32,10 @@ clean:
 	rm -f $(EXEC)
 	rm -f out/*.o
 
-$(EXEC): $(CXXOUTDIR)/$(CXXOBJ)
+cleandata:
+	rm -rf xml/*.dat
+
+$(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
 	@echo "  CXX/LD  main"
 	@$(CXX) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/*.o $(LIBS)
 

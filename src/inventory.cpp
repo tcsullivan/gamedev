@@ -14,6 +14,8 @@ static vec2 itemLoc;
 Mix_Chunk* swordSwing;
 
 static std::vector<Item *> itemMap;
+static GLuint *itemtex;
+void itemDraw(Player *p,uint id);
 
 void items(void){
 	XMLDocument xml;
@@ -44,7 +46,7 @@ int Inventory::addItem(std::string name,uint count){
 					return 0;
 				}
 			}
-			items.push_back((item_t){count,i});
+			items.push_back( item_t { count, i });
 			return 0;
 		}
 	}
@@ -107,9 +109,6 @@ int Inventory::hasItem(std::string name){
 	
 	return 0;
 }
-
-static GLuint *itemtex;
-void itemDraw(Player *p,uint id);
 
 void initInventorySprites(void){
 	

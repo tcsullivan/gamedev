@@ -4,30 +4,28 @@
 #include <ui.h>
 
 #include <tinyxml2.h>
-
 using namespace tinyxml2;
 
-extern World	*currentWorld;
-extern Player	*player;
+extern Player	*player;						// main.cpp
+extern World	*currentWorld;					// main.cpp
 
-extern float shit;
-extern Menu* currentMenu;
-extern Menu pauseMenu;
-extern Menu optionsMenu;
+extern float  shit;
+extern Menu  *currentMenu;
+extern Menu   pauseMenu;
+extern Menu   optionsMenu;
 
-extern void mainLoop(void);
+extern void mainLoop(void);						// main.cpp
+
+extern std::vector<NPC *> AIpreaddr;			// entities.cpp
+extern std::vector<int (*)(NPC *)> AIpreload;	// entities.cpp
+
+std::vector<XMLElement *> dopt;
+
+void destroyEverything(void);
 
 void segFault(){
 	(*((int *)NULL))++;
 }
-
-
-typedef struct {
-	NPC *npc;
-	unsigned int index;
-} NPCDialog;
-
-std::vector<XMLElement *> dopt;
 
 int commonAIFunc(NPC *speaker){
 	XMLDocument xml;
@@ -252,7 +250,6 @@ void commonTriggerFunc(Mob *callee){
 	}
 }
 
-void destroyEverything(void);
 void initEverything(void){
 	std::vector<std::string> xmlFiles;
 	XMLDocument xml;
@@ -313,9 +310,6 @@ void initEverything(void){
 	currentWorld->bgmPlay(NULL);
 	atexit(destroyEverything);
 }
-
-extern std::vector<int (*)(NPC *)> AIpreload;
-extern std::vector<NPC *> AIpreaddr;
 
 void destroyEverything(void){
 	currentWorld->save();
