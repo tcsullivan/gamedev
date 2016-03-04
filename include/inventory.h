@@ -62,7 +62,7 @@ void initInventorySprites(void);
 void destroyInventory(void);
 
 const char *getItemTexturePath(std::string name);
-Texturec *getItemTexture(std::string name);
+GLuint getItemTexture(std::string name);
 float getItemWidth(std::string name);
 float getItemHeight(std::string name);
 

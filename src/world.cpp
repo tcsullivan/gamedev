@@ -303,7 +303,7 @@ update( Player *p, unsigned int delta )
 	}
 
     // iterate through particles
-    particles.erase( std::remove_if( particles.begin(), particles.end(), [&delta](Particles part){ return part.kill( delta ); }), particles.end());
+    particles.erase( std::remove_if( particles.begin(), particles.end(), [&delta](Particles &part){return part.kill(delta);}), particles.end());
     for ( auto part = particles.begin(); part != particles.end(); part++ ) {
 		if ( (*part).canMove ) {
 			(*part).loc.y += (*part).vely * delta;
@@ -464,7 +464,7 @@ draw( Player *p )
 		}
 	glEnd();
 	
-	for ( i = 4; i--; ) {
+	for (i = 0; i < 4; i++) {
 		bgTex->bindNext();
 		safeSetColorA( bgDraw[i][0] - shadeBackground, bgDraw[i][0] - shadeBackground, bgDraw[i][0] - shadeBackground, bgDraw[i][1] );
 	
@@ -1440,15 +1440,16 @@ loadWorldFromXMLNoSave( std::string path ) {
 				tmp->addMerchant(0,100);
 				if(vil->FirstChildElement("buy")){
 					std::cout << "Buy" << std::endl;
-					/*bs.member = 0;
-					bs.cost.type = 0;
-					bs.cost.item = vil->FirstChildElement("buy")->Attribute("item");
-					bs.cost.price =vil->FirstChildElement("buy")->IntAttribute("cost");*/
-					tmp->merchant.back()->bsinv.push_back({0,"Dank MayMay",420});
+					//Trade goodMeme(1,"Dank MayMay",1,"Sword");
+					//tmp->merchant.back()->trade.push_back(Trade());
 				}if(vil->FirstChildElement("sell")){
 					std::cout << "Sell" << std::endl;
 				}if(vil->FirstChildElement("trade")){
 					std::cout << "Trade" << std::endl;
+					tmp->merchant.back()->trade.push_back(Trade(vil->FirstChildElement("trade")->IntAttribute("quantity"),
+																vil->FirstChildElement("trade")->Attribute("item"),
+																vil->FirstChildElement("trade")->IntAttribute("quantity1"),
+																vil->FirstChildElement("trade")->Attribute("item1")));
 				}
 				strcpy(tmp->merchant.back()->name,"meme");
 

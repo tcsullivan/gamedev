@@ -10,14 +10,14 @@
 	
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="false" />
-	<!-- <structure type="5" inside="playerSpawnHill1_Building1.xml" /> -->
 	<village name="the Cranmore Tubing Park">
 		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
 		<structure type="5" x="-500" inside="playerSpawnHill1_Building1.xml"/>
 		<stall type="market" texture="assets/style/classic/stall.png">
 			<buy item="Dank MayMay" cost="420"/>
 			<sell item="Dank MayMay" cost="666"/>
-			<trade item="Dank MayMay" item1="Sword"/>
+			<trade quantity="420" item="Dank MayMay" quantity1="1" item1="Wood Sword"/>
+			<trade quantity="666" item="Wood Sword" quantity1="420" item1="Dank MayMay"/>
 		</stall>
 	</village>
 

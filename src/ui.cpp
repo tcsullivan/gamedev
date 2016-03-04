@@ -120,8 +120,8 @@ namespace ui {
 	bool posFlag=false;
 	bool dialogPassive = false;
 	bool dialogMerchant = false;
-	std::vector<BuySell> *minv;
 	int dialogPassiveTime = 0;
+	Trade merchTrade;
 
 	
 	/*
@@ -131,6 +131,7 @@ namespace ui {
 	bool dialogBoxExists = false;
 	bool dialogImportant = false;
 	unsigned char dialogOptChosen = 0;
+	unsigned char merchOptChosen = 0;
 	
 	unsigned int textWrapLimit = 110;
 	
@@ -313,6 +314,7 @@ namespace ui {
 		unsigned int i=0;
 		float xo=x,yo=y;
 		vec2 add;
+		//vec2 off = { (float)floor(x), (float)floor(y) };
 		
 		/*
 		 *	Loop on each character:
@@ -325,6 +327,14 @@ namespace ui {
 				if(s[i] == ' ')
 					i++;
 			}
+			if(i && (i / (float)textWrapLimit == i / textWrapLimit)){
+ 				yo -= fontSize * 1.05;
+ 				xo = x;
+ 				
+				// skip a space if it's there since we just newline'd
+  				if(s[i] == ' ')
+  					i++;
+  			}
 			if(s[i] == '\n'){
 				yo-=fontSize*1.05;
 				xo=x;
@@ -523,13 +533,17 @@ namespace ui {
 			ret[0] = '\0';
 	}
 
-	void merchantBox(const char *name,std::vector<BuySell> *bsinv,const char *opt,bool passive,const char *text,...){
+
+	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...){
 		std::cout << "Buying and selling on the bi-weekly!" << std::endl;
 		va_list dialogArgs;
 		size_t len;
 		
-		minv = bsinv;
 		dialogPassive = passive;
+
+		std::cout << "Market Trading: " << trade.quantity[0] << " " << trade.item[0] << " for " << trade.quantity[1] << " " << trade.item[1] << std::endl;
+
+		merchTrade = trade;
 		
 		// clear the buffer
 		memset(dialogBoxText, '\0', 512);
@@ -665,7 +679,7 @@ namespace ui {
 					setFontSize(16);
 				}
 			}else if(dialogMerchant){
-				static int dispItem;
+				//static int dispItem;
 
 				x=offset.x-SCREEN_WIDTH/6;
 				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
@@ -685,32 +699,61 @@ namespace ui {
 				
 				// draw typeOut'd text
 				putString(x + HLINE, y - fontSize - HLINE, (rtext = typeOut(dialogBoxText)));
-				merchAOptLoc[0][0] = offset.x - (SCREEN_WIDTH / 6.5) - 16;
-				merchAOptLoc[1][0] = offset.x + (SCREEN_WIDTH / 6.5);
-				merchAOptLoc[0][1] = offset.y + (SCREEN_HEIGHT *.25);
-				merchAOptLoc[1][1] = offset.y + (SCREEN_HEIGHT *.25);
-				merchAOptLoc[0][2] = offset.x - (SCREEN_WIDTH / 6.5);
-				merchAOptLoc[1][2] = offset.x + (SCREEN_WIDTH / 6.5) + 16;
+
+				std::string itemString1 = std::to_string(merchTrade.quantity[0]);
+				itemString1 += "x";
+
+				std::string itemString2 = std::to_string(merchTrade.quantity[1]);
+				itemString2 += "x";
+
+				putStringCentered(offset.x - (SCREEN_WIDTH / 10) + 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + (fontSize*2), itemString1.c_str());
+				putStringCentered(offset.x - (SCREEN_WIDTH / 10) + 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + fontSize, merchTrade.item[0].c_str());
+
+				putStringCentered(offset.x + (SCREEN_WIDTH / 10) - 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + (fontSize*2), itemString2.c_str());
+				putStringCentered(offset.x + (SCREEN_WIDTH / 10) - 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + fontSize, merchTrade.item[1].c_str());
+
+				putStringCentered(offset.x,offset.y + (SCREEN_HEIGHT / 5) + 60, "for");
+
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[0]));
+				glBegin(GL_QUADS);
+					glTexCoord2d(0,1);glVertex2f(offset.x - (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5));
+					glTexCoord2d(1,1);glVertex2f(offset.x - (SCREEN_WIDTH / 10) + 40,offset.y + (SCREEN_HEIGHT/5));
+					glTexCoord2d(1,0);glVertex2f(offset.x - (SCREEN_WIDTH / 10) + 40,offset.y + (SCREEN_HEIGHT/5) + 40);
+					glTexCoord2d(0,0);glVertex2f(offset.x - (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5) + 40);
+				glEnd();
+
+				glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[1]));
+				glBegin(GL_QUADS);
+					glTexCoord2d(0,1);glVertex2f(offset.x + (SCREEN_WIDTH / 10) - 40,offset.y + (SCREEN_HEIGHT/5));
+					glTexCoord2d(1,1);glVertex2f(offset.x + (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5));
+					glTexCoord2d(1,0);glVertex2f(offset.x + (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5) + 40);
+					glTexCoord2d(0,0);glVertex2f(offset.x + (SCREEN_WIDTH / 10) - 40,offset.y + (SCREEN_HEIGHT/5) + 40);
+				glEnd();
+				glDisable(GL_TEXTURE_2D);
+
+				merchAOptLoc[0][0] = offset.x - (SCREEN_WIDTH / 8.5) - 16;
+				merchAOptLoc[1][0] = offset.x + (SCREEN_WIDTH / 8.5) + 16;
+				merchAOptLoc[0][1] = offset.y + (SCREEN_HEIGHT *.2);
+				merchAOptLoc[1][1] = offset.y + (SCREEN_HEIGHT *.2);
+				merchAOptLoc[0][2] = offset.x - (SCREEN_WIDTH / 8.5);
+				merchAOptLoc[1][2] = offset.x + (SCREEN_WIDTH / 8.5);
 
 				for(i = 0; i < 2; i++){
-					if(mouse.x > merchAOptLoc[i][0] && mouse.x < merchAOptLoc[i][2] &&
+					if(((merchAOptLoc[i][0] < merchAOptLoc[i][2]) ? 
+						(mouse.x > merchAOptLoc[i][0] && mouse.x < merchAOptLoc[i][2]) : 
+						 (mouse.x < merchAOptLoc[i][0] && mouse.x > merchAOptLoc[i][2])) &&
 					   mouse.y > merchAOptLoc[i][1] - 8 && mouse.y < merchAOptLoc[i][1] + 8){
-					   	dispItem++;
-						glColor3ub(255,255,  0);
+						glColor3ub(255,255, 0);
 					}else{
 						glColor3ub(255,255,255);
 					}
+					glBegin(GL_TRIANGLES);
+						glVertex2f(merchAOptLoc[i][0],merchAOptLoc[i][1]);
+						glVertex2f(merchAOptLoc[i][2],merchAOptLoc[i][1]-8);
+						glVertex2f(merchAOptLoc[i][2],merchAOptLoc[i][1]+8);
+					glEnd();
 				}
-
-				glBegin(GL_TRIANGLES);
-					glVertex2f(merchAOptLoc[0][0],merchAOptLoc[0][1]);
-					glVertex2f(merchAOptLoc[0][2],merchAOptLoc[0][1]-8);
-					glVertex2f(merchAOptLoc[0][2],merchAOptLoc[0][1]+8);
-
-					glVertex2f(merchAOptLoc[1][2],merchAOptLoc[1][1]);
-					glVertex2f(merchAOptLoc[1][0],merchAOptLoc[1][1]-8);
-					glVertex2f(merchAOptLoc[1][0],merchAOptLoc[1][1]+8);
-				glEnd();
 
 			
 				// draw / handle dialog options if they exist
@@ -1410,7 +1453,7 @@ DONE:
 					//currentWorld->addVillage(player->loc.x, player->loc.y, 5, 10, 100, NULL);
 					break;
 				case SDLK_b:
-					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, NULL, NULL);
+					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
 				case SDLK_F12:

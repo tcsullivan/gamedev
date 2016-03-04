@@ -147,6 +147,8 @@ Merchant::Merchant(){	//sets all of the Merchant specific traits on object creat
 	
 	maxHealth = health = 100;
 	canMove = true;
+
+	trade.reserve(100);
 	
 	//tex = new Texturec(1,"assets/NPC.png");
 	//inv = new Inventory(NPC_INV_SIZE);
@@ -449,10 +451,12 @@ void NPC::interact(){ //have the npc's interact back to the player
 }
 
 void Merchant::interact(){
-	ui::merchantBox(name, &bsinv, ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
+	ui::merchantBox(name, trade.back(), ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
 	ui::waitForDialog();
 	if(ui::dialogOptChosen == 1){
 		std::cout << "Gimme ye' munny" << std::endl;
+		if(player->inv->takeItem(trade.back().item[1],trade.back().quantity[1]) >= 0)
+			player->inv->addItem(trade.back().item[0],trade.back().quantity[0]);
 	}else{
 		std::cout << "See ye!" << std::endl;
 	}
