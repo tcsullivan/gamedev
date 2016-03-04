@@ -146,7 +146,7 @@ namespace ui {
 	*/
 	
 	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...);
-	void merchantBox(const char *name, std::vector<BuySell> *items, const char *opt,bool passive,const char *text,...);
+	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...);
 	void merchantBox();
 	void waitForDialog(void);
 	

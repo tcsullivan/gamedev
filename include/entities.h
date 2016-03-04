@@ -52,22 +52,20 @@ enum BUILD_SUB{
 	STALL_TRADER = 71
 };
 
-class BuySell{
+class Trade{
 public:
-	int member;
-	union{
-		struct{
-			std::string item1;
-			std::string item2;
-		}trade;
-		struct{
-			enum type{BUY,SELL};
-			std::string item;
-			int price;
-		}cost;
-	};
-	BuySell(){}
-	~BuySell(){}
+	std::string item[2];
+	int quantity[2];
+	Trade(int qo, const char* o, int qt, const char* t){
+		item[0] = o;
+		item[1] = t;
+
+		quantity[0] = qo;
+		quantity[1] = qt;
+
+		std::cout << "Trading: " << quantity[0] << " " << item[0] << " for " << quantity[1] << " " << item[1] << std::endl;
+	}
+	Trade(){}
 };
 
 class World;
@@ -220,7 +218,8 @@ public:
 
 class Merchant : public NPC{
 public:
-	std::vector<BuySell>bsinv;
+	std::vector<Trade>trade;
+
 	void interact();
 
 	Merchant();

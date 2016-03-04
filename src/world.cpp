@@ -325,7 +325,7 @@ update( Player *p, unsigned int delta )
 	}
 
     // iterate through particles
-    particles.erase( std::remove_if( particles.begin(), particles.end(), [&delta](Particles part){ return part.kill( delta ); }), particles.end());
+    particles.erase( std::remove_if( particles.begin(), particles.end(), [&delta](Particles &part){return part.kill(delta);}), particles.end());
     for ( auto part = particles.begin(); part != particles.end(); part++ ) {
 		if ( (*part).canMove ) {
 			(*part).loc.y += (*part).vely * delta;
@@ -1411,6 +1411,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 	while(vil){
 		name = vil->Name();
 		randx = 0;
+		//static BuySell bs;
 
 		/**
 		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
@@ -1432,10 +1433,18 @@ loadWorldFromXMLNoSave( std::string path ) {
 							   vil->StrAttribute("texture"),
 							   vil->StrAttribute("inside"));
 				tmp->addMerchant(0,100);
-				if(!strcmp(name,"buy")){
-					std::cout << "Buying";
-				}else if(!strcmp(name,"sell")){
-					std::cout << "Selling";
+				if(vil->FirstChildElement("buy")){
+					std::cout << "Buy" << std::endl;
+					//Trade goodMeme(1,"Dank MayMay",1,"Sword");
+					//tmp->merchant.back()->trade.push_back(Trade());
+				}if(vil->FirstChildElement("sell")){
+					std::cout << "Sell" << std::endl;
+				}if(vil->FirstChildElement("trade")){
+					std::cout << "Trade" << std::endl;
+					tmp->merchant.back()->trade.push_back(Trade(vil->FirstChildElement("trade")->IntAttribute("quantity"),
+																vil->FirstChildElement("trade")->Attribute("item"),
+																vil->FirstChildElement("trade")->IntAttribute("quantity1"),
+																vil->FirstChildElement("trade")->Attribute("item1")));
 				}
 				strcpy(tmp->merchant.back()->name,"meme");
 

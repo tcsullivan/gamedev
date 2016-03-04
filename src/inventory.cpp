@@ -68,7 +68,7 @@ int Inventory::takeItem(std::string name,uint count){
 	}
 	
 	if(id == 999999)
-		return -1;
+		return -1; //if no such item exists
 	
 	/*
 	 * Inventory lookup
@@ -139,6 +139,15 @@ const char *getItemTexturePath(std::string name){
 			return i->texloc.c_str();
 	}
 	return NULL;
+}
+
+GLuint getItemTexture(std::string name){
+	for(auto &i : itemMap){
+		if(i->name == name)
+			return Texture::loadTexture(i->texloc);
+	}
+
+	return Texture::loadTexture("assets/items/ITEM_TEST.png");
 }
 
 float getItemWidth(std::string name){
