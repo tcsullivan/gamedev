@@ -523,15 +523,12 @@ draw( Player *p )
 	glActiveTexture( GL_TEXTURE0 );
 	bgTex->bindNext();
 	
-	// help me
-	std::unique_ptr<GLfloat[][2]> pointArrayBuf = std::make_unique<GLfloat[][2]> (light.size() + p->light);
+	std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size() + p->light));
 	auto pointArray = pointArrayBuf.get();
 	
-	//GLfloat pointArray[ light.size() + (int)p->light ][2];
-	
 	for ( i = 0; i < (int)light.size(); i++ ) {
-		pointArray[i][0] = light[i].loc.x - offset.x;
-		pointArray[i][1] = light[i].loc.y;
+		pointArray[2 * i    ] = light[i].loc.x - offset.x;
+		pointArray[2 * i + 1] = light[i].loc.y;
 	}
 	
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
@@ -542,20 +539,20 @@ draw( Player *p )
 	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 0.5f - worldShade / 50.0f );
 	
 	if ( p->light ) {
-		pointArray[light.size() + 1][0] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
-		pointArray[light.size() + 1][1] = (float)( p->loc.y );
+		pointArray[2 * (light.size() + 1)    ] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
+		pointArray[2 * (light.size() + 1) + 1] = (float)( p->loc.y );
 	}
 	
 	if ( light.size() + (int)p->light == 0)
 		glUniform1i( glGetUniformLocation( shaderProgram, "numLight"), 0);
 	else {
 		glUniform1i ( glGetUniformLocation( shaderProgram, "numLight"     ), light.size() + (int)p->light );
-		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size() + (int)p->light, (GLfloat *)&pointArray ); 
+		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size() + (int)p->light, pointArray ); 
 		glUniform3f ( glGetUniformLocation( shaderProgram, "lightColor"   ), 1.0f, 1.0f, 1.0f );
 	}
 	
     /*
-     * Draw the dirt?
+     * Draw the dirt.
      */
     
 	glBegin( GL_QUADS );
@@ -807,9 +804,19 @@ singleDetect( Entity *e )
 	}
 }
 
+/**
+ * Handle entity logic for the world.
+ * 
+ * This function runs World::singleDetect() for the player and every entity
+ * currently in a vector of this world. Particles and village entrance/exiting
+ * are also handled here.
+ */
+
 void World::
 detect( Player *p )
 {
+	int l;
+	
 	// handle the player
 	std::thread( &World::singleDetect, this, p).detach();
 		
@@ -819,64 +826,77 @@ detect( Player *p )
         
     // handle particles
 	for ( auto &part : particles ) {
-		int l;
-		unsigned int i;
-		l=(part.loc.x + part.width / 2 - worldStart) / HLINE;
-		if(l < 0) l=0;
-		i = l;
-		if(i > lineCount-1) i=lineCount-1;
-		if(part.loc.y < worldData[i].groundHeight){
-			part.loc.y = worldData[i].groundHeight;
+		
+		// get particle's current world line
+		l = (part.loc.x + part.width / 2 - worldStart) / HLINE;
+		
+		if ( l < 0 )
+			l = 0;
+
+		if ( l > (int)(lineCount - 1) )
+			l = lineCount - 1;
+
+		// handle ground collision
+		if ( part.loc.y < worldData[l].groundHeight ) {
+			part.loc.y = worldData[l].groundHeight;
 			part.vely = 0;
 			part.velx = 0;
 			part.canMove = false;
-		}else{
-			if(part.gravity && part.vely > -2)
-				part.vely-=.003 * deltaTime;
+		} else if ( part.gravity && part.vely > -2 )
+			part.vely -= .003 * deltaTime;
+	}
+	
+	// handle particle creation
+	for ( auto &b : build ) {
+		switch ( b->bsubtype ) {
+		case FOUNTAIN:
+			for ( unsigned int r = (randGet() % 25) + 11; r--; ) {
+				addParticle(randGet() % HLINE * 3 + b->loc.x + b->width / 2,	// x
+							b->loc.y + b->height,								// y
+							HLINE * 1.25,										// width
+							HLINE * 1.25,										// height
+							randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
+							(4 + randGet() % 6) * .05,							// vel.y
+							{ 0, 0, 255 },										// RGB color
+							2500												// duration (ms)
+							);
+
+				particles.back().fountain = true;
+			}
+			break;
+			
+		case FIRE_PIT:
+			for(unsigned int r = (randGet() % 20) + 11; r--; ) {
+				addParticle(randGet() % (int)(b->width / 2) + b->loc.x + b->width / 4,	// x
+							b->loc.y + 3 * HLINE,										// y
+							HLINE,														// width
+							HLINE,														// height
+							randGet() % 3 * .01 * (randGet() % 2 == 0 ? -1 : 1),		// vel.x
+							(4 + randGet() % 6) * .005,									// vel.y
+							{ 255, 0, 0 },												// RGB color
+							400															// duration (ms)
+							);
+
+				particles.back().gravity = false;
+				particles.back().behind  = true;
+			}
+			break;
+
+		default:
+			break;
 		}
 	}
-	for(auto &b : build){
-		switch(b->bsubtype){
-			case FOUNTAIN:
-				for(int r = 0; r < (rand()%25)+10;r++){
-					addParticle(	rand()%HLINE*3 + b->loc.x + b->width/2,
-												b->loc.y + b->height, 
-												HLINE*1.25,
-												HLINE*1.25, 
-												rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,
-												((4+rand()%6)*.05), 
-												{0,0,255}, 
-												2500);
 
-					particles.back().fountain = true;
-				}
-				break;
-			case FIRE_PIT:
-				for(int r = 0; r < (rand()%20)+10;r++){
-					addParticle(rand()%(int)(b->width/2) + b->loc.x+b->width/4, b->loc.y+3*HLINE, HLINE, HLINE, rand()%2 == 0?-(rand()%3)*.01:(rand()%3)*.01,((4+rand()%6)*.005), {255,0,0}, 400);
-					particles.back().gravity = false;
-					particles.back().behind = true;
-				}
-				break;
-			default: break;
-		}
-	}
-
-	for(auto &v : village){
-		if(p->loc.x > v->start.x && p->loc.x < v->end.x){
-			if(!v->in){
-				ui::passiveImportantText(5000,"Welcome to %s",v->name.c_str());
+	// draws the village welcome message if the player enters the village bounds
+	for ( auto &v : village ) {
+		if ( p->loc.x > v->start.x && p->loc.x < v->end.x ) {
+			if ( !v->in ) {
+				ui::passiveImportantText( 5000, "Welcome to %s", v->name.c_str() );
 				v->in = true;
 			}
-		}else{
+		} else
 			v->in = false;
-		}
 	}
-
-	/*if(hey->infront){
-		hey = hey->infront;
-		goto LOOOOP;
-	}*/
 }
 
 void World::addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::string inside){
@@ -936,10 +956,11 @@ addParticle( float x, float y, float w, float h, float vx, float vy, Color color
 }
 
 void World::addLight(vec2 loc, Color color){
+	Light l;
 	if(light.size() < 64){
-		light.emplace_back();
-		light.back().loc = loc;
-		light.back().color = color;
+		l.loc = loc;
+		l.color = color;
+		light.push_back(l);
 	}
 }
 
@@ -1164,26 +1185,32 @@ void IndoorWorld::draw(Player *p){
 	
 	glEnable(GL_TEXTURE_2D);
 	
-	std::unique_ptr<GLfloat[][2]> pointArrayBuf = std::make_unique<GLfloat[][2]> (light.size());
+	std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size() + p->light));
 	auto pointArray = pointArrayBuf.get();
 	
-	for(uint w = 0; w < light.size(); w++){
-		pointArray[w][0] = light[w].loc.x - offset.x;
-		pointArray[w][1] = light[w].loc.y;
+	for ( i = 0; i < light.size(); i++ ) {
+		pointArray[2 * i    ] = light[i].loc.x - offset.x;
+		pointArray[2 * i + 1] = light[i].loc.y;
 	}
-	glUseProgram(shaderProgram);
-	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
-	glUniform1f(glGetUniformLocation(shaderProgram, "amb"), 0.0f);
-	if(p->light){
-		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 1);
-		glUniform2f(glGetUniformLocation(shaderProgram, "lightLocation"), p->loc.x - offset.x+SCREEN_WIDTH/2, p->loc.y);
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
-	}else if(!light.size()){
-		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 0);
-	}else{
-		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), light.size());
-		glUniform2fv(glGetUniformLocation(shaderProgram, "lightLocation"), light.size(), (GLfloat *)&pointArray); 
-		glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f,1.0f,1.0f);
+	
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+	
+	glUseProgram( shaderProgram );
+	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0 );
+	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 0.5f - worldShade / 50.0f );
+	
+	if ( p->light ) {
+		pointArray[2 * (light.size() + 1)    ] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
+		pointArray[2 * (light.size() + 1) + 1] = (float)( p->loc.y );
+	}
+	
+	if ( light.size() + (int)p->light == 0)
+		glUniform1i( glGetUniformLocation( shaderProgram, "numLight"), 0);
+	else {
+		glUniform1i ( glGetUniformLocation( shaderProgram, "numLight"     ), light.size() + (int)p->light );
+		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size() + (int)p->light, pointArray ); 
+		glUniform3f ( glGetUniformLocation( shaderProgram, "lightColor"   ), 1.0f, 1.0f, 1.0f );
 	}
 	
 	bgTex->bind(0);
@@ -1192,10 +1219,10 @@ void IndoorWorld::draw(Player *p){
 	glColor4ub(255,255,255,255);
 	
 	glBegin(GL_QUADS);
-			glTexCoord2i(0,1);							  glVertex2i( worldStart - SCREEN_WIDTH / 2,0);
+			glTexCoord2i(0,1);							     glVertex2i( worldStart - SCREEN_WIDTH / 2,0);
 			glTexCoord2i((-worldStart*2+SCREEN_WIDTH)/512,1);glVertex2i(-worldStart + SCREEN_WIDTH / 2,0);
 			glTexCoord2i((-worldStart*2+SCREEN_WIDTH)/512,0);glVertex2i(-worldStart + SCREEN_WIDTH / 2,SCREEN_HEIGHT);
-			glTexCoord2i(0,0);							  glVertex2i( worldStart - SCREEN_WIDTH / 2,SCREEN_HEIGHT);
+			glTexCoord2i(0,0);							     glVertex2i( worldStart - SCREEN_WIDTH / 2,SCREEN_HEIGHT);
 	glEnd();
 	
 	glUseProgram(0);
@@ -1253,8 +1280,7 @@ Arena::Arena(World *leave,Player *p,Mob *m){
 	
 	inBattle = true;
 	mmob = m;
-	//exit = leave;
-	//pxy = p->loc;
+	mmob->aggressive = false;
 	
 	mob.push_back(m);
 	entity.push_back(m);
@@ -1264,8 +1290,6 @@ Arena::Arena(World *leave,Player *p,Mob *m){
 }
 
 Arena::~Arena(void){
-	delete bgTex;
-
 	deleteEntities();
 }
 
@@ -1282,7 +1306,10 @@ World *Arena::exitArena(Player *p){
 		
 		p->loc = battleNestLoc.back();
 		battleNestLoc.pop_back();
-		//mmob->alive = false;
+		
+		mob.clear();
+		mmob->alive = false;
+		
 		return tmp;
 	}else{
 		return this;

@@ -68,6 +68,20 @@ typedef struct {
     unsigned char groundColor;
 } WorldData;
 
+/**
+ * A value used by World::draw() for shading, ranges from -50 to 50 depending
+ * on the current time of day.
+ */
+
+extern int worldShade;
+
+/**
+ * The path to the currently loaded XML file.
+ */
+
+extern std::string currentXML;
+
+// prototype so Village can reference it
 class World;
 
 /**
@@ -293,6 +307,11 @@ public:
 	 */
 	
 	void addNPC(float x,float y);
+	
+	/**
+	 * Adds a Merchant to the world at the specified coordinates.
+	 */
+	
 	void addMerchant(float x, float y);
 	
 	/**
@@ -413,7 +432,7 @@ public:
 };
 
 /*
- *	IndoorWorld - Indoor settings stored in a World class ;)
+ *	IndoorWorld - Indoor settings stored in a World class
  */
  
 class IndoorWorld : public World {
@@ -425,19 +444,58 @@ public:
 	void draw(Player *p);				// Draws the world (ignores layers)
 };
 
+/**
+ * The arena class - creates an arena.
+ * 
+ * This world, when created, expects a pointer to a Mob. This mob will be
+ * transported to a temporary world with the player, and the Mob will be
+ * killed upon exiting the arena.
+ */
+
 class Arena : public World {
 private:
-	Mob 	*mmob;
+
+	/**
+	 * The mob that the player is fighting.
+	 */
+
+	Mob *mmob;
+
 public:
-	Arena(World *leave,Player *p,Mob *m);
-	~Arena(void);
-	World *exitArena(Player *p);
+
+	/**
+	 * Creates a world with the player and mob, returning the player to the
+	 * world `leave` upon exit.
+	 */
+
+	Arena( World *leave, Player *p, Mob *m );
+	
+	/**
+	 * Frees resources taken by the arena.
+	 */
+	
+	~Arena( void );
+	
+	/**
+	 * Attempts to exit the world, returning the player to the world they were
+	 * last in.
+	 */
+	
+	World *exitArena( Player *p );
 };
 
-extern int worldShade;
-extern std::string currentXML;
+/**
+ * Loads the player into the world created by the given XML file. If a world is
+ * already loaded it will be saved before the transition is made.
+ */
 
 World *loadWorldFromXML(std::string path);
+
+/**
+ * Loads the player into the XML-scripted world, but does not save data from the
+ * previous world if one was loaded.
+ */
+
 World *loadWorldFromXMLNoSave(std::string path);
 
 #endif // WORLD_H

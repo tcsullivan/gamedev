@@ -1483,34 +1483,36 @@ DONE:
 			}
 		}
 		
-		if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary
-			while(!AIpreaddr.empty()){
-				AIpreaddr.front()->addAIFunc(AIpreload.front(),false);
-				AIpreaddr.erase(AIpreaddr.begin());
-				AIpreload.erase(AIpreload.begin());
+			// Flush preloaded AI functions if necessary
+		if ( !dialogBoxExists && AIpreaddr.size() ) {
+			while ( !AIpreaddr.empty() ) {
+				AIpreaddr.front()->addAIFunc( AIpreload.front(), false );
+				AIpreaddr.erase( AIpreaddr.begin() );
+				AIpreload.erase( AIpreload.begin() );
 			}
 		}
 	}
 	
 	void toggleBlack(void){
 		fadeEnable ^= true;
-		fadeWhite = false;
-		fadeFast = false;
+		fadeWhite   = false;
+		fadeFast    = false;
 	}
 	void toggleBlackFast(void){
 		fadeEnable ^= true;
-		fadeWhite = false;
-		fadeFast = true;
+		fadeWhite   = false;
+		fadeFast    = true;
 	}
 	void toggleWhite(void){
 		fadeEnable ^= true;
-		fadeWhite = true;
-		fadeFast = false;
+		fadeWhite   = true;
+		fadeFast    = false;
 	}
 	void toggleWhiteFast(void){
 		fadeEnable ^= true;
-		fadeWhite = true;
-		fadeFast = true;
-		Mix_PlayChannel(1,battleStart,0);
+		fadeWhite   = true;
+		fadeFast    = true;
+		
+		Mix_PlayChannel( 1, battleStart, 0 );
 	}
 }

@@ -558,6 +558,7 @@ void Mob::wander(int timeRun){
 	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
 	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height ){
 		Arena *a = new Arena(currentWorld,player,this);
+		a->setStyle("");
 		a->setBackground( WorldBGType::Forest );
 		a->setBGM("assets/music/embark.wav");
 		
