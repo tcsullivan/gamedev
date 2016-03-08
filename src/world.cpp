@@ -407,6 +407,13 @@ draw( Player *p )
     // world width in pixels
 	int width = worldData.size() * HLINE;
 	
+	// shade value for GLSL
+	float shadeAmbient = -worldShade / 50.0f + 0.5f; // -0.5f to 1.5f
+	if ( shadeAmbient < 0 )
+		shadeAmbient = 0;
+	else if ( shadeAmbient > 0.9f )
+		shadeAmbient = 1;
+	
 	/*
      * Draw background images.
      */
@@ -459,7 +466,7 @@ draw( Player *p )
 	glEnable( GL_TEXTURE_2D );
 	
 	bgTex->bindNext();
-	safeSetColorA( 150 - shadeBackground, 150 - shadeBackground, 150 - shadeBackground, 220 );
+	safeSetColorA( 150 + shadeBackground * 2, 150 + shadeBackground * 2, 150 + shadeBackground * 2, 255 );
 	
 	glBegin( GL_QUADS );
 		for ( i = 0; i <= (int)(worldData.size() * HLINE / 1920); i++ ) {
@@ -472,7 +479,7 @@ draw( Player *p )
 	
 	for ( i = 0; i < 4; i++ ) {
 		bgTex->bindNext();
-		safeSetColorA( bgDraw[i][0] - shadeBackground, bgDraw[i][0] - shadeBackground, bgDraw[i][0] - shadeBackground, bgDraw[i][1] );
+		safeSetColorA( bgDraw[i][0] + shadeBackground * 2, bgDraw[i][0] + shadeBackground * 2, bgDraw[i][0] + shadeBackground * 2, bgDraw[i][1] );
 	
 		glBegin( GL_QUADS );
 			for( int j = worldStart; j <= -worldStart; j += 600 ){
@@ -534,7 +541,7 @@ draw( Player *p )
 	
 	glUseProgram( shaderProgram );
 	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0 );
-	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), -worldShade / 50.0f );
+	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), shadeAmbient );
 	
 	if ( p->light ) {
 		pointArray[2 * (light.size() + 1)    ] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
@@ -1196,7 +1203,7 @@ void IndoorWorld::draw(Player *p){
 	
 	glUseProgram( shaderProgram );
 	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0 );
-	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 0.5f - worldShade / 50.0f );
+	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 0.3f );
 	
 	if ( p->light ) {
 		pointArray[2 * (light.size() + 1)    ] = (float)( p->loc.x + SCREEN_WIDTH / 2 );

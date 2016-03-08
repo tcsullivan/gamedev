@@ -8,6 +8,7 @@ extern std::istream *names;
 extern Player *player;			// main.cpp
 extern World *currentWorld;		// main.cpp
 extern unsigned int loops;		// main.cpp
+extern unsigned int tickCount;	// main.cpp
 
 GLuint waterTex;
 
@@ -295,6 +296,10 @@ void Object::reloadTexture(void){
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	glColor3ub(255,255,255);
+	
+	if ( !alive )
+		return;
+	
 	if(type==NPCT){
 		if(NPCp(this)->aiFunc.size()){
 			glColor3ub(255,255,0);
@@ -626,6 +631,7 @@ void Player::save(void){
 	data.append(std::to_string((int)loc.y) + "\n");
 	data.append(std::to_string((int)health) + "\n");
 	data.append(std::to_string((int)maxHealth) + "\n");
+	data.append(std::to_string((int)tickCount) + "\n");
 	
 	data.append(std::to_string((int)inv->items.size()) + "\n");
 	for(auto &i : inv->items)
@@ -666,6 +672,8 @@ void Player::sspawn(float x,float y){
 		health = std::stoi(ddata);
 		std::getline(data,ddata);
 		maxHealth = std::stoi(ddata);
+		std::getline(data,ddata);
+		tickCount = std::stoi(ddata);
 	
 		std::getline(data,ddata);
 		for(i = std::stoi(ddata);i;i--){

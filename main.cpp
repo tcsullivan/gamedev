@@ -128,16 +128,6 @@ ThreadPool pool(10);
 
 GLuint colorIndex;
 
-/*
- *	initEverything
- *
- *	Before the main loop, things like the player, entities, and worlds should
- *	be created. This game has not reached the point that these can be scripted
- *	or programmed, so this function substitues for that. It is defined in
- *	src/gameplay.cpp.
- *
-*/
-
 /**
  * TODO
  */
@@ -205,11 +195,10 @@ void render(void);
 
 void mainLoop(void);
 
-
-
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
+
 int main(int argc, char *argv[]){
 	(void)argc;
 	(void)argv;

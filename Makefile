@@ -13,7 +13,7 @@ ifeq ($(TARGET_OS),win32)
 endif
 
 CXXFLAGS = -m$(TARGET_BITS) -std=c++14
-CXXINC   = -Iinclude -Iinclude/freetype2
+CXXINC   = -Iinclude -Iinclude/freetype
 CXXWARN  = -Wall -Wextra -Werror -pedantic-errors
 
 CXXSRCDIR = src

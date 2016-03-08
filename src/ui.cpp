@@ -30,6 +30,7 @@ extern std::vector<NPC *> AIpreaddr;
 */
 
 extern bool gameRunning;
+extern unsigned int tickCount;
 
 /*
  *	Freetype variables, and a GLuint for referencing rendered letters.
@@ -1276,6 +1277,9 @@ DONE:
 				} else if ( !dialogBoxExists || dialogPassive ) {
 					tmp = currentWorld;
 					switch(SDL_KEY){
+					case SDLK_t:
+						tickCount += 50;
+						break;
 					case SDLK_a:
 						if(fadeEnable)break;
 						player->vel.x=-.15;
