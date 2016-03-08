@@ -87,7 +87,7 @@ extern Menu *currentMenu;
  * The current number of ticks, used for logic operations and day/night cycles.
  */
 
-unsigned int tickCount = DAY_CYCLE;
+unsigned int tickCount = 0;
 
 /**
  * TODO

@@ -399,7 +399,7 @@ draw( Player *p )
     int i, iStart, iEnd;
     
     // shade value for draws -- may be unnecessary
-	int shadeBackground = 0;
+	int shadeBackground = -worldShade;
     
     // player's offset in worldData[]
 	int pOffset;
@@ -439,20 +439,18 @@ draw( Player *p )
 	
 	// draw the stars if the time deems it appropriate
 	
-	if (((( weather == WorldWeather::Dark  ) & ( tickCount % DAY_CYCLE )) < DAY_CYCLE / 2)   ||
-	    ((( weather == WorldWeather::Sunny ) & ( tickCount % DAY_CYCLE )) > DAY_CYCLE * .75) ){
+	//if (((( weather == WorldWeather::Dark  ) & ( tickCount % DAY_CYCLE )) < DAY_CYCLE / 2)   ||
+	//    ((( weather == WorldWeather::Sunny ) & ( tickCount % DAY_CYCLE )) > DAY_CYCLE * .75) ){
+	if ( worldShade > 0 ) { 
 
-		if (tickCount % DAY_CYCLE) {	// The above if statement doesn't check for exact midnight.
-				
-			safeSetColorA( 255, 255, 255, 255 - (getRand() % 30 - 15) );
-			
-			for ( i = 0; i < 100; i++ ) {
-				glRectf(star[i].x + offset.x * .9,
-						star[i].y,
-						star[i].x + offset.x * .9 + HLINE,
-						star[i].y + HLINE
-						);
-			}
+		safeSetColorA( 255, 255, 255, 255 - (getRand() % 30 - 15) );
+		
+		for ( i = 0; i < 100; i++ ) {
+			glRectf(star[i].x + offset.x * .9,
+					star[i].y,
+					star[i].x + offset.x * .9 + HLINE,
+					star[i].y + HLINE
+					);
 		}
 	} 
 	
@@ -536,7 +534,7 @@ draw( Player *p )
 	
 	glUseProgram( shaderProgram );
 	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0 );
-	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 0.5f - worldShade / 50.0f );
+	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), -worldShade / 50.0f );
 	
 	if ( p->light ) {
 		pointArray[2 * (light.size() + 1)    ] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
