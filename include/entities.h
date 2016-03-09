@@ -22,13 +22,13 @@ enum _TYPE {
 	STRUCTURET,
 	PLAYERT,
 	NPCT,
+	MERCHT,
 	MOBT
 };
 
 enum GENDER{
 	MALE,
-	FEMALE,
-	TRANSBULLSHIT
+	FEMALE
 };
 
 enum MOB_SUB {
@@ -47,7 +47,25 @@ enum BUILD_SUB{
 	HOUSE4 = 4,
 	FOUNTAIN = 5,
 	LAMP_POST = 6,
-	FIRE_PIT = 7
+	FIRE_PIT = 7,
+	STALL_MARKET = 70,
+	STALL_TRADER = 71
+};
+
+class Trade{
+public:
+	std::string item[2];
+	int quantity[2];
+	Trade(int qo, const char* o, int qt, const char* t){
+		item[0] = o;
+		item[1] = t;
+
+		quantity[0] = qo;
+		quantity[1] = qt;
+
+		std::cout << "Trading: " << quantity[0] << " " << item[0] << " for " << quantity[1] << " " << item[1] << std::endl;
+	}
+	Trade(){}
 };
 
 class World;
@@ -112,6 +130,7 @@ void initEntity();
 
 class Entity{
 public:
+	Entity *followee;
 	Inventory *inv;
 
 	/*
@@ -166,6 +185,8 @@ public:
 	
 	virtual void wander(int){}
 	virtual void interact(){}
+
+	void follow(Entity *e);
 	
 	virtual ~Entity(){}
 };
@@ -191,16 +212,26 @@ public:
 	
 	void addAIFunc(int (*func)(NPC *),bool preload);
 	void clearAIFunc(void);
-	void interact();
+	virtual void interact();
 	void wander(int);
+};
+
+class Merchant : public NPC{
+public:
+	std::vector<Trade>trade;
+
+	void interact();
+
+	Merchant();
+	~Merchant();
 };
 
 class Structures : public Entity{
 public:
 	BUILD_SUB bsubtype;
 	World *inWorld;
-	char *inside;
-	char *textureLoc;
+	std::string inside;
+	std::string textureLoc;
 	
 	Structures();
 	~Structures();
@@ -225,11 +256,11 @@ class Object : public Entity{
 private:
 	std::string iname;
 public:
-	char *pickupDialog;
+	std::string pickupDialog;
 	bool questObject = false;
 	
 	Object();
-	Object(std::string in,const char *pd);
+	Object(std::string in,std::string pd);
 	~Object();
 	
 	void reloadTexture(void);

@@ -11,24 +11,11 @@
 #include <common.h>
 #include <entities.h>
 
-/**
- * Defines at what interval y values should be calculated for the array 'line'.
- */
+#define GROUND_HEIGHT_INITIAL   80
+#define GROUND_HEIGHT_MINIMUM   60
+#define GROUND_HEIGHT_MAXIMUM   110
 
-#define GEN_INC 10
-
-/**
- * Defines the lowest possible y value for a world line.
- */
-
-#define GEN_MIN  80
-
-/**
- * Defines the highest possible y value for a randomly generated world line.
- */
-
-#define GEN_MAX  110
-
+#define GROUND_HILLINESS        10
 
 /**
  * Defines how many game ticks it takes for a day to elapse.
@@ -42,10 +29,10 @@
  * in World::setBackground() to select the appropriate images.
  */
 
-typedef enum {
-	BG_FOREST,		/**< A forest theme. */
-	BG_WOODHOUSE	/**< An indoor wooden house theme. */
-} WORLD_BG_TYPE;
+enum class WorldBGType : unsigned char {
+	Forest,		/**< A forest theme. */
+	WoodHouse	/**< An indoor wooden house theme. */
+};
 
 /**
  * The weather type enum.
@@ -53,11 +40,11 @@ typedef enum {
  * Weather is set by the world somewhere.
  */
 
-typedef enum {
-	SUNNY = 0,	/**< Sunny/daytime */
-	DARK,		/**< Nighttime */
-	RAIN		/**< Rain (to be implemented)*/
-} WEATHER;
+enum class WorldWeather : unsigned char {
+	Sunny = 0,	/**< Sunny/daytime */
+	Dark,		/**< Nighttime */
+	Rain		/**< Rain (to be implemented)*/
+};
 
 /**
  * The light structure, used to store light coordinates and color.
@@ -74,31 +61,43 @@ typedef struct {
  * lines. Dirt color and grass properties are also kept track of here.
  */
 
-typedef struct line_t {
-	float y;				/**< Height of this vertical line */
-	bool gs;				/**< Show grass */
-	float gh[2];			/**< Height of glass (2 blades per line) */
-	unsigned char color;	/**< Lightness of dirt (brown) */
-} line_t;
+typedef struct {
+    bool          grassUnpressed;
+    float         grassHeight[2];
+    float         groundHeight;
+    unsigned char groundColor;
+} WorldData;
 
-/*
- * Handle all logic that has to do with villages
+/**
+ * A value used by World::draw() for shading, ranges from -50 to 50 depending
+ * on the current time of day.
  */
 
+extern int worldShade;
 
-struct Village{
+/**
+ * The path to the currently loaded XML file.
+ */
+
+extern std::string currentXML;
+
+// prototype so Village can reference it
+class World;
+
+/**
+ * The village class, used to group structures into villages.
+ */
+
+class Village {
+public:
 	std::string name;
 	vec2 start;
 	vec2 end;
 	bool in;
-
 	std::vector<Structures *> build;
-	Village(const char *meme){
-		name = meme;
-		end.x = -0xffffffff;
-		start.x = 0xffffffff;
-		in = false;
-	}
+	
+	Village(const char *meme, World *w);
+	~Village(void){}
 };
 
 /**
@@ -113,7 +112,7 @@ protected:
 	 * of elements provided by the function.
 	 */
 	 
-	struct line_t *line;
+	std::vector<WorldData> worldData;
 	
 	/**
 	 * Starting x coordinate.
@@ -121,7 +120,7 @@ protected:
 	 * calculate the width of the world.
 	 */
 	
-	int x_start;
+	int worldStart;
 	
 	/**
 	 * Handle physics for a single entity.
@@ -132,8 +131,6 @@ protected:
 	 */
 	
 	void singleDetect(Entity *e);
-
-	static void villageLogic(World *world);
 	
 	/**
 	 * Empties all entity vectors.
@@ -159,7 +156,7 @@ protected:
 	 * An array of star coordinates.
 	 */
 	
-	vec2 *star;
+	std::vector<vec2> star;
 	
 	/**
 	 * The Texturec object that holds the background sprites for this world.
@@ -171,7 +168,7 @@ protected:
 	 * Defines the set of background images that should be used for this world.
 	 */
 	
-	WORLD_BG_TYPE bgType;
+	WorldBGType bgType;
 	
 	/**
 	 * The Mix_Music object that holds the background soundtrack for the world.
@@ -183,7 +180,8 @@ protected:
 	 * The file path of the song wished to be loaded by bgmObj.
 	 */
 	
-	char *bgm;
+	std::string bgm;
+	
 	std::vector<std::string>bgFiles;
 	std::vector<std::string>bgFilesIndoors;
 	
@@ -215,7 +213,6 @@ public:
 	
 	char *setToRight(const char *file);
 
-
 	/**
 	 * A vector of pointers to every NPC, Structure, Mob, and Object in this
 	 * world.
@@ -228,6 +225,7 @@ public:
 	 */
 
 	std::vector<NPC			*>	npc;
+	std::vector<Merchant    *>  merchant;
 	
 	/**
 	 * A vector of all Structures in this world.
@@ -251,22 +249,22 @@ public:
 	 * A vector of all particles in this world.
 	 */
 	
-	std::vector<Particles	*>	particles;
+	std::vector<Particles> particles;
+	
+	
+	std::vector<Village 	*>	village;
 	
 	/**
 	 * A vector of all light elements in this world.
 	 */
 	
-	std::vector<Light      	 >  light;
+	std::vector<Light>  light;
 
 	/**
 	 * Vector of all building textures for the current world style
 	 */
 
-	std::vector<std::string  >  sTexLoc;
-
-	std::vector<Village>village;
-
+	std::vector<std::string> sTexLoc;
 	
 	/**
 	 * NULLifies pointers and allocates necessary memory. This should be
@@ -274,7 +272,7 @@ public:
 	 * generate().
 	 */
 	
-	World(void);
+	World( void );
 	
 	/**
 	 * Frees resources taken by the world.
@@ -289,8 +287,7 @@ public:
 	 * the structure.
 	 */
 	
-	void addStructure(BUILD_SUB subtype,float x,float y, char* tex, const char *inside);
-	//void addVillage(int buildingCount, int npcMin, int npcMax,const char *inside);
+	void addStructure(BUILD_SUB subtype,float x,float y, std::string tex, std::string inside);
 	
 	/**
 	 * Adds a Mob to the world with the specified type and coordinates.
@@ -312,12 +309,18 @@ public:
 	void addNPC(float x,float y);
 	
 	/**
+	 * Adds a Merchant to the world at the specified coordinates.
+	 */
+	
+	void addMerchant(float x, float y);
+	
+	/**
 	 * Adds an object to the world with the specified item id and coordinates.
 	 * If `pickupDialog` is not NULL, that string will display in a dialog box
 	 * upon object interaction.
 	 */
 	
-	void addObject(/*ITEM_ID id*/std::string in,const char *pickupDialog, float x, float y);
+	void addObject( std::string in, std::string pickupDialog, float x, float y);
 	
 	/**
 	 * Adds a particle to the world with the specified coordinates, dimensions,
@@ -331,13 +334,6 @@ public:
 	 */
 	
 	void addLight(vec2 xy, Color color);
-
-	/**
-	 * Get the next NPC in the NPC vector that currently lacks a written dialog.
-	 * Could be used to assign random NPCs non-random dialogs.
-	 */
-
-	NPC *getAvailableNPC(void);
 	
 	/**
 	 * Updates the coordinates of everything in the world that has coordinates
@@ -355,19 +351,11 @@ public:
 	virtual void generate(unsigned int width);
 	
 	/**
-	 * Generates a world of the provided width using the given function to
-	 * determine ground coordinates. The given y coordinates from the function
-	 * are limited to a certain range, most likely from GEN_MIN to 2000.
-	 */
-	
-	void generateFunc(unsigned int width,float(*func)(float));
-	
-	/**
 	 * Sets the background theme, collecting the required textures into a
 	 * Texturec object.
 	 */
 	
-	void setBackground(WORLD_BG_TYPE bgt);
+	void setBackground(WorldBGType bgt);
 	
 	/**
 	 * Sets the background music for the world, required for the world to be
@@ -380,14 +368,14 @@ public:
 	 *	Sets the worlds style folder
 	 */
 
-	void setStyle(const char* pre); 
+	void setStyle(std::string pre); 
 	
 	/**
 	 * Plays/stops this world's BGM. If `prev` is not NULL, that world's BGM
 	 * will be faded out followed by the fading in of this world's BGM.
 	 */
 	
-	void bgmPlay(World *prev);
+	void bgmPlay(World *prev) const;
 	
 	/**
 	 * Draw the world and entities based on the player's coordinates.
@@ -437,20 +425,14 @@ public:
 	 *	Get's the world's width.
 	 */
 	
-	int getTheWidth(void);
+	int getTheWidth(void) const;
 	
 	void save(void);
 	void load(void);
 };
 
 /*
- *	Gets a good base y value for background rendering.
-*/
-
-float worldGetYBase(World *w);
-
-/*
- *	IndoorWorld - Indoor settings stored in a World class ;)
+ *	IndoorWorld - Indoor settings stored in a World class
  */
  
 class IndoorWorld : public World {
@@ -462,21 +444,58 @@ public:
 	void draw(Player *p);				// Draws the world (ignores layers)
 };
 
+/**
+ * The arena class - creates an arena.
+ * 
+ * This world, when created, expects a pointer to a Mob. This mob will be
+ * transported to a temporary world with the player, and the Mob will be
+ * killed upon exiting the arena.
+ */
+
 class Arena : public World {
 private:
-	//vec2	 pxy;
-	//World	*exit;
-	Mob 	*mmob;
+
+	/**
+	 * The mob that the player is fighting.
+	 */
+
+	Mob *mmob;
+
 public:
-	Arena(World *leave,Player *p,Mob *m);
-	~Arena(void);
-	World *exitArena(Player *p);
+
+	/**
+	 * Creates a world with the player and mob, returning the player to the
+	 * world `leave` upon exit.
+	 */
+
+	Arena( World *leave, Player *p, Mob *m );
+	
+	/**
+	 * Frees resources taken by the arena.
+	 */
+	
+	~Arena( void );
+	
+	/**
+	 * Attempts to exit the world, returning the player to the world they were
+	 * last in.
+	 */
+	
+	World *exitArena( Player *p );
 };
 
-extern int worldShade;
-extern char *currentXML;
+/**
+ * Loads the player into the world created by the given XML file. If a world is
+ * already loaded it will be saved before the transition is made.
+ */
 
-World *loadWorldFromXML(const char *path);
-World *loadWorldFromXMLNoSave(const char *path);
+World *loadWorldFromXML(std::string path);
+
+/**
+ * Loads the player into the XML-scripted world, but does not save data from the
+ * previous world if one was loaded.
+ */
+
+World *loadWorldFromXMLNoSave(std::string path);
 
 #endif // WORLD_H

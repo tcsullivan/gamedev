@@ -12,7 +12,7 @@ extern SDL_Window *window;
 
 /*
  *	External references for updating player coords / current world.
-*/
+ */
 
 extern Player *player;
 extern World  *currentWorld;
@@ -30,6 +30,7 @@ extern std::vector<NPC *> AIpreaddr;
 */
 
 extern bool gameRunning;
+extern unsigned int tickCount;
 
 /*
  *	Freetype variables, and a GLuint for referencing rendered letters.
@@ -48,11 +49,16 @@ static unsigned char fontColor[3] = {255,255,255};
  *	Variables for dialog boxes / options.
 */
 
-static char dialogBoxText[512];
-static char *dialogOptText[4];
-static float dialogOptLoc[4][3];
+static char			 dialogBoxText[512];
+static char			*dialogOptText[4];
+static float         merchAOptLoc[2][3];
+static float	 	 dialogOptLoc[4][3];
 static unsigned char dialogOptCount = 0;
-static bool typeOutDone = true;
+static bool			 typeOutDone = true;
+
+/*
+ * Menu-related objects
+ */
 
 extern Menu* currentMenu;
 extern Menu pauseMenu;
@@ -114,7 +120,9 @@ namespace ui {
 	bool debug=false;
 	bool posFlag=false;
 	bool dialogPassive = false;
+	bool dialogMerchant = false;
 	int dialogPassiveTime = 0;
+	Trade merchTrade;
 
 	
 	/*
@@ -124,6 +132,7 @@ namespace ui {
 	bool dialogBoxExists = false;
 	bool dialogImportant = false;
 	unsigned char dialogOptChosen = 0;
+	unsigned char merchOptChosen = 0;
 	
 	unsigned int textWrapLimit = 110;
 	
@@ -183,7 +192,7 @@ namespace ui {
 	
 	void setFontSize(unsigned int size){
 		unsigned int i,j;
-		char *buf;
+		unsigned char *buf;
 		
 		fontSize=size;
 		FT_Set_Pixel_Sizes(ftf,0,fontSize);
@@ -223,7 +232,7 @@ namespace ui {
 			 *	making it white-on-black.
 			*/
 			
-			buf = new char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];
+			buf = new unsigned char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];
 		
 			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
 				buf[j*4  ]=255;//fontColor[0];
@@ -306,6 +315,7 @@ namespace ui {
 		unsigned int i=0;
 		float xo=x,yo=y;
 		vec2 add;
+		//vec2 off = { (float)floor(x), (float)floor(y) };
 		
 		/*
 		 *	Loop on each character:
@@ -318,6 +328,14 @@ namespace ui {
 				if(s[i] == ' ')
 					i++;
 			}
+			if(i && (i / (float)textWrapLimit == i / textWrapLimit)){
+ 				yo -= fontSize * 1.05;
+ 				xo = x;
+ 				
+				// skip a space if it's there since we just newline'd
+  				if(s[i] == ' ')
+  					i++;
+  			}
 			if(s[i] == '\n'){
 				yo-=fontSize*1.05;
 				xo=x;
@@ -447,6 +465,7 @@ namespace ui {
 		return width;
 	}
 	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...){
+		textWrapLimit = 110;
 		va_list dialogArgs;
 		unsigned int len;
 		char *sopt,*soptbuf;
@@ -514,6 +533,78 @@ namespace ui {
 		if(ret)
 			ret[0] = '\0';
 	}
+
+
+	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...){
+		std::cout << "Buying and selling on the bi-weekly!" << std::endl;
+		va_list dialogArgs;
+		size_t len;
+		
+		dialogPassive = passive;
+
+		std::cout << "Market Trading: " << trade.quantity[0] << " " << trade.item[0] << " for " << trade.quantity[1] << " " << trade.item[1] << std::endl;
+
+		merchTrade = trade;
+		
+		// clear the buffer
+		memset(dialogBoxText, '\0', 512);
+		
+		// create the string
+		strcpy(dialogBoxText, name);
+		strcat(dialogBoxText, ": ");
+		
+		len=strlen(dialogBoxText);
+		va_start(dialogArgs,text);
+		vsnprintf(dialogBoxText + len, 512 - len, text, dialogArgs);
+		va_end(dialogArgs);
+				
+		// free old option text
+		while(dialogOptCount){
+			if(dialogOptText[dialogOptCount]){
+				delete[] dialogOptText[dialogOptCount];
+				dialogOptText[dialogOptCount] = NULL;
+			}
+			
+			dialogOptCount--;
+		};
+
+		dialogOptChosen = 0;
+		memset(&dialogOptLoc, 0, sizeof(float) * 12);
+		
+		// handle options if desired
+		if(opt){
+			//std::unique_ptr<char[]> soptbuf (new char[strlen(opt) + 1]);
+			char soptbuf[255];
+			strcpy(soptbuf, opt);
+			char *sopt = strtok(soptbuf, ":");
+
+			// cycle through options
+			while(sopt){
+				strcpy( (dialogOptText[dialogOptCount++] = new char[strlen(sopt) + 1]), sopt);
+				sopt = strtok(NULL,":");
+			}
+		}
+		
+		// allow box to be displayed
+		dialogBoxExists = true;
+		dialogImportant = false;
+		dialogMerchant = true;
+		textWrapLimit = 50;
+		
+		// kill the string created by typeOut if it contains something
+		if(ret)
+			*ret = '\0';
+	}
+	
+	void merchantBox(){
+		textWrapLimit = 50;
+		dialogMerchant = true;
+	}
+	
+	/**
+	 * Wait for a dialog box to be dismissed.
+	 */
+	
 	void waitForDialog(void){
 		do{
 			mainLoop();
@@ -588,13 +679,113 @@ namespace ui {
 					putStringCentered(offset.x,offset.y,rtext);
 					setFontSize(16);
 				}
-			}else{
-			
-				x=offset.x-SCREEN_WIDTH/2+HLINE*8;
+			}else if(dialogMerchant){
+				//static int dispItem;
+
+				x=offset.x-SCREEN_WIDTH/6;
 				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
 			
 			
 				glColor3ub(255,255,255);
+				glBegin(GL_LINE_STRIP);
+					glVertex2f(x-1				 	  ,y+1);
+					glVertex2f(x+1+(SCREEN_WIDTH/3),y+1);
+					glVertex2f(x+1+(SCREEN_WIDTH/3),y-1-SCREEN_HEIGHT*.6);
+					glVertex2f(x-1,y-1-SCREEN_HEIGHT*.6);
+					glVertex2f(x,y+1);
+				glEnd();
+			
+				glColor3ub(0,0,0);
+				glRectf(x,y,x+SCREEN_WIDTH/3,y-SCREEN_HEIGHT*.6);
+				
+				// draw typeOut'd text
+				putString(x + HLINE, y - fontSize - HLINE, (rtext = typeOut(dialogBoxText)));
+
+				std::string itemString1 = std::to_string(merchTrade.quantity[0]);
+				itemString1 += "x";
+
+				std::string itemString2 = std::to_string(merchTrade.quantity[1]);
+				itemString2 += "x";
+
+				putStringCentered(offset.x - (SCREEN_WIDTH / 10) + 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + (fontSize*2), itemString1.c_str());
+				putStringCentered(offset.x - (SCREEN_WIDTH / 10) + 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + fontSize, merchTrade.item[0].c_str());
+
+				putStringCentered(offset.x + (SCREEN_WIDTH / 10) - 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + (fontSize*2), itemString2.c_str());
+				putStringCentered(offset.x + (SCREEN_WIDTH / 10) - 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + fontSize, merchTrade.item[1].c_str());
+
+				putStringCentered(offset.x,offset.y + (SCREEN_HEIGHT / 5) + 60, "for");
+
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[0]));
+				glBegin(GL_QUADS);
+					glTexCoord2d(0,1);glVertex2f(offset.x - (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5));
+					glTexCoord2d(1,1);glVertex2f(offset.x - (SCREEN_WIDTH / 10) + 40,offset.y + (SCREEN_HEIGHT/5));
+					glTexCoord2d(1,0);glVertex2f(offset.x - (SCREEN_WIDTH / 10) + 40,offset.y + (SCREEN_HEIGHT/5) + 40);
+					glTexCoord2d(0,0);glVertex2f(offset.x - (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5) + 40);
+				glEnd();
+
+				glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[1]));
+				glBegin(GL_QUADS);
+					glTexCoord2d(0,1);glVertex2f(offset.x + (SCREEN_WIDTH / 10) - 40,offset.y + (SCREEN_HEIGHT/5));
+					glTexCoord2d(1,1);glVertex2f(offset.x + (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5));
+					glTexCoord2d(1,0);glVertex2f(offset.x + (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5) + 40);
+					glTexCoord2d(0,0);glVertex2f(offset.x + (SCREEN_WIDTH / 10) - 40,offset.y + (SCREEN_HEIGHT/5) + 40);
+				glEnd();
+				glDisable(GL_TEXTURE_2D);
+
+				merchAOptLoc[0][0] = offset.x - (SCREEN_WIDTH / 8.5) - 16;
+				merchAOptLoc[1][0] = offset.x + (SCREEN_WIDTH / 8.5) + 16;
+				merchAOptLoc[0][1] = offset.y + (SCREEN_HEIGHT *.2);
+				merchAOptLoc[1][1] = offset.y + (SCREEN_HEIGHT *.2);
+				merchAOptLoc[0][2] = offset.x - (SCREEN_WIDTH / 8.5);
+				merchAOptLoc[1][2] = offset.x + (SCREEN_WIDTH / 8.5);
+
+				for(i = 0; i < 2; i++){
+					if(((merchAOptLoc[i][0] < merchAOptLoc[i][2]) ? 
+						(mouse.x > merchAOptLoc[i][0] && mouse.x < merchAOptLoc[i][2]) : 
+						 (mouse.x < merchAOptLoc[i][0] && mouse.x > merchAOptLoc[i][2])) &&
+					   mouse.y > merchAOptLoc[i][1] - 8 && mouse.y < merchAOptLoc[i][1] + 8){
+						glColor3ub(255,255, 0);
+					}else{
+						glColor3ub(255,255,255);
+					}
+					glBegin(GL_TRIANGLES);
+						glVertex2f(merchAOptLoc[i][0],merchAOptLoc[i][1]);
+						glVertex2f(merchAOptLoc[i][2],merchAOptLoc[i][1]-8);
+						glVertex2f(merchAOptLoc[i][2],merchAOptLoc[i][1]+8);
+					glEnd();
+				}
+
+			
+				// draw / handle dialog options if they exist
+				for(i = 0; i < dialogOptCount; i++){
+					setFontColor(255, 255, 255);
+					
+					// draw option
+					tmp = putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i]);
+					
+					// get coordinate information on option
+					dialogOptLoc[i][2] = offset.x + tmp;
+					dialogOptLoc[i][0] = offset.x - tmp;
+					dialogOptLoc[i][1] = y - SCREEN_HEIGHT / 2 - (fontSize + HLINE) * (i + 1);
+					
+					// make text yellow if the mouse hovers over the text
+					if(mouse.x > dialogOptLoc[i][0] && mouse.x < dialogOptLoc[i][2] &&
+					   mouse.y > dialogOptLoc[i][1] && mouse.y < dialogOptLoc[i][1] + 16 ){
+						  setFontColor(255, 255, 0);
+						  putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i]);
+					}
+				}
+				
+				setFontColor(255, 255, 255);
+			}else{ //normal dialog box
+			
+				x=offset.x-SCREEN_WIDTH/2+HLINE*8;
+				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
+						
+				// draw white border
+				glColor3ub(255, 255, 255);
+
 				glBegin(GL_LINE_STRIP);
 					glVertex2f(x-1						,y+1);
 					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y+1);
@@ -941,7 +1132,8 @@ namespace ui {
 	}
 
 	void takeScreenshot(GLubyte* pixels){
-		GLubyte bgr[SCREEN_WIDTH*SCREEN_HEIGHT*3];
+		std::vector<GLubyte> bgr (SCREEN_WIDTH * SCREEN_HEIGHT * 3, 0);
+		
 		for(uint x = 0; x < SCREEN_WIDTH*SCREEN_HEIGHT*3; x+=3){
 			bgr[x] = pixels[x+2];
 			bgr[x+1] = pixels[x+1];
@@ -1022,16 +1214,18 @@ namespace ui {
 			}
 		}
 DONE:
+
+		
+		// handle important text
 		if(dialogImportant){
 			dialogImportant = false;
 			setFontSize(16);
-			//toggleBlack();
 		}
-		/*if(ui::fontSize != 16)
-			setFontSize(16);*/
 
+		if(dialogMerchant) dialogMerchant = false;
 		dialogBoxExists = false;
 	}
+
 	void handleEvents(void){
 		static bool left=true,right=false;
 		static int heyOhLetsGo = 0;
@@ -1039,44 +1233,53 @@ DONE:
 		vec2 oldpos,tmppos;
 		SDL_Event e;
 		
-		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
-		mouse.y=(offset.y+SCREEN_HEIGHT/2)-premouse.y;
+		// update mouse coords
+		mouse.x = premouse.x + offset.x - ( SCREEN_WIDTH / 2 );
+		mouse.y = ( offset.y + SCREEN_HEIGHT / 2 ) - premouse.y;
 		
 		while(SDL_PollEvent(&e)){
 			switch(e.type){
+				
+			// escape - quit game
 			case SDL_QUIT:
 				gameRunning=false;
 				break;
+				
+			// mouse movement - update mouse vector
 			case SDL_MOUSEMOTION:
 				premouse.x=e.motion.x;
 				premouse.y=e.motion.y;
 				break;
+				
+			// mouse clicks
 			case SDL_MOUSEBUTTONDOWN:
-				if((e.button.button & SDL_BUTTON_RIGHT) && dialogBoxExists)
+				// right click advances dialog
+				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && dialogBoxExists )
 					dialogAdvance();
-				if((e.button.button & SDL_BUTTON_LEFT) && !dialogBoxExists)
+				// left click uses item
+				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )
 					player->inv->usingi = true;
 				break;
-			/*
-				KEYDOWN
-			*/
+			
+			// key presses
 			case SDL_KEYDOWN:
-				/*if(SDL_KEY == SDLK_ESCAPE){
-					//gameRunning = false;
-					pMenu = true;
-					return;
-				}else */if(SDL_KEY == SDLK_SPACE){
-					/*if(dialogBoxExists)
-						dialogAdvance();
-					else */if(player->ground){
-						player->vel.y=.4;
-						player->loc.y+=HLINE*2;
-						player->ground=false;
+			
+				// space - make player jump
+				if ( SDL_KEY == SDLK_SPACE ) {
+					if ( player->ground ) {
+						player->loc.y += HLINE * 2;
+						player->vel.y = .4;
+						player->ground = false;
 					}
 					break;
-				}else if(!dialogBoxExists || dialogPassive){
+
+				// only let other keys be handled if dialog allows it
+				} else if ( !dialogBoxExists || dialogPassive ) {
 					tmp = currentWorld;
 					switch(SDL_KEY){
+					case SDLK_t:
+						tickCount += 50;
+						break;
 					case SDLK_a:
 						if(fadeEnable)break;
 						player->vel.x=-.15;
@@ -1255,7 +1458,7 @@ DONE:
 					//currentWorld->addVillage(player->loc.x, player->loc.y, 5, 10, 100, NULL);
 					break;
 				case SDLK_b:
-					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, NULL, NULL);
+					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
 				case SDLK_F12:
@@ -1264,10 +1467,10 @@ DONE:
 					pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
 					glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
-					static std::thread scr;
-					scr = std::thread(takeScreenshot,pixels);
-					scr.detach();
-					//takeScreenshot(pixels);
+					//static std::thread scr;
+					//scr = std::thread(takeScreenshot,pixels);
+					//scr.detach();
+					takeScreenshot(pixels);
 
 					std::cout << "Took screenshot" << std::endl;
 					break;
@@ -1284,34 +1487,36 @@ DONE:
 			}
 		}
 		
-		if(!dialogBoxExists&&AIpreaddr.size()){	// Flush preloaded AI functions if necessary
-			while(!AIpreaddr.empty()){
-				AIpreaddr.front()->addAIFunc(AIpreload.front(),false);
-				AIpreaddr.erase(AIpreaddr.begin());
-				AIpreload.erase(AIpreload.begin());
+			// Flush preloaded AI functions if necessary
+		if ( !dialogBoxExists && AIpreaddr.size() ) {
+			while ( !AIpreaddr.empty() ) {
+				AIpreaddr.front()->addAIFunc( AIpreload.front(), false );
+				AIpreaddr.erase( AIpreaddr.begin() );
+				AIpreload.erase( AIpreload.begin() );
 			}
 		}
 	}
 	
 	void toggleBlack(void){
 		fadeEnable ^= true;
-		fadeWhite = false;
-		fadeFast = false;
+		fadeWhite   = false;
+		fadeFast    = false;
 	}
 	void toggleBlackFast(void){
 		fadeEnable ^= true;
-		fadeWhite = false;
-		fadeFast = true;
+		fadeWhite   = false;
+		fadeFast    = true;
 	}
 	void toggleWhite(void){
 		fadeEnable ^= true;
-		fadeWhite = true;
-		fadeFast = false;
+		fadeWhite   = true;
+		fadeFast    = false;
 	}
 	void toggleWhiteFast(void){
 		fadeEnable ^= true;
-		fadeWhite = true;
-		fadeFast = true;
-		Mix_PlayChannel(1,battleStart,0);
+		fadeWhite   = true;
+		fadeFast    = true;
+		
+		Mix_PlayChannel( 1, battleStart, 0 );
 	}
 }

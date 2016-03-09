@@ -11,6 +11,9 @@
 #include <istream>
 #include <thread>
 
+#include <tinyxml2.h>
+using namespace tinyxml2;
+
 /*
  * Game includes
  */
@@ -20,9 +23,6 @@
 #include <world.h>
 #include <ui.h>
 #include <entities.h>
-
-#include <tinyxml2.h>
-using namespace tinyxml2;
 
 /**
  * Defines how many game ticks should occur in one second, affecting how often
@@ -37,147 +37,127 @@ using namespace tinyxml2;
 
 #define MSEC_PER_TICK (1000/TICKS_PER_SEC)
 
-
-
-/*
- *	window & mainGLContext
- *
- *	In order to draw using SDL and its openGL facilities SDL requires
- *	an SDL_Window object, which spawns a window for the program to draw
- *	to. Once the SDL_Window is initialized, an SDL_GLContext is made so
- *	that openGL calls can be made to SDL. The game requires both of these
- *	variables to initialize.
+/**
+ * The window object returned by SDL when we create the main window.
  */
 
-SDL_Window    *window = NULL;
-SDL_GLContext  mainGLContext = NULL;
+SDL_Window *window = NULL;
 
-/*
- *	bgImage contains the GLuint returned when creating a texture for the
- *	background image. Currently there is only one background image for the
- *	main world; this will be changed and bgImage likely removed once better
- *	backgrounds are implemented.
- */
-
-GLuint  bgDay, bgNight, bgMtn, bgTreesFront, bgTreesMid, bgTreesFar, invUI;
-
-/*
- *	gameRunning
- *
- *	This is one of the most important variables in the program. The main
- *	loop of the game is set to break once this variable is set to false.
- *	The only call to modify this variable is made in src/ui.cpp, where it
- *	is set to false if either an SDL_QUIT message is received (the user
- *	closes the window through their window manager) or if escape is pressed.
+/**
+ * Determines when the game should exit. This variable is set to true right
+ * before the main loop is entered, once set to false the game will exit/
+ * free resources.
  */
 
 bool gameRunning;
 
+/**
+ * TODO
+ */
+
+GLuint invUI;
+
+/**
+ * Contains an angle based off of the player's location and the mouse's
+ * location.
+ */
+
 float handAngle;
 
-/*
- *	currentWorld 	-	This is a pointer to the current world that the player
- * 						is in. Most drawing/entity handling is done through this
- * 						variable. This should only be changed when layer switch
- * 						buttons are pressed (see src/ui.cpp), or when the player
- * 						enters a Structure/Indoor World (see src/ui.cpp again).
- *
- *	player			-	This points to a Player object, containing everything for
- * 						the player. Most calls made with currentWorld require a
- * 						Player object as an argument, and glOrtho is set based
- * 						off of the player's coordinates. This is probably the one
- * 						Entity-derived object that is not pointed to in the entity
- * 						array.
- *
+/**
+ * Contains a pointer to the world that the player is currently in. All render/
+ * logic operations have to go access members of this object in order to work.
  */
 
 World  	*currentWorld = NULL;
+
+/**
+ * The player object.
+ */
+
 Player 	*player;
 
-/*
- *	Tells if player is currently inside a structure.
-*/
+/**
+ * TODO
+ */
 
-extern bool worldInside;
+extern Menu *currentMenu;
 
-extern Menu* currentMenu;
+/**
+ * The current number of ticks, used for logic operations and day/night cycles.
+ */
 
-/*
- *	tickCount contains the number of ticks generated since main loop entrance.
- *	This variable might be used anywhere.
- *
- *	deltaTime is used for interpolation stuff.
- *
- *	Pretty sure these variables are considered static as they might be externally
- *	referenced somewhere.
-*/
+unsigned int tickCount = 0;
 
-unsigned int tickCount = DAY_CYCLE;
+/**
+ * TODO
+ */
+
 unsigned int deltaTime = 0;
 
-/*
- *
-*/
+/**
+ * TODO
+ */
 
 GLuint fragShader;
+
+/**
+ * TODO
+ */
+ 
 GLuint shaderProgram;
-GLuint colorIndex;
-GLuint mouseTex;
+
+/**
+ *	Threads and various variables to be used when multithreading the game,
+ *  mutex will prevent multiple threads from changing the same data,
+ *  and the condition_variable will wait for threads to reach the same point
+ */
+
+std::mutex mtx;
+std::condition_variable cv;
+ThreadPool pool(10);
 
 /*
  *	loops is used for texture animation. It is believed to be passed to entity
  *	draw functions, although it may be externally referenced instead.
 */
 
-unsigned int loops = 0;	// Used for texture animation
+/**
+ * TODO
+ */
 
-/*
- *	initEverything
- *
- *	Before the main loop, things like the player, entities, and worlds should
- *	be created. This game has not reached the point that these can be scripted
- *	or programmed, so this function substitues for that. It is defined in
- *	src/gameplay.cpp.
- *
-*/
+GLuint colorIndex;
 
-extern void initEverything(void);
+/**
+ * TODO
+ */
 
-/*
- *	mainLoop is in fact the main loop, which runs 'infinitely' (as long as gameRunning
- *
- *
- *
- *	is set). Each loop updates timing values (tickCount and deltaTime), runs logic()
- *	if MSEC_PER_TICK milliseconds have passed, and then runs render().
- *
- *	logic handles all user input and entity/world physics.
- *
- *	render handles all drawing to the window, calling draw functions for everything.
- *
-*/
+GLuint mouseTex;
 
-void logic(void);
-void render(void);
-void mainLoop(void);
+/**
+ * Used for texture animation. It is externally referenced by ui.cpp
+ * and entities.cpp.
+ */
 
-/*
- *	This offset is used as the player offset in the world drawing so
- *	everything can be moved according to the player
-*/
+unsigned int loops = 0;
 
-vec2 offset;																			/*	OFFSET!!!!!!!!!!!!!!!!!!!! */
+/**
+ * Gives a coordinate based off of the player's location to allow for drawing to
+ * be in a constant 'absolute' place on the window.
+ */
+
+vec2 offset;
 
 Menu *currentMenu;
 Menu optionsMenu;
 Menu pauseMenu;
 
-extern WEATHER weather;
+extern WorldWeather weather;
 
-extern int  fadeIntensity;
-extern bool fadeEnable;
-extern bool fadeWhite;
-extern bool fadeFast;
+extern int  fadeIntensity;	// ui.cpp
+extern bool fadeEnable;		// ui.cpp
+extern bool fadeWhite;		// ui.cpp
+extern bool fadeFast;		// ui.cpp
 
 unsigned int SCREEN_WIDTH;
 unsigned int SCREEN_HEIGHT;
@@ -188,13 +168,44 @@ float VOLUME_MASTER;
 float VOLUME_MUSIC;
 float VOLUME_SFX;
 
+/**
+ * Defined in gameplay.cpp, should result in `currentWorld` containing a pointer
+ * to a valid World.
+ */
+
+extern void initEverything(void);
+
+/**
+ * The game logic function, should handle all logic-related operations for the
+ * game.
+ */
+
+void logic(void);
+
+/**
+ * The game render function, should handle all drawing to the window.
+ */
+
+void render(void);
+
+/**
+ * The main loop, calls logic(), render(), and does timing operations in the
+ * appropriate order.
+ */
+
+void mainLoop(void);
+
 /*******************************************************************************
  * MAIN ************************************************************************
  *******************************************************************************/
-int main(/*int argc, char *argv[]*/){
-	// *argv = (char *)argc;
+
+int main(int argc, char *argv[]){
+	(void)argc;
+	(void)argv;
 	
-	gameRunning=false;
+	static SDL_GLContext mainGLContext = NULL;
+	
+	gameRunning = false;
 
 	/**
 	 * (Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
@@ -295,16 +306,7 @@ int main(/*int argc, char *argv[]*/){
 	if((err=glewInit()) != GLEW_OK){
 		std::cout << "GLEW was not able to initialize! Error: " << glewGetErrorString(err) << std::endl;
 		return -1;
-	}	
-	
-	/*
-	 * Initialize the FreeType libraries and select what font to use using functions from the ui
-	 * namespace, defined in include/ui.h and src/ui.cpp. These functions should abort with errors
-	 * if they have error.
-	 */
-	
-	//ui::initFonts();
-	//ui::setFontFace("ttf/FreePixel.ttf");		// as in gamedev/ttf/<font>
+	}
 	
 	/*
 	 * Initialize the random number generator. At the moment, initRand is a macro pointing to libc's
@@ -321,7 +323,7 @@ int main(/*int argc, char *argv[]*/){
 	 */
 	
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetSwapInterval(0);
+	//SDL_GL_SetSwapInterval(0);
 	
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	
@@ -409,6 +411,9 @@ int main(/*int argc, char *argv[]*/){
 	**************************/
 	
 	std::cout << "Num threads: " << std::thread::hardware_concurrency() << std::endl;
+
+	//currentWorld->mob.back()->followee = player;
+	
 	gameRunning = true;
 	while(gameRunning){
 		mainLoop();
@@ -451,7 +456,7 @@ void mainLoop(void){
 						currentTime = 0,	//
 						prevPrevTime= 0;	//
 	World *prev;
-	
+    
 	if(!currentTime)						// Initialize currentTime if it hasn't been
 		currentTime=millis();
 	
@@ -472,35 +477,44 @@ void mainLoop(void){
 	 */
 
 	prev = currentWorld;
-	ui::handleEvents();
 	
+
+	//pool.Enqueue(ui::handleEvents);
+	ui::handleEvents();
+
 	if(prev != currentWorld){
 		currentWorld->bgmPlay(prev);
 		ui::dialogBoxExists = false;
 	}
+
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
+		//pool.Enqueue(logic);
 		logic();
 		prevPrevTime = currentTime;
 	}
-	
+
 	/*
 	 * Update player and entity coordinates.
 	 */
 	
-	currentWorld->update(player,deltaTime);
+	/*pool.Enqueue([](){
+		currentWorld->update(player,deltaTime);
+	});*/
 	
+	currentWorld->update(player,deltaTime);
+    
 	/*
 	 * Update debug variables if necessary
 	 */
 	
-	if(++debugDiv==20)
+	if ( ++debugDiv == 20 ) {
 		debugDiv=0;
 		
-	if(deltaTime)
-		fps=1000/deltaTime;
-	else if(!(debugDiv%10))
-		debugY = player->loc.y;
-
+		if ( deltaTime )
+			fps = 1000 / deltaTime;
+		else if(!(debugDiv%10))
+			debugY = player->loc.y;
+	}
 MENU:
 	render();
 }
@@ -522,7 +536,7 @@ void render(){
 	
 	if(currentWorld->getTheWidth() < (int)SCREEN_WIDTH){
 		offset.x = 0;
-	}else if(!worldInside){
+	}else{
 		if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
 			offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
 		if(player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
@@ -608,6 +622,7 @@ void render(){
 	/*
 	 * Calculate the player's hand angle.
 	 */
+	 
 	handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
 	if(ui::mouse.x < player->loc.x){
 		if(handAngle <= 0)
@@ -628,10 +643,6 @@ void render(){
 	player->inv->draw();
 
 	/*
-	 *	Here we draw a black overlay if it's been requested.
-	*/
-
-	 /*
 	 * Here we draw a black overlay if it's been requested.
 	 */
 	
@@ -647,7 +658,7 @@ void render(){
 				offset.y+SCREEN_HEIGHT/2);
 	}else if(ui::fontSize != 16)
 		ui::setFontSize(16);
-	
+
 	/*
 	 * Draw UI elements. This includes the player's health bar and the dialog box.
 	 */
@@ -765,19 +776,12 @@ void logic(){
 			 *	that the NPC doesn't move when it talks to the player.
 			 */
 
-/*<<<<<<< HEAD
-			if(n->canMove) n->wander((rand() % 120 + 30));
-
-			if(!player->inv->usingi) n->hit = false;
-			if(player->inv->usingi && !n->hit && player->inv->detectCollision(vec2{n->loc.x, n->loc.y},vec2{n->loc.x+n->width,n->loc.y+n->height})){
-=======*/
 			if(n->canMove)
 				n->wander((rand() % 120 + 30));
 			
 			/*if(!player->inv->usingi) n->hit = false;
 			
 			if(player->inv->usingi && !n->hit && player->inv->detectCollision((vec2){n->loc.x, n->loc.y},(vec2){n->loc.x+n->width,n->loc.y+n->height})){
->>>>>>> 7ab072caaaec09720ad79cfed5738e89bc60c44f
 				n->health -= 25;
 				n->hit = true;
 				for(int r = 0; r < (rand()%5);r++)
@@ -894,41 +898,16 @@ void logic(){
 			}
 		}
 	}
-	/*for(auto &b : currentWorld->build){
-		switch(b->bsubtype){
-			case FOUNTAIN:
-				for(int r = 0; r < (rand()%25)+10;r++){
-					currentWorld->addParticle(	rand()%HLINE*3 + b->loc.x + b->width/2,
-												b->loc.y + b->height, 
-												HLINE*1.25,
-												HLINE*1.25, 
-												rand()%2 == 0?-(rand()%7)*.01:(rand()%7)*.01,
-												((4+rand()%6)*.05), 
-												{0,0,255}, 
-												2500);
-
-					currentWorld->particles.back()->fountain = true;
-				}
-				break;
-			case FIRE_PIT:
-				for(int r = 0; r < (rand()%20)+10;r++){
-					currentWorld->addParticle(rand()%(int)(b->width/2) + b->loc.x+b->width/4, b->loc.y+3*HLINE, HLINE, HLINE, rand()%2 == 0?-(rand()%3)*.01:(rand()%3)*.01,((4+rand()%6)*.005), {255,0,0}, 400);
-					currentWorld->particles.back()->gravity = false;
-					currentWorld->particles.back()->behind = true;
-				}
-				break;
-			default: break;
-		}
-	}*/
 	
 	/*
 	 *	Switch between day and night (SUNNY and DARK) if necessary.
-	*/
+	 */
+	 
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
-		if(weather==SUNNY){
-			weather=DARK;
-		}else{
-			weather=SUNNY;
+		if ( weather == WorldWeather::Sunny )
+			weather = WorldWeather::Dark;
+		else {
+			weather = WorldWeather::Sunny;
 			Mix_Pause(2);
 		}
 	}

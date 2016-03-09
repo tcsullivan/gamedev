@@ -675,3 +675,77 @@
 	- volumes are better
 	
 	~ 5 month Changelog anniversary!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+2/23/2016:
+==========
+
+	- began re-write of font rendering functions
+	- began documenting main.cpp
+	- improved game efficiency
+
+2/25/2016:
+==========
+
+	- very neatly documented/optimized ui.cpp (very neat)
+	- looked into better automated Makefiles
+	- improving villages, began work on shops
+
+2/26/2016:
+==========
+
+	- made fonts more memory-efficient
+	- C++-ified loaded texture handlers
+	- documented more stuff
+	- made merchant menu
+
+2/29/2016:
+==========
+
+	- renewed branch 'remake': re-wrote world.cpp and pushed
+	- fixed world linkage errors
+	- considered more formal coding? (as in documentation and indentation)
+	- fixed dialog boxes and options
+	- broke screenshots
+
+3/1/2016:
+=========
+
+	- merged 'remake' with 'master', fixed font issues and world stuffs
+	- continued work on merchant dialog
+
+3/2/2016,
+3/3/2016:
+=========
+
+	- made particle vector not pointers
+	- improved efficiency of code using newly learned C++11 tricks
+	- added StrAttribute() to TinyXML2
+	- more merchant stuff, trading????
+	- improved village XML loading
+
+3/4/2016:
+=========
+
+	- added following functionality to entities
+	- fixed some world shading issues
+	- re-added stars, but stars draw midday
+	- restarted work on arenas
+	- began implementing currency system
+	- made the moon!
+	- merchants are a-o-kay
+
+3/7/2016:
+=========
+
+	- player lighting works more
+	- arenas work
+	- cleaned up world codes
+	- andy got here
+	
+	~ Total of 7,379 lines of code!
+
+3/8/2016:
+=========
+
+	- fixed world draw shadings
+	- improved merchant menu

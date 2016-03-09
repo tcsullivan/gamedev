@@ -1,19 +1,24 @@
 <?xml version="1.0"?>
 <World>
 	<style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/" />
-	<generation type="Random" width="1600" />
+	<generation type="Random" width="500" />
 	<link left="playerSpawnHill2.xml" />
 	
-	<mob type="1" aggressive="false" />
+	<mob x="300" type="1" aggressive="true" />
 	
 	<trigger x="-300" id="Test" />
 	
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="false" />
-	<!-- <structure type="5" inside="playerSpawnHill1_Building1.xml" /> -->
-	<village name="Meme-Town">
-		<structure type="0" x="-100" inside="playerSpawnHill1_Building1.xml"/>
+	<village name="the Cranmore Tubing Park">
+		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
 		<structure type="5" x="-500" inside="playerSpawnHill1_Building1.xml"/>
+		<stall type="market" texture="assets/style/classic/stall.png">
+			<buy item="Dank MayMay" cost="420"/>
+			<sell item="Dank MayMay" cost="666"/>
+			<trade quantity="420" item="Dank MayMay" quantity1="1" item1="Wood Sword"/>
+			<trade quantity="666" item="Wood Sword" quantity1="420" item1="Dank MayMay"/>
+		</stall>
 	</village>
 
 </World>

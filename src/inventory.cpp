@@ -14,6 +14,8 @@ static vec2 itemLoc;
 Mix_Chunk* swordSwing;
 
 static std::vector<Item *> itemMap;
+static GLuint *itemtex;
+void itemDraw(Player *p,uint id);
 
 void items(void){
 	XMLDocument xml;
@@ -44,7 +46,7 @@ int Inventory::addItem(std::string name,uint count){
 					return 0;
 				}
 			}
-			items.push_back((item_t){count,i});
+			items.push_back( item_t { count, i });
 			return 0;
 		}
 	}
@@ -66,7 +68,7 @@ int Inventory::takeItem(std::string name,uint count){
 	}
 	
 	if(id == 999999)
-		return -1;
+		return -1; //if no such item exists
 	
 	/*
 	 * Inventory lookup
@@ -108,9 +110,6 @@ int Inventory::hasItem(std::string name){
 	return 0;
 }
 
-static GLuint *itemtex;
-void itemDraw(Player *p,uint id);
-
 void initInventorySprites(void){
 	
 	items();
@@ -140,6 +139,15 @@ const char *getItemTexturePath(std::string name){
 			return i->texloc.c_str();
 	}
 	return NULL;
+}
+
+GLuint getItemTexture(std::string name){
+	for(auto &i : itemMap){
+		if(i->name == name)
+			return Texture::loadTexture(i->texloc);
+	}
+
+	return Texture::loadTexture("assets/items/ITEM_TEST.png");
 }
 
 float getItemWidth(std::string name){
@@ -407,6 +415,8 @@ int Inventory::useItem(void){
 }
 
 bool Inventory::detectCollision(vec2 one, vec2 two){
+	(void)one;
+	(void)two;
 	//float i = 0.0f;
 	
 	/*if(items.empty() || !items[sel].count)
@@ -433,6 +443,6 @@ bool Inventory::detectCollision(vec2 one, vec2 two){
 			i+=HLINE;
 		}
 	}*/
-	return !(one.x == two.y);
+	return false;
 }
 

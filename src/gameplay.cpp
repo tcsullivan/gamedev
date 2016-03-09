@@ -4,30 +4,28 @@
 #include <ui.h>
 
 #include <tinyxml2.h>
-
 using namespace tinyxml2;
 
-extern World	*currentWorld;
-extern Player	*player;
+extern Player	*player;						// main.cpp
+extern World	*currentWorld;					// main.cpp
 
-extern float shit;
-extern Menu* currentMenu;
-extern Menu pauseMenu;
-extern Menu optionsMenu;
+extern float  shit;
+extern Menu  *currentMenu;
+extern Menu   pauseMenu;
+extern Menu   optionsMenu;
 
-extern void mainLoop(void);
+extern void mainLoop(void);						// main.cpp
+
+extern std::vector<NPC *> AIpreaddr;			// entities.cpp
+extern std::vector<int (*)(NPC *)> AIpreload;	// entities.cpp
+
+std::vector<XMLElement *> dopt;
+
+void destroyEverything(void);
 
 void segFault(){
 	(*((int *)NULL))++;
 }
-
-
-typedef struct {
-	NPC *npc;
-	unsigned int index;
-} NPCDialog;
-
-std::vector<XMLElement *> dopt;
 
 int commonAIFunc(NPC *speaker){
 	XMLDocument xml;
@@ -43,7 +41,7 @@ int commonAIFunc(NPC *speaker){
 	 * Load the current world's XML file into memory for reading.
 	 */
 	
-	xml.LoadFile(currentXML);
+	xml.LoadFile(currentXML.c_str());
 	exml = xml.FirstChildElement("Dialog");
 	
 	/*
@@ -68,12 +66,12 @@ int commonAIFunc(NPC *speaker){
 				 */
 	
 				if((oxml = exml->FirstChildElement("quest"))){
-					const char *qname;
+					std::string qname;
 					
-					while(oxml){
-						if((qname = oxml->Attribute("assign")))
+					while ( oxml ) {
+						if ( !(qname = oxml->StrAttribute("assign")).empty() )
 							player->qh.assign(qname,"None",(std::string)oxml->GetText());
-						else if((qname = oxml->Attribute("check"))){
+						else if( !(qname = oxml->StrAttribute("check")).empty() ){
 							if(player->qh.hasQuest(qname) && player->qh.finish(qname)){
 								goto CONT;
 							}else{
@@ -217,12 +215,11 @@ void commonTriggerFunc(Mob *callee){
 	XMLDocument xml;
 	XMLElement *exml;
 	
-	char *text,*pch;
-	
+	char *text,*pch;	
 	if(!lock){
 		lock = true;
 	
-		xml.LoadFile(currentXML);
+		xml.LoadFile(currentXML.c_str());
 		exml = xml.FirstChildElement("Trigger");
 		
 		while(strcmp(exml->Attribute("id"),callee->heyid.c_str()))
@@ -253,7 +250,6 @@ void commonTriggerFunc(Mob *callee){
 	}
 }
 
-void destroyEverything(void);
 void initEverything(void){
 	std::vector<std::string> xmlFiles;
 	XMLDocument xml;
@@ -283,12 +279,12 @@ void initEverything(void){
 			/*
 			 * Read in the XML file.
 			 */
-			
-			currentWorld = loadWorldFromXML(xmlFiles[i].c_str());
+		
+			currentWorld = loadWorldFromXML(xmlFiles[i]);
 			break;
 		}
 	}
-
+	
 	pauseMenu.items.push_back(ui::createParentButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
 	pauseMenu.items.push_back(ui::createChildButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, "Options"));
 	pauseMenu.items.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
@@ -315,12 +311,10 @@ void initEverything(void){
 	atexit(destroyEverything);
 }
 
-extern std::vector<int (*)(NPC *)> AIpreload;
-extern std::vector<NPC *> AIpreaddr;
-
 void destroyEverything(void){
 	currentWorld->save();
 	delete currentWorld;
+	//delete[] currentXML;
 	
 	while(!AIpreload.empty())
 		AIpreload.pop_back();

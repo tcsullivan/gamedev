@@ -1,44 +1,63 @@
+#include <algorithm>
+#include <string>
+
 #include <Texture.h>
-#include <string.h>
 
-struct texture_t {
-	char *name;
-	GLuint tex;
-	dim2 dim;
-} __attribute__ ((packed));
+/**
+ * A structure for keeping track of loaded textures.
+ */
 
-struct index_t{
+typedef struct {
+	std::string name;	/**< The file path of the texture.		*/
+	GLuint tex;			/**< The GLuint for the loaded texture. */
+	dim2 dim;			/**< The dimensions of the texture.		*/
+} texture_t;
+
+struct index_t {
 	Color color;
 	int indexx;
 	int indexy;
 };
 
-struct texture_t *LoadedTexture[256];
-unsigned int LoadedTextureCounter = 0;
+/**
+ * A vector of all loaded textures.
+ * 
+ * Should a texture be asked to be loaded twice, loadTexture() can reference
+ * this array and reuse GLuint's to save memory.
+ */
+
+static std::vector<texture_t> LoadedTexture;
 
 namespace Texture{
 	Color pixels[8][4];
-	GLuint loadTexture(const char *fileName){
+	
+	GLuint loadTexture(std::string fileName){
 		SDL_Surface *image;
 		GLuint object = 0;
 
-		for(unsigned int i=0;i<LoadedTextureCounter;i++){
-			if(!strcmp(LoadedTexture[i]->name,fileName)){
+		// check if texture is already loaded
+		for(auto &t : LoadedTexture){
+			if(t.name == fileName){
+				
 #ifdef DEBUG
-				DEBUG_printf("Reusing loaded texture for %s\n",fileName);
+				DEBUG_printf("Reusing loaded texture for %s\n", fileName.c_str());
 #endif // DEBUG
-				return LoadedTexture[i]->tex;
+				
+				return t.tex;
 			}
 		}
 
-		if(!fileName)
+		// load SDL_surface of texture
+		if(!(image = IMG_Load(fileName.c_str())))
 			return 0;
-
-		if(!(image = IMG_Load(fileName)))
-			return 0;
+			
 #ifdef DEBUG
-		DEBUG_printf("Loaded image file: %s\n", fileName);
+		DEBUG_printf("Loaded image file: %s\n", fileName.c_str());
 #endif // DEBUG
+		
+		/*
+		 * Load texture through OpenGL.
+		 */
 		
 		glGenTextures(1,&object);				// Turns "object" into a texture
 		glBindTexture(GL_TEXTURE_2D,object);	// Binds "object" to the top of the stack
@@ -61,33 +80,27 @@ namespace Texture{
 					 image->pixels
 					 );
 		
-		LoadedTexture[LoadedTextureCounter]		  = new struct texture_t;		//(struct texture_t *)malloc(sizeof(struct texture_t));
-		LoadedTexture[LoadedTextureCounter]->name = new char[strlen(fileName)+1];	//(char *)malloc(safe_strlen(fileName));
-		LoadedTexture[LoadedTextureCounter]->tex  = object;
-		strcpy(LoadedTexture[LoadedTextureCounter]->name,fileName);
-		LoadedTexture[LoadedTextureCounter]->dim.x = image->w;
-		LoadedTexture[LoadedTextureCounter]->dim.y = image->h;
-		LoadedTextureCounter++;
+		// add texture to LoadedTexture
+		LoadedTexture.push_back(texture_t{fileName,object,{image->w,image->h}});		
 		
-		SDL_FreeSurface(image);	// Free the surface
+		// free the SDL_Surface
+		SDL_FreeSurface(image);
 
 		return object;
 	}
 
-	dim2 imageDim(const char *fileName){
-		for(unsigned int i=0;i<LoadedTextureCounter;i++){
-			if(!strcmp(LoadedTexture[i]->name,fileName)){
-				return LoadedTexture[i]->dim;
-			}
+	dim2 imageDim(std::string fileName){
+		for(auto &t : LoadedTexture){
+			if(t.name == fileName)
+				return t.dim;
 		}
 		return {0,0};
 	}
 	
 	void freeTextures(void){
-		for(unsigned int i=0;i<LoadedTextureCounter;i++){
-			glDeleteTextures(1,&LoadedTexture[i]->tex);
-			delete[] LoadedTexture[i]->name;
-			delete LoadedTexture[i];
+		while(!LoadedTexture.empty()){
+			glDeleteTextures(1, &LoadedTexture.back().tex);
+			LoadedTexture.pop_back();
 		}
 	}
 
@@ -162,32 +175,30 @@ namespace Texture{
 Texturec::Texturec(uint amt, ...){
 	va_list fNames;
 	texState = 0;
-	image = new GLuint[amt];
 	va_start(fNames, amt);
-	for(unsigned int i = 0; i < amt; i++){
-		image[i] = Texture::loadTexture(va_arg(fNames, char *));
-	}
+	for(unsigned int i = 0; i < amt; i++)
+		image.push_back( Texture::loadTexture(va_arg(fNames, char *)) );
 	va_end(fNames);
+}
+
+Texturec::Texturec( std::initializer_list<std::string> l )
+{
+	texState = 0;
+	std::for_each( l.begin(), l.end(), [&](std::string s){ image.push_back( Texture::loadTexture( s ) ); });
 }
 
 Texturec::Texturec(std::vector<std::string>v){
 	texState = 0;
-	image = new GLuint[v.size()];
-	for(unsigned int i = 0; i < v.size(); i++){
-		image[i] = Texture::loadTexture(v[i].c_str());
-	}
+	std::for_each( v.begin(), v.end(), [&](std::string s){ image.push_back( Texture::loadTexture( s ) ); });
 }
 
 Texturec::Texturec(uint amt,const char **paths){
 	texState = 0;
-	image = new GLuint[amt];
-	for(unsigned int i = 0; i < amt; i++){
-		image[i] = Texture::loadTexture(paths[i]);
-	}
+	for(unsigned int i = 0; i < amt; i++)
+		image.push_back( Texture::loadTexture(paths[i]) );
 }
 
 Texturec::~Texturec(){
-	delete[] image;
 }
 
 void Texturec::bind(unsigned int bn){

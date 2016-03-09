@@ -1,20 +1,38 @@
+#include <istream>
+
 #include <entities.h>
 #include <ui.h>
 
-#include <istream>
-
-#define RAND_DIALOG_COUNT 13
-
 extern std::istream *names;
-extern unsigned int loops;
 
-extern World *currentWorld;
-
-extern Player *player;
-
-extern const char *itemName;
+extern Player *player;			// main.cpp
+extern World *currentWorld;		// main.cpp
+extern unsigned int loops;		// main.cpp
+extern unsigned int tickCount;	// main.cpp
 
 GLuint waterTex;
+
+std::vector<int (*)(NPC *)> AIpreload;	// A dynamic array of AI functions that are being preloaded
+std::vector<NPC *> AIpreaddr;			// A dynamic array of pointers to the NPC's that are being assigned the preloads
+
+#define RAND_DIALOG_COUNT 14
+
+const char *randomDialog[RAND_DIALOG_COUNT] = {
+	"What a beautiful day it is.",
+	"Have you ever went fast? I have.",
+	"I heard if you complete a quest, you'll get a special reward.",
+	"How much wood could a woodchuck chuck if a woodchuck could chuck wood?",
+	"I don\'t think anyone has ever been able to climb up that hill.",
+	"If you ever see a hole in the ground, watch out; it could mean the end for you.",
+	"Did you know this game has over 5000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
+	"HELP MY CAPS LOCK IS STUCK",
+	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
+	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
+	"Frig.",
+	"The sine of theta equals the opposite over the hypotenuese.",
+	"Did you know the developers spelt brazier as brazzier.",
+	"My dad once said to me, \"Boy, you are in a game.\" I never knew what he meant by that."
+};
 
 void initEntity(){
 	waterTex = Texture::loadTexture("assets/waterTex.png");
@@ -78,6 +96,8 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	
 	name = new char[32];
 	getRandomName(this);
+	
+	followee = NULL;
 }
 
 Player::Player(){ //sets all of the player specific traits on object creation
@@ -125,6 +145,7 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	randDialog = rand() % RAND_DIALOG_COUNT - 1;
 	dialogIndex = 0;
 }
+
 NPC::~NPC(){
 	while(!aiFunc.empty()){
 		aiFunc.pop_back();
@@ -135,6 +156,38 @@ NPC::~NPC(){
 	delete[] name;
 }
 
+Merchant::Merchant(){	//sets all of the Merchant specific traits on object creation
+	width = HLINE * 10;
+	height = HLINE * 16;
+	
+	type	= MERCHT; //sets type to merchant
+	subtype = 0;
+
+	health = maxHealth = 100;
+	
+	maxHealth = health = 100;
+	canMove = true;
+
+	trade.reserve(100);
+	
+	//tex = new Texturec(1,"assets/NPC.png");
+	//inv = new Inventory(NPC_INV_SIZE);
+	//inv = new Inventory(1);
+                                                                                                            
+	//randDialog = rand() % RAND_DIALOG_COUNT - 1;
+	dialogIndex = 0;
+}
+
+Merchant::~Merchant(){
+	/*while(!aiFunc.empty()){
+		aiFunc.pop_back();
+	}*/
+	
+	//delete inv;
+	//delete tex;
+	//delete[] name;
+}
+
 Structures::Structures(){ //sets the structure type
 	health = maxHealth = 1;
 	
@@ -143,15 +196,14 @@ Structures::Structures(){ //sets the structure type
 	
 	name = NULL;
 	
-	inv = NULL;
+	//inv = NULL;
 	canMove = false;
 }
 Structures::~Structures(){
 	delete tex;
+	
 	if(name)
 		delete[] name;
-	if(inside)
-		delete[] inside;
 }
 
 Mob::Mob(int sub){
@@ -211,18 +263,11 @@ Object::Object(){
 	inv = NULL;
 }
 
-Object::Object(std::string in, const char *pd){
+Object::Object(std::string in, std::string pd){
 	iname = in;
 
-	if(pd){
-		pickupDialog = new char[strlen(pd)+1];
-		strcpy(pickupDialog,pd);
-		questObject = true;
-	}else{
-		pickupDialog = new char[1];
-		*pickupDialog = '\0';
-		questObject = false;
-	}
+	pickupDialog = pd;
+	questObject = !pd.empty();
 
 	type = OBJECTT;
 	alive = true;
@@ -235,7 +280,6 @@ Object::Object(std::string in, const char *pd){
 	inv = NULL;
 }
 Object::~Object(){
-	delete[] pickupDialog;
 	delete tex;
 	delete[] name;
 }
@@ -252,6 +296,10 @@ void Object::reloadTexture(void){
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	glColor3ub(255,255,255);
+	
+	if ( !alive )
+		return;
+	
 	if(type==NPCT){
 		if(NPCp(this)->aiFunc.size()){
 			glColor3ub(255,255,0);
@@ -338,42 +386,38 @@ NOPE:
 	if(near)ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
 }
 
-/*
- *	NPC::wander, this makes the npcs wander around the near area
- *
- *	timeRun					This variable is the amount of gameloop ticks the entity will wander for
-*/
+/**
+ * Handles NPC movement, usually just random walking.
+ */
 
-void NPC::wander(int timeRun){
-	
-	/*
-	 *	Direction is the variable that decides what direction the entity will travel in
-	 *	the value is either -1, 0, or 1. -1 being left, 0 means that the npc will stay still
-	 *	and a value of 1 makes the entity move to the right
-	*/
-	
+void NPC::
+wander( int timeRun )
+{
 	static int direction;
 	
-	/*
-	 *	Ticks to use is a variable in the entity class that counts the total ticks that need to be used
-	 *
-	 *	This loop only runs when ticksToUse is 0, this means that the speed, direction, etc... Will be
-	 *	calculated only after the npc has finished his current walking state
-	*/
-	
-	if(ticksToUse == 0){
+	if ( followee ) {
+		if ( loc.x < followee->loc.x - 40 )
+			direction = 1;
+		else if ( loc.x > followee->loc.x + 40 )
+			direction = -1;
+		else
+			direction = 0;
+		
+		vel.x = .018 * HLINE * direction;
+	} else if ( ticksToUse == 0 ) {
 		ticksToUse = timeRun;
-		vel.x = .008*HLINE;					//sets the inital velocity of the entity
-		direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
-											//this lets the entity move left, right, or stay still
-		if(direction==0)ticksToUse*=2;
-		vel.x *= direction;					//changes the velocity based off of the direction
+		
+		vel.x = .008 * HLINE;
+		direction = (getRand() % 3 - 1);
+		
+		if ( direction == 0 )
+			ticksToUse *= 2;
+		
+		vel.x *= direction;
 	}
-	ticksToUse--;							 //removes one off of the entities timer
+	
+	ticksToUse--;
 }
-
-std::vector<int (*)(NPC *)> AIpreload;	// A dynamic array of AI functions that are being preloaded
-std::vector<NPC *> AIpreaddr;			// A dynamic array of pointers to the NPC's that are being assigned the preloads
 
 void NPC::addAIFunc(int (*func)(NPC *),bool preload){
 	if(preload){										// Preload AI functions so that they're given after 
@@ -387,22 +431,6 @@ void NPC::addAIFunc(int (*func)(NPC *),bool preload){
 void NPC::clearAIFunc(void){
 	aiFunc.clear();
 }
-
-const char *randomDialog[RAND_DIALOG_COUNT] = {
-	"What a beautiful day it is.",
-	"Have you ever went fast? I have.",
-	"I heard if you complete a quest, you'll get a special reward.",
-	"How much wood could a woodchuck chuck if a woodchuck could chuck wood?",
-	"I don\'t think anyone has ever been able to climb up that hill.",
-	"If you ever see a hole in the ground, watch out; it could mean the end for you.",
-	"Did you know this game has over 5000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
-	"HELP MY CAPS LOCK IS STUCK",
-	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
-	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
-	"Frig.",
-	"The sine of theta equals the opposite over the hypotenuese.",
-	"Did you know the developers spelt brazier as brazzier."
-};
 
 void NPC::interact(){ //have the npc's interact back to the player
 	int (*func)(NPC *);
@@ -425,18 +453,36 @@ void NPC::interact(){ //have the npc's interact back to the player
 	canMove=true;
 }
 
+void Merchant::interact(){
+	ui::merchantBox(name, trade.back(), ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
+	ui::waitForDialog();
+	if(ui::dialogOptChosen == 1){
+		std::cout << "Gimme ye' munny" << std::endl;
+		if(player->inv->takeItem(trade.back().item[1],trade.back().quantity[1]) >= 0)
+			player->inv->addItem(trade.back().item[0],trade.back().quantity[0]);
+	}else{
+		std::cout << "See ye!" << std::endl;
+	}
+}
+
 void Object::interact(void){
 	if(questObject && alive){
-		ui::dialogBox(player->name,":Yes:No",false,pickupDialog);		
+		ui::dialogBox( player->name, ":Yes:No", false, pickupDialog.c_str());
 		ui::waitForDialog();
 		if(ui::dialogOptChosen == 1){
-			player->inv->addItem(/*(ITEM_ID)(identifier)*/iname, 1);
+			player->inv->addItem( iname, 1 );
 			alive = false;
 		}
 	}else{
 		alive = false;
 		player->inv->addItem(iname, 1);
 	}
+}
+
+void Entity::
+follow( Entity *e )
+{
+	followee = e;
 }
 
 /*
@@ -467,14 +513,26 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 	*/
 
 	//unsigned int tempN = (getRand() % 5 + 2);
+	
+	if ( textureLoc.empty() )
+		textureLoc = inWorld->sTexLoc[sub];
+	
 	switch(sub){
-		default:
-			tex = new Texturec(1, textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
-			dim = Texture::imageDim(textureLoc ? textureLoc : inWorld->sTexLoc[sub].c_str());
+		case STALL_MARKET:
+			tex = new Texturec({ textureLoc });
+			dim = Texture::imageDim( textureLoc );
 			width = dim.x;
 			height = dim.y;
 			break;
+		default:
+			tex = new Texturec({ textureLoc });
+			dim = Texture::imageDim( textureLoc );
+			width = dim.x;
+			height = dim.y;
+			inv = NULL;
+			break;
 	}
+	
 	return 0;
 }
 
@@ -489,12 +547,26 @@ void Mob::wander(int timeRun){
 	static unsigned int heya=0,hi=0;
 	static bool YAYA = false;
 	
+	if ( followee ) {
+		if ( loc.x < followee->loc.x - 40 )
+			direction = 1;
+		else if ( loc.x > followee->loc.x + 40 )
+			direction = -1;
+		else
+			direction = 0;
+		
+		vel.x = .018 * HLINE * direction;
+		return;
+	}
+	
 	if(aggressive && !YAYA &&
 	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
 	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height ){
 		Arena *a = new Arena(currentWorld,player,this);
-		a->setBackground(BG_FOREST);
+		a->setStyle("");
+		a->setBackground( WorldBGType::Forest );
 		a->setBGM("assets/music/embark.wav");
+		
 		ui::toggleWhiteFast();
 		YAYA = true;
 		ui::waitForCover();
@@ -559,12 +631,13 @@ void Player::save(void){
 	data.append(std::to_string((int)loc.y) + "\n");
 	data.append(std::to_string((int)health) + "\n");
 	data.append(std::to_string((int)maxHealth) + "\n");
+	data.append(std::to_string((int)tickCount) + "\n");
 	
 	data.append(std::to_string((int)inv->items.size()) + "\n");
 	for(auto &i : inv->items)
 		data.append(std::to_string((int)i.count) + "\n" + std::to_string((int)i.id) + "\n");
 	
-	data.append((std::string)(currentXML+4) + "\n");
+	data.append((std::string)(currentXML.c_str() + 4) + "\n");
 	
 	data.append("dOnE\0");
 	out.write(data.c_str(),data.size());
@@ -599,13 +672,15 @@ void Player::sspawn(float x,float y){
 		health = std::stoi(ddata);
 		std::getline(data,ddata);
 		maxHealth = std::stoi(ddata);
+		std::getline(data,ddata);
+		tickCount = std::stoi(ddata);
 	
 		std::getline(data,ddata);
 		for(i = std::stoi(ddata);i;i--){
 			std::getline(data,ddata);
 			count = std::stoi(ddata);
 			std::getline(data,ddata);
-			inv->items.push_back((item_t){count,(uint)std::stoi(ddata)});
+			inv->items.push_back(item_t{count,(uint)std::stoi(ddata)});
 		}
 		
 		std::getline(data,ddata);

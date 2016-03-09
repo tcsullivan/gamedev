@@ -8,16 +8,18 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+// holy moly
 #include <iostream>
 #include <cstdlib>
 #include <string>
 #include <vector>
-#include <math.h>
 #include <string>
 #include <fstream>	
 #include <thread>
 #include <mutex>
 #include <future>
+#include <math.h>
+#include <threadpool.h>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -46,11 +48,16 @@ N abso(N v){
 		return v;
 }
 
-extern GLuint colorIndex;
+extern GLuint colorIndex;	// Texture.cpp?
 
 /**
  * This structure contains a set of coordinates for ease of coding.
  */
+
+typedef struct {
+	int x;
+	int y;
+} ivec2;
 
 typedef struct {
 	float x;
@@ -63,7 +70,7 @@ typedef struct {
 	float z;
 } vec3;
 
-typedef vec2 dim2;
+typedef ivec2 dim2;
 
 /**
  * This structure contains two sets of coordinates for ray drawing.
@@ -74,7 +81,7 @@ typedef struct {
 	vec2 end;
 } Ray;
 
-struct col{
+struct col {
 	float red;
 	float green;
 	float blue;
@@ -98,7 +105,7 @@ typedef col Color;
  * Define the game's name (displayed in the window title).
  */
 
-#define GAME_NAME		"Independent Study v.0.5 alpha - NOW WITH SOUND!"
+#define GAME_NAME		"Independent Study v.0.6 alpha - NOW WITH more c++"
 
 /**
  * The desired width of the game window.
@@ -113,6 +120,8 @@ extern unsigned int SCREEN_WIDTH;
 extern unsigned int SCREEN_HEIGHT;
 
 extern bool FULLSCREEN;
+extern bool uiLoop;
+extern std::mutex mtx;
 
 /**
  * Define the length of a single HLINE.
@@ -142,6 +151,9 @@ extern float VOLUME_SFX;
  */
 
 #define getRand() rand()
+
+#define randGet     rand
+#define randInit    srand
 
 /**
  * Included in common.h is a prototype for DEBUG_prints, which writes a formatted
@@ -179,23 +191,6 @@ extern vec2 offset;
 extern unsigned int loops;
 
 extern GLuint shaderProgram;
-
-/**
- * This class contains a string for identification and a value. It can be used to
- * save certain events for and decisions so that they can be recalled later.
- */
-
-class Condition {
-private:
-	char *id;
-	void *value;
-public:
-	Condition(const char *_id,void *val);
-	~Condition();
-	
-	bool sameID(const char *s);
-	void *getValue(void);
-};
 
 /**
  *	Prints a formatted debug message to the console, along with the callee's file and line
@@ -239,6 +234,6 @@ int strCreateFunc(const char *equ);
 template<typename N, size_t s>
 size_t arrAmt(N (&)[s]){return s;}
 
-extern void *NULLPTR;
+void UserError(std::string reason);
 
 #endif // COMMON_H

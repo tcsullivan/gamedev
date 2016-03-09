@@ -56,6 +56,7 @@ void readConfig(){
 }
 
 void updateConfig(){
+
 	Mix_Volume(0,VOLUME_MASTER);
 	Mix_Volume(1,VOLUME_SFX * (VOLUME_MASTER/100.0f));
 	Mix_VolumeMusic(VOLUME_MUSIC * (VOLUME_MASTER/100.0f));

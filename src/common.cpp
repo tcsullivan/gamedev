@@ -1,16 +1,15 @@
-#include <common.h>
 #include <cstring>
 #include <cstdio>
 #include <chrono>
 
 #ifndef __WIN32__
-#include <sys/types.h>
-#include <dirent.h>
-#include <errno.h>
-#include <vector>
+#	include <sys/types.h>
+#	include <dirent.h>
+#	include <errno.h>
+#	include <vector>
 #endif // __WIN32__
 
-void *NULLPTR = NULL;
+#include <common.h>
 
 #ifndef __WIN32__
 
@@ -20,22 +19,6 @@ unsigned int millis(void){
 }
 
 #endif // __WIN32__
-
-Condition::Condition(const char *_id,void *val){
-	id = new char[strlen(_id)+1];
-	strcpy(id,_id);
-	value = val;
-}
-Condition::~Condition(){
-	delete[] id;
-}
-
-bool Condition::sameID(const char *s){
-	return !strcmp(id,s);
-}
-void *Condition::getValue(void){
-	return value;
-}
 
 void DEBUG_prints(const char* file, int line, const char *s,...){
 	va_list args;
@@ -97,7 +80,7 @@ const char *readFile(const char *path){
 	std::ifstream in (path,std::ios::in);
 	unsigned int size;
 	GLchar *buf;
-	
+		
 	if(!in.is_open()){
 		std::cout<<"Error reading file "<<path<<"!"<<std::endl;
 		abort();
@@ -113,29 +96,9 @@ const char *readFile(const char *path){
 	return buf;
 }
 
-/*int strCreateFunc(const char *equ){
-	static unsigned int size;
-	static char *filebuf;
-	static FILE *file;
-	
-	size = 57 + strlen(equ) + 3;
-	
-	filebuf = new char[size];
-	memset(filebuf,0,size);
-	
-	strcpy(filebuf,"#include <stdio.h>\n#include <math.h>\nint main(){return ");
-	strcat(filebuf,equ);
-	strcat(filebuf,";}");
-	
-	if(!(file = fopen("gen.tmp","w"))){
-		abort();
-	}
-	
-	fwrite(filebuf,size,sizeof(char),file);
-	delete[] filebuf;
-	fclose(file);
-	
-	system("
-	
-	return 0;
-}*/
+void
+UserError( std::string reason )
+{
+    std::cout << "User error: " << reason << "!" << std::endl;
+    abort();
+}

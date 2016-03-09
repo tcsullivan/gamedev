@@ -1,32 +1,44 @@
-LIBS = -lpthread -lGL -lGLEW -lSDL2 -lfreetype -lSDL2_image -lSDL2_mixer
+include setup.mk
 
-WIN_LIBS = -lopengl32 -lglew32 -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
+CC  = gcc
+CXX = g++
 
-FLAGS = -std=c++11 -Iinclude -Iinclude/freetype2 -Wall -Wextra -Werror
+ifeq ($(TARGET_OS),linux)
+	LIBS = -lpthread -lGL -lGLEW -lfreetype \
+	       -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2main
+endif
+ifeq ($(TARGET_OS),win32)
+	LIBS = -lopengl32 -lglew32 -lmingw32 \
+	       -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
+endif
 
-MFLAGS64 = 64
+CXXFLAGS = -m$(TARGET_BITS) -std=c++14
+CXXINC   = -Iinclude -Iinclude/freetype
+CXXWARN  = -Wall -Wextra -Werror -pedantic-errors
 
-all:
-	@echo "Building for 32-bit target"
-	@rm -f out/*.o
-	@cd src; $(MAKE) $(MFLAGS)
-	@echo "  CXX  main.cpp"
-	@g++ $(FLAGS) -m32 -o main main.cpp out/*.o $(LIBS) -lSDL2main
+CXXSRCDIR = src
+CXXOUTDIR = out
+CXXSRC    = $(wildcard $(CXXSRCDIR)/*.cpp)
+CXXOBJ    = $(patsubst $(CXXSRCDIR)/%.cpp, $(CXXOUTDIR)/%.o, $(CXXSRC))
 
-64:
-	@echo "Building for 64-bit target"
-	@rm -f out64/*.o
-	@cd src; $(MAKE) $(MFLAGS64)
-	@echo "  CXX  main.cpp"
-	@g++ $(FLAGS) -m64 -o main main.cpp out64/*.o $(LIBS)
+EXEC = main
 
-win32:
-	@g++ $(FLAGS) -o main main.cpp src/*.cpp $(WIN_LIBS)
+all: $(EXEC)
+
+dirty:
+	rm -rf out/world.o
 
 clean:
-	@echo "  RM main"
-	@-rm -f main
-	@echo "  RM out/*.o"
-	@-rm -f out/*.o
-	@echo "  RM out64/*.o"
-	@-rm -f out64/*.o
+	rm -f $(EXEC)
+	rm -f out/*.o
+
+cleandata:
+	rm -rf xml/*.dat
+
+$(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
+	@echo "  CXX/LD  main"
+	@$(CXX) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/*.o $(LIBS)
+
+$(CXXOUTDIR)/%.o: $(CXXSRCDIR)/%.cpp
+	@echo "  CXX    " $<
+	@$(CXX) $(CXXFLAGS) $(CXXINC) $(CXXWARN) $(LIBS) -c $< -o $@
