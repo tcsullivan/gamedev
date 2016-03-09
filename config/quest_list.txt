@@ -1,1 +1,0 @@
-TITLE "Test" DESC "A test quest" REWARD 1 x SWORD_WOOD END

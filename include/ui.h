@@ -150,6 +150,8 @@ namespace ui {
 	void merchantBox();
 	void waitForDialog(void);
 	
+	void drawPage( std::string path );
+	
 	/*
 	 *	Draws a larger string in the center of the screen. Drawing is done inside this function.
 	*/

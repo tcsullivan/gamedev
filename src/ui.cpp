@@ -82,6 +82,8 @@ Mix_Chunk *battleStart;
 
 Mix_Chunk *sanic;
 
+static GLuint pageTex = 0;
+
 void Menu::gotoParent(){
 	if(parent == NULL){
 		currentMenu = NULL;
@@ -655,12 +657,28 @@ namespace ui {
 	}
 
 
+	void drawPage( std::string path ) {
+		pageTex = Texture::loadTexture( path );
+	}
+
 	void draw(void){
 		unsigned char i;
 		float x,y,tmp;
 		char *rtext;
 		
-		if(dialogBoxExists){
+		if ( pageTex ) {
+			
+			glEnable( GL_TEXTURE_2D);
+			glBindTexture( GL_TEXTURE_2D, pageTex );
+			glBegin( GL_QUADS );
+				glTexCoord2i( 0, 0 ); glVertex2i( offset.x - 300, SCREEN_HEIGHT - 100 );
+				glTexCoord2i( 1, 0 ); glVertex2i( offset.x + 300, SCREEN_HEIGHT - 100 );
+				glTexCoord2i( 1, 1 ); glVertex2i( offset.x + 300, SCREEN_HEIGHT - 600 );
+				glTexCoord2i( 0, 1 ); glVertex2i( offset.x - 300, SCREEN_HEIGHT - 600 );
+			glEnd();
+			glDisable( GL_TEXTURE_2D);
+			
+		} else if (dialogBoxExists){
 			
 			rtext=typeOut(dialogBoxText);
 			
@@ -692,7 +710,7 @@ namespace ui {
 					glVertex2f(x+1+(SCREEN_WIDTH/3),y+1);
 					glVertex2f(x+1+(SCREEN_WIDTH/3),y-1-SCREEN_HEIGHT*.6);
 					glVertex2f(x-1,y-1-SCREEN_HEIGHT*.6);
-					glVertex2f(x,y+1);
+					glVertex2f(x - 1,y+1);
 				glEnd();
 			
 				glColor3ub(0,0,0);
@@ -787,11 +805,11 @@ namespace ui {
 				glColor3ub(255, 255, 255);
 
 				glBegin(GL_LINE_STRIP);
-					glVertex2f(x-1						,y+1);
-					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y+1);
-					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y-1-SCREEN_HEIGHT/4);
-					glVertex2f(x-1						,y-1-SCREEN_HEIGHT/4);
-					glVertex2f(x						,y+1);
+					glVertex2i(x-1						,y+1);
+					glVertex2i(x+1 +SCREEN_WIDTH-HLINE*16,y+1);
+					glVertex2i(x+1+SCREEN_WIDTH-HLINE*16,y-1-SCREEN_HEIGHT/4);
+					glVertex2i(x-1						,y-1-SCREEN_HEIGHT/4);
+					glVertex2i( x - 1, y + 1 );
 				glEnd();
 			
 				glColor3ub(0,0,0);
@@ -1199,6 +1217,13 @@ namespace ui {
 
 	void dialogAdvance(void){
 		unsigned char i;
+		
+		if ( pageTex ) {
+			glDeleteTextures( 1, &pageTex );
+			pageTex = 0;
+			return;
+		}
+		
 		if(!typeOutDone){
 			typeOutDone = true;
 			return;
@@ -1214,7 +1239,6 @@ namespace ui {
 			}
 		}
 DONE:
-
 		
 		// handle important text
 		if(dialogImportant){
@@ -1254,7 +1278,7 @@ DONE:
 			// mouse clicks
 			case SDL_MOUSEBUTTONDOWN:
 				// right click advances dialog
-				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && dialogBoxExists )
+				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && (dialogBoxExists | pageTex) )
 					dialogAdvance();
 				// left click uses item
 				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )

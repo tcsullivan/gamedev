@@ -23,7 +23,8 @@ using namespace tinyxml2;
 extern Player *player;						// main.cpp?
 extern World  *currentWorld;				// main.cpp
 extern int     commonAIFunc(NPC *);			// entities.cpp
-extern void    commonTriggerFunc(Mob *);	// entities.cpp
+extern void    commonTriggerFunc(Mob *);	// gameplay.cpp
+extern void    commonPageFunc(Mob *);		// gameplay.cpp
 extern bool    inBattle;
 
 extern unsigned int tickCount;				// main.cpp
@@ -1342,7 +1343,8 @@ loadWorldFromXMLNoSave( std::string path ) {
 	float spawnx, randx;
 	bool dialog,Indoor;
 	
-	const char *ptr,*name;
+	const char *ptr;
+	std::string name;
 		
 	currentXML = (std::string)"xml/" + path;
 
@@ -1364,18 +1366,18 @@ loadWorldFromXMLNoSave( std::string path ) {
 	while(wxml){
 		name = wxml->Name();
 		
-		if(!strcmp(name,"link")){
+		if ( name == "link" ) {
 			if((ptr = wxml->Attribute("left")))
 				tmp->setToLeft(ptr);
 			else if((ptr = wxml->Attribute("right")))
 				tmp->setToRight(ptr);
 			else
 				abort();
-		}else if(!strcmp(name,"style")){
+		} else if ( name == "style" ) {
 			tmp->setStyle(wxml->StrAttribute("folder"));
 			tmp->setBackground((WorldBGType)wxml->UnsignedAttribute("background"));
 			tmp->setBGM(wxml->StrAttribute("bgm"));
-		}else if(!strcmp(name,"generation")){
+		} else if ( name == "generation" ) {
 			if(!strcmp(wxml->Attribute("type"),"Random")){
 				if(Indoor)
 					((IndoorWorld *)tmp)->generate(wxml->UnsignedAttribute("width"));
@@ -1385,7 +1387,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 				}
 			}else if(Indoor)
 				abort();
-		}else if(!strcmp(name,"mob")){
+		} else if ( name == "mob" ) {
 			unsigned int type;
 			type = wxml->UnsignedAttribute("type");
 			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
@@ -1395,7 +1397,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 			if(wxml->QueryBoolAttribute("aggressive",&dialog) == XML_NO_ERROR)
 				tmp->mob.back()->aggressive = dialog;
 			
-		}else if(!strcmp(name,"npc")){
+		} else if ( name == "npc" ) {
 			const char *npcname;
 
 			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
@@ -1415,7 +1417,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 				tmp->npc.back()->addAIFunc(commonAIFunc,false);
 			else tmp->npc.back()->dialogIndex = 9999;
 			
-		}else if(!strcmp(name,"structure")){
+		} else if ( name == "structure" ) {
 			tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),
 							   wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR ? 
 							   			getRand() % tmp->getTheWidth() / 2.0f : 
@@ -1423,8 +1425,11 @@ loadWorldFromXMLNoSave( std::string path ) {
 							   100,
 							   wxml->StrAttribute("texture"),
 							   wxml->StrAttribute("inside"));
-		}else if(!strcmp(name,"trigger")){
+		} else if ( name == "trigger" ) {
 			tmp->addMob(MS_TRIGGER,wxml->FloatAttribute("x"),0,commonTriggerFunc);
+			tmp->mob.back()->heyid = wxml->Attribute("id");
+		} else if ( name == "page" ) {
+			tmp->addMob( MS_PAGE, wxml->FloatAttribute("x"), 0, commonPageFunc );
 			tmp->mob.back()->heyid = wxml->Attribute("id");
 		}
 
@@ -1449,13 +1454,13 @@ loadWorldFromXMLNoSave( std::string path ) {
 		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
 		 */
 		 
-		if(!strcmp(name,"structure")){
+		if ( name == "structure" ) {
 			tmp->addStructure((BUILD_SUB)vil->UnsignedAttribute("type"),
 							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? randx : spawnx,
 							   100,
 							   vil->StrAttribute("texture"),
 							   vil->StrAttribute("inside"));
-		}else if(!strcmp(name, "stall")){
+		}else if ( name == "stall" ) {
 			if(!strcmp(vil->Attribute("type"),"market")){
 				std::cout << "Market" << std::endl;
 				tmp->addStructure((BUILD_SUB)70,

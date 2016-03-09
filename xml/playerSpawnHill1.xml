@@ -10,6 +10,9 @@
 	
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="false" />
+	
+	<page x="-200" id="assets/pages/gootaGoFast.png" />
+	
 	<village name="the Cranmore Tubing Park">
 		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
 		<structure type="5" x="-500" inside="playerSpawnHill1_Building1.xml"/>

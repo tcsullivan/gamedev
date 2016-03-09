@@ -749,3 +749,10 @@
 
 	- fixed world draw shadings
 	- improved merchant menu
+
+3/9/2016:
+=========
+
+	- pages are XMLable and can be drawn
+	- dialogs are cool with threads
+	- better lighting
