@@ -53,6 +53,7 @@ enum class WorldWeather : unsigned char {
 typedef struct {
 	vec2 loc;		/**< Light location */
 	Color color;	/**< Light color */
+	float radius;
 } Light;
 
 /**

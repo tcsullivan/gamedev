@@ -106,6 +106,7 @@ namespace ui {
 	extern bool posFlag;
 	
 	extern unsigned char dialogOptChosen;
+	extern unsigned char merchOptChosen;
 	extern bool 		 dialogBoxExists;
 	extern bool 		 dialogImportant;
 	extern bool 		 dialogPassive;
@@ -148,6 +149,7 @@ namespace ui {
 	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...);
 	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...);
 	void merchantBox();
+	void closeBox();
 	void waitForDialog(void);
 	
 	/*

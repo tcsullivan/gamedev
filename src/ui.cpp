@@ -191,6 +191,7 @@ namespace ui {
 	*/
 	
 	void setFontSize(unsigned int size){
+		mtx.lock();
 		unsigned int i,j;
 		unsigned char *buf;
 		
@@ -253,6 +254,7 @@ namespace ui {
 			
 			delete[] buf;	//free(buf);
 		}
+		mtx.unlock();
 	}
 	
 	/*
@@ -569,6 +571,7 @@ namespace ui {
 		};
 
 		dialogOptChosen = 0;
+		merchOptChosen = 0;
 		memset(&dialogOptLoc, 0, sizeof(float) * 12);
 		
 		// handle options if desired
@@ -607,8 +610,9 @@ namespace ui {
 	
 	void waitForDialog(void){
 		do{
-			mainLoop();
-		}while(ui::dialogBoxExists);
+			//std::thread(dialogAdvance);
+			//mainLoop();
+		}while(dialogBoxExists);
 	}
 	void waitForCover(void){
 		do{
@@ -692,7 +696,7 @@ namespace ui {
 					glVertex2f(x+1+(SCREEN_WIDTH/3),y+1);
 					glVertex2f(x+1+(SCREEN_WIDTH/3),y-1-SCREEN_HEIGHT*.6);
 					glVertex2f(x-1,y-1-SCREEN_HEIGHT*.6);
-					glVertex2f(x,y+1);
+					glVertex2f(x-1,y+1);
 				glEnd();
 			
 				glColor3ub(0,0,0);
@@ -787,11 +791,11 @@ namespace ui {
 				glColor3ub(255, 255, 255);
 
 				glBegin(GL_LINE_STRIP);
-					glVertex2f(x-1						,y+1);
-					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y+1);
-					glVertex2f(x+1+SCREEN_WIDTH-HLINE*16,y-1-SCREEN_HEIGHT/4);
-					glVertex2f(x-1						,y-1-SCREEN_HEIGHT/4);
-					glVertex2f(x						,y+1);
+					glVertex2i(x-1						,y+1);
+					glVertex2i(x+1+SCREEN_WIDTH-HLINE*16,y+1);
+					glVertex2i(x+1+SCREEN_WIDTH-HLINE*16,y-1-SCREEN_HEIGHT/4);
+					glVertex2i(x-1						,y-1-SCREEN_HEIGHT/4);
+					glVertex2i(x-1						,y+1);
 				glEnd();
 			
 				glColor3ub(0,0,0);
@@ -1203,27 +1207,40 @@ namespace ui {
 			typeOutDone = true;
 			return;
 		}
-
 		for(i=0;i<dialogOptCount;i++){
 			if(mouse.x > dialogOptLoc[i][0] &&
 			   mouse.x < dialogOptLoc[i][2] &&
 			   mouse.y > dialogOptLoc[i][1] &&
 			   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
 				dialogOptChosen = i + 1;
-				goto DONE;
+				goto EXIT;
 			}
 		}
-DONE:
-
+		if(dialogMerchant){
+			for(i=0;i<2;i++){
+				if(((merchAOptLoc[i][0] < merchAOptLoc[i][2]) ? 
+					(mouse.x > merchAOptLoc[i][0] && mouse.x < merchAOptLoc[i][2]) : 
+				    (mouse.x < merchAOptLoc[i][0] && mouse.x > merchAOptLoc[i][2])) &&
+					 mouse.y > merchAOptLoc[i][1] - 8 && mouse.y < merchAOptLoc[i][1] + 8){ // fontSize
+						merchOptChosen = i + 1;
+						goto EXIT;
+				}
+			}
+		}
 		
+
+		EXIT:
+		//if(!dialogMerchant)closeBox();
+		dialogBoxExists = false;
+		dialogMerchant = false;
+
+		//DONE:
+
 		// handle important text
 		if(dialogImportant){
 			dialogImportant = false;
 			setFontSize(16);
 		}
-
-		if(dialogMerchant) dialogMerchant = false;
-		dialogBoxExists = false;
 	}
 
 	void handleEvents(void){

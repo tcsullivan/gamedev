@@ -169,6 +169,7 @@ Merchant::Merchant(){	//sets all of the Merchant specific traits on object creat
 	canMove = true;
 
 	trade.reserve(100);
+	currTrade = 0;
 	
 	//tex = new Texturec(1,"assets/NPC.png");
 	//inv = new Inventory(NPC_INV_SIZE);
@@ -433,50 +434,68 @@ void NPC::clearAIFunc(void){
 }
 
 void NPC::interact(){ //have the npc's interact back to the player
-	int (*func)(NPC *);
-	loc.y += 5;
-	
-	canMove=false;
-	left = (player->loc.x < loc.x);
-	right = !left;
-	
-	if(aiFunc.size()){
-		func=aiFunc.front();
+	std::thread([this]{
+		int (*func)(NPC *);
+		loc.y += 5;
 		
-		if(!func(this)){
-			if(aiFunc.size())aiFunc.erase(aiFunc.begin());
+		canMove=false;
+		left = (player->loc.x < loc.x);
+		right = !left;
+		
+		if(aiFunc.size()){
+			func=aiFunc.front();
+			
+			if(!func(this)){
+				if(aiFunc.size())aiFunc.erase(aiFunc.begin());
+			}
+		}else{
+			ui::dialogBox(name,NULL,false,randomDialog[randDialog]);
 		}
-	}else{
-		ui::dialogBox(name,NULL,false,randomDialog[randDialog]);
-	}
-	ui::waitForDialog();
-	canMove=true;
+		ui::waitForDialog();
+		canMove=true;
+	}).detach();
 }
 
 void Merchant::interact(){
-	ui::merchantBox(name, trade.back(), ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
-	ui::waitForDialog();
-	if(ui::dialogOptChosen == 1){
-		std::cout << "Gimme ye' munny" << std::endl;
-		if(player->inv->takeItem(trade.back().item[1],trade.back().quantity[1]) >= 0)
-			player->inv->addItem(trade.back().item[0],trade.back().quantity[0]);
-	}else{
-		std::cout << "See ye!" << std::endl;
-	}
+	std::thread([this]{
+		ui::merchantBox(name, trade[currTrade], ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
+		ui::waitForDialog();
+		if(ui::dialogOptChosen == 1){
+			std::cout << "Gimme ye' munny" << std::endl;
+			if(!(player->inv->takeItem(trade[currTrade].item[1],trade[currTrade].quantity[1])))
+				player->inv->addItem(trade[currTrade].item[0],trade[currTrade].quantity[0]);
+		}else if(ui::dialogOptChosen == 2){
+			std::cout << "See ye!" << std::endl;
+		}else if(ui::merchOptChosen == 1){
+			if(currTrade != 0){
+				currTrade--;
+				std::cout << "Last trade" << std::endl;
+				interact();
+			}
+		}else if(ui::merchOptChosen == 2){
+			if(currTrade < trade.size()){
+				currTrade++;
+				std::cout << "Next trade" << std::endl;
+				interact();
+			}
+		}
+	}).detach();
 }
 
 void Object::interact(void){
-	if(questObject && alive){
-		ui::dialogBox( player->name, ":Yes:No", false, pickupDialog.c_str());
-		ui::waitForDialog();
-		if(ui::dialogOptChosen == 1){
-			player->inv->addItem( iname, 1 );
+	std::thread([this]{
+		if(questObject && alive){
+			ui::dialogBox( player->name, ":Yes:No", false, pickupDialog.c_str());
+			ui::waitForDialog();
+			if(ui::dialogOptChosen == 1){
+				player->inv->addItem( iname, 1 );
+				alive = false;
+			}
+		}else{
 			alive = false;
+			player->inv->addItem(iname, 1);
 		}
-	}else{
-		alive = false;
-		player->inv->addItem(iname, 1);
-	}
+	}).detach();
 }
 
 void Entity::
@@ -601,7 +620,8 @@ void Mob::wander(int timeRun){
 	case MS_TRIGGER:
 		if(player->loc.x + player->width / 2 > loc.x		 &&
 		   player->loc.x + player->width / 2 < loc.x + width )
-			hey(this);
+			std::thread([this]{hey(this);}).detach();
+			//hey(this);
 		break;
 	case MS_PAGE:
 		if(player->loc.x > loc.x - 100		 &&
