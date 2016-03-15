@@ -2,17 +2,20 @@
 <World>
 	<style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/" />
 	<generation type="Random" width="500" />
-	<link left="playerSpawnHill2.xml" />
-	
-	<mob x="300" type="1" aggressive="true" />
-	
-	<trigger x="-300" id="Test" />
-	
+	<link right="playerSpawnHill2.xml" />
+	<time>12000</time>
+
+	<hill peakx="0" peaky="1000" width="50" />
+
+	<mob x="300" type="1" aggressive="false" />
+
+	<!--<trigger x="-300" id="Test" />-->
+
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="false" />
-	
+
 	<page x="-200" id="assets/pages/gootaGoFast.png" />
-	
+
 	<village name="the Cranmore Tubing Park">
 		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
 		<structure type="5" x="-500" inside="playerSpawnHill1_Building1.xml"/>
@@ -32,20 +35,20 @@ And it wasn't stormy.
 ...</Trigger>
 
 <Dialog name="Ralph">
-	
+
 	<text id="0" nextid="1" >
 		Hello there! My name is Ralph.
 	</text>
-	
+
 	<text id="1" nextid="2" call="Johnny" callid="0" pause="true" >
 		You should go talk to my friend Johnny. He's a pretty chill dude.
 	</text>
-	
+
 	<text id="2" >
 		Niice.
 		<quest check="Your First Quest" fail="3" />
 	</text>
-	
+
 	<text id="3">
 		Go check out Johnny. He's cool.
 	</text>
@@ -59,7 +62,7 @@ And it wasn't stormy.
 			Wood Sword,1
 		</quest>
 	</text>
-	
+
 	<text id="1" nextid="1" pause="true" >
 		Broooooooooooooo...
 	</text>

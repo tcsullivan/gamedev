@@ -706,7 +706,7 @@ namespace ui {
 			
 				glColor3ub(255,255,255);
 				glBegin(GL_LINE_STRIP);
-					glVertex2f(x-1				 	  ,y+1);
+					glVertex2f(x-1 				   ,y+1);
 					glVertex2f(x+1+(SCREEN_WIDTH/3),y+1);
 					glVertex2f(x+1+(SCREEN_WIDTH/3),y-1-SCREEN_HEIGHT*.6);
 					glVertex2f(x-1,y-1-SCREEN_HEIGHT*.6);

@@ -421,8 +421,15 @@ public:
 	
 	void addHole(unsigned int start,unsigned int end);
 	
-	/*
-	 *	Get's the world's width.
+	/**
+	 * Adds a hill to the world, given the peak's coordinates and how wide the
+	 * hill can be.
+	 */
+	
+	void addHill( ivec2 peak, unsigned int width );
+	
+	/**
+	 * Gets the world's width.
 	 */
 	
 	int getTheWidth(void) const;
