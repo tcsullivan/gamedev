@@ -770,3 +770,12 @@
 	- fixed player repositioning when switching worlds
 	- XML'd tickCount setting
 	- even more inventory stuffs (side panes)
+
+3/16/2016:
+==========
+
+	- cleaned up world and ui functions (std::string'ing)
+	- oh so more inventory stuffs (animations)
+	- planned ahead
+
+	~ set finish date for game engine: 3/31

@@ -415,9 +415,9 @@ int main(int argc, char *argv[]){
 	//currentWorld->mob.back()->followee = player;
 
 	gameRunning = true;
-	while(gameRunning){
+	
+	while ( gameRunning )
 		mainLoop();
-	}
 
 	/**************************
 	****   CLOSE PROGRAM   ****
@@ -431,7 +431,7 @@ int main(int argc, char *argv[]){
     Mix_CloseAudio();
 
     destroyInventory();
-	ui::destroyFonts();
+		ui::destroyFonts();
     Texture::freeTextures();
 
     SDL_GL_DeleteContext(mainGLContext);
@@ -478,7 +478,6 @@ void mainLoop(void){
 
 	prev = currentWorld;
 
-
 	//pool.Enqueue(ui::handleEvents);
 	ui::handleEvents();
 
@@ -493,15 +492,7 @@ void mainLoop(void){
 		prevPrevTime = currentTime;
 	}
 
-	/*
-	 * Update player and entity coordinates.
-	 */
-
-	/*pool.Enqueue([](){
-		currentWorld->update(player,deltaTime);
-	});*/
-
-	currentWorld->update(player,deltaTime);
+	currentWorld->update( player, deltaTime );
 
 	/*
 	 * Update debug variables if necessary
@@ -512,7 +503,7 @@ void mainLoop(void){
 
 		if ( deltaTime )
 			fps = 1000 / deltaTime;
-		if(!(debugDiv%10))
+		if(!(debugDiv % 10))
 			debugY = player->loc.y;
 	}
 MENU:

@@ -151,9 +151,6 @@ World::
 World( void )
 {
     bgmObj = NULL;
-
-	toLeft = NULL;
-	toRight = NULL;
 }
 
 /**
@@ -221,9 +218,6 @@ World::
 		Mix_FreeMusic(bgmObj);
 
 	delete bgTex;
-
-	delete[] toLeft;
-	delete[] toRight;
 
 	deleteEntities();
 }
@@ -792,14 +786,15 @@ singleDetect( Entity *e )
 		 *	Handle gravity if the entity is above the line.
 		*/
 
-		}else{
+		} else {
 
 			if(e->type == STRUCTURET && e->loc.y > 2000){
 				e->loc.y = worldData[i].groundHeight;
 				e->vel.y = 0;
 				e->ground = true;
 				return;
-			}else if(e->vel.y > -2)e->vel.y-=.003 * deltaTime;
+			} else if ( e->vel.y > -2 )
+        e->vel.y -= .003 * deltaTime;
 
 		}
 
@@ -974,30 +969,23 @@ addParticle( float x, float y, float w, float h, float vx, float vy, Color color
 
 void World::addLight(vec2 loc, Color color){
 	Light l;
-	if(light.size() < 64){
+	if ( light.size() < 64 ) {
 		l.loc = loc;
 		l.color = color;
 		light.push_back(l);
 	}
 }
 
-char *World::setToLeft(const char *file){
-	if(toLeft)
-		delete[] toLeft;
-	if(!file)
-		return (toLeft = NULL);
-
-	strcpy((toLeft = new char[strlen(file) + 1]),file);
-	return toLeft;
+std::string World::
+setToLeft( std::string file )
+{
+    return (toLeft = file);
 }
-char *World::setToRight(const char *file){
-	if(toRight)
-		delete[] toRight;
-	if(!file)
-		return (toRight = NULL);
 
-	strcpy((toRight = new char[strlen(file) + 1]),file);
-	return toRight;
+std::string World::
+setToRight( std::string file )
+{
+	return (toRight = file);
 }
 
 World *World::
@@ -1006,7 +994,7 @@ goWorldLeft( Player *p )
 	World *tmp;
 
   // check if player is at world edge
-	if( toLeft && p->loc.x < worldStart + HLINE * 15.0f ) {
+	if( !toLeft.empty() && p->loc.x < worldStart + HLINE * 15.0f ) {
 
     // load world (`toLeft` conditional confirms existance)
 		tmp = loadWorldFromXML(toLeft);
@@ -1026,7 +1014,7 @@ goWorldRight( Player *p )
 {
 	World *tmp;
 
-	if( toRight && p->loc.x + p->width > -worldStart - HLINE * 15 ) {
+	if( !toRight.empty() && p->loc.x + p->width > -worldStart - HLINE * 15 ) {
 		tmp = loadWorldFromXML(toRight);
 
 		p->loc.x = tmp->worldStart - HLINE * -15.0f;
@@ -1042,14 +1030,19 @@ World *World::
 goInsideStructure( Player *p )
 {
 	World *tmp;
-	char *current;
-	if(inside.empty()){
-		for(auto &b : build){
-			if(p->loc.x            > b->loc.x            &&
-			   p->loc.x + p->width < b->loc.x + b->width ){
-				inside.push_back((std::string)(currentXML.c_str() + 4));
+	std::string current;
 
-				tmp = loadWorldFromXML(b->inside.c_str());
+	if ( inside.empty() ) {
+		for ( auto &b : build ) {
+			if ( p->loc.x            > b->loc.x            &&
+			     p->loc.x + p->width < b->loc.x + b->width ) {
+
+        if ( b->inside.empty() )
+          return this;
+
+				inside.push_back(currentXML.c_str() + 4);
+
+				tmp = loadWorldFromXML( b->inside );
 
 				ui::toggleBlackFast();
 				ui::waitForCover();
@@ -1058,11 +1051,11 @@ goInsideStructure( Player *p )
 				return tmp;
 			}
 		}
-	}else{
-		strcpy((current = new char[strlen((const char *)(currentXML.c_str() + 4)) + 1]),(const char *)(currentXML.c_str() + 4));
-		tmp = loadWorldFromXML(inside.back().c_str());
-		for(auto &b : tmp->build){
-			if(!strcmp(current,b->inside.c_str())){
+	} else {
+    current = currentXML.c_str() + 4;
+		tmp = loadWorldFromXML( inside.back() );
+		for ( auto &b : tmp->build ) {
+			if ( current == b->inside ) {
 				inside.pop_back();
 
 				ui::toggleBlackFast();
@@ -1075,8 +1068,8 @@ goInsideStructure( Player *p )
 				return tmp;
 			}
 		}
-		delete[] current;
 	}
+
 	return this;
 }
 
