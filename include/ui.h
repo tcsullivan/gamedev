@@ -131,12 +131,11 @@ namespace ui {
 	void setFontSize(unsigned int size);
 	void setFontColor(unsigned char r,unsigned char g,unsigned char b, unsigned char a);
 
-
 	/*
 	 *	Draw a centered string.
 	*/
 
-	float putStringCentered(const float x,const float y,const char *s);
+	float putStringCentered(const float x,const float y,std::string s);
 
 	/*
 	 *	Draws a formatted string at the given coordinates.
@@ -156,6 +155,7 @@ namespace ui {
 	void closeBox();
 	void waitForDialog(void);
 
+	void drawPage( std::string path );
 	/*
 	 *	Draws a larger string in the center of the screen. Drawing is done inside this function.
 	*/

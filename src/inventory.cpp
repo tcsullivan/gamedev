@@ -143,12 +143,12 @@ const char *getItemTexturePath(std::string name){
 }
 
 GLuint getItemTexture(std::string name){
-	for(auto &i : itemMap){
-		if(i->name == name)
-			return Texture::loadTexture(i->texloc);
+	for ( int i = itemMap.size(); i--; ) {
+		if ( itemMap[i]->name == name )
+			return itemtex[i];
 	}
-
-	return Texture::loadTexture("assets/items/ITEM_TEST.png");
+	DEBUG_printf("Failed to find texture for item %s!", name.c_str() );
+	return 0;
 }
 
 float getItemWidth(std::string name){

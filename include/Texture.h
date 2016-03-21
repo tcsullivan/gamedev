@@ -20,7 +20,7 @@
  * Texture functions are given a namespace for better organization.
  */
 
-namespace Texture{
+namespace Texture {
 	
 	/**
 	 * Loads a texture from the given file name, returning the GLuint used for

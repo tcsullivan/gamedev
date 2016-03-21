@@ -44,7 +44,7 @@
 	- successfully ran game 200 entities
 	- improved debug screen
 	- added mouse interaction w/ NPCs
-	
+
 9/30/2015:
 ==========
 
@@ -54,10 +54,10 @@
 	- began work on giving names to NPCs
 	- began working on config file
 	- created a bug file
-	
+
 	- added displaying of entity names on mouse hover
 	- found more fonts
-	
+
 10/1/2015:
 ==========
 
@@ -125,20 +125,20 @@
 
 	- fixed delaying quest assignments until dialog is closed
 	- checked and secured errors in malloc/calloc calls
-	
+
 10/19/2015:
 ===========
 
 	- fixed malloc/strlen bug that crashes the game on some linux systems
 	- broke andy's linux system on his laptop, allowing for test game build on Windows
 	- began extensive documentation in main.cpp
-	
+
 10/20/2015:
 ===========
 
 	- andy's laptop 'can' boot
 	- added 200+ lines of documentation to main.cpp
-	
+
 10/21/2015:
 ===========
 
@@ -156,14 +156,14 @@
 	- successfully build game on 32-bit Windows (game crashes on execution)
 	- removed npc array; NPCs are now created in the entity array
 	- created a basic texture handling library
-	
+
 10/23/2015:
 ===========
 
 	- fixed entity initialization
 	- added multiple mobs
 	- improved texture handling
-	
+
 10/26/2015:
 ===========
 
@@ -231,7 +231,7 @@
 	- added typewriter-esque text drawing
 	- documented ui.h
 	- continued work on GLSL shaders
-	
+
 11/4/2015:
 ==========
 
@@ -266,7 +266,7 @@
 	- added drawing/handling of entities on all layers at all times
 	- removed building entering/exiting
 	- andy broke SDL cuz he's bad
-	
+
 11/10/2015:
 ===========
 
@@ -296,7 +296,7 @@
 	- minor bug fixes
 	- began working on arenas
 	- began working on cutscene triggers
-	
+
 11/17/2015:
 ===========
 
@@ -317,7 +317,7 @@
 
 	- texture loaded tracks loaded textures to prevent re-loading (frees resources)
 	- continued work on things finished the following day (11/20) :)
-	
+
 11/20/2015:
 ===========
 
@@ -408,7 +408,7 @@
 	- imrpoved BGM handling
 	- continued work on particles, made a fountain
 	- added sanic
-	
+
 	~ Broke 5000 lines of code/doc, now with some file Doxygen'd
 
 12/14/2015:
@@ -488,21 +488,21 @@
 
 	- can save NPCs and Structures
 	- more shadering
-	
+
 1/6/2016:
 =========
 
 	- flashlight!
 	- XML-scripted worlds!!!
 	- !!!!!!!!!!!!!!!!!!!!!!!!
-	
+
 1/7/2016:
 =========
 
 	- xml'd npc and mob spawning
 	- xml'd npc dialogs
 	- drafted page xml
-	
+
 1/11/2016:
 ==========
 
@@ -518,7 +518,7 @@
 	- xml'ing indoors
 	- shaderssss
 	- more music
-	
+
 1/13/2016:
 ==========
 
@@ -533,7 +533,7 @@
 	- pondered on non-random generation
 	- fixed some drawing issues
 	- made spritesheet for easier solid-color-texture drawing
-	
+
 	- began to incorporate XML into the world class for dynamic world loading...
 
 1/16/2016:
@@ -587,7 +587,7 @@
 
 	- wrote paper regarding what we've learned, and where we're at
 	- ported game to Windows, left EXE and DLLs in repo
-	
+
 2/1/2016:
 =========
 
@@ -632,7 +632,7 @@
 	- partially fixed text drawing
 	- XML'd quest checking, working on quest requirements
 	- worked on XML'ing villages
-	
+
 2/9/2016:
 =========
 
@@ -673,7 +673,7 @@
 	- mob deaths are saved
 	- fixed building spawning
 	- volumes are better
-	
+
 	~ 5 month Changelog anniversary!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 2/23/2016:
@@ -741,7 +741,7 @@
 	- arenas work
 	- cleaned up world codes
 	- andy got here
-	
+
 	~ Total of 7,379 lines of code!
 
 3/8/2016:
@@ -749,3 +749,33 @@
 
 	- fixed world draw shadings
 	- improved merchant menu
+
+3/9/2016:
+=========
+
+	- pages are XMLable and can be drawn
+	- dialogs are cool with threads
+	- better lighting
+
+3/14/2016:
+==========
+
+	- began implementing hills in worlds
+	- more inventory stuffs
+
+3/15/2016:
+==========
+
+	- finished hills, fixed hill collision physics
+	- fixed player repositioning when switching worlds
+	- XML'd tickCount setting
+	- even more inventory stuffs (side panes)
+
+3/16/2016:
+==========
+
+	- cleaned up world and ui functions (std::string'ing)
+	- oh so more inventory stuffs (animations)
+	- planned ahead
+
+	~ set finish date for game engine: 3/31

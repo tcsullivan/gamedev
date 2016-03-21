@@ -23,7 +23,8 @@ using namespace tinyxml2;
 extern Player *player;						// main.cpp?
 extern World  *currentWorld;				// main.cpp
 extern int     commonAIFunc(NPC *);			// entities.cpp
-extern void    commonTriggerFunc(Mob *);	// entities.cpp
+extern void    commonTriggerFunc(Mob *);	// gameplay.cpp
+extern void    commonPageFunc(Mob *);		// gameplay.cpp
 extern bool    inBattle;
 
 extern unsigned int tickCount;				// main.cpp
@@ -150,9 +151,6 @@ World::
 World( void )
 {
     bgmObj = NULL;
-
-	toLeft = NULL;
-	toRight = NULL;
 }
 
 /**
@@ -220,10 +218,6 @@ World::
 		Mix_FreeMusic(bgmObj);
 
 	delete bgTex;
-
-	delete[] toLeft;
-	delete[] toRight;
-
 	deleteEntities();
 }
 
@@ -307,6 +301,11 @@ update( Player *p, unsigned int delta )
     // update player coords
 	p->loc.y += p->vel.y			 * delta;
 	p->loc.x +=(p->vel.x * p->speed) * delta;
+
+	if ( p->loc.y > 5000 ) {
+		std::cout << "Too high for me m8." << std::endl;
+		abort();
+	}
 
 	// update entity coords
 	for ( auto &e : entity ) {
@@ -772,22 +771,28 @@ singleDetect( Entity *e )
 
 		if ( e->loc.y < worldData[i].groundHeight ) {
 
-			e->loc.y= worldData[i].groundHeight - .001 * deltaTime;
-			e->ground=true;
-			e->vel.y=0;
+            if ( worldData[i].groundHeight - e->loc.y > 30 ) {
+                int dir = e->vel.x > 0 ? -1 : 1;
+                e->loc.x += HLINE * 8 * dir;
+                e->loc.y = worldData[i + 8 * dir].groundHeight;
+            } else {
+                e->loc.y = worldData[i].groundHeight - .001 * deltaTime;
+                e->ground = true;
+                e->vel.y = 0;
+            }
 
 		/*
 		 *	Handle gravity if the entity is above the line.
 		*/
 
 		}else{
-
 			if(e->type == STRUCTURET && e->loc.y > 2000){
 				e->loc.y = worldData[i].groundHeight;
 				e->vel.y = 0;
 				e->ground = true;
 				return;
-			}else if(e->vel.y > -2)e->vel.y-=.003 * deltaTime;
+			} else if ( e->vel.y > -2 )
+        e->vel.y -= .003 * deltaTime;
 
 		}
 
@@ -962,30 +967,23 @@ addParticle( float x, float y, float w, float h, float vx, float vy, Color color
 
 void World::addLight(vec2 loc, Color color){
 	Light l;
-	if(light.size() < 64){
+	if ( light.size() < 64 ) {
 		l.loc = loc;
 		l.color = color;
 		light.push_back(l);
 	}
 }
 
-char *World::setToLeft(const char *file){
-	if(toLeft)
-		delete[] toLeft;
-	if(!file)
-		return (toLeft = NULL);
-
-	strcpy((toLeft = new char[strlen(file) + 1]),file);
-	return toLeft;
+std::string World::
+setToLeft( std::string file )
+{
+    return (toLeft = file);
 }
-char *World::setToRight(const char *file){
-	if(toRight)
-		delete[] toRight;
-	if(!file)
-		return (toRight = NULL);
 
-	strcpy((toRight = new char[strlen(file) + 1]),file);
-	return toRight;
+std::string World::
+setToRight( std::string file )
+{
+	return (toRight = file);
 }
 
 //what is this clyne why are they differnet
@@ -994,32 +992,36 @@ goWorldLeft( Player *p )
 {
 	World *tmp;
 
-    // check if player is at world edge
-	if(toLeft && p->loc.x < worldStart + HLINE * 15.0f){
+  // check if player is at world edge
+	if( !toLeft.empty() && p->loc.x < worldStart + HLINE * 15.0f ) {
 
-        // load world (`toLeft` conditional confirms existance)
+    // load world (`toLeft` conditional confirms existance)
 		tmp = loadWorldFromXML(toLeft);
 
-        // adjust player location
-		p->loc.x = -tmp->worldStart - (int)HLINE * -10.0f;
+    // adjust player location
+		p->loc.x = tmp->worldStart + HLINE * 20;
 		p->loc.y = tmp->worldData[tmp->lineCount - 1].groundHeight;
 
 		return tmp;
 	}
+
 	return this;
 }
 
-World *World::goWorldRight(Player *p){
+World *World::
+goWorldRight( Player *p )
+{
 	World *tmp;
 
-	if(toRight && p->loc.x + p->width > -worldStart - HLINE * 15){
+	if( !toRight.empty() && p->loc.x + p->width > -worldStart - HLINE * 15 ) {
 		tmp = loadWorldFromXML(toRight);
 
-		p->loc.x = tmp->worldStart + (int)HLINE * 10;
+		p->loc.x = tmp->worldStart - HLINE * -15.0f;
 		p->loc.y = GROUND_HEIGHT_MINIMUM;
 
 		return tmp;
 	}
+
 	return this;
 }
 
@@ -1027,14 +1029,19 @@ World *World::
 goInsideStructure( Player *p )
 {
 	World *tmp;
-	char *current;
-	if(inside.empty()){
-		for(auto &b : build){
-			if(p->loc.x            > b->loc.x            &&
-			   p->loc.x + p->width < b->loc.x + b->width ){
-				inside.push_back((std::string)(currentXML.c_str() + 4));
+	std::string current;
 
-				tmp = loadWorldFromXML(b->inside.c_str());
+	if ( inside.empty() ) {
+		for ( auto &b : build ) {
+			if ( p->loc.x            > b->loc.x            &&
+			     p->loc.x + p->width < b->loc.x + b->width ) {
+
+        if ( b->inside.empty() )
+          return this;
+
+				inside.push_back(currentXML.c_str() + 4);
+
+				tmp = loadWorldFromXML( b->inside );
 
 				ui::toggleBlackFast();
 				ui::waitForCover();
@@ -1043,11 +1050,11 @@ goInsideStructure( Player *p )
 				return tmp;
 			}
 		}
-	}else{
-		strcpy((current = new char[strlen((const char *)(currentXML.c_str() + 4)) + 1]),(const char *)(currentXML.c_str() + 4));
-		tmp = loadWorldFromXML(inside.back().c_str());
-		for(auto &b : tmp->build){
-			if(!strcmp(current,b->inside.c_str())){
+	} else {
+    current = currentXML.c_str() + 4;
+		tmp = loadWorldFromXML( inside.back() );
+		for ( auto &b : tmp->build ) {
+			if ( current == b->inside ) {
 				inside.pop_back();
 
 				ui::toggleBlackFast();
@@ -1060,15 +1067,37 @@ goInsideStructure( Player *p )
 				return tmp;
 			}
 		}
-		delete[] current;
 	}
+
 	return this;
 }
 
-void World::addHole(unsigned int start,unsigned int end){
-	unsigned int i;
-	for(i=start;i<end;i++){
+void World::
+addHole( unsigned int start, unsigned int end )
+{
+	for ( unsigned int i = end; i-- > start; )
 		worldData[i].groundHeight = 0;
+}
+
+void World::
+addHill( const ivec2 peak, const unsigned int width )
+{
+	int start = peak.x - width / 2, end = start + width, offset;
+	const float thing = peak.y - worldData[start].groundHeight;
+  const float period = PI / width;
+
+	if ( start < 0 ) {
+    offset = -start;
+		start = 0;
+  }
+
+	if ( end > (signed)worldData.size() )
+	  end = worldData.size();
+
+	for ( int i = start; i < end; i++ ) {
+		worldData[i].groundHeight += thing * sin((i - start + offset) * period);
+		if ( worldData[i].groundHeight > peak.y )
+			worldData[i].groundHeight = peak.y;
 	}
 }
 
@@ -1081,38 +1110,32 @@ getTheWidth( void ) const
 void World::save(void){
 	std::string data;
 
-    std::cout << "Setting save" << std::endl;
 	std::string save = (std::string)currentXML + ".dat";
 	std::ofstream out (save,std::ios::out | std::ios::binary);
 
 	std::cout<<"Saving to "<<save<<" ..."<<std::endl;
 
-    std::cout << "Saving npcs" << std::endl;
 	for(auto &n : npc){
 		data.append(std::to_string(n->dialogIndex) + "\n");
 		data.append(std::to_string((int)n->loc.x) + "\n");
 		data.append(std::to_string((int)n->loc.y) + "\n");
 	}
 
-    std::cout << "Saving buildings" << std::endl;
 	for(auto &b : build){
 		data.append(std::to_string((int)b->loc.x) + "\n");
 		data.append(std::to_string((int)b->loc.y) + "\n");
 	}
 
-    std::cout << "Saving mobs" << std::endl;
 	for(auto &m : mob){
 		data.append(std::to_string((int)m->loc.x) + "\n");
 		data.append(std::to_string((int)m->loc.y) + "\n");
 		data.append(std::to_string((int)m->alive) + "\n");
 	}
 
-    std::cout << "Ending file" << std::endl;
 	data.append("dOnE\0");
     std::cout << "Writing to the file" << std::endl;
 	out.write(data.c_str(),data.size());
 
-    std::cout << "Closing file" << std::endl;
 	out.close();
     std::cout << "Done saving" << std::endl;
 }
@@ -1374,18 +1397,18 @@ loadWorldFromXMLNoSave( std::string path ) {
 	while(wxml){
 		name = wxml->Name();
 
-		if(name == "link"){
+		if ( name == "link" ) {
 			if((ptr = wxml->Attribute("left")))
 				tmp->setToLeft(ptr);
 			else if((ptr = wxml->Attribute("right")))
 				tmp->setToRight(ptr);
 			else
 				abort();
-		}else if(name == "style"){
+		} else if ( name == "style" ) {
 			tmp->setStyle(wxml->StrAttribute("folder"));
 			tmp->setBackground((WorldBGType)wxml->UnsignedAttribute("background"));
 			tmp->setBGM(wxml->StrAttribute("bgm"));
-		}else if(name == "generation"){
+		} else if ( name == "generation" ) {
 			if(!strcmp(wxml->Attribute("type"),"Random")){
 				if(Indoor)
 					((IndoorWorld *)tmp)->generate(wxml->UnsignedAttribute("width"));
@@ -1395,7 +1418,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 				}
 			}else if(Indoor)
 				abort();
-		}else if(name == "mob"){
+		} else if ( name == "mob" ) {
 			unsigned int type;
 			type = wxml->UnsignedAttribute("type");
 			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
@@ -1405,7 +1428,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 			if(wxml->QueryBoolAttribute("aggressive",&dialog) == XML_NO_ERROR)
 				tmp->mob.back()->aggressive = dialog;
 
-		}else if(name == "npc"){
+		} else if ( name == "npc" ) {
 			const char *npcname;
 
 			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
@@ -1425,7 +1448,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 				tmp->npc.back()->addAIFunc(commonAIFunc,false);
 			else tmp->npc.back()->dialogIndex = 9999;
 
-		}else if(name == "structure"){
+		} else if ( name == "structure" ) {
 			tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),
 							   wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR ?
 							   			getRand() % tmp->getTheWidth() / 2.0f :
@@ -1433,10 +1456,17 @@ loadWorldFromXMLNoSave( std::string path ) {
 							   100,
 							   wxml->StrAttribute("texture"),
 							   wxml->StrAttribute("inside"));
-		}else if(name == "trigger"){
+		} else if ( name == "trigger" ) {
 			tmp->addMob(MS_TRIGGER,wxml->FloatAttribute("x"),0,commonTriggerFunc);
 			tmp->mob.back()->heyid = wxml->Attribute("id");
-		}
+		} else if ( name == "page" ) {
+			tmp->addMob( MS_PAGE, wxml->FloatAttribute("x"), 0, commonPageFunc );
+			tmp->mob.back()->heyid = wxml->Attribute("id");
+		} else if ( name == "hill" ) {
+			tmp->addHill( ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width") );
+		} else if ( name == "time") {
+      tickCount = std::stoi( wxml->GetText() );
+    }
 
 		wxml = wxml->NextSiblingElement();
 	}
@@ -1459,13 +1489,13 @@ loadWorldFromXMLNoSave( std::string path ) {
 		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
 		 */
 
-		if(name == "structure"){
+		if ( name == "structure" ) {
 			tmp->addStructure((BUILD_SUB)vil->UnsignedAttribute("type"),
 							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? randx : spawnx,
 							   100,
 							   vil->StrAttribute("texture"),
 							   vil->StrAttribute("inside"));
-		}else if(name ==  "stall"){
+		}else if ( name == "stall" ) {
 			if(!strcmp(vil->Attribute("type"),"market")){
 				std::cout << "Market" << std::endl;
 				tmp->addStructure((BUILD_SUB)70,

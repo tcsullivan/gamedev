@@ -581,17 +581,19 @@ void Mob::wander(int timeRun){
 	if(aggressive && !YAYA &&
 	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
 	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height ){
-		Arena *a = new Arena(currentWorld,player,this);
-		a->setStyle("");
-		a->setBackground( WorldBGType::Forest );
-		a->setBGM("assets/music/embark.wav");
+		if ( !ui::dialogBoxExists ) {
+			Arena *a = new Arena(currentWorld,player,this);
+			a->setStyle("");
+			a->setBackground( WorldBGType::Forest );
+			a->setBGM("assets/music/embark.wav");
 		
-		ui::toggleWhiteFast();
-		YAYA = true;
-		ui::waitForCover();
-		YAYA = false;
-		currentWorld = a;
-		ui::toggleWhiteFast();
+			ui::toggleWhiteFast();
+			YAYA = true;
+			ui::waitForCover();
+			YAYA = false;
+			currentWorld = a;
+			ui::toggleWhiteFast();
+		}
 	}
 	
 	switch(subtype){

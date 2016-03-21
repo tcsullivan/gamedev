@@ -9,7 +9,6 @@ using namespace tinyxml2;
 extern Player	*player;						// main.cpp
 extern World	*currentWorld;					// main.cpp
 
-extern float  shit;
 extern Menu  *currentMenu;
 extern Menu   pauseMenu;
 extern Menu   optionsMenu;
@@ -23,7 +22,7 @@ std::vector<XMLElement *> dopt;
 
 void destroyEverything(void);
 
-void segFault(){
+inline void segFault() {
 	(*((int *)NULL))++;
 }
 
@@ -208,6 +207,21 @@ CONT:
 	}while(exml);
 
 	return 0;
+}
+
+void commonPageFunc( Mob *callee )
+{
+	static bool lock = false;
+	
+	if ( !lock ) {
+		lock = true;
+		
+		ui::drawPage( callee->heyid );
+		ui::waitForDialog();
+		
+		callee->alive = false;
+		lock = false;
+	}
 }
 
 void commonTriggerFunc(Mob *callee){

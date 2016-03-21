@@ -415,9 +415,8 @@ int main(int argc, char *argv[]){
 	//currentWorld->mob.back()->followee = player;
 
 	gameRunning = true;
-	while(gameRunning){
-		mainLoop();
-	}
+
+	while(gameRunning)mainLoop();
 
 	/**************************
 	****   CLOSE PROGRAM   ****
@@ -431,7 +430,7 @@ int main(int argc, char *argv[]){
     Mix_CloseAudio();
 
     destroyInventory();
-	ui::destroyFonts();
+		ui::destroyFonts();
     Texture::freeTextures();
 
     SDL_GL_DeleteContext(mainGLContext);
@@ -499,8 +498,7 @@ void mainLoop(void){
 	/*pool.Enqueue([](){
 		currentWorld->update(player,deltaTime);
 	});*/
-
-	currentWorld->update(player,deltaTime);
+	currentWorld->update( player, deltaTime );
 
 	/*
 	 * Update debug variables if necessary
@@ -511,7 +509,7 @@ void mainLoop(void){
 
 		if ( deltaTime )
 			fps = 1000 / deltaTime;
-		else if(!(debugDiv%10))
+		if(!(debugDiv % 10))
 			debugY = player->loc.y;
 	}
 MENU:
@@ -790,7 +788,6 @@ void logic(){
 						currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%10)*.01-.05), {(rand()%75)+10/100.0f,0,0}, 10000);
 				}
 			}
-
 			/*
 			 *	Don't bother handling the NPC if another has already been handled.
 	 		 */

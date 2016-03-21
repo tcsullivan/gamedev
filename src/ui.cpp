@@ -6,7 +6,7 @@
 
 #define SDL_KEY e.key.keysym.sym
 
-extern std::vector<menuItem>optionsMenu;
+extern std::vector<menuItem> optionsMenu;
 
 extern SDL_Window *window;
 
@@ -82,6 +82,8 @@ Mix_Chunk *battleStart;
 
 Mix_Chunk *sanic;
 
+static GLuint pageTex = 0;
+
 void Menu::gotoParent(){
 	if(parent == NULL){
 		currentMenu = NULL;
@@ -125,7 +127,6 @@ namespace ui {
 	Trade merchTrade;
 
 	int fontTransInv = 255;
-
 
 	/*
 	 *	Dialog stuff that needs to be 'public'.
@@ -323,11 +324,9 @@ namespace ui {
 	 *	Draw a string at the specified coordinates.
 	*/
 
-	float putString(const float x,const float y,const char *s){
+	float putString( const float x, const float y, std::string s ) {
 		unsigned int i=0;
-		float xo=x,yo=y;
-		vec2 add;
-		//vec2 off = { (float)floor(x), (float)floor(y) };
+		vec2 add, o = {x, y};
 
 		/*
 		 *	Loop on each character:
@@ -335,57 +334,67 @@ namespace ui {
 
 		do{
 			if(i && ((i / 110.0) == (i / 110))){
-				yo-=fontSize*1.05;
-				xo=x;
+				o.y -= fontSize * 1.05f;
+				o.x = x;
 				if(s[i] == ' ')
 					i++;
 			}
+
 			if(i && (i / (float)textWrapLimit == i / textWrapLimit)){
- 				yo -= fontSize * 1.05;
- 				xo = x;
+ 				o.y -= fontSize * 1.05f;
+ 				o.x = x;
 
 				// skip a space if it's there since we just newline'd
   				if(s[i] == ' ')
   					i++;
   			}
-			if(s[i] == '\n'){
-				yo-=fontSize*1.05;
-				xo=x;
-			}else if(s[i] == '\r' || s[i] == '\t'){
-			/*if(s[i] == '\n'){
-				yo-=fontSize*1.05;
-				xo=x;
-			*/}else if(s[i]==' '){	//	Handle spaces
-				xo+=fontSize/2;
-			}else if(s[i]=='\b'){	//	Handle backspaces?
-				xo-=add.x;
-			}else{
-				add=putChar(floor(xo),floor(yo),s[i]);
-				xo+=add.x;
-				yo+=add.y;
+
+			switch ( s[i] ) {
+			case '\n':
+				o.y -= fontSize * 1.05f;
+				o.x = x;
+				break;
+			case '\r':
+				break;
+			case '\t':
+				break;
+			case '\b':
+				o.x -= add.x;
+				break;
+			case ' ':
+				o.x += fontSize / 2;
+				break;
+			default:
+				add = putChar( floor(o.x), floor(o.y), s[i] );
+				o.x += add.x;
+				o.y += add.y;
+				break;
 			}
+
 		}while(s[++i]);
 
-		return xo;	// i.e. the string width
+		return o.x;	// i.e. the string width
 	}
 
-	float putStringCentered(const float x,const float y,const char *s){
+	float putStringCentered( const float x, const float y, std::string s ) {
 		unsigned int i = 0;
 		float width = 0;
 
-		do{
-			if(s[i]=='\n'){			//	Handle newlines
+		do {
+			switch ( s[i] ) {
+			case '\n':
 				// TODO
-			}else if(s[i]==' '){	//	Handle spaces
-				width+=fontSize/2;
-			}else if(s[i]=='\b'){	//	Handle backspaces?
-				// Why?
-				// Cuz
-			}else{
-				width+=ftexwh[i].x+fontSize*.1;
+				break;
+			case '\b':
+				break;
+			case ' ':
+				width += fontSize / 2;
+				break;
+			default:
+				width += ftexwh[i].x + fontSize * 0.1f;
+				break;
 			}
-		}while(s[++i]);
-
+		} while(s[++i]);
 		putString(floor(x-width/2),y,s);
 		return width;
 	}
@@ -395,28 +404,18 @@ namespace ui {
 	 *	to this function. Passing a different string to the function will reset the counters.
 	*/
 
-	static char *ret = NULL;
-	char *typeOut(char *str){
+	std::string ret;
+	std::string typeOut(char *str){
 		static unsigned int sinc,	//	Acts as a delayer for the space between each character.
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
-		//static char *ret = NULL;
-
-		/*
-		 *	Create a well-sized buffer if we haven't yet.
-		*/
-
-		if(!ret){
-			ret = new char[512];	//(char *)calloc(512,sizeof(char));
-			memset(ret,0,512*sizeof(char));
-		}
 
 		/*
 		 *	Reset values if a new string is being passed.
 		*/
 
-		if(strncmp(ret,str,linc-1)){
-			memset(ret,0,512);		//	Zero the buffer
+		if(strncmp(ret.c_str(),str,linc-1)){
+			ret.clear();			//	Zero the buffer
 			size=strlen(str);		//	Set the new target string size
 			linc=0;					//	Reset the incrementers
 			sinc=1;
@@ -432,7 +431,7 @@ namespace ui {
 		else if(++sinc==2){
 			sinc=0;
 
-			strncpy(ret+linc,str+linc,1);	//	Get next character
+			ret.append( 1, *(str + linc) );
 
 			if(linc<size)
 				linc++;
@@ -542,8 +541,7 @@ namespace ui {
 		dialogBoxExists = true;
 		dialogImportant = false;
 
-		if(ret)
-			ret[0] = '\0';
+		ret.clear();
 	}
 
 
@@ -604,9 +602,7 @@ namespace ui {
 		dialogMerchant = true;
 		textWrapLimit = 50;
 
-		// kill the string created by typeOut if it contains something
-		if(ret)
-			*ret = '\0';
+		ret.clear();
 	}
 
 	void merchantBox(){
@@ -669,12 +665,28 @@ namespace ui {
 	}
 
 
+	void drawPage( std::string path ) {
+		pageTex = Texture::loadTexture( path );
+	}
+
 	void draw(void){
 		unsigned char i;
 		float x,y,tmp;
-		char *rtext;
+		std::string rtext;
 
-		if(dialogBoxExists){
+		if ( pageTex ) {
+
+			glEnable( GL_TEXTURE_2D);
+			glBindTexture( GL_TEXTURE_2D, pageTex );
+			glBegin( GL_QUADS );
+				glTexCoord2i( 0, 0 ); glVertex2i( offset.x - 300, SCREEN_HEIGHT - 100 );
+				glTexCoord2i( 1, 0 ); glVertex2i( offset.x + 300, SCREEN_HEIGHT - 100 );
+				glTexCoord2i( 1, 1 ); glVertex2i( offset.x + 300, SCREEN_HEIGHT - 600 );
+				glTexCoord2i( 0, 1 ); glVertex2i( offset.x - 300, SCREEN_HEIGHT - 600 );
+			glEnd();
+			glDisable( GL_TEXTURE_2D);
+
+		} else if (dialogBoxExists){
 
 			rtext=typeOut(dialogBoxText);
 
@@ -690,7 +702,7 @@ namespace ui {
 				}
 				if(fadeIntensity == 255 || dialogPassive){
 					setFontSize(24);
-					putStringCentered(offset.x,offset.y,rtext);
+					putStringCentered(offset.x,offset.y,rtext.c_str());
 					setFontSize(16);
 				}
 			}else if(dialogMerchant){
@@ -702,11 +714,11 @@ namespace ui {
 
 				glColor3ub(255,255,255);
 				glBegin(GL_LINE_STRIP);
-					glVertex2f(x-1				 	  ,y+1);
+					glVertex2f(x-1 				   ,y+1);
 					glVertex2f(x+1+(SCREEN_WIDTH/3),y+1);
 					glVertex2f(x+1+(SCREEN_WIDTH/3),y-1-SCREEN_HEIGHT*.6);
 					glVertex2f(x-1,y-1-SCREEN_HEIGHT*.6);
-					glVertex2f(x-1,y+1);
+					glVertex2f(x - 1,y+1);
 				glEnd();
 
 				glColor3ub(0,0,0);
@@ -832,9 +844,8 @@ namespace ui {
 				setFontColor(255,255,255);
 			}
 
-			if(strcmp(rtext,dialogBoxText)){
+			if ( rtext != dialogBoxText )
 				Mix_PlayChannel(1,dialogClick,0);
-			}
 
 		}if(!fadeIntensity){
 			vec2 hub = {
@@ -1230,6 +1241,13 @@ namespace ui {
 
 	void dialogAdvance(void){
 		unsigned char i;
+
+		if ( pageTex ) {
+			glDeleteTextures( 1, &pageTex );
+			pageTex = 0;
+			return;
+		}
+
 		if(!typeOutDone){
 			typeOutDone = true;
 			return;
@@ -1299,7 +1317,7 @@ namespace ui {
 			// mouse clicks
 			case SDL_MOUSEBUTTONDOWN:
 				// right click advances dialog
-				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && dialogBoxExists )
+				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && (dialogBoxExists | pageTex) )
 					dialogAdvance();
 				// left click uses item
 				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )
@@ -1344,7 +1362,7 @@ namespace ui {
 						player->right = false;
 						left = true;
 						right = false;
-						if(currentWorld->toLeft){
+						if ( !currentWorld->toLeft.empty() ) {
 							oldpos = player->loc;
 							if((tmp = currentWorld->goWorldLeft(player)) != currentWorld){
 								tmppos = player->loc;
@@ -1366,7 +1384,7 @@ namespace ui {
 						player->left = false;
 						left = false;
 						right = true;
-						if(currentWorld->toRight){
+						if ( !currentWorld->toRight.empty() ) {
 							oldpos = player->loc;
 							if((tmp = currentWorld->goWorldRight(player)) != currentWorld){
 								tmppos = player->loc;
@@ -1384,36 +1402,16 @@ namespace ui {
 					case SDLK_s:
 						break;
 					case SDLK_w:
-						if(inBattle){
+						if ( inBattle ) {
 							tmp = currentWorld;
-							currentWorld = ((Arena *)currentWorld)->exitArena(player);
-							if(tmp != currentWorld){
-								//delete &tmp;
+							currentWorld = ((Arena *)currentWorld)->exitArena( player );
+							if ( tmp != currentWorld )
 								toggleBlackFast();
-							}
-						}else{
-							if((tmp = currentWorld->goInsideStructure(player)) != currentWorld)
+						} else if( (tmp = currentWorld->goInsideStructure( player )) != currentWorld )
 								currentWorld = tmp;
-						}
 						break;
 					case SDLK_i:
-						/*currentWorld=currentWorld->goWorldBack(player);	// Go back a layer if possible
-						if(tmp!=currentWorld){
-							currentWorld->detect(player);
-							player->vel.y=.2;
-							player->loc.y+=HLINE*5;
-							player->ground=false;
-						}*/
 						player->health -= 5;
-						break;
-					case SDLK_k:
-						/*currentWorld=currentWorld->goWorldFront(player);	// Go forward a layer if possible
-						if(tmp!=currentWorld){
-							currentWorld->behind->detect(player);
-							player->vel.y=.2;
-							player->loc.y+=HLINE*5;
-							player->ground=false;
-						}*/
 						break;
 					case SDLK_LSHIFT:
 						if(debug){
