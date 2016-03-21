@@ -511,4 +511,6 @@ World *loadWorldFromXML(std::string path);
 
 World *loadWorldFromXMLNoSave(std::string path);
 
+World *loadWorldFromPtr( World *ptr );
+
 #endif // WORLD_H

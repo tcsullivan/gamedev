@@ -779,3 +779,13 @@
 	- planned ahead
 
 	~ set finish date for game engine: 3/31
+
+3/17/2016:
+==========
+
+	- cleaned up ui stuff (more std::strings)
+	- worlds load adjacent worlds for faster loading
+	- fixed world fall-through error
+	- (WIP) made ui options dynamic (boxes can have 'infinite' options)
+	- can scroll through inventory with mouse wheel
+	- added text transparency support

@@ -22,6 +22,8 @@ using namespace tinyxml2;
 
 extern Player *player;						// main.cpp?
 extern World  *currentWorld;				// main.cpp
+extern World  *currentWorldToLeft;			// main.cpp
+extern World  *currentWorldToRight;			// main.cpp
 extern int     commonAIFunc(NPC *);			// entities.cpp
 extern void    commonTriggerFunc(Mob *);	// gameplay.cpp
 extern void    commonPageFunc(Mob *);		// gameplay.cpp
@@ -748,54 +750,49 @@ singleDetect( Entity *e )
 		exit(0);
 	}
 
-	/*
-	 *	Handle only living entities.
-	*/
-
-	if(e->alive){
-
+	// handle only living entities
+	if ( e->alive ) {
 		if ( e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER )
 			return;
 
 		/*
 		 *	Calculate the line that this entity is currently standing on.
-		*/
+		 */
 
 		l=(e->loc.x + e->width / 2 - worldStart) / HLINE;
-		if(l < 0) l=0;
+		if ( l < 0 )
+            l = 0;
 		i = l;
-		if(i > lineCount-1) i=lineCount-1;
+		if ( i > lineCount - 1 )
+            i = lineCount - 1;
 
 		/*
 		 *	If the entity is under the world/line, pop it back to the surface.
 		*/
 
 		if ( e->loc.y < worldData[i].groundHeight ) {
-
-      if ( worldData[i].groundHeight - e->loc.y > 30 ) {
-        int dir = e->vel.x > 0 ? -1 : 1;
-        e->loc.x += HLINE * 8 * dir;
-        e->loc.y = worldData[i + 8 * dir].groundHeight;
-      } else {
-        e->loc.y = worldData[i].groundHeight - .001 * deltaTime;
-			  e->ground = true;
-			  e->vel.y = 0;
-      }
+            int dir = e->vel.x > 0 ? -1 : 1;
+            if ( worldData[i].groundHeight - 30 > worldData[i + dir].groundHeight ) {
+                e->loc.x += HLINE * 8 * dir;
+                e->loc.y = worldData[i + 8 * dir].groundHeight;
+            } else {
+                e->loc.y = worldData[i].groundHeight - .001 * deltaTime;
+		        e->ground = true;
+		        e->vel.y = 0;
+            }
 
 		/*
 		 *	Handle gravity if the entity is above the line.
-		*/
+		 */
 
 		} else {
-
 			if(e->type == STRUCTURET && e->loc.y > 2000){
 				e->loc.y = worldData[i].groundHeight;
 				e->vel.y = 0;
 				e->ground = true;
 				return;
 			} else if ( e->vel.y > -2 )
-        e->vel.y -= .003 * deltaTime;
-
+                e->vel.y -= .003 * deltaTime;
 		}
 
 		/*
@@ -993,13 +990,13 @@ goWorldLeft( Player *p )
 {
 	World *tmp;
 
-  // check if player is at world edge
+    // check if player is at world edge
 	if( !toLeft.empty() && p->loc.x < worldStart + HLINE * 15.0f ) {
 
-    // load world (`toLeft` conditional confirms existance)
-		tmp = loadWorldFromXML(toLeft);
+        // load world (`toLeft` conditional confirms existance)
+	    tmp = loadWorldFromPtr( currentWorldToLeft );
 
-    // adjust player location
+        // adjust player location
 		p->loc.x = tmp->worldStart + HLINE * 20;
 		p->loc.y = tmp->worldData[tmp->lineCount - 1].groundHeight;
 
@@ -1015,7 +1012,7 @@ goWorldRight( Player *p )
 	World *tmp;
 
 	if( !toRight.empty() && p->loc.x + p->width > -worldStart - HLINE * 15 ) {
-		tmp = loadWorldFromXML(toRight);
+		tmp = loadWorldFromPtr( currentWorldToRight );
 
 		p->loc.x = tmp->worldStart - HLINE * -15.0f;
 		p->loc.y = GROUND_HEIGHT_MINIMUM;
@@ -1352,11 +1349,31 @@ World *Arena::exitArena(Player *p){
 	}
 }
 
+
+
+static bool loadedLeft = false;
+static bool loadedRight = false;
+
 World *loadWorldFromXML(std::string path){
 	if ( !currentXML.empty() )
 		currentWorld->save();
 
 	return loadWorldFromXMLNoSave(path);
+}
+
+World *loadWorldFromPtr( World *ptr )
+{
+    World *tmp = ptr;
+
+    loadedLeft = true;
+    currentWorldToLeft = loadWorldFromXML( tmp->toLeft );
+    loadedLeft = false;
+
+    loadedRight = true;
+    currentWorldToRight = loadWorldFromXML( tmp->toRight );
+    loadedRight = false;
+
+    return tmp;
 }
 
 /**
@@ -1375,6 +1392,9 @@ loadWorldFromXMLNoSave( std::string path ) {
 
 	const char *ptr;
 	std::string name;
+
+    if ( path.empty() )
+        return NULL;
 
 	currentXML = (std::string)"xml/" + path;
 
@@ -1397,11 +1417,21 @@ loadWorldFromXMLNoSave( std::string path ) {
 		name = wxml->Name();
 
 		if ( name == "link" ) {
-			if((ptr = wxml->Attribute("left")))
+			if ((ptr = wxml->Attribute("left"))) {
 				tmp->setToLeft(ptr);
-			else if((ptr = wxml->Attribute("right")))
+                if ( !loadedLeft ) {
+                    loadedLeft = true;
+                    currentWorldToLeft = loadWorldFromXMLNoSave( ptr );
+                    loadedLeft = false;
+                }
+			} else if ((ptr = wxml->Attribute("right"))) {
 				tmp->setToRight(ptr);
-			else
+                if ( !loadedRight ) {
+                    loadedRight = true;
+                    currentWorldToRight = loadWorldFromXMLNoSave( ptr );
+                    loadedRight = false;
+                }
+			} else
 				abort();
 		} else if ( name == "style" ) {
 			tmp->setStyle(wxml->StrAttribute("folder"));

@@ -39,9 +39,17 @@ extern unsigned int tickCount;
 static FT_Library   ftl;
 static FT_Face      ftf;
 static GLuint       ftex[93];
-static vec2			ftexwh[93];
+/*static vec2			ftexwh[93];
 static vec2			ftexbl[93];
-static vec2			ftexad[93];
+static vec2			ftexad[93];*/
+
+typedef struct {
+	vec2 wh;
+	vec2 bl;
+	vec2 ad;
+} FT_Info;
+
+static FT_Info ftdat[93];
 
 static unsigned char fontColor[3] = {255,255,255};
 
@@ -49,11 +57,10 @@ static unsigned char fontColor[3] = {255,255,255};
  *	Variables for dialog boxes / options.
 */
 
-static char			 dialogBoxText[512];
-static char			*dialogOptText[4];
+static std::string   dialogBoxText;
+static std::vector<std::pair<std::string,vec3>> dialogOptText;
 static float         merchAOptLoc[2][3];
 static float	 	 dialogOptLoc[4][3];
-static unsigned char dialogOptCount = 0;
 static bool			 typeOutDone = true;
 
 /*
@@ -194,7 +201,6 @@ namespace ui {
 
 	void setFontSize(unsigned int size){
 		unsigned int i,j;
-		unsigned char *buf;
 
 		fontSize=size;
 		FT_Set_Pixel_Sizes(ftf,0,fontSize);
@@ -234,26 +240,20 @@ namespace ui {
 			 *	making it white-on-black.
 			*/
 
-			buf = new unsigned char[ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows * 4];
 
-			for(j=0;j<ftf->glyph->bitmap.width*ftf->glyph->bitmap.rows;j++){
-				buf[j*4  ]=255;//fontColor[0];
-				buf[j*4+1]=255;//fontColor[1];
-				buf[j*4+2]=255;//fontColor[2];
-				buf[j*4+3]=ftf->glyph->bitmap.buffer[j] ? 255 : 0;
-				//buf[j*4+3]=ftf->glyph->bitmap.buffer[j];
-			}
+			std::vector<uint32_t> buf ( ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows, 0 );
 
-			ftexwh[i-33].x=ftf->glyph->bitmap.width;
-			ftexwh[i-33].y=ftf->glyph->bitmap.rows;
-			ftexbl[i-33].x=ftf->glyph->bitmap_left;
-			ftexbl[i-33].y=ftf->glyph->bitmap_top;
-			ftexad[i-33].x=ftf->glyph->advance.x>>6;
-			ftexad[i-33].y=ftf->glyph->advance.y>>6;
+			for( j = 0; j < buf.size(); j++ )
+				buf[j] = 0x00FFFFFF | (ftf->glyph->bitmap.buffer[j] ? (0xFF << 24) : 0);
 
-			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf);
+			ftdat[i-33].wh.x=ftf->glyph->bitmap.width;
+			ftdat[i-33].wh.y=ftf->glyph->bitmap.rows;
+			ftdat[i-33].bl.x=ftf->glyph->bitmap_left;
+			ftdat[i-33].bl.y=ftf->glyph->bitmap_top;
+			ftdat[i-33].ad.x=ftf->glyph->advance.x>>6;
+			ftdat[i-33].ad.y=ftf->glyph->advance.y>>6;
 
-			delete[] buf;	//free(buf);
+			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf.data());
 		}
 	}
 
@@ -280,9 +280,9 @@ namespace ui {
 		 *	Get the width and height of the rendered character.
 		*/
 
-		c1={(float)floor(x)+ftexbl[c-33].x,
-		    (float)floor(y)+ftexbl[c-33].y};
-		c2=ftexwh[c-33];
+		c1={(float)floor(x)+ftdat[c-33].bl.x,
+		    (float)floor(y)+ftdat[c-33].bl.y};
+		c2=ftdat[c-33].wh;
 
 		/*
 		 *	Draw the character:
@@ -302,11 +302,8 @@ namespace ui {
 		glPopMatrix();
 		glDisable(GL_TEXTURE_2D);
 
-		/*
-		 * return the width.
-		*/
-
-		return ftexad[c-33];//(vec2){c2.x,ftexad[c-33].y};
+		// return the width.
+		return ftdat[c-33].ad;
 	}
 
 	/*
@@ -380,7 +377,7 @@ namespace ui {
 				width += fontSize / 2;
 				break;
 			default:
-				width += ftexwh[i].x + fontSize * 0.1f;
+				width += ftdat[i].wh.x + fontSize * 0.1f;
 				break;
 			}
 		} while(s[++i]);
@@ -395,7 +392,7 @@ namespace ui {
 	*/
 
 	std::string ret;
-	std::string typeOut(char *str){
+	std::string typeOut( std::string str ) {
 		static unsigned int sinc,	//	Acts as a delayer for the space between each character.
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
@@ -404,9 +401,9 @@ namespace ui {
 		 *	Reset values if a new string is being passed.
 		*/
 
-		if(strncmp(ret.c_str(),str,linc-1)){
+		if(strncmp(ret.c_str(),str.c_str(),linc-1)){
 			ret.clear();			//	Zero the buffer
-			size=strlen(str);		//	Set the new target string size
+			size=str.size();		//	Set the new target string size
 			linc=0;					//	Reset the incrementers
 			sinc=1;
 			typeOutDone = false;
@@ -421,7 +418,7 @@ namespace ui {
 		else if(++sinc==2){
 			sinc=0;
 
-			ret.append( 1, *(str + linc) );
+			ret.append(str, linc, 1);
 
 			if(linc<size)
 				linc++;
@@ -436,92 +433,57 @@ namespace ui {
 	 *	Draw a formatted string to the specified coordinates.
 	*/
 
-	float putText(const float x,const float y,const char *str,...){
+	float putText( const float x, const float y, const char *str, ... ) {
 		va_list args;
-		char *buf;
-		float width;
+		std::unique_ptr<char[]> buf (new char[512]);
 
-		/*
-		 *	Create a wimpy buffer.
-		*/
-
-		buf = new char[512];	//(char *)calloc(128,sizeof(char));
-		memset(buf,0,512*sizeof(char));
+		// zero out the buffer
+		memset(buf.get(),0,512*sizeof(char));
 
 		/*
 		 *	Handle the formatted string, printing it to the buffer.
-		*/
+		 */
 
 		va_start(args,str);
-		vsnprintf(buf,512,str,args);
+		vsnprintf(buf.get(),512,str,args);
 		va_end(args);
 
-		/*
-		 *	Draw the string, free resources, return the width of the string.
-		*/
-
-		width=putString(x,y,buf);
-		delete[] buf;	//free(buf);
-
-		return width;
+		// draw the string and return the width
+		return putString( x, y, buf.get() );
 	}
-	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...){
-		textWrapLimit = 110;
-		va_list dialogArgs;
-		unsigned int len;
-		char *sopt,*soptbuf;
 
+	void dialogBox( const char *name, const char *opt, bool passive, const char *text, ... ) {
+		va_list dialogArgs;
+		std::unique_ptr<char[]> printfbuf (new char[512]);
+
+		textWrapLimit = 110;
 		dialogPassive = passive;
 
-		/*
-		 *	Set up the text buffer.
-		*/
+		// reset & add speaker prefix
+		dialogBoxText.clear();
+		dialogBoxText = (std::string)name + ": ";
 
-		memset(dialogBoxText,0,512);
-
-		/*
-		 *	Get the text ready for rendering.
-		*/
-
-		len=strlen(name);
-		strcpy(dialogBoxText    ,name);
-		strcpy(dialogBoxText+len,": ");
-		len+=2;
-
+		// handle the formatted string
 		va_start(dialogArgs,text);
-		vsnprintf(dialogBoxText+len,512-len,text,dialogArgs);
+		vsnprintf(printfbuf.get(),512,text,dialogArgs);
 		va_end(dialogArgs);
+		dialogBoxText += printfbuf.get();
 
-		/*
-		 *	Set up option text.
-		*/
+		// setup option text
+		dialogOptText.clear();
 
-		while(dialogOptCount){
-			if(dialogOptText[dialogOptCount]){
-				delete[] dialogOptText[dialogOptCount];	//free(dialogOptText[dialogOptCount]);
-				dialogOptText[dialogOptCount] = NULL;
-			}
-			dialogOptCount--;
-		};
-
-		dialogOptCount = 0;
 		dialogOptChosen = 0;
 		memset(&dialogOptLoc,0,sizeof(float)*12);
 
-		if(opt != NULL){
+		if ( opt ) {
+			std::string soptbuf = opt;
+			char *sopt = strtok(&soptbuf[0], ":");
 
-			soptbuf = new char[strlen(opt)+1];
-			strcpy(soptbuf,opt);
-
-			sopt=strtok(soptbuf,":");
-			while(sopt != NULL){
-				dialogOptText[dialogOptCount] = new char[strlen(sopt)+1];	//(char *)malloc(strlen(sopt));
-				strcpy(dialogOptText[dialogOptCount++],sopt);
-				sopt=strtok(NULL,":");
+			// cycle through options
+			while(sopt){
+				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}) );
+				sopt = strtok(NULL,":");
 			}
-
-			delete[] soptbuf;
-
 		}
 
 		/*
@@ -536,9 +498,10 @@ namespace ui {
 
 
 	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...){
-		std::cout << "Buying and selling on the bi-weekly!" << std::endl;
 		va_list dialogArgs;
-		size_t len;
+		std::unique_ptr<char[]> printfbuf (new char[512]);
+
+		std::cout << "Buying and selling on the bi-weekly!" << std::endl;
 
 		dialogPassive = passive;
 
@@ -547,40 +510,28 @@ namespace ui {
 		merchTrade = trade;
 
 		// clear the buffer
-		memset(dialogBoxText, '\0', 512);
+		dialogBoxText.clear();
+		dialogBoxText = (std::string)name + ": ";
 
-		// create the string
-		strcpy(dialogBoxText, name);
-		strcat(dialogBoxText, ": ");
-
-		len=strlen(dialogBoxText);
 		va_start(dialogArgs,text);
-		vsnprintf(dialogBoxText + len, 512 - len, text, dialogArgs);
+		vsnprintf(printfbuf.get(),512,text,dialogArgs);
 		va_end(dialogArgs);
+		dialogBoxText += printfbuf.get();
 
 		// free old option text
-		while(dialogOptCount){
-			if(dialogOptText[dialogOptCount]){
-				delete[] dialogOptText[dialogOptCount];
-				dialogOptText[dialogOptCount] = NULL;
-			}
-
-			dialogOptCount--;
-		};
+		dialogOptText.clear();
 
 		dialogOptChosen = 0;
 		memset(&dialogOptLoc, 0, sizeof(float) * 12);
 
 		// handle options if desired
 		if(opt){
-			//std::unique_ptr<char[]> soptbuf (new char[strlen(opt) + 1]);
-			char soptbuf[255];
-			strcpy(soptbuf, opt);
-			char *sopt = strtok(soptbuf, ":");
+			std::string soptbuf = opt;
+			char *sopt = strtok(&soptbuf[0], ":");
 
 			// cycle through options
 			while(sopt){
-				strcpy( (dialogOptText[dialogOptCount++] = new char[strlen(sopt) + 1]), sopt);
+				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}) );
 				sopt = strtok(NULL,":");
 			}
 		}
@@ -622,29 +573,40 @@ namespace ui {
 	}
 	void importantText(const char *text,...){
 		va_list textArgs;
+		char *printfbuf;
 
 		//if(!player->ground)return;
 
-		memset(dialogBoxText,0,512);
+		//memset(dialogBoxText,0,512);
+		dialogBoxText.clear();
 
+		printfbuf = new char[ 512 ];
 		va_start(textArgs,text);
-		vsnprintf(dialogBoxText,512,text,textArgs);
+		vsnprintf(printfbuf,512,text,textArgs);
 		va_end(textArgs);
+		dialogBoxText = printfbuf;
+		delete[] printfbuf;
 
 		dialogBoxExists = true;
 		dialogImportant = true;
 		//toggleBlack();
 	}
+
 	void passiveImportantText(int duration, const char *text,...){
 		va_list textArgs;
+		char *printfbuf;
 
 		//if(!player->ground)return;
 
-		memset(dialogBoxText,0,512);
+		//memset(dialogBoxText,0,512);
+		dialogBoxText.clear();
 
+		printfbuf = new char[ 512 ];
 		va_start(textArgs,text);
-		vsnprintf(dialogBoxText,512,text,textArgs);
+		vsnprintf(printfbuf,512,text,textArgs);
 		va_end(textArgs);
+		dialogBoxText = printfbuf;
+		delete[] printfbuf;
 
 		dialogBoxExists = true;
 		dialogImportant = true;
@@ -689,9 +651,9 @@ namespace ui {
 					}
 				}
 				if(fadeIntensity == 255 || dialogPassive){
-					setFontSize(24);
+					//setFontSize(24);
 					putStringCentered(offset.x,offset.y,rtext.c_str());
-					setFontSize(16);
+					//setFontSize(16);
 				}
 			}else if(dialogMerchant){
 				//static int dispItem;
@@ -772,11 +734,11 @@ namespace ui {
 
 
 				// draw / handle dialog options if they exist
-				for(i = 0; i < dialogOptCount; i++){
+				for(i = 0; i < dialogOptText.size(); i++){
 					setFontColor(255, 255, 255);
 
 					// draw option
-					tmp = putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i]);
+					tmp = putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i].first);
 
 					// get coordinate information on option
 					dialogOptLoc[i][2] = offset.x + tmp;
@@ -787,7 +749,7 @@ namespace ui {
 					if(mouse.x > dialogOptLoc[i][0] && mouse.x < dialogOptLoc[i][2] &&
 					   mouse.y > dialogOptLoc[i][1] && mouse.y < dialogOptLoc[i][1] + 16 ){
 						  setFontColor(255, 255, 0);
-						  putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i]);
+						  putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i].first);
 					}
 				}
 
@@ -815,9 +777,9 @@ namespace ui {
 
 				putString(x+HLINE,y-fontSize-HLINE,rtext);
 
-				for(i=0;i<dialogOptCount;i++){
+				for(i=0;i<dialogOptText.size();i++){
 					setFontColor(255,255,255);
-					tmp = putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+					tmp = putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i].first);
 					dialogOptLoc[i][2] = offset.x + tmp;
 					dialogOptLoc[i][0] = offset.x - tmp;
 					dialogOptLoc[i][1] = y - SCREEN_HEIGHT / 4 + (fontSize + HLINE) * (i + 1);
@@ -826,7 +788,7 @@ namespace ui {
 					   mouse.y > dialogOptLoc[i][1] &&
 					   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
 						  setFontColor(255,255,0);
-						  putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i]);
+						  putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i].first);
 					}
 				}
 				setFontColor(255,255,255);
@@ -1224,7 +1186,7 @@ namespace ui {
 			return;
 		}
 
-		for(i=0;i<dialogOptCount;i++){
+		for(i=0;i<dialogOptText.size();i++){
 			if(mouse.x > dialogOptLoc[i][0] &&
 			   mouse.x < dialogOptLoc[i][2] &&
 			   mouse.y > dialogOptLoc[i][1] &&

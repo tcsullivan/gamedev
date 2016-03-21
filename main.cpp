@@ -35,7 +35,7 @@ using namespace tinyxml2;
  * Defines how many milliseconds each game tick will take.
  */
 
-#define MSEC_PER_TICK (1000/TICKS_PER_SEC)
+#define MSEC_PER_TICK ( 1000 / TICKS_PER_SEC )
 
 /**
  * The window object returned by SDL when we create the main window.
@@ -69,7 +69,9 @@ float handAngle;
  * logic operations have to go access members of this object in order to work.
  */
 
-World  	*currentWorld = NULL;
+World *currentWorld        = NULL,
+	  *currentWorldToLeft  = NULL,
+	  *currentWorldToRight = NULL;
 
 /**
  * The player object.
@@ -415,7 +417,7 @@ int main(int argc, char *argv[]){
 	//currentWorld->mob.back()->followee = player;
 
 	gameRunning = true;
-	
+
 	while ( gameRunning )
 		mainLoop();
 
