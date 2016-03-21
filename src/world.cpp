@@ -65,10 +65,10 @@ const std::string bgPaths[2][9]={
 
 const std::string buildPaths[] = {
     "townhall.png",
-	"house1.png", 
-    "house2.png", 
-    "house1.png", 
-    "house1.png", 
+	"house1.png",
+    "house2.png",
+    "house1.png",
+    "house1.png",
     "fountain1.png",
     "lampPost1.png",
 	"brazzier.png"
@@ -87,7 +87,7 @@ const float bgDraw[4][3]={
 
 /**
  * Sets the desired theme for the world's background.
- * 
+ *
  * The images chosen for the background layers are selected depending on the
  * world's background type.
  */
@@ -100,7 +100,7 @@ setBackground( WorldBGType bgt )
 	case WorldBGType::Forest:
 		bgTex = new Texturec( bgFiles );
 		break;
-        
+
 	case WorldBGType::WoodHouse:
 		bgTex = new Texturec( bgFilesIndoors );
 		break;
@@ -113,7 +113,7 @@ setBackground( WorldBGType bgt )
 
 /**
  * Sets the world's style.
- * 
+ *
  * The world's style will determine what sprites are used for things like\
  * generic structures.
  */
@@ -122,25 +122,25 @@ void World::
 setStyle( std::string pre )
 {
     unsigned int i;
-    
+
     // get folder prefix
 	std::string prefix = pre.empty() ? "assets/style/classic/" : pre;
-    
+
 	for ( i = 0; i < arrAmt(buildPaths); i++ )
 		sTexLoc.push_back( prefix + buildPaths[i] );
-		
+
 	prefix += "bg/";
-    
+
 	for ( i = 0; i < arrAmt(bgPaths[0]); i++ )
 		bgFiles.push_back( prefix + bgPaths[0][i] );
-		
+
 	for ( i = 0; i < arrAmt(bgPaths[1]); i++ )
 		bgFilesIndoors.push_back( prefix + bgPaths[1][i] );
 }
 
 /**
  * Creates a world object.
- * 
+ *
  * Note that all this does is nullify pointers, to prevent as much disaster as
  * possible. Functions like setBGM(), setStyle() and generate() should be called
  * before the World is actually put into use.
@@ -150,14 +150,14 @@ World::
 World( void )
 {
     bgmObj = NULL;
-    
+
 	toLeft = NULL;
 	toRight = NULL;
 }
 
 /**
  * The entity vector destroyer.
- * 
+ *
  * This function will free all memory used by all entities, and then empty the
  * vectors they were stored in.
  */
@@ -176,25 +176,25 @@ deleteEntities( void )
 		delete npc.back();
 		npc.pop_back();
 	}
-    
+
     // free structures
 	while ( !build.empty() ) {
 		delete build.back();
 		build.pop_back();
 	}
-    
+
     // free objects
 	while ( !object.empty() ) {
 		delete object.back();
 		object.pop_back();
 	}
-    
+
     // clear entity array
 	entity.clear();
-    
+
     // free particles
 	particles.clear();
-    
+
     // clear light array
 	light.clear();
 
@@ -207,7 +207,7 @@ deleteEntities( void )
 
 /**
  * The world destructor.
- * 
+ *
  * This will free objects used by the world itself, then free the vectors of
  * entity-related objects.
  */
@@ -218,9 +218,9 @@ World::
     // sdl2_mixer's object
 	if(bgmObj)
 		Mix_FreeMusic(bgmObj);
-    
+
 	delete bgTex;
-	
+
 	delete[] toLeft;
 	delete[] toRight;
 
@@ -229,20 +229,20 @@ World::
 
 /**
  * Generates a world of the specified width.
- * 
+ *
  * This will mainly populate the WorldData array, mostly preparing the World
  * object for usage.
  */
 
 void World::
 generate( unsigned int width )
-{	
+{
     // iterator for `for` loops
 	std::vector<WorldData>::iterator wditer;
-    
+
     // see below for description
     float geninc = 0;
-    
+
     // check for valid width
     if ( (int)width <= 0 )
         UserError("Invalid world dimensions");
@@ -250,17 +250,17 @@ generate( unsigned int width )
     // allocate space for world
     worldData = std::vector<WorldData> (width + GROUND_HILLINESS, WorldData { false, {0,0}, 0, 0 });
     lineCount = worldData.size();
-    
+
     // prepare for generation
     worldData.front().groundHeight = GROUND_HEIGHT_INITIAL;
     wditer = worldData.begin();
-    
+
     // give every GROUND_HILLINESSth entry a groundHeight value
     for(unsigned int i = GROUND_HILLINESS; i < worldData.size(); i += GROUND_HILLINESS, wditer += GROUND_HILLINESS)
         worldData[i].groundHeight = (*wditer).groundHeight + (randGet() % 8 - 4);
 
     // create slopes from the points that were just defined, populate the rest of the WorldData structure
-    
+
     for(wditer = worldData.begin(); wditer != worldData.end(); wditer++){
         if ((*wditer).groundHeight)
 			// wditer + GROUND_HILLINESS can go out of bounds (invalid read)
@@ -278,15 +278,15 @@ generate( unsigned int width )
             (*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
         else if ( (*wditer).groundHeight > GROUND_HEIGHT_MAXIMUM )
 			(*wditer).groundHeight = GROUND_HEIGHT_MAXIMUM;
-		
+
 		if( (*wditer).groundHeight <= 0 )
 			(*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
 
     }
-    
+
     // define x-coordinate of world's leftmost 'line'
     worldStart = (width - GROUND_HILLINESS) * HLINE / 2 * -1;
-	
+
     // create empty star array, should be filled here as well...
 	star = std::vector<vec2> (100, vec2 { 0, 400 } );
 	for ( auto &s : star ) {
@@ -297,7 +297,7 @@ generate( unsigned int width )
 
 /**
  * Updates all entity and player coordinates with their velocities.
- * 
+ *
  * Also handles music fading, although that could probably be placed elsewhere.
  */
 
@@ -307,15 +307,15 @@ update( Player *p, unsigned int delta )
     // update player coords
 	p->loc.y += p->vel.y			 * delta;
 	p->loc.x +=(p->vel.x * p->speed) * delta;
-	
+
 	// update entity coords
 	for ( auto &e : entity ) {
 		e->loc.y += e->vel.y * delta;
-		
+
         // dont let structures move?
 		if ( e->type != STRUCTURET && e->canMove ) {
 			e->loc.x += e->vel.x * delta;
-			
+
             // update boolean directions
 			if ( e->vel.x < 0 )
                 e->left = true;
@@ -341,7 +341,7 @@ update( Player *p, unsigned int delta )
 			}
 		}
 	}
-	
+
     // handle music fades
 	if ( ui::dialogImportant )
 		Mix_FadeOutMusic(2000);
@@ -351,7 +351,7 @@ update( Player *p, unsigned int delta )
 
 /**
  * Set the world's BGM.
- * 
+ *
  * This will load a sound file to be played while the player is in this world.
  * If no file is found, no music should play.
  */
@@ -365,7 +365,7 @@ setBGM( std::string path )
 
 /**
  * Toggle play/stop of the background music.
- * 
+ *
  * If new music is to be played a crossfade will occur, otherwise... uhm.
  */
 
@@ -387,7 +387,7 @@ bgmPlay( World *prev ) const
 
 /**
  * The world draw function.
- * 
+ *
  * This function will draw the background layers, entities, and player to the
  * screen.
  */
@@ -397,34 +397,34 @@ draw( Player *p )
 {
     // iterators
     int i, iStart, iEnd;
-    
+
     // shade value for draws -- may be unnecessary
 	int shadeBackground = -worldShade;
-    
+
     // player's offset in worldData[]
 	int pOffset;
-    
+
     // world width in pixels
 	int width = worldData.size() * HLINE;
-	
+
 	// shade value for GLSL
 	float shadeAmbient = -worldShade / 50.0f + 0.5f; // -0.5f to 1.5f
 	if ( shadeAmbient < 0 )
 		shadeAmbient = 0;
 	else if ( shadeAmbient > 0.9f )
 		shadeAmbient = 1;
-	
+
 	/*
      * Draw background images.
      */
-	
+
 	glEnable( GL_TEXTURE_2D );
-	
+
 	// the sunny wallpaper is faded with the night depending on tickCount
-	
+
 	bgTex->bind( 0 );
 	safeSetColorA( 255, 255, 255, 255 - worldShade * 4 );
-	
+
 	glBegin( GL_QUADS );
 		glTexCoord2i( 0, 0 ); glVertex2i(  worldStart, SCREEN_HEIGHT );
 		glTexCoord2i( 1, 0 ); glVertex2i( -worldStart, SCREEN_HEIGHT );
@@ -434,24 +434,24 @@ draw( Player *p )
 
 	bgTex->bindNext();
 	safeSetColorA( 255, 255, 255, worldShade * 4 );
-	
+
 	glBegin( GL_QUADS );
 		glTexCoord2i( 0, 0 ); glVertex2i(  worldStart, SCREEN_HEIGHT );
 		glTexCoord2i( 1, 0 ); glVertex2i( -worldStart, SCREEN_HEIGHT );
 		glTexCoord2i( 1, 1 ); glVertex2i( -worldStart, 0 );
 		glTexCoord2i( 0, 1 ); glVertex2i(  worldStart, 0 );
 	glEnd();
-	
+
 	glDisable( GL_TEXTURE_2D );
-	
+
 	// draw the stars if the time deems it appropriate
-	
+
 	//if (((( weather == WorldWeather::Dark  ) & ( tickCount % DAY_CYCLE )) < DAY_CYCLE / 2)   ||
 	//    ((( weather == WorldWeather::Sunny ) & ( tickCount % DAY_CYCLE )) > DAY_CYCLE * .75) ){
-	if ( worldShade > 0 ) { 
+	if ( worldShade > 0 ) {
 
 		safeSetColorA( 255, 255, 255, 255 - (getRand() % 30 - 15) );
-		
+
 		for ( i = 0; i < 100; i++ ) {
 			glRectf(star[i].x + offset.x * .9,
 					star[i].y,
@@ -459,15 +459,15 @@ draw( Player *p )
 					star[i].y + HLINE
 					);
 		}
-	} 
-	
+	}
+
 	// draw remaining background items
-	
+
 	glEnable( GL_TEXTURE_2D );
-	
+
 	bgTex->bindNext();
 	safeSetColorA( 150 + shadeBackground * 2, 150 + shadeBackground * 2, 150 + shadeBackground * 2, 255 );
-	
+
 	glBegin( GL_QUADS );
 		for ( i = 0; i <= (int)(worldData.size() * HLINE / 1920); i++ ) {
 			glTexCoord2i( 0, 1 ); glVertex2i( width / 2 * -1 + (1920 * i      ) + offset.x * .85, GROUND_HEIGHT_MINIMUM        );
@@ -476,11 +476,11 @@ draw( Player *p )
 			glTexCoord2i( 0, 0 ); glVertex2i( width / 2 * -1 + (1920 * i      ) + offset.x * .85, GROUND_HEIGHT_MINIMUM + 1080 );
 		}
 	glEnd();
-	
+
 	for ( i = 0; i < 4; i++ ) {
 		bgTex->bindNext();
 		safeSetColorA( bgDraw[i][0] + shadeBackground * 2, bgDraw[i][0] + shadeBackground * 2, bgDraw[i][0] + shadeBackground * 2, bgDraw[i][1] );
-	
+
 		glBegin( GL_QUADS );
 			for( int j = worldStart; j <= -worldStart; j += 600 ){
 				glTexCoord2i( 0, 1 ); glVertex2i(  j        + offset.x * bgDraw[i][2], GROUND_HEIGHT_MINIMUM       );
@@ -490,22 +490,22 @@ draw( Player *p )
 			}
 		glEnd();
 	}
-	
+
 	glDisable( GL_TEXTURE_2D );
-	
+
 	// draw black under backgrounds
-	
+
 	glColor3ub( 0, 0, 0 );
 	glRectf( worldStart, GROUND_HEIGHT_MINIMUM, -worldStart, 0 );
-	
+
 	pOffset = (offset.x + p->width / 2 - worldStart) / HLINE;
-	
+
     /*
      * Prepare for world ground drawing.
      */
-    
+
 	// only draw world within player vision
-    
+
 	if ((iStart = pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS) < 0)
 		iStart = 0;
 
@@ -517,51 +517,51 @@ draw( Player *p )
 	// draw particles and buildings
 
 	std::for_each( particles.begin(), particles.end(), [](Particles part) { if ( part.behind ) part.draw(); });
-	
+
 	for ( auto &b : build )
 		b->draw();
 
 	// draw light elements?
-	
+
 	glEnable( GL_TEXTURE_2D );
-    
+
 	glActiveTexture( GL_TEXTURE0 );
 	bgTex->bindNext();
-	
+
 	std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size() + p->light));
 	auto pointArray = pointArrayBuf.get();
-	
+
 	for ( i = 0; i < (int)light.size(); i++ ) {
 		pointArray[2 * i    ] = light[i].loc.x - offset.x;
 		pointArray[2 * i + 1] = light[i].loc.y;
 	}
-	
+
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-	
+
 	glUseProgram( shaderProgram );
 	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0 );
 	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), shadeAmbient );
-	
+
 	if ( p->light ) {
 		pointArray[2 * (light.size() + 1)    ] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
 		pointArray[2 * (light.size() + 1) + 1] = (float)( p->loc.y );
 	}
-	
+
 	if ( light.size() + (int)p->light == 0)
 		glUniform1i( glGetUniformLocation( shaderProgram, "numLight"), 0);
 	else {
 		glUniform1i ( glGetUniformLocation( shaderProgram, "numLight"     ), light.size() + (int)p->light );
-		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size() + (int)p->light, pointArray ); 
+		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size() + (int)p->light, pointArray );
 		glUniform3f ( glGetUniformLocation( shaderProgram, "lightColor"   ), 1.0f, 1.0f, 1.0f );
 	}
-	
+
     /*
      * Draw the dirt.
      */
-    
+
 	glBegin( GL_QUADS );
-	
+
         // faulty
         /*glTexCoord2i(0 ,0);glVertex2i(pOffset - (SCREEN_WIDTH / 1.5),0);
         glTexCoord2i(64,0);glVertex2i(pOffset + (SCREEN_WIDTH / 1.5),0);
@@ -577,50 +577,50 @@ draw( Player *p )
 
             glTexCoord2i( 0, 0 ); glVertex2i(worldStart + i * HLINE         , worldData[i].groundHeight - GRASS_HEIGHT );
             glTexCoord2i( 1, 0 ); glVertex2i(worldStart + i * HLINE + HLINE , worldData[i].groundHeight - GRASS_HEIGHT );
-            
+
             glTexCoord2i( 1, (int)(worldData[i].groundHeight / 64) + worldData[i].groundColor ); glVertex2i(worldStart + i * HLINE + HLINE, 0 );
             glTexCoord2i( 0, (int)(worldData[i].groundHeight / 64) + worldData[i].groundColor ); glVertex2i(worldStart + i * HLINE	      , 0 );
-            
+
             if ( worldData[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1 )
                 worldData[i].groundHeight = 0;
         }
-	
+
 	glEnd();
-    
+
 	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
-	
+
 	/*
 	 *	Draw the grass/the top of the ground.
 	 */
 
 	glEnable( GL_TEXTURE_2D );
-    
+
 	glActiveTexture( GL_TEXTURE0 );
 	bgTex->bindNext();
-	
+
 	glUseProgram( shaderProgram );
 	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0);
 
 	float cgh[2];
 	for ( i = iStart; i < iEnd - GROUND_HILLINESS; i++ ) {
-		
+
 		// load the current line's grass values
 		if ( worldData[i].groundHeight )
 			memcpy( cgh, worldData[i].grassHeight, 2 * sizeof( float ));
 		else
 			memset( cgh, 0 , 2 * sizeof( float ));
-			
+
 		// flatten the grass if the player is standing on it.
 		if( !worldData[i].grassUnpressed ){
 			cgh[0] /= 4;
 			cgh[1] /= 4;
 		}
-		
+
 		// actually draw the grass.
-		
+
 		safeSetColorA( 255, 255, 255, 255 );
-		
+
 		glBegin( GL_QUADS );
 			glTexCoord2i( 0, 0 ); glVertex2i( worldStart + i * HLINE            , worldData[i].groundHeight + cgh[0] );
 			glTexCoord2i( 1, 0 ); glVertex2i( worldStart + i * HLINE + HLINE / 2, worldData[i].groundHeight + cgh[0] );
@@ -639,9 +639,9 @@ draw( Player *p )
 	/*
      * Draw remaining entities.
      */
-	
+
 	std::for_each( particles.begin(), particles.end(), [](Particles part) { if ( !part.behind ) part.draw(); });
-	
+
 	for ( auto &n : npc )
 		n->draw();
 
@@ -650,11 +650,11 @@ draw( Player *p )
 
 	for ( auto &o : object )
 		o->draw();
-	
+
     /*
      * Handle grass-squishing.
      */
-    
+
 	// calculate the line that the player is on
 	int ph = ( p->loc.x + p->width / 2 - worldStart ) / HLINE;
 
@@ -670,13 +670,13 @@ draw( Player *p )
 	/*
      * Draw the player.
      */
-     
+
 	p->draw();
 }
 
 /**
  * Handles physics and such for a single entity.
- * 
+ *
  * This function is kept private, as World::detect() should be used instead to
  * handle stuffs for all entities at once.
  */
@@ -687,11 +687,11 @@ singleDetect( Entity *e )
 	std::string killed;
 	unsigned int i,j;
 	int l;
-	
+
 	/*
 	 *	Kill any dead entities.
 	*/
-	
+
 	if ( !e->alive || e->health <= 0 ) {
 		for ( i = 0; i < entity.size(); i++) {
 			if ( entity[i] == e ){
@@ -747,71 +747,71 @@ singleDetect( Entity *e )
 		std::cout<<"RIP "<<e->name<<"."<<std::endl;
 		exit(0);
 	}
-	
+
 	/*
 	 *	Handle only living entities.
 	*/
-    
+
 	if(e->alive){
-	  
+
 		if ( e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER )
 			return;
-	  
+
 		/*
 		 *	Calculate the line that this entity is currently standing on.
 		*/
-		
+
 		l=(e->loc.x + e->width / 2 - worldStart) / HLINE;
 		if(l < 0) l=0;
 		i = l;
 		if(i > lineCount-1) i=lineCount-1;
-		
+
 		/*
 		 *	If the entity is under the world/line, pop it back to the surface.
 		*/
-		
+
 		if ( e->loc.y < worldData[i].groundHeight ) {
 
 			e->loc.y= worldData[i].groundHeight - .001 * deltaTime;
 			e->ground=true;
 			e->vel.y=0;
-		
+
 		/*
 		 *	Handle gravity if the entity is above the line.
 		*/
-		
+
 		}else{
-			
+
 			if(e->type == STRUCTURET && e->loc.y > 2000){
 				e->loc.y = worldData[i].groundHeight;
 				e->vel.y = 0;
 				e->ground = true;
 				return;
 			}else if(e->vel.y > -2)e->vel.y-=.003 * deltaTime;
-					
+
 		}
-		
+
 		/*
 		 *	Insure that the entity doesn't fall off either edge of the world.
 		*/
 
 		if(e->loc.x < worldStart){												// Left bound
-			
+
 			e->vel.x=0;
 			e->loc.x=(float)worldStart + HLINE / 2;
-			
+
 		}else if(e->loc.x + e->width + HLINE > worldStart + worldStart * -2){	// Right bound
-			
+
 			e->vel.x=0;
 			e->loc.x=worldStart + worldStart * -2 - e->width - HLINE;
-			
+
 		}
 	}
 }
 
 /**
  * Handle entity logic for the world.
- * 
+ *
  * This function runs World::singleDetect() for the player and every entity
  * currently in a vector of this world. Particles and village entrance/exiting
  * are also handled here.
@@ -821,20 +821,20 @@ void World::
 detect( Player *p )
 {
 	int l;
-	
+
 	// handle the player
 	std::thread( &World::singleDetect, this, p).detach();
-		
+
     // handle other entities
 	for ( auto &e : entity )
 		std::thread(&World::singleDetect,this,e).detach();
-        
+
     // handle particles
 	for ( auto &part : particles ) {
-		
+
 		// get particle's current world line
 		l = (part.loc.x + part.width / 2 - worldStart) / HLINE;
-		
+
 		if ( l < 0 )
 			l = 0;
 
@@ -850,7 +850,7 @@ detect( Player *p )
 		} else if ( part.gravity && part.vely > -2 )
 			part.vely -= .003 * deltaTime;
 	}
-	
+
 	// handle particle creation
 	for ( auto &b : build ) {
 		switch ( b->bsubtype ) {
@@ -869,7 +869,7 @@ detect( Player *p )
 				particles.back().fountain = true;
 			}
 			break;
-			
+
 		case FIRE_PIT:
 			for(unsigned int r = (randGet() % 20) + 11; r--; ) {
 				addParticle(randGet() % (int)(b->width / 2) + b->loc.x + b->width / 4,	// x
@@ -908,18 +908,18 @@ void World::addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::s
 	build.push_back(new Structures());
 	build.back()->inWorld = this;
 	build.back()->textureLoc = tex;
-	
+
 	build.back()->spawn(sub,x,y);
-	
+
 	build.back()->inside = inside;
-		
+
 	entity.push_back(build.back());
 }
 
 void World::addMob(int t,float x,float y){
 	mob.push_back(new Mob(t));
 	mob.back()->spawn(x,y);
-	
+
 	entity.push_back(mob.back());
 }
 
@@ -927,14 +927,14 @@ void World::addMob(int t,float x,float y,void (*hey)(Mob *)){
 	mob.push_back(new Mob(t));
 	mob.back()->spawn(x,y);
 	mob.back()->hey = hey;
-	
+
 	entity.push_back(mob.back());
 }
 
 void World::addNPC(float x,float y){
 	npc.push_back(new NPC());
 	npc.back()->spawn(x,y);
-	
+
 	entity.push_back(npc.back());
 }
 
@@ -974,7 +974,7 @@ char *World::setToLeft(const char *file){
 		delete[] toLeft;
 	if(!file)
 		return (toLeft = NULL);
-	
+
 	strcpy((toLeft = new char[strlen(file) + 1]),file);
 	return toLeft;
 }
@@ -983,40 +983,41 @@ char *World::setToRight(const char *file){
 		delete[] toRight;
 	if(!file)
 		return (toRight = NULL);
-	
+
 	strcpy((toRight = new char[strlen(file) + 1]),file);
 	return toRight;
 }
 
+//what is this clyne why are they differnet
 World *World::
 goWorldLeft( Player *p )
 {
 	World *tmp;
-    
+
     // check if player is at world edge
 	if(toLeft && p->loc.x < worldStart + HLINE * 15.0f){
-        
+
         // load world (`toLeft` conditional confirms existance)
 		tmp = loadWorldFromXML(toLeft);
-		
+
         // adjust player location
-		p->loc.x = tmp->worldStart - HLINE * -10.0f;
+		p->loc.x = -tmp->worldStart - (int)HLINE * -10.0f;
 		p->loc.y = tmp->worldData[tmp->lineCount - 1].groundHeight;
-		
+
 		return tmp;
 	}
 	return this;
-}		
+}
 
 World *World::goWorldRight(Player *p){
 	World *tmp;
-	
+
 	if(toRight && p->loc.x + p->width > -worldStart - HLINE * 15){
 		tmp = loadWorldFromXML(toRight);
-		
-		p->loc.x = tmp->worldStart + HLINE * 10;
+
+		p->loc.x = tmp->worldStart + (int)HLINE * 10;
 		p->loc.y = GROUND_HEIGHT_MINIMUM;
-		
+
 		return tmp;
 	}
 	return this;
@@ -1032,13 +1033,13 @@ goInsideStructure( Player *p )
 			if(p->loc.x            > b->loc.x            &&
 			   p->loc.x + p->width < b->loc.x + b->width ){
 				inside.push_back((std::string)(currentXML.c_str() + 4));
-				
+
 				tmp = loadWorldFromXML(b->inside.c_str());
-				
+
 				ui::toggleBlackFast();
 				ui::waitForCover();
 				ui::toggleBlackFast();
-				
+
 				return tmp;
 			}
 		}
@@ -1051,11 +1052,11 @@ goInsideStructure( Player *p )
 
 				ui::toggleBlackFast();
 				ui::waitForCover();
-				
+
 				p->loc.x = b->loc.x + (b->width / 2);
-				
+
 				ui::toggleBlackFast();
-				
+
 				return tmp;
 			}
 		}
@@ -1079,51 +1080,59 @@ getTheWidth( void ) const
 
 void World::save(void){
 	std::string data;
-	
+
+    std::cout << "Setting save" << std::endl;
 	std::string save = (std::string)currentXML + ".dat";
 	std::ofstream out (save,std::ios::out | std::ios::binary);
-	
+
 	std::cout<<"Saving to "<<save<<" ..."<<std::endl;
 
+    std::cout << "Saving npcs" << std::endl;
 	for(auto &n : npc){
 		data.append(std::to_string(n->dialogIndex) + "\n");
 		data.append(std::to_string((int)n->loc.x) + "\n");
 		data.append(std::to_string((int)n->loc.y) + "\n");
 	}
-	
+
+    std::cout << "Saving buildings" << std::endl;
 	for(auto &b : build){
 		data.append(std::to_string((int)b->loc.x) + "\n");
 		data.append(std::to_string((int)b->loc.y) + "\n");
 	}
-	
+
+    std::cout << "Saving mobs" << std::endl;
 	for(auto &m : mob){
 		data.append(std::to_string((int)m->loc.x) + "\n");
 		data.append(std::to_string((int)m->loc.y) + "\n");
 		data.append(std::to_string((int)m->alive) + "\n");
 	}
-	
+
+    std::cout << "Ending file" << std::endl;
 	data.append("dOnE\0");
+    std::cout << "Writing to the file" << std::endl;
 	out.write(data.c_str(),data.size());
-	
+
+    std::cout << "Closing file" << std::endl;
 	out.close();
+    std::cout << "Done saving" << std::endl;
 }
 
 void World::load(void){
 	std::string save,data,line;
 	const char *filedata;
-	
+
 	save = (std::string)currentXML + ".dat";
 	filedata = readFile(save.c_str());
 	data = filedata;
 	std::istringstream iss (data);
-	
+
 	for(auto &n : npc){
 		std::getline(iss,line);
 		if(line == "dOnE")return;
 		if((n->dialogIndex = std::stoi(line)) != 9999)
 			n->addAIFunc(commonAIFunc,false);
 		else n->clearAIFunc();
-		
+
 		std::getline(iss,line);
 		if(line == "dOnE")return;
 		n->loc.x = std::stoi(line);
@@ -1131,7 +1140,7 @@ void World::load(void){
 		if(line == "dOnE")return;
 		n->loc.y = std::stoi(line);
 	}
-	
+
 	for(auto &b : build){
 		std::getline(iss,line);
 		if(line == "dOnE")return;
@@ -1140,7 +1149,7 @@ void World::load(void){
 		if(line == "dOnE")return;
 		b->loc.y = std::stoi(line);
 	}
-	
+
 	for(auto &m : mob){
 		std::getline(iss,line);
 		if(line == "dOnE")return;
@@ -1152,12 +1161,12 @@ void World::load(void){
 		if(line == "dOnE")return;
 		m->alive = std::stoi(line);
 	}
-	
+
 	while(std::getline(iss,line)){
 		if(line == "dOnE")
 			break;
 	}
-	
+
 	delete[] filedata;
 }
 
@@ -1166,16 +1175,16 @@ IndoorWorld::IndoorWorld(void){
 
 IndoorWorld::~IndoorWorld(void){
 	delete bgTex;
-	
+
 	deleteEntities();
 }
 
 void IndoorWorld::generate(unsigned int width){		// Generates a flat area of width 'width'
 	lineCount=width+GROUND_HILLINESS;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
 	if(lineCount<=0)abort();
-	
+
 	worldData = std::vector<WorldData> (lineCount, WorldData { false, {0,0}, INDOOR_FLOOR_HEIGHT, 0 });
-	
+
 	worldStart = (width - GROUND_HILLINESS) * HLINE / 2 * -1;
 }
 
@@ -1183,71 +1192,71 @@ void IndoorWorld::draw(Player *p){
 	unsigned int i,ie;
 	//int j,x,v_offset;
 	int x;
-	
+
 	/*
 	 *	Draw the background.
 	*/
-	
+
 	glEnable(GL_TEXTURE_2D);
-	
+
 	std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size() + p->light));
 	auto pointArray = pointArrayBuf.get();
-	
+
 	for ( i = 0; i < light.size(); i++ ) {
 		pointArray[2 * i    ] = light[i].loc.x - offset.x;
 		pointArray[2 * i + 1] = light[i].loc.y;
 	}
-	
+
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-	
+
 	glUseProgram( shaderProgram );
 	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0 );
 	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 0.3f );
-	
+
 	if ( p->light ) {
 		pointArray[2 * (light.size() + 1)    ] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
 		pointArray[2 * (light.size() + 1) + 1] = (float)( p->loc.y );
 	}
-	
+
 	if ( light.size() + (int)p->light == 0)
 		glUniform1i( glGetUniformLocation( shaderProgram, "numLight"), 0);
 	else {
 		glUniform1i ( glGetUniformLocation( shaderProgram, "numLight"     ), light.size() + (int)p->light );
-		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size() + (int)p->light, pointArray ); 
+		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size() + (int)p->light, pointArray );
 		glUniform3f ( glGetUniformLocation( shaderProgram, "lightColor"   ), 1.0f, 1.0f, 1.0f );
 	}
-	
+
 	bgTex->bind(0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
 	glColor4ub(255,255,255,255);
-	
+
 	glBegin(GL_QUADS);
 			glTexCoord2i(0,1);							     glVertex2i( worldStart - SCREEN_WIDTH / 2,0);
 			glTexCoord2i((-worldStart*2+SCREEN_WIDTH)/512,1);glVertex2i(-worldStart + SCREEN_WIDTH / 2,0);
 			glTexCoord2i((-worldStart*2+SCREEN_WIDTH)/512,0);glVertex2i(-worldStart + SCREEN_WIDTH / 2,SCREEN_HEIGHT);
 			glTexCoord2i(0,0);							     glVertex2i( worldStart - SCREEN_WIDTH / 2,SCREEN_HEIGHT);
 	glEnd();
-	
+
 	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
-	
+
 	/*
 	 *	Calculate the starting and ending points to draw the ground from.
 	*/
-	
+
 	/*v_offset = (p->loc.x - x_start) / HLINE;
 	j = v_offset - (SCREEN_WIDTH / 2 / HLINE) - GEN_INC;
 	if(j < 0)j = 0;
 	i = j;
-	
+
 	ie = v_offset + (SCREEN_WIDTH / 2 / HLINE) - GEN_INC;
 	if(ie > lineCount)ie = lineCount;*/
-	
+
 	i = 0;
 	ie = lineCount;
-	
+
 	/*
 	 *	Draw the ground.
 	*/
@@ -1256,7 +1265,7 @@ void IndoorWorld::draw(Player *p){
 	glBegin(GL_QUADS);
 		for(;i < ie - GROUND_HILLINESS;i++){
 			safeSetColor(150,100,50);
-			
+
 			x = worldStart + i * HLINE;
 			glVertex2i(x		,worldData[i].groundHeight);
 			glVertex2i(x + HLINE,worldData[i].groundHeight);
@@ -1265,11 +1274,11 @@ void IndoorWorld::draw(Player *p){
 		}
 	glEnd();
 	glUseProgram(0);
-	
+
 	/*
 	 *	Draw all entities.
 	*/
-	
+
 	for ( auto &part : particles )
 		part.draw();
 
@@ -1282,14 +1291,14 @@ void IndoorWorld::draw(Player *p){
 Arena::Arena(World *leave,Player *p,Mob *m){
 	generate(800);
 	addMob(MS_DOOR,100,100);
-	
+
 	inBattle = true;
 	mmob = m;
 	mmob->aggressive = false;
-	
+
 	mob.push_back(m);
 	entity.push_back(m);
-	
+
 	battleNest.push_back(leave);
 	battleNestLoc.push_back(p->loc);
 }
@@ -1304,17 +1313,17 @@ World *Arena::exitArena(Player *p){
 	   p->loc.x + p->width / 2 < mob[0]->loc.x + HLINE * 12 ){
 		tmp = battleNest.front();
 		battleNest.erase(battleNest.begin());
-		
+
 		inBattle = !battleNest.empty();
 		ui::toggleBlackFast();
 		ui::waitForCover();
-		
+
 		p->loc = battleNestLoc.back();
 		battleNestLoc.pop_back();
-		
+
 		mob.clear();
 		mmob->alive = false;
-		
+
 		return tmp;
 	}else{
 		return this;
@@ -1337,14 +1346,14 @@ loadWorldFromXMLNoSave( std::string path ) {
 	XMLDocument xml;
 	XMLElement *wxml;
 	XMLElement *vil;
-	
+
 	World *tmp;
 	float spawnx, randx;
 	bool dialog,Indoor;
-	
+
 	const char *ptr;
 	std::string name;
-		
+
 	currentXML = (std::string)"xml/" + path;
 
 	xml.LoadFile(currentXML.c_str());
@@ -1361,10 +1370,10 @@ loadWorldFromXMLNoSave( std::string path ) {
 		Indoor = true;
 		tmp = new IndoorWorld();
 	}
-	
+
 	while(wxml){
 		name = wxml->Name();
-		
+
 		if(name == "link"){
 			if((ptr = wxml->Attribute("left")))
 				tmp->setToLeft(ptr);
@@ -1381,7 +1390,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 				if(Indoor)
 					((IndoorWorld *)tmp)->generate(wxml->UnsignedAttribute("width"));
 				else {
-					
+
 					tmp->generate(wxml->UnsignedAttribute("width"));
 				}
 			}else if(Indoor)
@@ -1395,7 +1404,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 				tmp->addMob(type,spawnx,wxml->FloatAttribute("y"));
 			if(wxml->QueryBoolAttribute("aggressive",&dialog) == XML_NO_ERROR)
 				tmp->mob.back()->aggressive = dialog;
-			
+
 		}else if(name == "npc"){
 			const char *npcname;
 
@@ -1403,23 +1412,23 @@ loadWorldFromXMLNoSave( std::string path ) {
 				tmp->addNPC(0,100);
 			else
 				tmp->addNPC(spawnx,wxml->FloatAttribute("y"));
-			
-			
+
+
 			if((npcname = wxml->Attribute("name"))){
 				delete[] tmp->npc.back()->name;
 				tmp->npc.back()->name = new char[strlen(npcname) + 1];
 				strcpy(tmp->npc.back()->name,npcname);
 			}
-			
+
 			dialog = false;
 			if(wxml->QueryBoolAttribute("hasDialog",&dialog) == XML_NO_ERROR && dialog)
 				tmp->npc.back()->addAIFunc(commonAIFunc,false);
 			else tmp->npc.back()->dialogIndex = 9999;
-			
+
 		}else if(name == "structure"){
 			tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),
-							   wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR ? 
-							   			getRand() % tmp->getTheWidth() / 2.0f : 
+							   wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR ?
+							   			getRand() % tmp->getTheWidth() / 2.0f :
 							   			spawnx,
 							   100,
 							   wxml->StrAttribute("texture"),
@@ -1449,7 +1458,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 		/**
 		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
 		 */
-		 
+
 		if(name == "structure"){
 			tmp->addStructure((BUILD_SUB)vil->UnsignedAttribute("type"),
 							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? randx : spawnx,
@@ -1460,7 +1469,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 			if(!strcmp(vil->Attribute("type"),"market")){
 				std::cout << "Market" << std::endl;
 				tmp->addStructure((BUILD_SUB)70,
-							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
+							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ?
 							   randx : spawnx,
 							   100,
 							   vil->StrAttribute("texture"),
@@ -1484,20 +1493,20 @@ loadWorldFromXMLNoSave( std::string path ) {
 			}else if(!strcmp(vil->Attribute("type"),"trader")){
 				std::cout << "Trader" << std::endl;
 				tmp->addStructure((BUILD_SUB)71,
-							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? 
+							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ?
 							   randx : spawnx,
 							   100,
 							   vil->StrAttribute("texture"),
 							   vil->StrAttribute("inside"));
 			}
 		}
-		
+
 		vptr->build.push_back(tmp->build.back());
-		
+
 		if(vptr->build.back()->loc.x < vptr->start.x){
 			vptr->start.x = vptr->build.back()->loc.x;
 		}
-		
+
 		if(vptr->build.back()->loc.x + vptr->build.back()->width > vptr->end.x){
 			vptr->end.x = vptr->build.back()->loc.x + vptr->build.back()->width;
 		}
@@ -1505,7 +1514,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 		//go to the next element in the village block
 		vil = vil->NextSiblingElement();
 	}
-	
+
 	std::ifstream dat (((std::string)currentXML + ".dat").c_str());
 	if(dat.good()){
 		dat.close();

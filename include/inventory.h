@@ -11,11 +11,11 @@
 class Item{
 public:
 	std::string name,type;
-	
+
 	float width;
 	float height;
 	int   maxStackSize;
-	
+
 	std::string texloc;
 	Texturec *tex;
 
@@ -45,16 +45,18 @@ public:
 
 	Inventory(unsigned int s);	// Creates an inventory of size 's'
 	~Inventory(void);			// Free's allocated memory
-	
+
 	int addItem(std::string name,uint count);
 	int takeItem(std::string name,uint count);
 	int hasItem(std::string name);
-	
+
 	int useItem(void);
 	bool detectCollision(vec2,vec2);
-	
+
 	void setSelection(unsigned int s);
-	
+	void setSelectionUp();
+	void setSelectionDown();
+
 	void draw(void);	// Draws a text list of items in this inventory (should only be called for the player for now)
 };
 

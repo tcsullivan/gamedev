@@ -104,7 +104,7 @@ GLuint fragShader;
 /**
  * TODO
  */
- 
+
 GLuint shaderProgram;
 
 /**
@@ -202,9 +202,9 @@ void mainLoop(void);
 int main(int argc, char *argv[]){
 	(void)argc;
 	(void)argv;
-	
+
 	static SDL_GLContext mainGLContext = NULL;
-	
+
 	gameRunning = false;
 
 	/**
@@ -307,13 +307,13 @@ int main(int argc, char *argv[]){
 		std::cout << "GLEW was not able to initialize! Error: " << glewGetErrorString(err) << std::endl;
 		return -1;
 	}
-	
+
 	/*
 	 * Initialize the random number generator. At the moment, initRand is a macro pointing to libc's
 	 * srand, and its partner getRand points to rand. This is because having our own random number
 	 * generator may be favorable in the future, but at the moment is not implemented.
 	 */
-	
+
 	initRand(millis());
 
 	/*
@@ -321,24 +321,24 @@ int main(int argc, char *argv[]){
 	 * setup the alpha channel for textures/transparency, and finally hide the system's mouse
 	 * cursor so that we may draw our own.
 	 */
-	
+
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	//SDL_GL_SetSwapInterval(0);
-	
+
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-	
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	SDL_ShowCursor(SDL_DISABLE);
 
 	Texture::initColorIndex();
 	initEntity();
-	
+
 	/*
 	 * Initializes our shaders so that the game has shadows.
 	 */
-	
+
 	std::cout << "Initializing shaders!" << std::endl;
 
 	const GLchar *shaderSource = readFile("test.frag");
@@ -353,17 +353,17 @@ int main(int argc, char *argv[]){
 
 	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
 	glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
-	
+
 	std::vector<char> fragShaderError ((logLength > 1) ? logLength : 1);
-	
+
 	glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
 	std::cout << &fragShaderError[0] << std::endl;
-	
+
 	if(bufferln == GL_FALSE){
 		std::cout << "Error compiling shader" << std::endl;
 	}
 
-	shaderProgram = glCreateProgram();		
+	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, fragShader);
 	glLinkProgram(shaderProgram);
 	glValidateProgram(shaderProgram);
@@ -373,18 +373,18 @@ int main(int argc, char *argv[]){
     std::vector<char> programError( (logLength > 1) ? logLength : 1 );
     glGetProgramInfoLog(shaderProgram, logLength, NULL, &programError[0]);
     std::cout << &programError[0] << std::endl;
-			
+
 	delete[] shaderSource;
-	
+
 	glEnable(GL_MULTISAMPLE);
-	
+
 	/*
 	 * Create all the worlds, entities, mobs, and the player. This function is defined in
 	 * src/gameplay.cpp
 	 */
-	 
+
 	fadeIntensity = 250;
-	
+
 	initEverything();
 
 	if(!currentWorld){
@@ -403,40 +403,40 @@ int main(int argc, char *argv[]){
 
 	invUI = Texture::loadTexture("assets/invUI.png"	);
 	mouseTex = Texture::loadTexture("assets/mouse.png");
-	
+
 	initInventorySprites();
-	
+
 	/**************************
 	****     GAMELOOP      ****
 	**************************/
-	
+
 	std::cout << "Num threads: " << std::thread::hardware_concurrency() << std::endl;
 
 	//currentWorld->mob.back()->followee = player;
-	
+
 	gameRunning = true;
 	while(gameRunning){
 		mainLoop();
 	}
-	
+
 	/**************************
 	****   CLOSE PROGRAM   ****
 	**************************/
-	
+
     /*
      * Close the window and free resources
      */
-    
+
     Mix_HaltMusic();
     Mix_CloseAudio();
-    
+
     destroyInventory();
 	ui::destroyFonts();
     Texture::freeTextures();
-    
+
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
-    
+
     return 0; // Calls everything passed to atexit
 }
 
@@ -451,20 +451,20 @@ static float debugY=0;
 
 void mainLoop(void){
 	static unsigned int debugDiv=0;			// A divisor used to update the debug menu if it's open
-	
+
 	static unsigned int prevTime    = 0,	// Used for timing operations
 						currentTime = 0,	//
 						prevPrevTime= 0;	//
 	World *prev;
-    
+
 	if(!currentTime)						// Initialize currentTime if it hasn't been
 		currentTime=millis();
-	
+
 	/*
 	 * Update timing values. This is crucial to calling logic and updating the window (basically
 	 * the entire game).
 	 */
-	
+
 	prevTime	= currentTime;
 	currentTime = millis();
 	deltaTime	= currentTime - prevTime;
@@ -477,7 +477,6 @@ void mainLoop(void){
 	 */
 
 	prev = currentWorld;
-	
 
 	//pool.Enqueue(ui::handleEvents);
 	ui::handleEvents();
@@ -496,20 +495,20 @@ void mainLoop(void){
 	/*
 	 * Update player and entity coordinates.
 	 */
-	
+
 	/*pool.Enqueue([](){
 		currentWorld->update(player,deltaTime);
 	});*/
-	
+
 	currentWorld->update(player,deltaTime);
-    
+
 	/*
 	 * Update debug variables if necessary
 	 */
-	
+
 	if ( ++debugDiv == 20 ) {
 		debugDiv=0;
-		
+
 		if ( deltaTime )
 			fps = 1000 / deltaTime;
 		else if(!(debugDiv%10))
@@ -520,12 +519,12 @@ MENU:
 }
 
 void render(){
-	
+
 	 /*
 	  *	This offset variable is what we use to move the camera and locked
 	  *	objects on the screen so they always appear to be in the same relative area
 	  */
-	
+
 	offset.x = player->loc.x + player->width/2;
 	offset.y = SCREEN_HEIGHT/2;
 
@@ -533,7 +532,7 @@ void render(){
 	 * If the camera will go off of the left  or right of the screen we want to lock it so we can't
 	 * see past the world render
 	 */
-	
+
 	if(currentWorld->getTheWidth() < (int)SCREEN_WIDTH){
 		offset.x = 0;
 	}else{
@@ -542,7 +541,7 @@ void render(){
 		if(player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
 			offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2) - player->width / 2;
 	}
-	
+
 	if(player->loc.y > SCREEN_HEIGHT/2)
 		offset.y = player->loc.y + player->height;
 
@@ -558,7 +557,7 @@ void render(){
 	 *
 	 *	glMatrixMode	This changes our current stacks mode so the drawings below
 	 *					it can take on certain traits.
-	 *	
+	 *
 	 *	GL_PROJECTION	This is the matrix mode that sets the cameras position,
 	 *					GL_PROJECTION is made up of a stack with two matrices which
 	 *					means we can make up to 2 seperate changes to the camera.
@@ -582,7 +581,7 @@ void render(){
 	 *	glLoadIdentity	This scales the current matrix back to the origin so the
 	 *					translations are seen normally on a stack.
 	 */
-	
+
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
@@ -591,7 +590,7 @@ void render(){
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
-	
+
 	/*
 	 * glPushAttrib		This passes attributes to the renderer so it knows what it can
 	 *					render. In our case, GL_DEPTH_BUFFER_BIT allows the renderer to
@@ -602,14 +601,14 @@ void render(){
 	 * glClear 			This clears the new matrices using the type passed. In our case:
 	 *					GL_COLOR_BUFFER_BIT allows the matrices to have color on them
 	 */
-	
+
 	glPushAttrib( GL_DEPTH_BUFFER_BIT | GL_LIGHTING_BIT );
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/**************************
 	**** RENDER STUFF HERE ****
 	**************************/
-		
+
 	/*
 	 * Call the world's draw function, drawing the player, the world, the background, and entities. Also
 	 * draw the player's inventory if it exists.
@@ -622,7 +621,7 @@ void render(){
 	/*
 	 * Calculate the player's hand angle.
 	 */
-	 
+
 	handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
 	if(ui::mouse.x < player->loc.x){
 		if(handAngle <= 0)
@@ -631,21 +630,21 @@ void render(){
 			handAngle+=180;
 		}
 	}
-	
+
 	if(ui::mouse.x > player->loc.x && ui::mouse.y < player->loc.y+player->height/2 && handAngle <= 0)
 		handAngle = 360 + handAngle;
 
-	
+
 	/*
 	 * Draw the player's inventory.
 	 */
-	
+
 	player->inv->draw();
 
 	/*
 	 * Here we draw a black overlay if it's been requested.
 	 */
-	
+
 	if(fadeIntensity){
 		if(fadeWhite)
 			safeSetColorA(255,255,255,fadeIntensity);
@@ -662,7 +661,7 @@ void render(){
 	/*
 	 * Draw UI elements. This includes the player's health bar and the dialog box.
 	 */
-	
+
 	ui::draw();
 
 	/*
@@ -670,7 +669,7 @@ void render(){
 	 */
 
 	if(ui::debug){
-		
+
 		ui::putText(offset.x-SCREEN_WIDTH/2,
 					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
 					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f\nPl: %d\n Vol: %f",
@@ -686,7 +685,7 @@ void render(){
 					player->light,
 					VOLUME_MASTER
 					);
-		
+
 		if(ui::posFlag){
 			glBegin(GL_LINES);
 				glColor3ub(255,0,0);
@@ -722,7 +721,7 @@ void render(){
 		glTexCoord2f(0,1);glVertex2i(ui::mouse.x 			,ui::mouse.y-HLINE*5 	);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
-	
+
 	/**************************
 	****  END RENDERING   ****
 	**************************/
@@ -757,7 +756,7 @@ void logic(){
 	 *	Run the world's detect function. This handles the physics of the player and any entities
 	 *	that exist in this world.
 	 */
-	
+
 	currentWorld->detect(player);
 	if(player->loc.y<.02)gameRunning=false;
 
@@ -766,10 +765,10 @@ void logic(){
 	 *	basically runs their AI functions depending on what type of entity they are. For NPCs,
 	 *	click detection is done as well for NPC/player interaction.
 	 */
-	 
+
 	for(auto &n : currentWorld->npc){
 		if(n->alive){
-			
+
 			/*
 			 *	Make the NPC 'wander' about the world if they're allowed to do so.
 			 *	Entity->canMove is modified when a player interacts with an NPC so
@@ -778,10 +777,10 @@ void logic(){
 
 			if(n->canMove)
 				n->wander((rand() % 120 + 30));
-			
-			/*if(!player->inv->usingi) n->hit = false;
-			
-			if(player->inv->usingi && !n->hit && player->inv->detectCollision((vec2){n->loc.x, n->loc.y},(vec2){n->loc.x+n->width,n->loc.y+n->height})){
+
+			if(!player->inv->usingi) n->hit = false;
+
+			if(player->inv->usingi && !n->hit && player->inv->detectCollision({n->loc.x, n->loc.y},{n->loc.x+n->width,n->loc.y+n->height})){
 				n->health -= 25;
 				n->hit = true;
 				for(int r = 0; r < (rand()%5);r++)
@@ -790,8 +789,8 @@ void logic(){
 					for(int r = 0; r < (rand()%30)+15;r++)
 						currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%10)*.01-.05), {(rand()%75)+10/100.0f,0,0}, 10000);
 				}
-			}*/
-			
+			}
+
 			/*
 			 *	Don't bother handling the NPC if another has already been handled.
 	 		 */
@@ -848,7 +847,7 @@ void logic(){
 			}else n->near=false;
 		}
 	}
-	
+
 	for(auto &m : currentWorld->mob){
 		if(m->alive){
 
@@ -873,7 +872,7 @@ void logic(){
 			}
 		}
 	}
-	
+
 	if(!objectInteracting){
 		for(auto &o : currentWorld->object){
 			if(o->alive){
@@ -898,11 +897,11 @@ void logic(){
 			}
 		}
 	}
-	
+
 	/*
 	 *	Switch between day and night (SUNNY and DARK) if necessary.
 	 */
-	 
+
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
 		if ( weather == WorldWeather::Sunny )
 			weather = WorldWeather::Dark;
@@ -921,7 +920,7 @@ void logic(){
 	/*
 	 *	Transition to and from black if necessary.
 	*/
-	
+
 	if(fadeEnable){
 			 if(fadeIntensity < 150)fadeIntensity+=fadeFast?40:10;
 		else if(fadeIntensity < 255)fadeIntensity+=fadeFast?20:5;

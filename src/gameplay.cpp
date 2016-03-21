@@ -30,33 +30,33 @@ void segFault(){
 int commonAIFunc(NPC *speaker){
 	XMLDocument xml;
 	XMLElement *exml,*oxml;
-	
+
 	static unsigned int oldidx = 9999;
-	
+
 	const char *name;
 	unsigned int idx = 0;
 	bool stop = false;
-	
+
 	/*
 	 * Load the current world's XML file into memory for reading.
 	 */
-	
+
 	xml.LoadFile(currentXML.c_str());
 	exml = xml.FirstChildElement("Dialog");
-	
+
 	/*
 	 * Search for the correct dialog block.
 	 */
-	
+
 	while(strcmp(exml->Attribute("name"),speaker->name))
 		exml = exml->NextSiblingElement();
-	
+
 	exml = exml->FirstChildElement();
-	
+
 	/*
 	 * Search for which text block should be used.
 	 */
-	
+
 	do{
 		if(!strcmp(exml->Name(),"text")){
 			if(exml->UnsignedAttribute("id") == (unsigned)speaker->dialogIndex){
@@ -64,10 +64,10 @@ int commonAIFunc(NPC *speaker){
 				/*
 				 * Handle any quest tags
 				 */
-	
+
 				if((oxml = exml->FirstChildElement("quest"))){
 					std::string qname;
-					
+
 					while ( oxml ) {
 						if ( !(qname = oxml->StrAttribute("assign")).empty() )
 							player->qh.assign(qname,"None",(std::string)oxml->GetText());
@@ -79,8 +79,8 @@ int commonAIFunc(NPC *speaker){
 								speaker->dialogIndex = oxml->UnsignedAttribute("fail");
 								return commonAIFunc(speaker);
 							}
-						}	
-						
+						}
+
 						oxml = oxml->NextSiblingElement();
 					}
 				}
@@ -90,68 +90,68 @@ CONT:
 				/*
 				 * Handle any 'give' requests.
 				 */
-				
+
 				if((oxml = exml->FirstChildElement("give"))){
 					while(oxml){
 						player->inv->addItem(oxml->Attribute("id"),oxml->UnsignedAttribute("count"));
 						oxml = oxml->NextSiblingElement();
 					}
 				}
-				
+
 				/*
 				 * Handle any 'take' requests.
 				 */
-				
+
 				if((oxml = exml->FirstChildElement("take"))){
 					while(oxml){
 						player->inv->takeItem(oxml->Attribute("id"),oxml->UnsignedAttribute("count"));
 						oxml = oxml->NextSiblingElement();
 					}
 				}
-				
+
 				/*
 				 * Handle dialog options.
 				 */
-				
+
 				if((oxml = exml->FirstChildElement("option"))){
-					
+
 					/*
 					 * Convert the list of options into a single colon-separated string.
 					 */
-					
+
 					std::string optstr;
 
 					while(oxml){
-						
+
 						/*
 						 * Create a buffer big enough for the next option.
 						 */
-						 
+
 						optstr.append((std::string)":" + oxml->Attribute("text"));
-						
+
 						/*
 						 * Append the next option.
 						 */
-						
+
 						dopt.push_back(oxml);
-						
+
 						oxml = oxml->NextSiblingElement();
 					}
-					
+
 					/*
 					 * Get the player's choice, then set the XMLElement to the option's block.
 					 */
-					
+
 					ui::dialogBox(speaker->name,optstr.c_str(),false,exml->GetText()+1);
 					ui::waitForDialog();
-					
+
 					if(ui::dialogOptChosen)
 						exml = dopt[ui::dialogOptChosen-1];
-					
+
 					while(!dopt.empty())
 						dopt.pop_back();
 				}else{
-										
+
 					/*
 					 * No options - simply print the text.
 					 */
@@ -159,11 +159,11 @@ CONT:
 					ui::dialogBox(speaker->name,NULL,false,exml->GetText());
 					ui::waitForDialog();
 				}
-				
+
 				/*
 				 * Give another NPC dialog if requested.
 				 */
-				
+
 				if((name = exml->Attribute("call"))){
 					for(auto &n : currentWorld->npc){
 						if(!strcmp(n->name,name)){
@@ -174,14 +174,14 @@ CONT:
 						}
 					}
 				}
-				
+
 				/*
 				 * Handle the next dialog block if this one leads to another.
 				 */
-				
+
 				if(exml->QueryUnsignedAttribute("nextid",&idx) == XML_NO_ERROR){
 					speaker->dialogIndex = idx;
-					
+
 					if(exml->QueryBoolAttribute("stop",&stop) == XML_NO_ERROR && stop){
 						speaker->dialogIndex = 9999;
 						return 0;
@@ -202,11 +202,11 @@ CONT:
 				//return 1;
 			}
 		}
-		
+
 		exml = exml->NextSiblingElement();
-		
+
 	}while(exml);
-	
+
 	return 0;
 }
 
@@ -214,37 +214,37 @@ void commonTriggerFunc(Mob *callee){
 	static bool lock = false;
 	XMLDocument xml;
 	XMLElement *exml;
-	
-	char *text,*pch;	
+
+	char *text,*pch;
 	if(!lock){
 		lock = true;
-	
+
 		xml.LoadFile(currentXML.c_str());
 		exml = xml.FirstChildElement("Trigger");
-		
+
 		while(strcmp(exml->Attribute("id"),callee->heyid.c_str()))
 			exml = exml->NextSiblingElement();
-		
+
 		player->vel.x = 0;
 
 		ui::toggleBlackFast();
 		ui::waitForCover();
-		
+
 		text = new char[256];
 		strcpy(text,exml->GetText());
 		pch = strtok(text,"\n");
-		
+
 		while(pch){
 			ui::importantText(pch);
 			ui::waitForDialog();
-			
+
 			pch = strtok(NULL,"\n");
 		}
-		
+
 		delete[] text;
-		
+
 		ui::toggleBlackFast();
-		
+
 		callee->alive = false;
 		lock = false;
 	}
@@ -253,38 +253,38 @@ void commonTriggerFunc(Mob *callee){
 void initEverything(void){
 	std::vector<std::string> xmlFiles;
 	XMLDocument xml;
-	
+
 	/*
 	 * Read the XML directory into an array.
 	 */
-	
+
 	if(getdir("./xml/",xmlFiles)){
 		std::cout<<"Error reading XML files!!!1"<<std::endl;
 		abort();
 	}
-	
+
 	/*
 	 * Sort the files alphabetically.
 	 */
-	
+
 	strVectorSortAlpha(&xmlFiles);
-	
+
 	/*
 	 * Load the first file found as currentWorld.
 	 */
-	
+
 	for(unsigned int i=0;i<xmlFiles.size();i++){
 		if(xmlFiles[i] != "." && xmlFiles[i] != ".." && strcmp(xmlFiles[i].c_str()+xmlFiles[i].size()-3,"dat")){
-			
+
 			/*
 			 * Read in the XML file.
 			 */
-		
+
 			currentWorld = loadWorldFromXML(xmlFiles[i]);
 			break;
 		}
 	}
-	
+
 	pauseMenu.items.push_back(ui::createParentButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
 	pauseMenu.items.push_back(ui::createChildButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, "Options"));
 	pauseMenu.items.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
@@ -299,7 +299,7 @@ void initEverything(void){
 	optionsMenu.child = NULL;
 	optionsMenu.parent = &pauseMenu;
 	// optionsMenu.push_back(ui::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), );
-	
+
 	/*
 	 * Spawn the player and begin the game.
 	 */
@@ -313,9 +313,9 @@ void initEverything(void){
 
 void destroyEverything(void){
 	currentWorld->save();
-	delete currentWorld;
+	//delete currentWorld;
 	//delete[] currentXML;
-	
+
 	while(!AIpreload.empty())
 		AIpreload.pop_back();
 	while(!AIpreaddr.empty())
