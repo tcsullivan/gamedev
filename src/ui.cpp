@@ -38,10 +38,6 @@ extern unsigned int tickCount;
 
 static FT_Library   ftl;
 static FT_Face      ftf;
-static GLuint       ftex[93];
-/*static vec2			ftexwh[93];
-static vec2			ftexbl[93];
-static vec2			ftexad[93];*/
 
 typedef struct {
 	vec2 wh;
@@ -49,19 +45,19 @@ typedef struct {
 	vec2 ad;
 } FT_Info;
 
-static FT_Info ftdat[93];
+static std::vector<FT_Info> ftdat ( 93, { { 0, 0 }, { 0, 0 }, { 0, 0 } } );
+static std::vector<GLuint>  ftex  ( 93, 0 );
 
-static unsigned char fontColor[3] = {255,255,255};
+static unsigned char fontColor[4] = {255,255,255,255};
 
 /*
  *	Variables for dialog boxes / options.
-*/
+ */
 
-static std::string   dialogBoxText;
 static std::vector<std::pair<std::string,vec3>> dialogOptText;
-static float         merchAOptLoc[2][3];
-static float	 	 dialogOptLoc[4][3];
-static bool			 typeOutDone = true;
+static std::string dialogBoxText;
+static vec3 merchArrowLoc[2];
+static bool typeOutDone = true;
 
 /*
  * Menu-related objects
@@ -76,12 +72,12 @@ static Mix_Chunk *dialogClick;
 extern void mainLoop(void);
 
 /*
- *	Toggled by pressing 'q', disables some controls when true.
-*/
+ * Fade effect flags
+ */
 
 bool fadeEnable = false;
-bool fadeWhite = false;
-bool fadeFast = false;
+bool fadeWhite  = false;
+bool fadeFast   = false;
 unsigned int fadeIntensity = 0;
 
 bool inBattle = false;
@@ -133,6 +129,7 @@ namespace ui {
 	int dialogPassiveTime = 0;
 	Trade merchTrade;
 
+	int fontTransInv = 255;
 
 	/*
 	 *	Dialog stuff that needs to be 'public'.
@@ -161,8 +158,7 @@ namespace ui {
 			std::cout<<"Error! Couldn't initialize freetype."<<std::endl;
 			abort();
 		}
-		fontSize=0;
-		memset(&ftex,0,93*sizeof(GLuint));
+		fontSize = 0;
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
@@ -200,6 +196,7 @@ namespace ui {
 	*/
 
 	void setFontSize(unsigned int size){
+		mtx.lock();
 		unsigned int i,j;
 
 		fontSize=size;
@@ -209,8 +206,8 @@ namespace ui {
 		 *	Pre-render 'all' the characters.
 		*/
 
-		glDeleteTextures(93,ftex);	//	delete[] any already-rendered textures
-		glGenTextures(93,ftex);		//	Generate new texture name/locations?
+		glDeleteTextures(93,ftex.data());	//	delete[] any already-rendered textures
+		glGenTextures(93,ftex.data());		//	Generate new texture name/locations?
 
 		for(i=33;i<126;i++){
 
@@ -255,6 +252,7 @@ namespace ui {
 
 			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf.data());
 		}
+		mtx.unlock();
 	}
 
 	/*
@@ -265,6 +263,14 @@ namespace ui {
 		fontColor[0]=r;
 		fontColor[1]=g;
 		fontColor[2]=b;
+		fontColor[3]=255;
+	}
+
+	void setFontColor(unsigned char r,unsigned char g,unsigned char b, unsigned char a){
+		fontColor[0]=r;
+		fontColor[1]=g;
+		fontColor[2]=b;
+		fontColor[3]=a;
 	}
 
 	/*
@@ -293,7 +299,7 @@ namespace ui {
 		glPushMatrix();
 		glTranslatef(0,-c2.y,0);
 		glBegin(GL_QUADS);
-			glColor3ub(fontColor[0],fontColor[1],fontColor[2]);
+			glColor4ub(fontColor[0],fontColor[1],fontColor[2],fontColor[3]);
 			glTexCoord2f(0,1);glVertex2f(c1.x     ,c1.y		);
 			glTexCoord2f(1,1);glVertex2f(c1.x+c2.x,c1.y		);
 			glTexCoord2f(1,0);glVertex2f(c1.x+c2.x,c1.y+c2.y);
@@ -318,7 +324,7 @@ namespace ui {
 		 *	Loop on each character:
 		*/
 
-		do {
+		do{
 			if(i && ((i / 110.0) == (i / 110))){
 				o.y -= fontSize * 1.05f;
 				o.x = x;
@@ -381,7 +387,6 @@ namespace ui {
 				break;
 			}
 		} while(s[++i]);
-
 		putString(floor(x-width/2),y,s);
 		return width;
 	}
@@ -473,7 +478,6 @@ namespace ui {
 		dialogOptText.clear();
 
 		dialogOptChosen = 0;
-		memset(&dialogOptLoc,0,sizeof(float)*12);
 
 		if ( opt ) {
 			std::string soptbuf = opt;
@@ -522,7 +526,7 @@ namespace ui {
 		dialogOptText.clear();
 
 		dialogOptChosen = 0;
-		memset(&dialogOptLoc, 0, sizeof(float) * 12);
+		merchOptChosen = 0;
 
 		// handle options if desired
 		if(opt){
@@ -556,8 +560,9 @@ namespace ui {
 
 	void waitForDialog(void){
 		do{
-			mainLoop();
-		}while(ui::dialogBoxExists);
+			//std::thread(dialogAdvance);
+			//mainLoop();
+		}while(dialogBoxExists);
 	}
 	void waitForCover(void){
 		do{
@@ -709,26 +714,26 @@ namespace ui {
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
 
-				merchAOptLoc[0][0] = offset.x - (SCREEN_WIDTH / 8.5) - 16;
-				merchAOptLoc[1][0] = offset.x + (SCREEN_WIDTH / 8.5) + 16;
-				merchAOptLoc[0][1] = offset.y + (SCREEN_HEIGHT *.2);
-				merchAOptLoc[1][1] = offset.y + (SCREEN_HEIGHT *.2);
-				merchAOptLoc[0][2] = offset.x - (SCREEN_WIDTH / 8.5);
-				merchAOptLoc[1][2] = offset.x + (SCREEN_WIDTH / 8.5);
+				merchArrowLoc[0].x = offset.x - (SCREEN_WIDTH / 8.5) - 16;
+				merchArrowLoc[1].x = offset.x + (SCREEN_WIDTH / 8.5) + 16;
+				merchArrowLoc[0].y = offset.y + (SCREEN_HEIGHT *.2);
+				merchArrowLoc[1].y = offset.y + (SCREEN_HEIGHT *.2);
+				merchArrowLoc[0].z = offset.x - (SCREEN_WIDTH / 8.5);
+				merchArrowLoc[1].z = offset.x + (SCREEN_WIDTH / 8.5);
 
 				for(i = 0; i < 2; i++){
-					if(((merchAOptLoc[i][0] < merchAOptLoc[i][2]) ?
-						(mouse.x > merchAOptLoc[i][0] && mouse.x < merchAOptLoc[i][2]) :
-						 (mouse.x < merchAOptLoc[i][0] && mouse.x > merchAOptLoc[i][2])) &&
-					   mouse.y > merchAOptLoc[i][1] - 8 && mouse.y < merchAOptLoc[i][1] + 8){
+					if(((merchArrowLoc[i].x < merchArrowLoc[i].z) ?
+						(mouse.x > merchArrowLoc[i].x     && mouse.x < merchArrowLoc[i].z) :
+						(mouse.x < merchArrowLoc[i].x     && mouse.x > merchArrowLoc[i].z)    ) &&
+					     mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8 ) {
 						glColor3ub(255,255, 0);
 					}else{
 						glColor3ub(255,255,255);
 					}
 					glBegin(GL_TRIANGLES);
-						glVertex2f(merchAOptLoc[i][0],merchAOptLoc[i][1]);
-						glVertex2f(merchAOptLoc[i][2],merchAOptLoc[i][1]-8);
-						glVertex2f(merchAOptLoc[i][2],merchAOptLoc[i][1]+8);
+						glVertex2f(merchArrowLoc[i].x,merchArrowLoc[i].y);
+						glVertex2f(merchArrowLoc[i].z,merchArrowLoc[i].y-8);
+						glVertex2f(merchArrowLoc[i].z,merchArrowLoc[i].y+8);
 					glEnd();
 				}
 
@@ -738,18 +743,18 @@ namespace ui {
 					setFontColor(255, 255, 255);
 
 					// draw option
-					tmp = putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i].first);
+					tmp = putStringCentered(offset.x, dialogOptText[i].second.y, dialogOptText[i].first);
 
 					// get coordinate information on option
-					dialogOptLoc[i][2] = offset.x + tmp;
-					dialogOptLoc[i][0] = offset.x - tmp;
-					dialogOptLoc[i][1] = y - SCREEN_HEIGHT / 2 - (fontSize + HLINE) * (i + 1);
+					dialogOptText[i].second.z = offset.x + tmp;
+					dialogOptText[i].second.x = offset.x - tmp;
+					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 2 - (fontSize + HLINE) * (i + 1);
 
 					// make text yellow if the mouse hovers over the text
-					if(mouse.x > dialogOptLoc[i][0] && mouse.x < dialogOptLoc[i][2] &&
-					   mouse.y > dialogOptLoc[i][1] && mouse.y < dialogOptLoc[i][1] + 16 ){
+					if(mouse.x > dialogOptText[i].second.x && mouse.x < dialogOptText[i].second.z &&
+					   mouse.y > dialogOptText[i].second.y && mouse.y < dialogOptText[i].second.y + 16 ){
 						  setFontColor(255, 255, 0);
-						  putStringCentered(offset.x, dialogOptLoc[i][1], dialogOptText[i].first);
+						  putStringCentered(offset.x, dialogOptText[i].second.y, dialogOptText[i].first);
 					}
 				}
 
@@ -764,10 +769,10 @@ namespace ui {
 
 				glBegin(GL_LINE_STRIP);
 					glVertex2i(x-1						,y+1);
-					glVertex2i(x+1 +SCREEN_WIDTH-HLINE*16,y+1);
+					glVertex2i(x+1+SCREEN_WIDTH-HLINE*16,y+1);
 					glVertex2i(x+1+SCREEN_WIDTH-HLINE*16,y-1-SCREEN_HEIGHT/4);
 					glVertex2i(x-1						,y-1-SCREEN_HEIGHT/4);
-					glVertex2i( x - 1, y + 1 );
+					glVertex2i(x-1						,y+1);
 				glEnd();
 
 				glColor3ub(0,0,0);
@@ -779,16 +784,16 @@ namespace ui {
 
 				for(i=0;i<dialogOptText.size();i++){
 					setFontColor(255,255,255);
-					tmp = putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i].first);
-					dialogOptLoc[i][2] = offset.x + tmp;
-					dialogOptLoc[i][0] = offset.x - tmp;
-					dialogOptLoc[i][1] = y - SCREEN_HEIGHT / 4 + (fontSize + HLINE) * (i + 1);
-					if(mouse.x > dialogOptLoc[i][0] &&
-					   mouse.x < dialogOptLoc[i][2] &&
-					   mouse.y > dialogOptLoc[i][1] &&
-					   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
+					tmp = putStringCentered(offset.x,dialogOptText[i].second.y,dialogOptText[i].first);
+					dialogOptText[i].second.z = offset.x + tmp;
+					dialogOptText[i].second.x = offset.x - tmp;
+					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 4 + (fontSize + HLINE) * (i + 1);
+					if(mouse.x > dialogOptText[i].second.x &&
+					   mouse.x < dialogOptText[i].second.z &&
+					   mouse.y > dialogOptText[i].second.y &&
+					   mouse.y < dialogOptText[i].second.y + 16 ){ // fontSize
 						  setFontColor(255,255,0);
-						  putStringCentered(offset.x,dialogOptLoc[i][1],dialogOptText[i].first);
+						  putStringCentered(offset.x,dialogOptText[i].second.y,dialogOptText[i].first);
 					}
 				}
 				setFontColor(255,255,255);
@@ -824,6 +829,7 @@ namespace ui {
 			 *	Lists all of the quests the player is currently taking.
 			*/
 
+			setFontColor(255,255,255,fontTransInv);
 			if(player->inv->invOpen){
 				hub.y = player->loc.y + fontSize * 8;
 				hub.x = player->loc.x;// + player->width / 2;
@@ -834,7 +840,18 @@ namespace ui {
 					hub.y -= fontSize * 1.15;
 					putStringCentered(hub.x,hub.y,c.title.c_str());
 				}
+
+				hub.y = offset.y + 40*1.2;
+				hub.x = offset.x + SCREEN_WIDTH/2 - 40*1.5;
+
+				putStringCentered(hub.x,hub.y,"Equipment:");
+
+				hub.y = offset.y + SCREEN_HEIGHT/2 - 20;
+				hub.x = offset.x - SCREEN_WIDTH/2 + 45*4*1.5;
+
+				putStringCentered(hub.x,hub.y,"Inventory:");
 			}
+			setFontColor(255,255,255,255);
 		}
 	}
 
@@ -1172,6 +1189,11 @@ namespace ui {
 		fclose(bmp);
 	}
 
+	void closeBox(){
+		dialogBoxExists = false;
+		dialogMerchant = false;
+	}
+
 	void dialogAdvance(void){
 		unsigned char i;
 
@@ -1187,29 +1209,45 @@ namespace ui {
 		}
 
 		for(i=0;i<dialogOptText.size();i++){
-			if(mouse.x > dialogOptLoc[i][0] &&
-			   mouse.x < dialogOptLoc[i][2] &&
-			   mouse.y > dialogOptLoc[i][1] &&
-			   mouse.y < dialogOptLoc[i][1] + 16 ){ // fontSize
+			if(mouse.x > dialogOptText[i].second.x &&
+			   mouse.x < dialogOptText[i].second.z &&
+			   mouse.y > dialogOptText[i].second.y &&
+			   mouse.y < dialogOptText[i].second.y + 16 ){ // fontSize
 				dialogOptChosen = i + 1;
-				goto DONE;
+				goto EXIT;
 			}
 		}
-DONE:
+		if(dialogMerchant){
+			for(i=0;i<2;i++){
+				if(((merchArrowLoc[i].x < merchArrowLoc[i].z) ?
+					(mouse.x > merchArrowLoc[i].x && mouse.x < merchArrowLoc[i].z) :
+				    (mouse.x < merchArrowLoc[i].x && mouse.x > merchArrowLoc[i].z) &&
+					 mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8)){
+						merchOptChosen = i + 1;
+						goto EXIT;
+				}
+			}
+		}
+
+
+EXIT:
+		//if(!dialogMerchant)closeBox();
+		dialogBoxExists = false;
+		dialogMerchant = false;
+
+		//DONE:
 
 		// handle important text
 		if(dialogImportant){
 			dialogImportant = false;
 			setFontSize(16);
 		}
-
-		if(dialogMerchant) dialogMerchant = false;
-		dialogBoxExists = false;
 	}
 
 	void handleEvents(void){
 		static bool left=true,right=false;
 		static int heyOhLetsGo = 0;
+		static int mouseWheelUpCount = 0, mouseWheelDownCount = 0;
 		World *tmp;
 		vec2 oldpos,tmppos;
 		SDL_Event e;
@@ -1241,7 +1279,19 @@ DONE:
 				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )
 					player->inv->usingi = true;
 				break;
-
+			case SDL_MOUSEWHEEL:
+				if (e.wheel.y < 0){
+					if(mouseWheelUpCount++ && mouseWheelUpCount%5==0){
+						player->inv->setSelectionUp();
+						mouseWheelUpCount = 0;
+					}
+				}else{
+					if(mouseWheelDownCount-- && mouseWheelDownCount%5==0){
+						player->inv->setSelectionDown();
+						mouseWheelDownCount = 0;
+					}
+				}
+				break;
 			// key presses
 			case SDL_KEYDOWN:
 
@@ -1393,12 +1443,6 @@ DONE:
 						player->inv->mouseSel = false;
 					}
 					heyOhLetsGo = 0;
-					break;
-				case SDLK_LEFT:
-					if(player->inv->sel)player->inv->sel--;
-					break;
-				case SDLK_RIGHT:
-					player->inv->sel++;
 					break;
 				case SDLK_l:
 					player->light^=true;

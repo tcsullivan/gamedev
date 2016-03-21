@@ -220,7 +220,6 @@ World::
 		Mix_FreeMusic(bgmObj);
 
 	delete bgTex;
-
 	deleteEntities();
 }
 
@@ -786,6 +785,7 @@ singleDetect( Entity *e )
 		 */
 
 		} else {
+
 			if(e->type == STRUCTURET && e->loc.y > 2000){
 				e->loc.y = worldData[i].groundHeight;
 				e->vel.y = 0;
@@ -985,6 +985,7 @@ setToRight( std::string file )
 	return (toRight = file);
 }
 
+//what is this clyne why are they differnet
 World *World::
 goWorldLeft( Player *p )
 {
@@ -1131,9 +1132,11 @@ void World::save(void){
 	}
 
 	data.append("dOnE\0");
+    std::cout << "Writing to the file" << std::endl;
 	out.write(data.c_str(),data.size());
 
 	out.close();
+    std::cout << "Done saving" << std::endl;
 }
 
 void World::load(void){
@@ -1536,8 +1539,6 @@ loadWorldFromXMLNoSave( std::string path ) {
 				tmp->addMerchant(0,100);
 				if(vil->FirstChildElement("buy")){
 					std::cout << "Buy" << std::endl;
-					//Trade goodMeme(1,"Dank MayMay",1,"Sword");
-					//tmp->merchant.back()->trade.push_back(Trade());
 				}if(vil->FirstChildElement("sell")){
 					std::cout << "Sell" << std::endl;
 				}if(vil->FirstChildElement("trade")){
@@ -1546,7 +1547,9 @@ loadWorldFromXMLNoSave( std::string path ) {
 																vil->FirstChildElement("trade")->Attribute("item"),
 																vil->FirstChildElement("trade")->IntAttribute("quantity1"),
 																vil->FirstChildElement("trade")->Attribute("item1")));
+					tmp->merchant.back()->trade.push_back(Trade(1,"Wood Sword", 420, "Dank MayMay"));
 				}
+				std::cout << "new trade" << std::endl;
 				strcpy(tmp->merchant.back()->name,"meme");
 
 			}else if(!strcmp(vil->Attribute("type"),"trader")){

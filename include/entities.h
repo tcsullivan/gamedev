@@ -219,6 +219,7 @@ public:
 class Merchant : public NPC{
 public:
 	std::vector<Trade>trade;
+	uint currTrade;
 
 	void interact();
 

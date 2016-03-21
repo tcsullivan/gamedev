@@ -1,6 +1,6 @@
 /** @file common.h
  * @brief Common items needed by most other files.
- * 
+ *
  * This file contains headers, variables and functions that are needed in
  * most other files included in this project.
  */
@@ -14,12 +14,13 @@
 #include <string>
 #include <vector>
 #include <string>
-#include <fstream>	
+#include <fstream>
 #include <thread>
 #include <mutex>
 #include <future>
 #include <math.h>
 #include <threadpool.h>
+#include <algorithm>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -47,6 +48,17 @@ N abso(N v){
 	}else
 		return v;
 }
+
+template<class A>
+float averagef(A v){
+	float avg = 0;
+	for(auto &a : v){
+		avg += a;
+	}
+	avg /= v.size();
+	return avg;
+}
+
 
 extern GLuint colorIndex;	// Texture.cpp?
 
@@ -130,7 +142,7 @@ extern std::mutex mtx;
  * definition was made. Every item being drawn to the screen and most object detection/physic
  * handling is done based off of this number. Increasing it will give the game a zoomed-in
  * feel, while decreasing it will do the opposite.
- * 
+ *
  */
 
 extern unsigned int HLINE;
@@ -159,7 +171,7 @@ extern float VOLUME_SFX;
  * Included in common.h is a prototype for DEBUG_prints, which writes a formatted
  * string to the console containing the callee's file and line number. This macro simplifies
  * it to a simple printf call.
- * 
+ *
  * DEBUG must be defined for this macro to function.
  */
 
@@ -181,7 +193,7 @@ extern unsigned int deltaTime;
 /**
  * References the variable in main.cpp, used for drawing with the player.
  */
- 
+
 extern vec2 offset;
 
 /**
@@ -211,11 +223,12 @@ void safeSetColor(int r,int g,int b);
 
 void safeSetColorA(int r,int g,int b,int a);
 
+
 /**
  * We've encountered many problems when attempting to create delays for triggering
  * the logic function. As a result, we decided on using the timing libraries given
  * by <chrono> in the standard C++ library. This function simply returns the amount
- * of milliseconds that have passed sine the epoch.
+ * of milliseconds that have passed since the epoch.
  */
 
 #ifdef __WIN32__

@@ -789,3 +789,12 @@
 	- (WIP) made ui options dynamic (boxes can have 'infinite' options)
 	- can scroll through inventory with mouse wheel
 	- added text transparency support
+
+3/18/2016:
+==========
+
+	- worked on keeping multiple-sizes fonts in memory (importantText lag)
+	- c++'d more ui stuff
+	- game can run on *BSD systems..
+	- fixed abort bug on exit
+	- added light that follows player

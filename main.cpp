@@ -417,7 +417,6 @@ int main(int argc, char *argv[]){
 	//currentWorld->mob.back()->followee = player;
 
 	gameRunning = true;
-
 	while ( gameRunning )
 		mainLoop();
 
@@ -494,6 +493,13 @@ void mainLoop(void){
 		prevPrevTime = currentTime;
 	}
 
+	/*
+	 * Update player and entity coordinates.
+	 */
+
+	/*pool.Enqueue([](){
+		currentWorld->update(player,deltaTime);
+	});*/
 	currentWorld->update( player, deltaTime );
 
 	/*
@@ -772,9 +778,9 @@ void logic(){
 			if(n->canMove)
 				n->wander((rand() % 120 + 30));
 
-			/*if(!player->inv->usingi) n->hit = false;
+			if(!player->inv->usingi) n->hit = false;
 
-			if(player->inv->usingi && !n->hit && player->inv->detectCollision((vec2){n->loc.x, n->loc.y},(vec2){n->loc.x+n->width,n->loc.y+n->height})){
+			if(player->inv->usingi && !n->hit && player->inv->detectCollision({n->loc.x, n->loc.y},{n->loc.x+n->width,n->loc.y+n->height})){
 				n->health -= 25;
 				n->hit = true;
 				for(int r = 0; r < (rand()%5);r++)
@@ -783,8 +789,7 @@ void logic(){
 					for(int r = 0; r < (rand()%30)+15;r++)
 						currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%10)*.01-.05), {(rand()%75)+10/100.0f,0,0}, 10000);
 				}
-			}*/
-
+			}
 			/*
 			 *	Don't bother handling the NPC if another has already been handled.
 	 		 */

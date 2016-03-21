@@ -6,6 +6,7 @@
 #define UI_H
 
 #include <common.h>
+#include <inventory.h>
 #include <cstdarg>
 
 #include <config.h>
@@ -106,11 +107,13 @@ namespace ui {
 	extern bool posFlag;
 
 	extern unsigned char dialogOptChosen;
+	extern unsigned char merchOptChosen;
 	extern bool 		 dialogBoxExists;
 	extern bool 		 dialogImportant;
 	extern bool 		 dialogPassive;
 
 	extern unsigned int textWrapLimit;
+	extern int fontTransInv;
 
 	/*
 	 *	Initializes the FreeType system.
@@ -126,6 +129,7 @@ namespace ui {
 
 	void setFontFace(const char *ttf);
 	void setFontSize(unsigned int size);
+	void setFontColor(unsigned char r,unsigned char g,unsigned char b, unsigned char a);
 
 	/*
 	 *	Draw a centered string.
@@ -148,10 +152,10 @@ namespace ui {
 	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...);
 	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...);
 	void merchantBox();
+	void closeBox();
 	void waitForDialog(void);
 
 	void drawPage( std::string path );
-
 	/*
 	 *	Draws a larger string in the center of the screen. Drawing is done inside this function.
 	*/
