@@ -47,16 +47,6 @@ enum class WorldWeather : unsigned char {
 };
 
 /**
- * The light structure, used to store light coordinates and color.
- */
-
-typedef struct {
-	vec2 loc;		/**< Light location */
-	Color color;	/**< Light color */
-	float radius;
-} Light;
-
-/**
  * The line structure.
  * This structure is used to store the world's ground, stored in vertical
  * lines. Dirt color and grass properties are also kept track of here.
@@ -84,6 +74,32 @@ extern std::string currentXML;
 
 // prototype so Village can reference it
 class World;
+
+/**
+ * The light structure, used to store light coordinates and color.
+ */
+
+typedef struct {
+	vec2 loc;		/**< Light location */
+	Color color;	/**< Light color */
+	float radius;   /**< Light radius */
+
+	bool belongsTo;
+	Entity *following;
+
+	bool flame;
+	float fireFlicker;
+	vec2 fireLoc;
+
+	// Light(vec2 l, Color c, float r){
+	// 	loc = l;
+	// 	color = c;
+	// 	radius = r;
+	// 	belongsTo = false;
+	// 	following = nullptr;
+	// }
+} Light;
+
 
 /**
  * The village class, used to group structures into villages.

@@ -1445,10 +1445,18 @@ EXIT:
 					heyOhLetsGo = 0;
 					break;
 				case SDLK_l:
-					player->light^=true;
+					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
+					currentWorld->light.back().belongsTo = true;
+					currentWorld->light.back().following = player;
+					currentWorld->light.back().flame = true;
 					break;
 				case SDLK_f:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
+					std::cout << currentWorld->light.back().belongsTo << std::endl;
+					currentWorld->light.back().belongsTo = false;
+					std::cout << currentWorld->light.back().belongsTo << std::endl;
+					currentWorld->light.back().following = nullptr;
+					currentWorld->light.back().flame = true;
 					break;
 				case SDLK_g:
 					//currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, NULL);
@@ -1465,13 +1473,15 @@ EXIT:
 				case SDLK_b:
 					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
+					currentWorld->light.back().belongsTo = false;
+					currentWorld->light.back().following = nullptr;
+					currentWorld->light.back().flame = true;
 					break;
 				case SDLK_F12:
 					// Make the BYTE array, factor of 3 because it's RBG.
 					static GLubyte* pixels;
 					pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
 					glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-
 					//static std::thread scr;
 					//scr = std::thread(takeScreenshot,pixels);
 					//scr.detach();
