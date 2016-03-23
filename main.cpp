@@ -77,7 +77,7 @@ World *currentWorld        = NULL,
  * The player object.
  */
 
-Player 	*player;
+Player *player;
 
 /**
  * TODO

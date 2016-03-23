@@ -798,3 +798,10 @@
 	- game can run on *BSD systems..
 	- fixed abort bug on exit
 	- added light that follows player
+
+3/23/2016:
+==========
+
+	- flickery lights
+	- ui font loading is smooth
+	- entities can be flung

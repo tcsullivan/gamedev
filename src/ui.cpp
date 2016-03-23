@@ -33,8 +33,8 @@ extern bool gameRunning;
 extern unsigned int tickCount;
 
 /*
- *	Freetype variables, and a GLuint for referencing rendered letters.
-*/
+ *	Freetype variables
+ */
 
 static FT_Library   ftl;
 static FT_Face      ftf;
@@ -45,8 +45,16 @@ typedef struct {
 	vec2 ad;
 } FT_Info;
 
-static std::vector<FT_Info> ftdat ( 93, { { 0, 0 }, { 0, 0 }, { 0, 0 } } );
-static std::vector<GLuint>  ftex  ( 93, 0 );
+static std::vector<FT_Info> ftdat16 ( 93, { { 0, 0 }, { 0, 0 }, { 0, 0 } } );
+static std::vector<GLuint>  ftex16  ( 93, 0 );
+static bool ft16loaded = false;
+
+static std::vector<FT_Info> ftdat24 ( 93, { { 0, 0 }, { 0, 0 }, { 0, 0 } } );
+static std::vector<GLuint>  ftex24  ( 93, 0 );
+static bool ft24loaded = false;
+
+static auto *ftdat = &ftdat16;
+static auto *ftex  = &ftex16;
 
 static unsigned char fontColor[4] = {255,255,255,255};
 
@@ -97,10 +105,61 @@ void Menu::gotoParent(){
 }
 
 void Menu::gotoChild(){
-	if(child == NULL){
-		currentMenu = NULL;
-	}else{
-		currentMenu = child;
+	currentMenu = child;
+}
+
+void loadFontSize( unsigned int size, std::vector<GLuint> &tex, std::vector<FT_Info> &dat )
+{
+	FT_Set_Pixel_Sizes(ftf,0,size);
+
+	/*
+	 *	Pre-render 'all' the characters.
+	*/
+
+	glDeleteTextures( 93, tex.data() );
+	glGenTextures( 93, tex.data() );		//	Generate new texture name/locations?
+
+	for(char i=33;i<126;i++){
+
+		/*
+		 *	Load the character from the font family file.
+		*/
+
+		if ( FT_Load_Char ( ftf, i, FT_LOAD_RENDER ) )
+			UserError( "Error! Unsupported character " + i );
+
+		/*
+		 *	Transfer the character's bitmap (?) to a texture for rendering.
+		*/
+
+		glBindTexture(GL_TEXTURE_2D,tex[i-33]);
+		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S		,GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T		,GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER	,GL_LINEAR		 );
+		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER	,GL_LINEAR		 );
+		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+
+		/*
+		 *	The just-created texture will render red-on-black if we don't do anything to it, so
+		 *	here we create a buffer 4 times the size and transform the texture into an RGBA array,
+		 *	making it white-on-black.
+		*/
+
+
+		std::vector<uint32_t> buf ( ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows, 0xFFFFFFFF );
+
+		for( unsigned int j = buf.size(); j--; )
+			buf[j] ^= !ftf->glyph->bitmap.buffer[j] ? buf[j] : 0;
+
+		dat[i - 33].wh.x = ftf->glyph->bitmap.width;
+		dat[i - 33].wh.y = ftf->glyph->bitmap.rows;
+		dat[i - 33].bl.x = ftf->glyph->bitmap_left;
+		dat[i - 33].bl.y = ftf->glyph->bitmap_top;
+		dat[i - 33].ad.x = ftf->glyph->advance.x >> 6;
+		dat[i - 33].ad.y = ftf->glyph->advance.y >> 6;
+
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ftf->glyph->bitmap.width, ftf->glyph->bitmap.rows,
+			          0, GL_RGBA, GL_UNSIGNED_BYTE, buf.data() );
 	}
 }
 
@@ -158,7 +217,7 @@ namespace ui {
 			std::cout<<"Error! Couldn't initialize freetype."<<std::endl;
 			abort();
 		}
-		fontSize = 0;
+
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
@@ -166,6 +225,8 @@ namespace ui {
 		battleStart = Mix_LoadWAV("assets/sounds/frig.wav");
 		sanic = Mix_LoadWAV("assets/sounds/sanic.wav");
 		//Mix_Volume(1,50);
+
+		fontSize = 0;
 	}
 
 	void destroyFonts(void){
@@ -189,6 +250,8 @@ namespace ui {
 #ifdef DEBUG
 		DEBUG_printf("Using font %s\n",ttf);
 #endif // DEBUG
+		ft16loaded = false;
+		ft24loaded = false;
 	}
 
 	/*
@@ -196,63 +259,21 @@ namespace ui {
 	*/
 
 	void setFontSize(unsigned int size){
-		mtx.lock();
-		unsigned int i,j;
-
-		fontSize=size;
-		FT_Set_Pixel_Sizes(ftf,0,fontSize);
-
-		/*
-		 *	Pre-render 'all' the characters.
-		*/
-
-		glDeleteTextures(93,ftex.data());	//	delete[] any already-rendered textures
-		glGenTextures(93,ftex.data());		//	Generate new texture name/locations?
-
-		for(i=33;i<126;i++){
-
-			/*
-			 *	Load the character from the font family file.
-			*/
-
-			if(FT_Load_Char(ftf,i,FT_LOAD_RENDER)){
-				std::cout<<"Error! Unsupported character "<<(char)i<<" ("<<i<<")."<<std::endl;
-				abort();
+		if ( size == 16 ) {
+			if( !ft16loaded ) {
+				loadFontSize( fontSize = size, ftex16, ftdat16 );
+				ft16loaded = true;
 			}
-
-			/*
-			 *	Transfer the character's bitmap (?) to a texture for rendering.
-			*/
-
-			glBindTexture(GL_TEXTURE_2D,ftex[i-33]);
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S		,GL_CLAMP_TO_EDGE);
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T		,GL_CLAMP_TO_EDGE);
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER	,GL_LINEAR		 );
-			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER	,GL_LINEAR		 );
-			glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-
-			/*
-			 *	The just-created texture will render red-on-black if we don't do anything to it, so
-			 *	here we create a buffer 4 times the size and transform the texture into an RGBA array,
-			 *	making it white-on-black.
-			*/
-
-
-			std::vector<uint32_t> buf ( ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows, 0 );
-
-			for( j = 0; j < buf.size(); j++ )
-				buf[j] = 0x00FFFFFF | (ftf->glyph->bitmap.buffer[j] ? (0xFF << 24) : 0);
-
-			ftdat[i-33].wh.x=ftf->glyph->bitmap.width;
-			ftdat[i-33].wh.y=ftf->glyph->bitmap.rows;
-			ftdat[i-33].bl.x=ftf->glyph->bitmap_left;
-			ftdat[i-33].bl.y=ftf->glyph->bitmap_top;
-			ftdat[i-33].ad.x=ftf->glyph->advance.x>>6;
-			ftdat[i-33].ad.y=ftf->glyph->advance.y>>6;
-
-			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,ftf->glyph->bitmap.width,ftf->glyph->bitmap.rows,0,GL_RGBA,GL_UNSIGNED_BYTE,buf.data());
+			ftex = &ftex16;
+			ftdat = &ftdat16;
+		} else if ( size == 24 ){
+			if ( !ft24loaded ) {
+				loadFontSize( fontSize = size, ftex24, ftdat24 );
+				ft24loaded = true;
+			}
+			ftex = &ftex24;
+			ftdat = &ftdat24;
 		}
-		mtx.unlock();
 	}
 
 	/*
@@ -286,16 +307,16 @@ namespace ui {
 		 *	Get the width and height of the rendered character.
 		*/
 
-		c1={(float)floor(x)+ftdat[c-33].bl.x,
-		    (float)floor(y)+ftdat[c-33].bl.y};
-		c2=ftdat[c-33].wh;
+		c1={(float)floor(x)+(*ftdat)[c-33].bl.x,
+		    (float)floor(y)+(*ftdat)[c-33].bl.y};
+		c2=(*ftdat)[c-33].wh;
 
 		/*
 		 *	Draw the character:
 		*/
 
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D,ftex[c-33]);
+		glBindTexture(GL_TEXTURE_2D,(*ftex)[c-33]);
 		glPushMatrix();
 		glTranslatef(0,-c2.y,0);
 		glBegin(GL_QUADS);
@@ -309,7 +330,7 @@ namespace ui {
 		glDisable(GL_TEXTURE_2D);
 
 		// return the width.
-		return ftdat[c-33].ad;
+		return (*ftdat)[c-33].ad;
 	}
 
 	/*
@@ -383,7 +404,7 @@ namespace ui {
 				width += fontSize / 2;
 				break;
 			default:
-				width += ftdat[i].wh.x + fontSize * 0.1f;
+				width += (*ftdat)[i].wh.x + fontSize * 0.1f;
 				break;
 			}
 		} while(s[++i]);
@@ -656,9 +677,9 @@ namespace ui {
 					}
 				}
 				if(fadeIntensity == 255 || dialogPassive){
-					//setFontSize(24);
+					setFontSize(24);
 					putStringCentered(offset.x,offset.y,rtext.c_str());
-					//setFontSize(16);
+					setFontSize(16);
 				}
 			}else if(dialogMerchant){
 				//static int dispItem;
@@ -857,8 +878,8 @@ namespace ui {
 
 	void quitGame(){
 		dialogBoxExists = false;
-		currentMenu = NULL;
-		delete[] currentMenu;
+		//delete[] currentMenu;
+		//currentMenu = NULL;
 		gameRunning = false;
 		updateConfig();
 		saveConfig();
@@ -1256,6 +1277,9 @@ EXIT:
 		mouse.x = premouse.x + offset.x - ( SCREEN_WIDTH / 2 );
 		mouse.y = ( offset.y + SCREEN_HEIGHT / 2 ) - premouse.y;
 
+		static vec2 fr;
+		static Entity *ig;
+
 		while(SDL_PollEvent(&e)){
 			switch(e.type){
 
@@ -1270,6 +1294,14 @@ EXIT:
 				premouse.y=e.motion.y;
 				break;
 
+			case SDL_MOUSEBUTTONUP:
+				if(ig) {
+					ig->vel.x = (fr.x - mouse.x) / 50.0f;
+					ig->vel.y = (fr.y - mouse.y) / 50.0f;
+					ig = NULL;
+				}
+				break;
+
 			// mouse clicks
 			case SDL_MOUSEBUTTONDOWN:
 				// right click advances dialog
@@ -1278,6 +1310,17 @@ EXIT:
 				// left click uses item
 				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )
 					player->inv->usingi = true;
+
+				for ( auto &e : currentWorld->entity ) {
+					if( mouse.x > e->loc.x && mouse.x < e->loc.x + e->width &&
+						mouse.y > e->loc.y && mouse.y < e->loc.y + e->height ) {
+						e->vel.y = .05;
+						fr = mouse;
+						ig = e;
+						break;
+					}
+				}
+
 				break;
 			case SDL_MOUSEWHEEL:
 				if (e.wheel.y < 0){
@@ -1478,6 +1521,12 @@ EXIT:
 					takeScreenshot(pixels);
 
 					std::cout << "Took screenshot" << std::endl;
+					break;
+				case SDLK_UP:
+					player->inv->setSelectionUp();
+					break;
+				case SDLK_DOWN:
+					player->inv->setSelectionDown();
 					break;
 				default:
 					break;

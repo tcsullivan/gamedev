@@ -314,7 +314,10 @@ update( Player *p, unsigned int delta )
 		e->loc.y += e->vel.y * delta;
 
         // dont let structures move?
-		if ( e->type != STRUCTURET && e->canMove ) {
+        if ( e->type == STRUCTURET )
+            e->canMove = true;
+
+		if ( e->canMove ) {
 			e->loc.x += e->vel.x * delta;
 
             // update boolean directions
