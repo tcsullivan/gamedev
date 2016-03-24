@@ -79,7 +79,8 @@ class World;
  * The light structure, used to store light coordinates and color.
  */
 
-typedef struct {
+class Light{
+public:
 	vec2 loc;		/**< Light location */
 	Color color;	/**< Light color */
 	float radius;   /**< Light radius */
@@ -91,14 +92,26 @@ typedef struct {
 	float fireFlicker;
 	vec2 fireLoc;
 
-	// Light(vec2 l, Color c, float r){
-	// 	loc = l;
-	// 	color = c;
-	// 	radius = r;
-	// 	belongsTo = false;
-	// 	following = nullptr;
-	// }
-} Light;
+	Light(vec2 l, Color c, float r){
+		loc = l;
+		color = c;
+		radius = r;
+
+		belongsTo = false;
+		following = nullptr;
+
+		flame = false;
+	}
+
+	void makeFlame(void){
+		flame = true;
+	}
+
+	void follow(Entity *f){
+		following=f;
+		belongsTo = true;
+	}
+};
 
 
 /**

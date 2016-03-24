@@ -532,16 +532,37 @@ draw( Player *p )
     for(auto &l : light){
         if(l.belongsTo){
             l.loc.x = l.following->loc.x + SCREEN_WIDTH/2;
+            l.loc.y = l.following->loc.y;
+        }
+        if(l.flame){
+            l.fireFlicker = .9+((rand()%2)/10.0f);
+            l.fireLoc.x = l.loc.x + (rand()%2-1)*3;
+            l.fireLoc.y = l.loc.y + (rand()%2-1)*3;
+
+            //std::cout << l.fireLoc.x << "," << l.fireLoc.y << std::endl;
+            //std::cout << l.loc.x << "," << l.loc.y << std::endl << std::endl;
+        }else{
+            l.fireFlicker = 1.0f;
         }
     }
 
-	std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
+    std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
 	auto pointArray = pointArrayBuf.get();
+    GLfloat flameArray[64];
 
-	for ( i = 0; i < (int)light.size(); i++ ) {
-		pointArray[2 * i    ] = light[i].loc.x - offset.x;
-		pointArray[2 * i + 1] = light[i].loc.y;
+	for (uint i = 0; i < light.size(); i++) {
+        if(light[i].flame){
+    		pointArray[2 * i    ] = light[i].fireLoc.x - offset.x;
+    		pointArray[2 * i + 1] = light[i].fireLoc.y;
+        }else{
+            pointArray[2 * i    ] = light[i].loc.x - offset.x;
+            pointArray[2 * i + 1] = light[i].loc.y;
+        }
 	}
+
+    for(uint i = 0; i < light.size(); i++){
+        flameArray[i] = light[i].fireFlicker;
+    }
 
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
@@ -556,6 +577,7 @@ draw( Player *p )
 		glUniform1i ( glGetUniformLocation( shaderProgram, "numLight"     ), light.size());
 		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size(), pointArray );
 		glUniform3f ( glGetUniformLocation( shaderProgram, "lightColor"   ), 1.0f, 1.0f, 1.0f );
+        glUniform1fv(glGetUniformLocation(shaderProgram,"fireFlicker"), light.size(),flameArray);
 	}
 
     /*
@@ -966,11 +988,8 @@ addParticle( float x, float y, float w, float h, float vx, float vy, Color color
 }
 
 void World::addLight(vec2 loc, Color color){
-	Light l;
-	if ( light.size() < 64 ) {
-		l.loc = loc;
-		l.color = color;
-		light.push_back(l);
+	if(light.size() < 64){
+		light.push_back(Light(loc,color,1));
 	}
 }
 
@@ -1222,10 +1241,8 @@ void IndoorWorld::draw(Player *p){
 
 	//glEnable(GL_TEXTURE_2D);
 
-    std::cout << "Lights and shit" << std::endl;
     for(auto &l : light){
         if(l.belongsTo){
-            std::cout << "Is following" << std::endl;
             l.loc.x = l.following->loc.x + SCREEN_WIDTH/2;
             l.loc.y = l.following->loc.y;
         }
@@ -1234,19 +1251,17 @@ void IndoorWorld::draw(Player *p){
             l.fireLoc.x = l.loc.x + (rand()%2-1)*3;
             l.fireLoc.y = l.loc.y + (rand()%2-1)*3;
 
-            std::cout << l.fireLoc.x << "," << l.fireLoc.y << std::endl;
-            std::cout << l.loc.x << "," << l.loc.y << std::endl << std::endl;
+            //std::cout << l.fireLoc.x << "," << l.fireLoc.y << std::endl;
+            //std::cout << l.loc.x << "," << l.loc.y << std::endl << std::endl;
         }else{
             l.fireFlicker = 1.0f;
         }
     }
 
-    std::cout << "Making light arrays" << std::endl;
     std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
 	auto pointArray = pointArrayBuf.get();
     GLfloat flameArray[64];
 
-    std::cout << "Setting array locations" << std::endl;
 	for (i = 0; i < light.size(); i++) {
         if(light[i].flame){
     		pointArray[2 * i    ] = light[i].fireLoc.x - offset.x;
@@ -1257,7 +1272,6 @@ void IndoorWorld::draw(Player *p){
         }
 	}
 
-    std::cout << "Flame array" << std::endl;
     for(i = 0; i < light.size(); i++){
         flameArray[i] = light[i].fireFlicker;
     }
@@ -1268,9 +1282,7 @@ void IndoorWorld::draw(Player *p){
 	glUseProgram( shaderProgram );
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glUniform1f(glGetUniformLocation(shaderProgram, "amb"    ), 0.02f + light.size()/50.0f);
-    glUniform1i(glGetUniformLocation(shaderProgram, "fire"   ), 1);
 
-    std::cout << "Uniform sending" << std::endl;
 	if ( light.size() == 0)
 		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 0);
 	else {
@@ -1281,8 +1293,6 @@ void IndoorWorld::draw(Player *p){
 	}
 
     //delete[] flameArray;
-
-    std::cout << "Done shading" << std::endl;
 
 	bgTex->bind(0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
@@ -1298,8 +1308,6 @@ void IndoorWorld::draw(Player *p){
 
 	glUseProgram(0);
 	//glDisable(GL_TEXTURE_2D);
-
-    std::cout << "Faggot" << std::endl;
 
 	/*
 	 *	Calculate the starting and ending points to draw the ground from.
@@ -1334,8 +1342,6 @@ void IndoorWorld::draw(Player *p){
 	glEnd();
 	glUseProgram(0);
 
-    std::cout << "Queer" << std::endl;
-
 	/*
 	 *	Draw all entities.
 	*/
@@ -1347,8 +1353,6 @@ void IndoorWorld::draw(Player *p){
 		e->draw();
 
 	p->draw();
-
-    std::cout << "Cranmore Tubing park" << std::endl;
 }
 
 Arena::Arena(World *leave,Player *p,Mob *m){
