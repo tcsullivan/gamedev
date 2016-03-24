@@ -139,10 +139,10 @@ public:
 
 	vec2 loc;
 	vec2 vel;
-	
+
 	float width;
 	float height;
-	
+
 	float speed;	// A speed factor for X movement
 
 	/*
@@ -151,6 +151,7 @@ public:
 
 	bool near;				// Causes name to display
 	bool canMove;			// Enables movement
+	bool canJape;			// Enables world leaving
 	bool right,left;		// Direction faced by Entity
 	bool alive;
 	bool hit;
@@ -172,7 +173,7 @@ public:
 
 	char   *name;
 	GENDER  gender;
-	
+
 	Texturec *tex;
 	Texturec *ntex;
 
@@ -180,14 +181,14 @@ public:
 
 	void draw(void);
 	void spawn(float, float);
-	
+
 	int ticksToUse;				// Used by wander()
-	
+
 	virtual void wander(int){}
 	virtual void interact(){}
 
 	void follow(Entity *e);
-	
+
 	virtual ~Entity(){}
 };
 
@@ -195,21 +196,22 @@ class Player : public Entity{
 public:
 	QuestHandler qh;
 	bool light = false;
-	
+
 	Player();
 	~Player();
 	void save(void);
 	void sspawn(float x,float y);
 };
 
-class NPC : public Entity{
+class NPC : public Entity {
 public:
 	std::vector<int (*)(NPC *)>aiFunc;
 	int dialogIndex;
-	
+
 	NPC();
+	NPC(NPC *n);
 	~NPC();
-	
+
 	void addAIFunc(int (*func)(NPC *),bool preload);
 	void clearAIFunc(void);
 	virtual void interact();
@@ -233,10 +235,10 @@ public:
 	World *inWorld;
 	std::string inside;
 	std::string textureLoc;
-	
+
 	Structures();
 	~Structures();
-	
+
 	unsigned int spawn(BUILD_SUB, float, float);
 };
 
@@ -246,10 +248,10 @@ public:
 	double init_y;
 	void (*hey)(Mob *callee);
 	std::string heyid;
-	
+
 	Mob(int);
 	~Mob();
-	
+
 	void wander(int);
 };
 
@@ -259,13 +261,13 @@ private:
 public:
 	std::string pickupDialog;
 	bool questObject = false;
-	
+
 	Object();
 	Object(std::string in,std::string pd);
 	~Object();
-	
+
 	void reloadTexture(void);
-	
+
 	void interact(void);
 };
 #endif // ENTITIES_H

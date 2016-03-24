@@ -115,7 +115,7 @@ protected:
 	 * of elements provided by the function.
 	 */
 
-	std::vector<WorldData> worldData;
+	 std::vector<WorldData> worldData;
 
 	/**
 	 * Starting x coordinate.
@@ -404,6 +404,7 @@ public:
 	 */
 
 	World *goWorldLeft(Player *p);
+	bool   goWorldLeft( NPC *e );
 
 	/**
 	 * Attempts to let the player enter the right-linked world specified by

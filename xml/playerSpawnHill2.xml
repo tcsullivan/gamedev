@@ -4,6 +4,8 @@
 	<generation type="Random" width="1000" />
 	<structure type="5" inside="playerSpawnHill1_Building1.xml"/>
 
+	<npc name="Swag" x="0" />
+
 	<link left="playerSpawnHill1.xml" />
 
 </World>

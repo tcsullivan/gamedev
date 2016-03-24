@@ -803,15 +803,11 @@ singleDetect( Entity *e )
 		*/
 
 		if(e->loc.x < worldStart){												// Left bound
-
 			e->vel.x=0;
 			e->loc.x=(float)worldStart + HLINE / 2;
-
 		}else if(e->loc.x + e->width + HLINE > worldStart + worldStart * -2){	// Right bound
-
 			e->vel.x=0;
 			e->loc.x=worldStart + worldStart * -2 - e->width - HLINE;
-
 		}
 	}
 }
@@ -1008,6 +1004,24 @@ goWorldLeft( Player *p )
 	}
 
 	return this;
+}
+
+bool World::
+goWorldLeft( NPC *e )
+{
+	// check if entity is at world edge
+	if( !toLeft.empty() && e->loc.x < worldStart + HLINE * 15.0f ) {
+
+        currentWorldToLeft->addNPC(e->loc.x,e->loc.y);
+        e->alive = false;
+
+		currentWorldToLeft->npc.back()->loc.x = 0;
+		currentWorldToLeft->npc.back()->loc.y = GROUND_HEIGHT_MAXIMUM;
+
+		return true;
+	}
+
+	return false;
 }
 
 World *World::
@@ -1378,6 +1392,8 @@ World *loadWorldFromPtr( World *ptr )
     loadedRight = true;
     currentWorldToRight = loadWorldFromXML( tmp->toRight );
     loadedRight = false;
+
+    std::cout<<tmp->npc.back()->name<<std::endl;
 
     return tmp;
 }

@@ -1488,7 +1488,7 @@ EXIT:
 					heyOhLetsGo = 0;
 					break;
 				case SDLK_l:
-					player->light^=true;
+					player->light ^= true;
 					break;
 				case SDLK_f:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});

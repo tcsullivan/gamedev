@@ -41,32 +41,32 @@ void initEntity(){
 void getRandomName(Entity *e){
 	unsigned int tempNum,max=0;
 	char *bufs;
-	
+
 	std::ifstream names ("assets/names_en-us",std::ios::in);
-	
+
 	names.seekg(0,names.beg);
-	
+
 	bufs = new char[32];
-	
+
 	for(;!names.eof();max++)
 		names.getline(bufs,32);
-	
+
 	tempNum = rand() % max;
 	names.seekg(0,names.beg);
 
 	for(unsigned int i=0;i<tempNum;i++)
 		names.getline(bufs,32);
-	
+
 	names.close();
-	
+
 	switch(bufs[0]){
 	default :
 	case 'm': e->gender = MALE;  break;
 	case 'f': e->gender = FEMALE;break;
 	}
-	
+
 	strcpy(e->name,bufs+1);
-	
+
 	delete[] bufs;
 }
 
@@ -75,7 +75,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	loc.y = y;
 	vel.x = 0;
 	vel.y = 0;
-	
+
 	alive	= true;
 	right	= true;
 	left	= false;
@@ -83,29 +83,29 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	//canMove	= true;
 	ground	= false;
 	hit 	= false;
-	
+
 	ticksToUse = 0;
-	
+
 	if(!maxHealth)health = maxHealth = 1;
-	
+
 	if(type==MOBT){
 		if(Mobp(this)->subtype == MS_BIRD){
 			Mobp(this)->init_y=loc.y;
 		}
 	}
-	
+
 	name = new char[32];
 	getRandomName(this);
-	
+
 	followee = NULL;
 }
 
 Player::Player(){ //sets all of the player specific traits on object creation
 	width = HLINE * 10;
 	height = HLINE * 15;
-	
+
 	type = PLAYERT; //set type to player
-	subtype = 0;	
+	subtype = 0;
 	health = maxHealth = 100;
 	speed = 1;
 	canMove = true;
@@ -130,18 +130,18 @@ Player::~Player(){
 NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	width = HLINE * 10;
 	height = HLINE * 16;
-	
+
 	type	= NPCT; //sets type to npc
 	subtype = 0;
 
 	health = maxHealth = 100;
-	
+
 	maxHealth = health = 100;
 	canMove = true;
-	
+
 	tex = new Texturec(1,"assets/NPC.png");
 	inv = new Inventory(NPC_INV_SIZE);
-	
+
 	randDialog = rand() % RAND_DIALOG_COUNT - 1;
 	dialogIndex = 0;
 }
@@ -150,7 +150,7 @@ NPC::~NPC(){
 	while(!aiFunc.empty()){
 		aiFunc.pop_back();
 	}
-	
+
 	delete inv;
 	delete tex;
 	delete[] name;
@@ -159,22 +159,22 @@ NPC::~NPC(){
 Merchant::Merchant(){	//sets all of the Merchant specific traits on object creation
 	width = HLINE * 10;
 	height = HLINE * 16;
-	
+
 	type	= MERCHT; //sets type to merchant
 	subtype = 0;
 
 	health = maxHealth = 100;
-	
+
 	maxHealth = health = 100;
 	canMove = true;
 
 	trade.reserve(100);
 	currTrade = 0;
-	
+
 	//tex = new Texturec(1,"assets/NPC.png");
 	//inv = new Inventory(NPC_INV_SIZE);
 	//inv = new Inventory(1);
-                                                                                                            
+
 	//randDialog = rand() % RAND_DIALOG_COUNT - 1;
 	dialogIndex = 0;
 }
@@ -183,7 +183,7 @@ Merchant::~Merchant(){
 	/*while(!aiFunc.empty()){
 		aiFunc.pop_back();
 	}*/
-	
+
 	//delete inv;
 	//delete tex;
 	//delete[] name;
@@ -191,18 +191,18 @@ Merchant::~Merchant(){
 
 Structures::Structures(){ //sets the structure type
 	health = maxHealth = 1;
-	
+
 	alive = false;
 	near  = false;
-	
+
 	name = NULL;
-	
+
 	//inv = NULL;
 	canMove = false;
 }
 Structures::~Structures(){
 	delete tex;
-	
+
 	if(name)
 		delete[] name;
 }
@@ -210,10 +210,10 @@ Structures::~Structures(){
 Mob::Mob(int sub){
 	type = MOBT;
 	aggressive = false;
-	
+
 	maxHealth = health = 50;
 	canMove = true;
-	
+
 	switch((subtype = sub)){
 	case MS_RABBIT:
 		width  = HLINE * 10;
@@ -241,7 +241,7 @@ Mob::Mob(int sub){
 		tex = new Texturec(1,"assets/items/ITEM_PAGE.png");
 		break;
 	}
-	
+
 	inv = new Inventory(NPC_INV_SIZE);
 }
 Mob::~Mob(){
@@ -259,7 +259,7 @@ Object::Object(){
 	canMove = false;
 
 	maxHealth = health = 1;
-	
+
 	tex = NULL;
 	inv = NULL;
 }
@@ -288,7 +288,7 @@ Object::~Object(){
 void Object::reloadTexture(void){
 	if(tex)
 		delete tex;
-		
+
 	tex = new Texturec(1,getItemTexturePath(iname));
 	width  = getItemWidth(iname);
 	height = getItemHeight(iname);
@@ -297,10 +297,10 @@ void Object::reloadTexture(void){
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	glColor3ub(255,255,255);
-	
+
 	if ( !alive )
 		return;
-	
+
 	if(type==NPCT){
 		if(NPCp(this)->aiFunc.size()){
 			glColor3ub(255,255,0);
@@ -363,7 +363,7 @@ void Entity::draw(void){		//draws the entities
 				tex->bind(0);
 				break;
 			}
-		} 
+		}
 		break;
 	default:
 		glActiveTexture(GL_TEXTURE0);
@@ -395,7 +395,7 @@ void NPC::
 wander( int timeRun )
 {
 	static int direction;
-	
+
 	if ( followee ) {
 		if ( loc.x < followee->loc.x - 40 )
 			direction = 1;
@@ -403,25 +403,28 @@ wander( int timeRun )
 			direction = -1;
 		else
 			direction = 0;
-		
+
 		vel.x = .018 * HLINE * direction;
 	} else if ( ticksToUse == 0 ) {
 		ticksToUse = timeRun;
-		
+
 		vel.x = .008 * HLINE;
 		direction = (getRand() % 3 - 1);
-		
+
 		if ( direction == 0 )
 			ticksToUse *= 2;
-		
+
 		vel.x *= direction;
 	}
-	
+
+	if( vel.x < 0)
+		currentWorld->goWorldLeft( this );
+
 	ticksToUse--;
 }
 
 void NPC::addAIFunc(int (*func)(NPC *),bool preload){
-	if(preload){										// Preload AI functions so that they're given after 
+	if(preload){										// Preload AI functions so that they're given after
 														// the current dialog box is closed
 		AIpreload.push_back(func);
 		AIpreaddr.push_back(this);
@@ -437,14 +440,14 @@ void NPC::interact(){ //have the npc's interact back to the player
 	std::thread([this]{
 		int (*func)(NPC *);
 		loc.y += 5;
-		
+
 		canMove=false;
 		left = (player->loc.x < loc.x);
 		right = !left;
-		
+
 		if(aiFunc.size()){
 			func=aiFunc.front();
-			
+
 			if(!func(this)){
 				if(aiFunc.size())aiFunc.erase(aiFunc.begin());
 			}
@@ -525,17 +528,17 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 
 	bsubtype = sub;
 	dim2 dim;
-	
+
 	/*
 	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
 	 *	will spawn bewteen 2 and 7 villagers for the starting hut.
 	*/
 
 	//unsigned int tempN = (getRand() % 5 + 2);
-	
+
 	if ( textureLoc.empty() )
 		textureLoc = inWorld->sTexLoc[sub];
-	
+
 	switch(sub){
 		case STALL_MARKET:
 			tex = new Texturec({ textureLoc });
@@ -551,7 +554,7 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 			inv = NULL;
 			break;
 	}
-	
+
 	return 0;
 }
 
@@ -565,7 +568,7 @@ void Mob::wander(int timeRun){
 	static int direction;	//variable to decide what direction the entity moves
 	static unsigned int heya=0,hi=0;
 	static bool YAYA = false;
-	
+
 	if ( followee ) {
 		if ( loc.x < followee->loc.x - 40 )
 			direction = 1;
@@ -573,11 +576,11 @@ void Mob::wander(int timeRun){
 			direction = -1;
 		else
 			direction = 0;
-		
+
 		vel.x = .018 * HLINE * direction;
 		return;
 	}
-	
+
 	if(aggressive && !YAYA &&
 	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
 	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height ){
@@ -586,7 +589,7 @@ void Mob::wander(int timeRun){
 			a->setStyle("");
 			a->setBackground( WorldBGType::Forest );
 			a->setBGM("assets/music/embark.wav");
-		
+
 			ui::toggleWhiteFast();
 			YAYA = true;
 			ui::waitForCover();
@@ -595,7 +598,7 @@ void Mob::wander(int timeRun){
 			ui::toggleWhiteFast();
 		}
 	}
-	
+
 	switch(subtype){
 	case MS_RABBIT:
 		if(!ticksToUse){
@@ -654,16 +657,16 @@ void Player::save(void){
 	data.append(std::to_string((int)health) + "\n");
 	data.append(std::to_string((int)maxHealth) + "\n");
 	data.append(std::to_string((int)tickCount) + "\n");
-	
+
 	data.append(std::to_string((int)inv->items.size()) + "\n");
 	for(auto &i : inv->items)
 		data.append(std::to_string((int)i.count) + "\n" + std::to_string((int)i.id) + "\n");
-	
+
 	data.append((std::string)(currentXML.c_str() + 4) + "\n");
-	
+
 	data.append("dOnE\0");
 	out.write(data.c_str(),data.size());
-	out.close();	
+	out.close();
 }
 
 void Player::sspawn(float x,float y){
@@ -671,21 +674,21 @@ void Player::sspawn(float x,float y){
 	uint count;
 	std::ifstream in ("xml/main.dat",std::ios::in | std::ios::binary);
 	spawn(x,y);
-	
+
 	if(in.good()){
 		std::istringstream data;
 		std::string ddata;
 		std::streampos len;
-		
+
 		in.seekg(0,std::ios::end);
 		len = in.tellg();
 		in.seekg(0,std::ios::beg);
-		
+
 		std::vector<char> buf (len,'\0');
 		in.read(buf.data(),buf.size());
-		
+
 		data.rdbuf()->pubsetbuf(buf.data(),buf.size());
-		
+
 		std::getline(data,ddata);
 		loc.x = std::stoi(ddata);
 		std::getline(data,ddata);
@@ -696,7 +699,7 @@ void Player::sspawn(float x,float y){
 		maxHealth = std::stoi(ddata);
 		std::getline(data,ddata);
 		tickCount = std::stoi(ddata);
-	
+
 		std::getline(data,ddata);
 		for(i = std::stoi(ddata);i;i--){
 			std::getline(data,ddata);
@@ -704,10 +707,10 @@ void Player::sspawn(float x,float y){
 			std::getline(data,ddata);
 			inv->items.push_back(item_t{count,(uint)std::stoi(ddata)});
 		}
-		
+
 		std::getline(data,ddata);
 		currentWorld = loadWorldFromXMLNoSave(ddata.c_str());
-		
+
 		in.close();
 	}
 }
