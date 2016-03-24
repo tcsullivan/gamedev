@@ -195,7 +195,6 @@ public:
 class Player : public Entity{
 public:
 	QuestHandler qh;
-	bool light = false;
 
 	Player();
 	~Player();

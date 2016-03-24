@@ -343,7 +343,7 @@ int main(int argc, char *argv[]){
 
 	std::cout << "Initializing shaders!" << std::endl;
 
-	const GLchar *shaderSource = readFile("test.frag");
+	const GLchar *shaderSource = readFile("frig.frag");
 
 	GLint bufferln = GL_FALSE;
 	int logLength;
@@ -672,7 +672,7 @@ void render(){
 
 		ui::putText(offset.x-SCREEN_WIDTH/2,
 					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f\nPl: %d\n Vol: %f",
+					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f\nVol: %f",
 					fps,
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
@@ -682,7 +682,6 @@ void render(){
 					debugY,						// The player's y coordinate
 					tickCount,
 					handAngle,
-					player->light,
 					VOLUME_MASTER
 					);
 

@@ -532,13 +532,40 @@ draw( Player *p )
 	glActiveTexture( GL_TEXTURE0 );
 	bgTex->bindNext();
 
-	std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size() + p->light));
-	auto pointArray = pointArrayBuf.get();
+    for(auto &l : light){
+        if(l.belongsTo){
+            l.loc.x = l.following->loc.x + SCREEN_WIDTH/2;
+            l.loc.y = l.following->loc.y;
+        }
+        if(l.flame){
+            l.fireFlicker = .9+((rand()%2)/10.0f);
+            l.fireLoc.x = l.loc.x + (rand()%2-1)*3;
+            l.fireLoc.y = l.loc.y + (rand()%2-1)*3;
 
-	for ( i = 0; i < (int)light.size(); i++ ) {
-		pointArray[2 * i    ] = light[i].loc.x - offset.x;
-		pointArray[2 * i + 1] = light[i].loc.y;
+            //std::cout << l.fireLoc.x << "," << l.fireLoc.y << std::endl;
+            //std::cout << l.loc.x << "," << l.loc.y << std::endl << std::endl;
+        }else{
+            l.fireFlicker = 1.0f;
+        }
+    }
+
+    std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
+	auto pointArray = pointArrayBuf.get();
+    GLfloat flameArray[64];
+
+	for (uint i = 0; i < light.size(); i++) {
+        if(light[i].flame){
+    		pointArray[2 * i    ] = light[i].fireLoc.x - offset.x;
+    		pointArray[2 * i + 1] = light[i].fireLoc.y;
+        }else{
+            pointArray[2 * i    ] = light[i].loc.x - offset.x;
+            pointArray[2 * i + 1] = light[i].loc.y;
+        }
 	}
+
+    for(uint i = 0; i < light.size(); i++){
+        flameArray[i] = light[i].fireFlicker;
+    }
 
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
@@ -547,17 +574,13 @@ draw( Player *p )
 	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0 );
 	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), shadeAmbient );
 
-	if ( p->light ) {
-		pointArray[2 * (light.size() + 1)    ] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
-		pointArray[2 * (light.size() + 1) + 1] = (float)( p->loc.y );
-	}
-
-	if ( light.size() + (int)p->light == 0)
+	if ( light.size() == 0)
 		glUniform1i( glGetUniformLocation( shaderProgram, "numLight"), 0);
 	else {
-		glUniform1i ( glGetUniformLocation( shaderProgram, "numLight"     ), light.size() + (int)p->light );
-		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size() + (int)p->light, pointArray );
+		glUniform1i ( glGetUniformLocation( shaderProgram, "numLight"     ), light.size());
+		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size(), pointArray );
 		glUniform3f ( glGetUniformLocation( shaderProgram, "lightColor"   ), 1.0f, 1.0f, 1.0f );
+        glUniform1fv(glGetUniformLocation(shaderProgram,"fireFlicker"), light.size(),flameArray);
 	}
 
     /*
@@ -964,11 +987,8 @@ addParticle( float x, float y, float w, float h, float vx, float vy, Color color
 }
 
 void World::addLight(vec2 loc, Color color){
-	Light l;
-	if ( light.size() < 64 ) {
-		l.loc = loc;
-		l.color = color;
-		light.push_back(l);
+	if(light.size() < 64){
+		light.push_back(Light(loc,color,1));
 	}
 }
 
@@ -1236,35 +1256,60 @@ void IndoorWorld::draw(Player *p){
 	 *	Draw the background.
 	*/
 
-	glEnable(GL_TEXTURE_2D);
+	//glEnable(GL_TEXTURE_2D);
 
-	std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size() + p->light));
+    for(auto &l : light){
+        if(l.belongsTo){
+            l.loc.x = l.following->loc.x + SCREEN_WIDTH/2;
+            l.loc.y = l.following->loc.y;
+        }
+        if(l.flame){
+            l.fireFlicker = .9+((rand()%2)/10.0f);
+            l.fireLoc.x = l.loc.x + (rand()%2-1)*3;
+            l.fireLoc.y = l.loc.y + (rand()%2-1)*3;
+
+            //std::cout << l.fireLoc.x << "," << l.fireLoc.y << std::endl;
+            //std::cout << l.loc.x << "," << l.loc.y << std::endl << std::endl;
+        }else{
+            l.fireFlicker = 1.0f;
+        }
+    }
+
+    std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
 	auto pointArray = pointArrayBuf.get();
+    GLfloat flameArray[64];
 
-	for ( i = 0; i < light.size(); i++ ) {
-		pointArray[2 * i    ] = light[i].loc.x - offset.x;
-		pointArray[2 * i + 1] = light[i].loc.y;
+	for (i = 0; i < light.size(); i++) {
+        if(light[i].flame){
+    		pointArray[2 * i    ] = light[i].fireLoc.x - offset.x;
+    		pointArray[2 * i + 1] = light[i].fireLoc.y;
+        }else{
+            pointArray[2 * i    ] = light[i].loc.x - offset.x;
+            pointArray[2 * i + 1] = light[i].loc.y;
+        }
 	}
 
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    for(i = 0; i < light.size(); i++){
+        flameArray[i] = light[i].fireFlicker;
+    }
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	glUseProgram( shaderProgram );
-	glUniform1i( glGetUniformLocation( shaderProgram, "sampler"), 0 );
-	glUniform1f( glGetUniformLocation( shaderProgram, "amb"    ), 0.3f );
+	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
+	glUniform1f(glGetUniformLocation(shaderProgram, "amb"    ), 0.02f + light.size()/50.0f);
 
-	if ( p->light ) {
-		pointArray[2 * (light.size() + 1)    ] = (float)( p->loc.x + SCREEN_WIDTH / 2 );
-		pointArray[2 * (light.size() + 1) + 1] = (float)( p->loc.y );
-	}
-
-	if ( light.size() + (int)p->light == 0)
-		glUniform1i( glGetUniformLocation( shaderProgram, "numLight"), 0);
+	if ( light.size() == 0)
+		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 0);
 	else {
-		glUniform1i ( glGetUniformLocation( shaderProgram, "numLight"     ), light.size() + (int)p->light );
-		glUniform2fv( glGetUniformLocation( shaderProgram, "lightLocation"), light.size() + (int)p->light, pointArray );
-		glUniform3f ( glGetUniformLocation( shaderProgram, "lightColor"   ), 1.0f, 1.0f, 1.0f );
+		glUniform1i (glGetUniformLocation(shaderProgram, "numLight"     ), light.size());
+		glUniform2fv(glGetUniformLocation(shaderProgram, "lightLocation"), light.size(), pointArray);
+		glUniform3f (glGetUniformLocation(shaderProgram, "lightColor"   ), 1.0f, 1.0f, 1.0f);
+        glUniform1fv(glGetUniformLocation(shaderProgram, "fireFlicker"), light.size(), flameArray);
 	}
+
+    //delete[] flameArray;
 
 	bgTex->bind(0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
@@ -1279,7 +1324,7 @@ void IndoorWorld::draw(Player *p){
 	glEnd();
 
 	glUseProgram(0);
-	glDisable(GL_TEXTURE_2D);
+	//glDisable(GL_TEXTURE_2D);
 
 	/*
 	 *	Calculate the starting and ending points to draw the ground from.
