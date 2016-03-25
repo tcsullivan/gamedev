@@ -21,7 +21,7 @@ struct index_t {
 
 /**
  * A vector of all loaded textures.
- * 
+ *
  * Should a texture be asked to be loaded twice, loadTexture() can reference
  * this array and reuse GLuint's to save memory.
  */
@@ -30,7 +30,7 @@ static std::vector<texture_t> LoadedTexture;
 
 namespace Texture{
 	Color pixels[8][4];
-	
+
 	GLuint loadTexture(std::string fileName){
 		SDL_Surface *image;
 		GLuint object = 0;
@@ -38,11 +38,11 @@ namespace Texture{
 		// check if texture is already loaded
 		for(auto &t : LoadedTexture){
 			if(t.name == fileName){
-				
+
 #ifdef DEBUG
 				DEBUG_printf("Reusing loaded texture for %s\n", fileName.c_str());
 #endif // DEBUG
-				
+
 				return t.tex;
 			}
 		}
@@ -50,39 +50,39 @@ namespace Texture{
 		// load SDL_surface of texture
 		if(!(image = IMG_Load(fileName.c_str())))
 			return 0;
-			
+
 #ifdef DEBUG
 		DEBUG_printf("Loaded image file: %s\n", fileName.c_str());
 #endif // DEBUG
-		
+
 		/*
 		 * Load texture through OpenGL.
 		 */
-		
+
 		glGenTextures(1,&object);				// Turns "object" into a texture
 		glBindTexture(GL_TEXTURE_2D,object);	// Binds "object" to the top of the stack
 		glPixelStoref(GL_UNPACK_ALIGNMENT,1);
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// Sets the "min" filter
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// The the "max" filter of the stack
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	// Sets the "min" filter
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	// The the "max" filter of the stack
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Wrap the texture to the matrix
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); //
 
 		glTexImage2D(GL_TEXTURE_2D,  // Sets the texture to the image file loaded above
-					 0, 
+					 0,
 					 GL_RGBA,
 					 image->w,
-					 image->h, 
-					 0, 
-					 GL_RGBA, 
-					 GL_UNSIGNED_BYTE, 
+					 image->h,
+					 0,
+					 GL_RGBA,
+					 GL_UNSIGNED_BYTE,
 					 image->pixels
 					 );
-		
+
 		// add texture to LoadedTexture
-		LoadedTexture.push_back(texture_t{fileName,object,{image->w,image->h}});		
-		
+		LoadedTexture.push_back(texture_t{fileName,object,{image->w,image->h}});
+
 		// free the SDL_Surface
 		SDL_FreeSurface(image);
 
@@ -96,7 +96,7 @@ namespace Texture{
 		}
 		return {0,0};
 	}
-	
+
 	void freeTextures(void){
 		while(!LoadedTexture.empty()){
 			glDeleteTextures(1, &LoadedTexture.back().tex);
@@ -109,18 +109,18 @@ namespace Texture{
 		unsigned int i;
 		GLubyte *buffer;
 		GLfloat *bufferf;
-		
+
 		buffer  = new GLubyte[CINDEX_WIDTH];
 		bufferf = new GLfloat[CINDEX_WIDTH];
-		
+
 		colorIndex = loadTexture("assets/colorIndex.png");
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, colorIndex);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
-		
+
 		for(i = 0; i < CINDEX_WIDTH; i++)
 			bufferf[i] = (float)buffer[i] / 255.0f;
-		
+
 		i = 0;
 		for(unsigned int y = 0; y < 8; y++){
 			for(unsigned int x = 0; x < 4; x++){
