@@ -415,6 +415,7 @@ int main(int argc, char *argv[]){
 	std::cout << "Num threads: " << std::thread::hardware_concurrency() << std::endl;
 
 	//currentWorld->mob.back()->followee = player;
+	glClearColor(1,1,1,1);
 
 	gameRunning = true;
 	while ( gameRunning )
@@ -501,6 +502,7 @@ void mainLoop(void){
 		currentWorld->update(player,deltaTime);
 	});*/
 	currentWorld->update( player, deltaTime );
+	currentWorld->detect(player);
 
 	/*
 	 * Update debug variables if necessary
@@ -672,7 +674,7 @@ void render(){
 
 		ui::putText(offset.x-SCREEN_WIDTH/2,
 					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f\nVol: %f",
+					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f\nVol: %f\nWea: %s",
 					fps,
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
@@ -682,7 +684,8 @@ void render(){
 					debugY,						// The player's y coordinate
 					tickCount,
 					handAngle,
-					VOLUME_MASTER
+					VOLUME_MASTER,
+					getWorldWeatherStr( weather ).c_str()
 					);
 
 		if(ui::posFlag){
@@ -756,7 +759,7 @@ void logic(){
 	 *	that exist in this world.
 	 */
 
-	currentWorld->detect(player);
+
 	if(player->loc.y<.02)gameRunning=false;
 
 	/*
@@ -928,6 +931,37 @@ void logic(){
 		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?40:10;
 		else fadeIntensity = 0;
 	}
+
+	/*
+	 * Rain?
+	 */
+
+	 if ( weather == WorldWeather::Rain ) {
+		 for ( unsigned int r = (randGet() % 25) + 11; r--; ) {
+			 currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
+									   offset.y + SCREEN_HEIGHT / 2,
+									   HLINE * 1.25,										// width
+									   HLINE * 1.25,										// height
+									   randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
+									   (4 + randGet() % 6) * .05,							// vel.y
+									   { 0, 0, 255 },										// RGB color
+									   2500													// duration (ms)
+									   );
+		 }
+	 } else if ( weather == WorldWeather::Snowy ) {
+		 for ( unsigned int r = (randGet() % 25) + 11; r--; ) {
+			 currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
+									   offset.y + SCREEN_HEIGHT / 2,
+									   HLINE * 1.25,										// width
+									   HLINE * 1.25,										// height
+							.0001 + randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
+									   (4 + randGet() % 6) * -.03,							// vel.y
+									   { 255, 255, 255 },									// RGB color
+									   5000,												// duration (ms)
+									   false
+									   );
+		 }
+	 }
 
 	/*
 	 *	Increment a loop counter used for animating sprites.

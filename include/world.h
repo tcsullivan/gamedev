@@ -43,7 +43,8 @@ enum class WorldBGType : unsigned char {
 enum class WorldWeather : unsigned char {
 	Sunny = 0,	/**< Sunny/daytime */
 	Dark,		/**< Nighttime */
-	Rain		/**< Rain (to be implemented)*/
+	Rain,		/**< Rain */
+	Snowy		/**< Snow */
 };
 
 /**
@@ -363,7 +364,8 @@ public:
 	 * velocity, color and duration (time to live).
 	 */
 
-	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int duration);
+	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d);
+	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d, bool gravity );
 
 	/**
 	 * Adds a light to the world with the specified coordinates and color.
@@ -527,6 +529,8 @@ public:
 
 	World *exitArena( Player *p );
 };
+
+std::string getWorldWeatherStr( WorldWeather ww );
 
 /**
  * Loads the player into the world created by the given XML file. If a world is

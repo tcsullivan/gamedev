@@ -16,6 +16,7 @@ extern SDL_Window *window;
 
 extern Player *player;
 extern World  *currentWorld;
+extern WorldWeather weather;
 
 /*
  *	In the case of dialog, some NPC quests can be preloaded so that they aren't assigned until
@@ -1460,6 +1461,9 @@ EXIT:
 					return;
 				}
 				switch(SDL_KEY){
+				case SDLK_z:
+					weather = WorldWeather::Snowy;
+					break;
 				case SDLK_a:
 					left = false;
 					break;

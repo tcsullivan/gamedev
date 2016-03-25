@@ -19,6 +19,11 @@ using namespace tinyxml2;
 
 #define INDOOR_FLOOR_HEIGHT     100
 
+/**
+ * Gravity thing
+ */
+
+#define GRAVITY_CONSTANT        0.001f
 
 extern Player *player;						// main.cpp?
 extern World  *currentWorld;				// main.cpp
@@ -427,7 +432,7 @@ draw( Player *p )
 	// the sunny wallpaper is faded with the night depending on tickCount
 
 	bgTex->bind( 0 );
-	safeSetColorA( 255, 255, 255, 255 - worldShade * 4 );
+	safeSetColorA( 255, 255, 255, weather == WorldWeather::Snowy ? 150 : 255 - worldShade * 4);
 
 	glBegin( GL_QUADS );
 		glTexCoord2i( 0, 0 ); glVertex2i(  worldStart, SCREEN_HEIGHT );
@@ -437,7 +442,7 @@ draw( Player *p )
 	glEnd();
 
 	bgTex->bindNext();
-	safeSetColorA( 255, 255, 255, worldShade * 4 );
+	safeSetColorA( 255, 255, 255, worldShade * 4);
 
 	glBegin( GL_QUADS );
 		glTexCoord2i( 0, 0 ); glVertex2i(  worldStart, SCREEN_HEIGHT );
@@ -818,7 +823,7 @@ singleDetect( Entity *e )
 				e->ground = true;
 				return;
 			} else if ( e->vel.y > -2 )
-                e->vel.y -= .003 * deltaTime;
+                e->vel.y -= GRAVITY_CONSTANT * deltaTime;
 		}
 
 		/*
@@ -874,7 +879,7 @@ detect( Player *p )
 			part.velx = 0;
 			part.canMove = false;
 		} else if ( part.gravity && part.vely > -2 )
-			part.vely -= .003 * deltaTime;
+			part.vely -= GRAVITY_CONSTANT * deltaTime;
 	}
 
 	// handle particle creation
@@ -985,6 +990,15 @@ addParticle( float x, float y, float w, float h, float vx, float vy, Color color
 	particles.emplace_back( x, y, w, h, vx, vy, color, d );
 	particles.back().canMove = true;
 }
+
+void World::
+addParticle( float x, float y, float w, float h, float vx, float vy, Color color, int d, bool gravity )
+{
+	particles.emplace_back( x, y, w, h, vx, vy, color, d );
+	particles.back().canMove = true;
+    particles.back().gravity = gravity;
+}
+
 
 void World::addLight(vec2 loc, Color color){
 	if(light.size() < 64){
@@ -1414,7 +1428,23 @@ World *Arena::exitArena(Player *p){
 	}
 }
 
-
+std::string getWorldWeatherStr( WorldWeather ww )
+{
+    switch ( ww ) {
+    case WorldWeather::Sunny:
+        return "Sunny";
+        break;
+    case WorldWeather::Dark:
+        return "Darky";
+        break;
+    case WorldWeather::Rain:
+        return "Rainy";
+        break;
+    default:
+        return "Look at the screen u scrub";
+        break;
+    }
+}
 
 static bool loadedLeft = false;
 static bool loadedRight = false;
