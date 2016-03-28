@@ -202,6 +202,20 @@ public:
 	void sspawn(float x,float y);
 };
 
+class Structures : public Entity{
+public:
+	BUILD_SUB bsubtype;
+	World *inWorld;
+	std::string inside;
+	std::string textureLoc;
+
+	Structures();
+	~Structures();
+
+	unsigned int spawn(BUILD_SUB, float, float);
+};
+
+
 class NPC : public Entity {
 public:
 	std::vector<int (*)(NPC *)>aiFunc;
@@ -214,7 +228,7 @@ public:
 	void addAIFunc(int (*func)(NPC *),bool preload);
 	void clearAIFunc(void);
 	virtual void interact();
-	void wander(int);
+	virtual void wander(int);
 };
 
 class Merchant : public NPC{
@@ -223,22 +237,12 @@ public:
 	uint currTrade;
 
 	void interact();
+	Structures *inside;
 
 	Merchant();
 	~Merchant();
-};
 
-class Structures : public Entity{
-public:
-	BUILD_SUB bsubtype;
-	World *inWorld;
-	std::string inside;
-	std::string textureLoc;
-
-	Structures();
-	~Structures();
-
-	unsigned int spawn(BUILD_SUB, float, float);
+	void wander(int);
 };
 
 class Mob : public Entity{

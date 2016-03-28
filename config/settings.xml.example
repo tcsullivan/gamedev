@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<screen width="1280" height="800" fullscreen="true"/>
+<screen width="1280" height="800"/>
 
 <!--
 
@@ -14,7 +14,6 @@ Available fonts:
 	VCR_OSD_MONO_1.001.ttf
 
 -->
-
 <font path="ttf/FreePixel.ttf"/>
 
 <hline size="3"/>

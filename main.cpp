@@ -325,7 +325,7 @@ int main(int argc, char *argv[]){
 	 */
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	//SDL_GL_SetSwapInterval(0);
+	SDL_GL_SetSwapInterval(0);
 
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -461,16 +461,18 @@ void mainLoop(void){
 
 	if(!currentTime)						// Initialize currentTime if it hasn't been
 		currentTime=millis();
+	if(!prevTime){
+		prevTime=currentTime;
+	}
 
 	/*
 	 * Update timing values. This is crucial to calling logic and updating the window (basically
 	 * the entire game).
 	 */
 
-	prevTime	= currentTime;
 	currentTime = millis();
 	deltaTime	= currentTime - prevTime;
-
+	prevTime	= currentTime;
 
 	if(currentMenu)goto MENU;
 
@@ -487,7 +489,6 @@ void mainLoop(void){
 		currentWorld->bgmPlay(prev);
 		ui::dialogBoxExists = false;
 	}
-
 	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
 		//pool.Enqueue(logic);
 		logic();
@@ -588,7 +589,7 @@ void render(){
 	glPushMatrix();
 	glLoadIdentity();
 	// glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),(offset.y-SCREEN_HEIGHT/2),(offset.y+SCREEN_HEIGHT/2),-1,1);
-	glOrtho(floor(offset.x-SCREEN_WIDTH/2),floor(offset.x+SCREEN_WIDTH/2),floor(offset.y-SCREEN_HEIGHT/2),floor(offset.y+SCREEN_HEIGHT/2),-1,1);
+	glOrtho(floor(offset.x-SCREEN_WIDTH/2),floor(offset.x+SCREEN_WIDTH/2),floor(offset.y-SCREEN_HEIGHT/2),floor(offset.y+SCREEN_HEIGHT/2),20,-20);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -604,8 +605,8 @@ void render(){
 	 *					GL_COLOR_BUFFER_BIT allows the matrices to have color on them
 	 */
 
-	glPushAttrib( GL_DEPTH_BUFFER_BIT | GL_LIGHTING_BIT );
-	glClear(GL_COLOR_BUFFER_BIT);
+	glPushAttrib( GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	/**************************
 	**** RENDER STUFF HERE ****
@@ -635,7 +636,6 @@ void render(){
 
 	if(ui::mouse.x > player->loc.x && ui::mouse.y < player->loc.y+player->height/2 && handAngle <= 0)
 		handAngle = 360 + handAngle;
-
 
 	/*
 	 * Draw the player's inventory.

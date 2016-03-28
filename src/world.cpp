@@ -401,9 +401,7 @@ bgmPlay( World *prev ) const
  * screen.
  */
 
-void World::
-draw( Player *p )
-{
+void World::draw(Player *p){
     // iterators
     int i, iStart, iEnd;
 
@@ -1631,6 +1629,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 							   vil->StrAttribute("texture"),
 							   vil->StrAttribute("inside"));
 				tmp->addMerchant(0,100);
+                tmp->merchant.back()->inside = tmp->build.back();
 				if(vil->FirstChildElement("buy")){
 					std::cout << "Buy" << std::endl;
 				}if(vil->FirstChildElement("sell")){

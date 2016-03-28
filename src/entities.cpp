@@ -31,7 +31,7 @@ const char *randomDialog[RAND_DIALOG_COUNT] = {
 	"Frig.",
 	"The sine of theta equals the opposite over the hypotenuese.",
 	"Did you know the developers spelt brazier as brazzier.",
-	"My dad once said to me, \"Boy, you are in a game.\" I never knew what he meant by that."
+	"What's a bagel? I don't know because I'm mormon"
 };
 
 void initEntity(){
@@ -171,6 +171,8 @@ Merchant::Merchant(){	//sets all of the Merchant specific traits on object creat
 	trade.reserve(100);
 	currTrade = 0;
 
+	inside = nullptr;
+
 	//tex = new Texturec(1,"assets/NPC.png");
 	//inv = new Inventory(NPC_INV_SIZE);
 	//inv = new Inventory(1);
@@ -183,7 +185,7 @@ Merchant::~Merchant(){
 	/*while(!aiFunc.empty()){
 		aiFunc.pop_back();
 	}*/
-
+	delete inside;
 	//delete inv;
 	//delete tex;
 	//delete[] name;
@@ -457,6 +459,29 @@ void NPC::interact(){ //have the npc's interact back to the player
 		ui::waitForDialog();
 		canMove=true;
 	}).detach();
+}
+
+void Merchant::wander(int timeRun){
+	static int direction;
+	if ( ticksToUse == 0 ) {
+		ticksToUse = timeRun;
+
+		vel.x = .008 * HLINE;
+		direction = (getRand() % 3 - 1);
+
+		if ( direction == 0 )
+			ticksToUse *= 2;
+
+		vel.x *= direction;
+	}
+
+	if( vel.x < 0)
+		currentWorld->goWorldLeft( this );
+	if(inside != nullptr){
+		if(loc.x <= inside->loc.x)loc.x = inside->loc.x;
+		if(loc.x + width >= inside->loc.x + inside->width)loc.x = inside->loc.x + inside->width - width;
+	}
+	ticksToUse--;
 }
 
 void Merchant::interact(){

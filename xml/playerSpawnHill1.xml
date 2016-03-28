@@ -16,7 +16,7 @@
 
 	<page x="-200" id="assets/pages/gootaGoFast.png" />
 
-	<village name="the Cranmore Tubing Park">
+	<village name="Scrub Lawd">
 		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
 		<structure type="5" x="-500" inside="playerSpawnHill1_Building1.xml"/>
 		<stall type="market" texture="assets/style/classic/stall.png">
