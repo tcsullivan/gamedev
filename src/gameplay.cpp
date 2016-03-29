@@ -212,13 +212,13 @@ CONT:
 void commonPageFunc( Mob *callee )
 {
 	static bool lock = false;
-	
+
 	if ( !lock ) {
 		lock = true;
-		
+
 		ui::drawPage( callee->heyid );
 		ui::waitForDialog();
-		
+
 		callee->alive = false;
 		lock = false;
 	}

@@ -99,7 +99,7 @@ static GLuint pageTex = 0;
 void Menu::gotoParent(){
 	if(parent == NULL){
 		currentMenu = NULL;
-		updateConfig();
+		config::update();
 	}else{
 		currentMenu = parent;
 	}
@@ -881,8 +881,8 @@ namespace ui {
 		dialogBoxExists = false;
 		currentMenu = NULL;
 		gameRunning = false;
-		updateConfig();
-		saveConfig();
+		config::update();
+		config::save();
 	}
 
 	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f){
@@ -955,7 +955,7 @@ namespace ui {
 
 	void drawMenu(Menu *menu){
 		setFontSize(24);
-		updateConfig();
+		config::update();
 		SDL_Event e;
 
 		mouse.x=premouse.x+offset.x-(SCREEN_WIDTH/2);
@@ -1311,13 +1311,20 @@ EXIT:
 				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )
 					player->inv->usingi = true;
 
-				for ( auto &e : currentWorld->entity ) {
-					if( mouse.x > e->loc.x && mouse.x < e->loc.x + e->width &&
-						mouse.y > e->loc.y && mouse.y < e->loc.y + e->height ) {
-						e->vel.y = .05;
-						fr = mouse;
-						ig = e;
-						break;
+				if( mouse.x > player->loc.x && mouse.x < player->loc.x + player->width &&
+					mouse.y > player->loc.y && mouse.y < player->loc.y + player->height ) {
+					player->vel.y = .05;
+					fr = mouse;
+					ig = player;
+				} else {
+					for ( auto &e : currentWorld->entity ) {
+						if( mouse.x > e->loc.x && mouse.x < e->loc.x + e->width &&
+							mouse.y > e->loc.y && mouse.y < e->loc.y + e->height ) {
+							e->vel.y = .05;
+							fr = mouse;
+							ig = e;
+							break;
+						}
 					}
 				}
 

@@ -243,8 +243,10 @@ int main(int argc, char *argv[]){
 		std::cout << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
 		return -1;
 	}
+
 	Mix_AllocateChannels(8);
-	updateConfig();
+
+	config::update();
 
 	// Run Mix_Quit when main returns
 	atexit(Mix_Quit);
@@ -253,7 +255,7 @@ int main(int argc, char *argv[]){
 	 * Load saved settings into the game (see config/settings.xml)
 	 */
 
-	readConfig();
+	config::read();
 
 	/*
 	 *	Create a window for SDL to draw to. Most parameters are the default, except for the

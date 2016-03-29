@@ -165,7 +165,7 @@ protected:
 	 * World::detect(), which is why it is declared private.
 	 */
 
-	void singleDetect( Entity *e );
+	virtual void singleDetect( Entity *e );
 
 	/**
 	 * Empties all entity vectors.
@@ -386,7 +386,7 @@ public:
 	 * half-width to positive half-width.
 	 */
 
-	virtual void generate(unsigned int width);
+	void generate(unsigned int width);
 
 	/**
 	 * Sets the background theme, collecting the required textures into a
@@ -482,11 +482,18 @@ public:
  */
 
 class IndoorWorld : public World {
+private:
+
+	std::vector<std::vector<float>> floor;
+
+	void singleDetect( Entity *e );
+
 public:
 	IndoorWorld(void);
 	~IndoorWorld(void);
 
-	void generate(unsigned int width);	// Generates a flat world of width 'width'
+	void addFloor( unsigned int width );
+
 	void draw(Player *p);				// Draws the world (ignores layers)
 };
 

@@ -18,7 +18,7 @@
 
 	<village name="Scrub Lawd">
 		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
-		<structure type="5" x="-500" inside="playerSpawnHill1_Building1.xml"/>
+		<structure type="5" x="-500" />
 		<stall type="market" texture="assets/style/classic/stall.png">
 			<buy item="Dank MayMay" cost="420"/>
 			<sell item="Dank MayMay" cost="666"/>

@@ -4,7 +4,7 @@
 #include <common.h>
 #include <string.h>
 
-#include <Texture.h>
+#include <texture.h>
 
 #define DEBUG
 

@@ -1,9 +1,12 @@
 <?xml version="1.0"?>
 <IndoorWorld>
 	<style background="1" bgm="assets/music/theme_jazz.wav" />
-	<generation type="Random" width="300" />
 
-	<npc name="Bob" hasDialog="true" />
+	<floor width="300">
+		<npc name="Bob" hasDialog="true" />
+	</floor>
+
+	<floor width="200" />
 
 </IndoorWorld>
 

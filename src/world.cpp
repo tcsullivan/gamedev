@@ -17,7 +17,8 @@ using namespace tinyxml2;
  * Defines the height of the floor in an IndoorWorld.
  */
 
-#define INDOOR_FLOOR_HEIGHT     100
+#define INDOOR_FLOOR_THICKNESS      50
+#define INDOOR_FLOOR_HEIGHTT        400
 
 /**
  * Gravity thing
@@ -316,21 +317,19 @@ update( Player *p, unsigned int delta )
 
 	// update entity coords
 	for ( auto &e : entity ) {
-		e->loc.y += e->vel.y * delta;
 
         // dont let structures move?
-        if ( e->type == STRUCTURET )
-            e->canMove = true;
-
-		if ( e->canMove ) {
+		if ( e->type != STRUCTURET && e->canMove ) {
 			e->loc.x += e->vel.x * delta;
+            e->loc.y += e->vel.y * delta;
 
             // update boolean directions
 			if ( e->vel.x < 0 )
                 e->left = true;
 	   		else if ( e->vel.x > 0 )
                 e->left = false;
-		}
+		} else if ( e->vel.y < 0 )
+            e->loc.y += e->vel.y * delta;
 	}
     // iterate through particles
     particles.erase( std::remove_if( particles.begin(), particles.end(), [&delta](Particles &part){return part.kill(delta);}), particles.end());
@@ -1250,41 +1249,63 @@ IndoorWorld::~IndoorWorld(void){
 	deleteEntities();
 }
 
-void IndoorWorld::generate(unsigned int width){		// Generates a flat area of width 'width'
-	lineCount=width+GROUND_HILLINESS;			// Sets line count to the desired width plus GEN_INC to remove incorrect line calculations.
-	if(lineCount<=0)abort();
-
-	worldData = std::vector<WorldData> (lineCount, WorldData { false, {0,0}, INDOOR_FLOOR_HEIGHT, 0 });
-
-	worldStart = (width - GROUND_HILLINESS) * HLINE / 2 * -1;
+void IndoorWorld::
+addFloor( unsigned int width )
+{
+    if ( floor.empty() )
+        generate( width );
+    floor.emplace_back( width, floor.size() * INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS );
 }
 
-void IndoorWorld::draw(Player *p){
-	unsigned int i,ie;
-	//int j,x,v_offset;
+void IndoorWorld::
+singleDetect( Entity *e )
+{
+    if ( !e->alive )
+        return;
+    if ( e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER )
+        return;
+
+    for ( auto &f : floor ) {
+        if ( f[0] + INDOOR_FLOOR_HEIGHTT < e->loc.y ) {
+            C("floor");
+            if ( e->loc.y < f[0] ) {
+                e->loc.y = f[0];
+                e->vel.y = 0;
+                e->ground = true;
+            } else if ( e->vel.y > -2 )
+                e->vel.y -= GRAVITY_CONSTANT * deltaTime;
+            break;
+        }
+    }
+
+    if(e->loc.x < worldStart){												// Left bound
+            e->vel.x=0;
+        e->loc.x=(float)worldStart + HLINE / 2;
+    }else if(e->loc.x + e->width + HLINE > worldStart + worldStart * -2){	// Right bound
+        e->vel.x=0;
+        e->loc.x=worldStart + worldStart * -2 - e->width - HLINE;
+    }
+
+}
+
+void IndoorWorld::
+draw( Player *p )
+{
+	unsigned int i;
 	int x;
 
-	/*
-	 *	Draw the background.
-	*/
-
-	//glEnable(GL_TEXTURE_2D);
-
-    for(auto &l : light){
-        if(l.belongsTo){
-            l.loc.x = l.following->loc.x + SCREEN_WIDTH/2;
+    // draw lights
+    for ( auto &l : light ) {
+        if ( l.belongsTo ) {
+            l.loc.x = l.following->loc.x + SCREEN_WIDTH / 2;
             l.loc.y = l.following->loc.y;
         }
-        if(l.flame){
-            l.fireFlicker = .9+((rand()%2)/10.0f);
-            l.fireLoc.x = l.loc.x + (rand()%2-1)*3;
-            l.fireLoc.y = l.loc.y + (rand()%2-1)*3;
-
-            //std::cout << l.fireLoc.x << "," << l.fireLoc.y << std::endl;
-            //std::cout << l.loc.x << "," << l.loc.y << std::endl << std::endl;
-        }else{
+        if ( l.flame ) {
+            l.fireFlicker = .9 + ( (rand() % 2) / 10.0f );
+            l.fireLoc.x = l.loc.x + (rand() % 2 - 1) * 3;
+            l.fireLoc.y = l.loc.y + (rand() % 2 - 1) * 3;
+        } else
             l.fireFlicker = 1.0f;
-        }
     }
 
     std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
@@ -1301,9 +1322,8 @@ void IndoorWorld::draw(Player *p){
         }
 	}
 
-    for(i = 0; i < light.size(); i++){
+    for(i = 0; i < light.size(); i++)
         flameArray[i] = light[i].fireFlicker;
-    }
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -1312,7 +1332,7 @@ void IndoorWorld::draw(Player *p){
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glUniform1f(glGetUniformLocation(shaderProgram, "amb"    ), 0.02f + light.size()/50.0f);
 
-	if ( light.size() == 0)
+	if ( light.empty() )
 		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 0);
 	else {
 		glUniform1i (glGetUniformLocation(shaderProgram, "numLight"     ), light.size());
@@ -1321,53 +1341,38 @@ void IndoorWorld::draw(Player *p){
         glUniform1fv(glGetUniformLocation(shaderProgram, "fireFlicker"), light.size(), flameArray);
 	}
 
-    //delete[] flameArray;
-
 	bgTex->bind(0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
 	glColor4ub(255,255,255,255);
 
-	glBegin(GL_QUADS);
-			glTexCoord2i(0,1);							     glVertex2i( worldStart - SCREEN_WIDTH / 2,0);
-			glTexCoord2i((-worldStart*2+SCREEN_WIDTH)/512,1);glVertex2i(-worldStart + SCREEN_WIDTH / 2,0);
-			glTexCoord2i((-worldStart*2+SCREEN_WIDTH)/512,0);glVertex2i(-worldStart + SCREEN_WIDTH / 2,SCREEN_HEIGHT);
-			glTexCoord2i(0,0);							     glVertex2i( worldStart - SCREEN_WIDTH / 2,SCREEN_HEIGHT);
-	glEnd();
+    glBegin(GL_QUADS);
+        glTexCoord2i(0,1);							     glVertex2i( worldStart - SCREEN_WIDTH / 2,0);
+		glTexCoord2i((-worldStart*2+SCREEN_WIDTH)/512,1);glVertex2i(-worldStart + SCREEN_WIDTH / 2,0);
+		glTexCoord2i((-worldStart*2+SCREEN_WIDTH)/512,0);glVertex2i(-worldStart + SCREEN_WIDTH / 2,SCREEN_HEIGHT);
+		glTexCoord2i(0,0);							     glVertex2i( worldStart - SCREEN_WIDTH / 2,SCREEN_HEIGHT);
+    glEnd();
 
-	glUseProgram(0);
-	//glDisable(GL_TEXTURE_2D);
-
-	/*
-	 *	Calculate the starting and ending points to draw the ground from.
-	*/
-
-	/*v_offset = (p->loc.x - x_start) / HLINE;
-	j = v_offset - (SCREEN_WIDTH / 2 / HLINE) - GEN_INC;
-	if(j < 0)j = 0;
-	i = j;
-
-	ie = v_offset + (SCREEN_WIDTH / 2 / HLINE) - GEN_INC;
-	if(ie > lineCount)ie = lineCount;*/
-
-	i = 0;
-	ie = lineCount;
+    glUseProgram(0);
 
 	/*
 	 *	Draw the ground.
 	*/
-	glUseProgram(shaderProgram);
-	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
-	glBegin(GL_QUADS);
-		for(;i < ie - GROUND_HILLINESS;i++){
-			safeSetColor(150,100,50);
 
-			x = worldStart + i * HLINE;
-			glVertex2i(x		,worldData[i].groundHeight);
-			glVertex2i(x + HLINE,worldData[i].groundHeight);
-			glVertex2i(x + HLINE,worldData[i].groundHeight - 50);
-			glVertex2i(x		,worldData[i].groundHeight - 50);
-		}
+	glUseProgram( shaderProgram );
+	glUniform1i( glGetUniformLocation(shaderProgram, "sampler"), 0 );
+	glBegin( GL_QUADS );
+        safeSetColor( 150, 100, 50 );
+        for ( auto &f : floor ) {
+            i = 0;
+    		for ( h : f ) {
+    			x = worldStart + i++ * HLINE;
+    			glVertex2i( x        , h                          );
+    			glVertex2i( x + HLINE, h                          );
+    			glVertex2i( x + HLINE, h - INDOOR_FLOOR_THICKNESS );
+    			glVertex2i( x        , h - INDOOR_FLOOR_THICKNESS );
+    		}
+        }
 	glEnd();
 	glUseProgram(0);
 
@@ -1533,14 +1538,9 @@ loadWorldFromXMLNoSave( std::string path ) {
 			tmp->setBackground((WorldBGType)wxml->UnsignedAttribute("background"));
 			tmp->setBGM(wxml->StrAttribute("bgm"));
 		} else if ( name == "generation" ) {
-			if(!strcmp(wxml->Attribute("type"),"Random")){
-				if(Indoor)
-					((IndoorWorld *)tmp)->generate(wxml->UnsignedAttribute("width"));
-				else {
-
-					tmp->generate(wxml->UnsignedAttribute("width"));
-				}
-			}else if(Indoor)
+			if ( !Indoor && !strcmp(wxml->Attribute("type"),"Random") )
+				tmp->generate(wxml->UnsignedAttribute("width"));
+			else if ( Indoor )
 				abort();
 		} else if ( name == "mob" ) {
 			unsigned int type;
@@ -1588,9 +1588,11 @@ loadWorldFromXMLNoSave( std::string path ) {
 			tmp->mob.back()->heyid = wxml->Attribute("id");
 		} else if ( name == "hill" ) {
 			tmp->addHill( ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width") );
-		} else if ( name == "time") {
-      tickCount = std::stoi( wxml->GetText() );
-    }
+		} else if ( name == "time" ) {
+            tickCount = std::stoi( wxml->GetText() );
+        } else if ( Indoor && name == "floor" ) {
+            ((IndoorWorld *)tmp)->addFloor( wxml->UnsignedAttribute("width") );
+        }
 
 		wxml = wxml->NextSiblingElement();
 	}

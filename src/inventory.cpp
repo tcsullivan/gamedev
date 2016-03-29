@@ -9,9 +9,8 @@ extern Player *player;
 extern GLuint invUI;
 static float hangle = 0.0f;
 static bool swing = false;
-//static float xc,yc;
 static vec2 itemLoc;
-static const unsigned char numSlot = 7;
+static const unsigned int numSlot = 2000;
 Mix_Chunk* swordSwing;
 
 static std::vector<Item *> itemMap;
@@ -190,7 +189,6 @@ void Inventory::setSelectionDown(){
 
 void Inventory::draw(void){
 	static unsigned int lop = 0;
-	//const unsigned int numSlot = 7;
 	static std::vector<int>dfp(numSlot);
 	static std::vector<Ray>iray(numSlot);
 	static std::vector<vec2>curCoord(numSlot);
