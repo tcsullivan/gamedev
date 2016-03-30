@@ -8,9 +8,8 @@
 #ifndef QUEST_H
 #define QUEST_H
 
-#include <cstring>
+#include <string>
 
-#include <common.hpp>
 #include <inventory.hpp>
 
 /**
@@ -20,16 +19,11 @@
 
 #define DEBUG
 
-struct need_t {
-	std::string name;
-	int n;
-};
-
 typedef struct {
 	std::string title;
 	std::string desc;
 	struct item_t reward;
-	std::vector<struct need_t> need;
+	std::vector<std::pair<std::string,int>> need;
 } Quest;
 
 /**
