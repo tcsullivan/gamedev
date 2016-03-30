@@ -1,7 +1,7 @@
-#include <common.h>
-#include <entities.h>
-#include <world.h>
-#include <ui.h>
+#include <common.hpp>
+#include <entities.hpp>
+#include <world.hpp>
+#include <ui.hpp>
 
 #include <tinyxml2.h>
 using namespace tinyxml2;
@@ -212,13 +212,13 @@ CONT:
 void commonPageFunc( Mob *callee )
 {
 	static bool lock = false;
-	
+
 	if ( !lock ) {
 		lock = true;
-		
+
 		ui::drawPage( callee->heyid );
 		ui::waitForDialog();
-		
+
 		callee->alive = false;
 		lock = false;
 	}

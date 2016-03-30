@@ -1,6 +1,6 @@
-#include <inventory.h>
-#include <entities.h>
-#include <ui.h>
+#include <inventory.hpp>
+#include <entities.hpp>
+#include <ui.hpp>
 
 #include <tinyxml2.h>
 using namespace tinyxml2;
@@ -190,7 +190,6 @@ void Inventory::setSelectionDown(){
 
 void Inventory::draw(void){
 	static unsigned int lop = 0;
-	//const unsigned int numSlot = 7;
 	static std::vector<int>dfp(numSlot);
 	static std::vector<Ray>iray(numSlot);
 	static std::vector<vec2>curCoord(numSlot);
@@ -314,6 +313,28 @@ void Inventory::draw(void){
 				glVertex2i(mr.x-(itemWide/2)+itemWide,mr.y-(itemWide/2)+itemWide);
 				glVertex2i(mr.x-(itemWide/2),		 mr.y-(itemWide/2)+itemWide);
 			glEnd();
+			if(!items.empty() && a < items.size() && items[a+numSlot].count){
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, itemtex[items[a+numSlot].id]);
+				glColor4f(1.0f, 1.0f, 1.0f, ((float)massDfp[a]/(float)(massRange?massRange:1))*0.8f);
+				glBegin(GL_QUADS);
+					if(itemMap[items[a].id]->height > itemMap[items[a+numSlot].id]->width){
+						glTexCoord2i(0,1);glVertex2i(mr.x-((itemWide/2)*((float)itemMap[items[a+numSlot].id]->width/(float)itemMap[items[a+numSlot].id]->height)),	mr.y-(itemWide/2));
+						glTexCoord2i(1,1);glVertex2i(mr.x+((itemWide/2)*((float)itemMap[items[a+numSlot].id]->width/(float)itemMap[items[a+numSlot].id]->height)),	mr.y-(itemWide/2));
+						glTexCoord2i(1,0);glVertex2i(mr.x+((itemWide/2)*((float)itemMap[items[a+numSlot].id]->width/(float)itemMap[items[a+numSlot].id]->height)),	mr.y+(itemWide/2));
+						glTexCoord2i(0,0);glVertex2i(mr.x-((itemWide/2)*((float)itemMap[items[a+numSlot].id]->width/(float)itemMap[items[a+numSlot].id]->height)),	mr.y+(itemWide/2));
+					}else{
+						glTexCoord2i(0,1);glVertex2i(mr.x-(itemWide/2),mr.y-(itemWide/2)*((float)itemMap[items[a+numSlot].id]->height/(float)itemMap[items[a+numSlot].id]->width));
+						glTexCoord2i(1,1);glVertex2i(mr.x+(itemWide/2),mr.y-(itemWide/2)*((float)itemMap[items[a+numSlot].id]->height/(float)itemMap[items[a+numSlot].id]->width));
+						glTexCoord2i(1,0);glVertex2i(mr.x+(itemWide/2),mr.y+(itemWide/2)*((float)itemMap[items[a+numSlot].id]->height/(float)itemMap[items[a+numSlot].id]->width));
+						glTexCoord2i(0,0);glVertex2i(mr.x-(itemWide/2),mr.y+(itemWide/2)*((float)itemMap[items[a+numSlot].id]->height/(float)itemMap[items[a+numSlot].id]->width));
+					}
+				glEnd();
+				glDisable(GL_TEXTURE_2D);
+				ui::setFontColor(255,255,255,((float)massDfp[a]/(float)(massRange?massRange:1))*255);
+				ui::putText(mr.x-(itemWide/2)+(itemWide*.85),mr.y-(itemWide/2),"%d",items[a+numSlot].count);
+				ui::setFontColor(255,255,255,255);
+			}
 			a++;
 		}a=0;
 
@@ -364,14 +385,16 @@ void Inventory::draw(void){
 					}
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
-				ui::putText(r.end.x-(itemWide/2),r.end.y-(itemWide*.9),"%s",itemMap[items[a].id]->name.c_str());
+				ui::setFontColor(255,255,255,((float)dfp[a]/(float)(range?range:1))*255);
+				ui::putStringCentered(r.end.x,r.end.y-(itemWide*.9),itemMap[items[a].id]->name.c_str());
 				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",items[a].count);
+				ui::setFontColor(255,255,255,255);
 			}
 
 			if(sel == a){
 				static float sc = 1;
 				static bool up;
-				up ? sc += .01 : sc -= .01;
+				up ? sc += .0005*deltaTime : sc -= .0005*deltaTime;
 				if(sc > 1.2){
 					up = false;
 					sc = 1.2;
@@ -380,10 +403,6 @@ void Inventory::draw(void){
 					up = true;
 					sc = 1.0;
 				}
-				glPushMatrix();
-				glLoadIdentity();
-				//glTranslatef(-sc, -sc, 0);
-				//glScalef(sc,sc,0.0f);
 	 			glBegin(GL_QUADS);
 	 				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)(range?range:1)));
 					glVertex2f(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09);
@@ -406,7 +425,6 @@ void Inventory::draw(void){
 					glVertex2f(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09);
 					glVertex2f(r.end.x + (itemWide*sc)/2					,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09);
 				glEnd();
-				glPopMatrix();
 			}
 			a++;
 		}

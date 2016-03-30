@@ -19,7 +19,7 @@
 #include <mutex>
 #include <future>
 #include <math.h>
-#include <threadpool.h>
+#include <threadpool.hpp>
 #include <algorithm>
 
 #define GLEW_STATIC
@@ -40,6 +40,7 @@ typedef unsigned int uint;
  */
 
 #define SHADERS
+#define C(x) std::cout << x << std::endl
 
 template<typename N>
 N abso(N v){

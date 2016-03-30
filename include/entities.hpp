@@ -1,10 +1,10 @@
 #ifndef ENTITIES_H
 #define ENTITIES_H
 
-#include <common.h>
-#include <Quest.h>
-#include <inventory.h>
-#include <Texture.h>
+#include <common.hpp>
+#include <Quest.hpp>
+#include <inventory.hpp>
+#include <Texture.hpp>
 
 #include <sstream>
 
@@ -14,7 +14,7 @@
 #define Structurep(n)	((Structures *)n)
 #define Mobp(n)			((Mob *)n)
 
-#define PLAYER_INV_SIZE	30	// The size of the player's inventory
+#define PLAYER_INV_SIZE	43	// The size of the player's inventory
 #define NPC_INV_SIZE	3	// Size of an NPC's inventory
 
 enum _TYPE {

@@ -18,11 +18,11 @@ using namespace tinyxml2;
  * Game includes
  */
 
-#include <config.h>
-#include <common.h>
-#include <world.h>
-#include <ui.h>
-#include <entities.h>
+#include <config.hpp>
+#include <common.hpp>
+#include <world.hpp>
+#include <ui.hpp>
+#include <entities.hpp>
 
 /**
  * Defines how many game ticks should occur in one second, affecting how often

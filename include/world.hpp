@@ -8,8 +8,8 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include <common.h>
-#include <entities.h>
+#include <common.hpp>
+#include <entities.hpp>
 
 #define GROUND_HEIGHT_INITIAL   80
 #define GROUND_HEIGHT_MINIMUM   60

@@ -1,10 +1,10 @@
 #ifndef INVENTORY_H
 #define INVENTORY_H
 
-#include <common.h>
+#include <common.hpp>
 #include <string.h>
 
-#include <Texture.h>
+#include <Texture.hpp>
 
 #define DEBUG
 

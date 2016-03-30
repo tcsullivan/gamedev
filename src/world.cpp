@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <sstream>
 
-#include <world.h>
-#include <ui.h>
+#include <world.hpp>
+#include <ui.hpp>
 
 #include <tinyxml2.h>
 using namespace tinyxml2;
@@ -433,10 +433,10 @@ void World::draw(Player *p){
 	safeSetColorA( 255, 255, 255, weather == WorldWeather::Snowy ? 150 : 255 - worldShade * 4);
 
 	glBegin( GL_QUADS );
-		glTexCoord2i( 0, 0 ); glVertex2i(  worldStart, SCREEN_HEIGHT );
-		glTexCoord2i( 1, 0 ); glVertex2i( -worldStart, SCREEN_HEIGHT );
-		glTexCoord2i( 1, 1 ); glVertex2i( -worldStart, 0 );
-		glTexCoord2i( 0, 1 ); glVertex2i(  worldStart, 0 );
+		glTexCoord2i( 0, 0 ); glVertex2i( offset.x - SCREEN_WIDTH/2, SCREEN_HEIGHT );
+		glTexCoord2i( 1, 0 ); glVertex2i( offset.x + SCREEN_WIDTH/2, SCREEN_HEIGHT );
+		glTexCoord2i( 1, 1 ); glVertex2i( offset.x + SCREEN_WIDTH/2, 0 );
+		glTexCoord2i( 0, 1 ); glVertex2i( offset.x - SCREEN_WIDTH/2, 0 );
 	glEnd();
 
 	bgTex->bindNext();

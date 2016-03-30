@@ -5,12 +5,12 @@
 #ifndef UI_H
 #define UI_H
 
-#include <common.h>
-#include <inventory.h>
+#include <common.hpp>
+#include <inventory.hpp>
 #include <cstdarg>
 
-#include <config.h>
-#include <world.h>
+#include <config.hpp>
+#include <world.hpp>
 #include <ft2build.h>
 #include <SDL2/SDL_opengl.h>
 #include <thread>

@@ -1,7 +1,7 @@
 #include <istream>
 
-#include <entities.h>
-#include <ui.h>
+#include <entities.hpp>
+#include <ui.hpp>
 
 extern std::istream *names;
 

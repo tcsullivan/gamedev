@@ -1,6 +1,6 @@
-#include <config.h>
+#include <config.hpp>
 
-#include <ui.h>
+#include <ui.hpp>
 
 using namespace tinyxml2;
 
@@ -24,7 +24,7 @@ void readConfig(){
 
 	xml.LoadFile("config/settings.xml");
 	scr = xml.FirstChildElement("screen");
-	
+
 	if(scr->QueryUnsignedAttribute("width",&uval) == XML_NO_ERROR)
 		SCREEN_WIDTH = uval;
 	else SCREEN_WIDTH = 1280;
@@ -39,7 +39,7 @@ void readConfig(){
 	else HLINE = 3;
 
 	vol = xml.FirstChildElement("volume");
-	
+
 	if(vol->FirstChildElement("master")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
 		VOLUME_MASTER = fval;
 	else VOLUME_MASTER = 50;
@@ -49,7 +49,7 @@ void readConfig(){
 	if(vol->FirstChildElement("sfx")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
 		VOLUME_SFX = fval;
 	else VOLUME_SFX = 50;
-		
+
 	ui::initFonts();
 	ui::setFontFace(xml.FirstChildElement("font")->Attribute("path"));
 	updateConfig();

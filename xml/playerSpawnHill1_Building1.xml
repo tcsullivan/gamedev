@@ -28,7 +28,45 @@
 
 	<text id="4">
 		Have a sword though.
-		<give id="Wood Sword" count="1" />
+		<give id="Wood Sword"  count="1"/>
+		<give id="Wood Sword2"  count="1"/>
+		<give id="Wood Sword3"  count="1"/>
+		<give id="Wood Sword4"  count="1"/>
+		<give id="Wood Sword5"  count="1"/>
+		<give id="Wood Sword6"  count="1"/>
+		<give id="Wood Sword7"  count="1"/>
+		<give id="Wood Sword8"  count="1"/>
+		<give id="Wood Sword9"  count="1"/>
+		<give id="Wood Sword10"  count="1"/>
+		<give id="Wood Sword11"  count="1"/>
+		<give id="Wood Sword12"  count="1"/>
+		<give id="Wood Sword13"  count="1"/>
+		<give id="Wood Sword14"  count="1"/>
+		<give id="Wood Sword15"  count="1"/>
+		<give id="Wood Sword16"  count="1"/>
+		<give id="Wood Sword17"  count="1"/>
+		<give id="Wood Sword18"  count="1"/>
+		<give id="Wood Sword19"  count="1"/>
+		<give id="Wood Sword20"  count="1"/>
+		<give id="Wood Sword21"  count="1"/>
+		<give id="Wood Sword22"  count="1"/>
+		<give id="Wood Sword23"  count="1"/>
+		<give id="Wood Sword24"  count="1"/>
+		<give id="Wood Sword25"  count="1"/>
+		<give id="Wood Sword26"  count="1"/>
+		<give id="Wood Sword27"  count="1"/>
+		<give id="Wood Sword28"  count="1"/>
+		<give id="Wood Sword29"  count="1"/>
+		<give id="Wood Sword30"  count="1"/>
+		<give id="Wood Sword31"  count="1"/>
+		<give id="Wood Sword32"  count="1"/>
+		<give id="Wood Sword33"  count="1"/>
+		<give id="Wood Sword34"  count="1"/>
+		<give id="Wood Sword35"  count="1"/>
+		<give id="Wood Sword36"  count="1"/>
+		<give id="Wood Sword37"  count="1"/>
+		<give id="Wood Sword38"  count="1"/>
+		<give id="Wood Sword39"  count="1"/>
 	</text>
 
 </Dialog>
