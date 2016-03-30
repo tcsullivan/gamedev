@@ -4,7 +4,7 @@
 #include <common.hpp>
 #include <string.h>
 
-#include <Texture.hpp>
+#include <texture.hpp>
 
 #define DEBUG
 

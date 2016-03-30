@@ -40,7 +40,6 @@ typedef unsigned int uint;
  */
 
 #define SHADERS
-#define C(x) std::cout << x << std::endl
 
 template<typename N>
 N abso(N v){
@@ -118,7 +117,7 @@ typedef col Color;
  * Define the game's name (displayed in the window title).
  */
 
-#define GAME_NAME		"Independent Study v.0.6 alpha - NOW WITH more c++"
+#define GAME_NAME		"Independent Study v0.7 alpha - NOW WITH lights and snow and stuff"
 
 /**
  * The desired width of the game window.
@@ -177,6 +176,7 @@ extern float VOLUME_SFX;
  */
 
 #define DEBUG_printf( message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__ )
+#define C(x)						std::cout << x << std::endl;
 
 /**
  * Defines pi for calculations that need it.

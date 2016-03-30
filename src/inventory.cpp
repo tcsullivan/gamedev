@@ -9,9 +9,8 @@ extern Player *player;
 extern GLuint invUI;
 static float hangle = 0.0f;
 static bool swing = false;
-//static float xc,yc;
 static vec2 itemLoc;
-static const unsigned char numSlot = 7;
+static const unsigned int numSlot = 2000;
 Mix_Chunk* swordSwing;
 
 static std::vector<Item *> itemMap;

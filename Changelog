@@ -821,3 +821,25 @@
 	- found brazzier glitch
 	- merchants inside stalls
 	- z renders????
+
+3/25/2016:
+==========
+
+	- relocated detect() to main loop, better thing handling now
+	- implemented rain, snow
+	- added weather to debug overlay thing
+
+3/28/2016:
+==========
+
+	- fixed bug with quest assignment
+	- made file names consistent
+	- namespace'd config stuff
+	- began work on improving rendering stuff
+
+3/29/2016:
+==========
+
+	- prevented structures from moving
+	- began making indoor worlds good
+	- inventory slots are actually being used

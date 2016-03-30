@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <string>
 
-#include <Texture.hpp>
+#include <texture.hpp>
 
 /**
  * A structure for keeping track of loaded textures.
