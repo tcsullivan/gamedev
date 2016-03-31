@@ -2,9 +2,9 @@
 #define ENTITIES_H
 
 #include <common.hpp>
-#include <Quest.hpp>
+#include <quest.hpp>
 #include <inventory.hpp>
-#include <Texture.hpp>
+#include <texture.hpp>
 
 #include <sstream>
 

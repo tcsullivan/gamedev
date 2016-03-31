@@ -1444,7 +1444,7 @@ std::string getWorldWeatherStr( WorldWeather ww )
         return "Rainy";
         break;
     default:
-        return "Look at the screen u scrub";
+        return "Snowy";
         break;
     }
 }
