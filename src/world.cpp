@@ -1505,7 +1505,7 @@ loadWorldFromXMLNoSave( std::string path ) {
         return NULL;
 
     std::cout << "File path: " << path << std::endl;
-	currentXML = std::string("storyXML/" + path);
+	currentXML = std::string(xmlFolder + path);
     std::cout << "Full file path: " << currentXML << std::endl;
 
 	xml.LoadFile(currentXML.c_str());
