@@ -10,7 +10,7 @@ extern GLuint invUI;
 static float hangle = 0.0f;
 static bool swing = false;
 static vec2 itemLoc;
-static const unsigned int numSlot = 2000;
+static const unsigned char numSlot = 7;
 Mix_Chunk* swordSwing;
 
 static std::vector<Item *> itemMap;
@@ -25,9 +25,12 @@ void items(void){
 	while(exml){
 
 		itemMap.push_back(new Item());
+
 		itemMap.back()->width  = exml->FloatAttribute("width") * HLINE;
 		itemMap.back()->height = exml->FloatAttribute("height") * HLINE;
 		itemMap.back()->maxStackSize = exml->UnsignedAttribute("maxstack");
+		itemMap.back()->attribValue = exml->FloatAttribute("value");
+
 
 		itemMap.back()->name = exml->Attribute("name");
 		itemMap.back()->type = exml->Attribute("type");
@@ -188,6 +191,7 @@ void Inventory::setSelectionDown(){
 }
 
 void Inventory::draw(void){
+	C("Inventory Start Draw");
 	static unsigned int lop = 0;
 	static std::vector<int>dfp(numSlot);
 	static std::vector<Ray>iray(numSlot);
@@ -211,6 +215,7 @@ void Inventory::draw(void){
 	unsigned int a = 0;
 	static bool end = false;
 	static vec2 mouseStart = {0,0};
+	C("End define");
 
 	for(auto &r : iray){
 		r.start.x = player->loc.x + (player->width/2);
@@ -302,6 +307,7 @@ void Inventory::draw(void){
 	 * 	a = 0
 	 */
 
+	 C("Start drawing inventory");
 	if(invOpen){
 
 		for(auto &mr : massRay){
@@ -427,6 +433,7 @@ void Inventory::draw(void){
 			}
 			a++;
 		}
+		C("Done drawing standard inv");
 	}else if(invHover){
 		static unsigned int highlight = 0;
 		static unsigned int thing = 0;
@@ -545,6 +552,10 @@ void itemDraw(Player *p,uint id){
 			}
 		}
 	}else hangle = 0.0f;
+	if(p->inv->usingi){
+		p->inv->useItem();
+		std::cout << "using" << std::endl;
+	}
 
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
@@ -586,6 +597,9 @@ int Inventory::useItem(void){
 				swing=true;
 				Mix_PlayChannel(2,swordSwing,0);
 			}
+		}else if(itemMap[items[sel].id]->type == "Cooked Food"){
+			player->health += itemMap[items[sel].id]->attribValue;
+			usingi = false;
 		}
 	}
 	return 0;
@@ -605,12 +619,6 @@ bool Inventory::detectCollision(vec2 one, vec2 two){
 			xc = itemLoc.x; yc = itemLoc.y;
 			xc += float(i) * cos((hangle+90)*PI/180);
 			yc += float(i) * sin((hangle+90)*PI/180);
-
-			/*glColor4f(1.0f,1.0f,1.0f,1.0f);
-			glBegin(GL_LINES);
-				glVertex2f(player->loc.x,player->loc.y+player->height/3);
-				glVertex2f(xc,yc);
-			glEnd();*/
 
 			if(xc >= one.x && xc <= two.x){
 				if(yc >= one.y && yc <= two.y){

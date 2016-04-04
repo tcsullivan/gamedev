@@ -13,6 +13,8 @@ extern Menu  *currentMenu;
 extern Menu   pauseMenu;
 extern Menu   optionsMenu;
 
+extern std::string xmlFolder;
+
 extern void mainLoop(void);						// main.cpp
 
 extern std::vector<NPC *> AIpreaddr;			// entities.cpp
@@ -209,8 +211,7 @@ CONT:
 	return 0;
 }
 
-void commonPageFunc( Mob *callee )
-{
+void commonPageFunc( Mob *callee ){
 	static bool lock = false;
 
 	if ( !lock ) {
@@ -272,16 +273,21 @@ void initEverything(void){
 	 * Read the XML directory into an array.
 	 */
 
-	if(getdir("./xml/",xmlFiles)){
+	C("Scanning XML directory");
+	if(getdir(std::string("./"+xmlFolder).c_str(),xmlFiles)){
 		std::cout<<"Error reading XML files!!!1"<<std::endl;
 		abort();
 	}
+	C("Done scanning XML directory");
 
 	/*
 	 * Sort the files alphabetically.
 	 */
 
+	C("Sorting XML files alphabetically");
 	strVectorSortAlpha(&xmlFiles);
+	C("Dpne sorting XML files alphabetically");
+
 
 	/*
 	 * Load the first file found as currentWorld.
@@ -293,8 +299,10 @@ void initEverything(void){
 			/*
 			 * Read in the XML file.
 			 */
-
+			C("Setting current XML file");
+			std::cout << "File to load: " << xmlFiles[i] << std::endl;
 			currentWorld = loadWorldFromXML(xmlFiles[i]);
+			C("Done setting current XML file");
 			break;
 		}
 	}

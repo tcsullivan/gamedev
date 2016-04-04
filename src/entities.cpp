@@ -102,7 +102,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 
 Player::Player(){ //sets all of the player specific traits on object creation
 	width = HLINE * 10;
-	height = HLINE * 15;
+	height = HLINE * 16;
 
 	type = PLAYERT; //set type to player
 	subtype = 0;
@@ -697,7 +697,7 @@ void Player::save(void){
 void Player::sspawn(float x,float y){
 	unsigned int i;
 	uint count;
-	std::ifstream in ("xml/main.dat",std::ios::in | std::ios::binary);
+	std::ifstream in ("storyXML/main.dat",std::ios::in | std::ios::binary);
 	spawn(x,y);
 
 	if(in.good()){

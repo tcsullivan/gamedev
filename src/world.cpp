@@ -37,6 +37,8 @@ extern bool    inBattle;
 
 extern unsigned int tickCount;				// main.cpp
 
+extern std::string xmlFolder;
+
 int worldShade = 0;
 
 std::string currentXML;
@@ -1086,7 +1088,7 @@ goInsideStructure( Player *p )
         if ( b->inside.empty() )
           return this;
 
-				inside.push_back(currentXML.c_str() + 4);
+				inside.push_back(currentXML.c_str() + xmlFolder.size());
 
 				tmp = loadWorldFromXML( b->inside );
 
@@ -1098,7 +1100,7 @@ goInsideStructure( Player *p )
 			}
 		}
 	} else {
-    current = currentXML.c_str() + 4;
+    current = currentXML.c_str() + xmlFolder.size();
 		tmp = loadWorldFromXML( inside.back() );
 		for ( auto &b : tmp->build ) {
 			if ( current == b->inside ) {
@@ -1191,7 +1193,9 @@ void World::load(void){
 	std::string save,data,line;
 	const char *filedata;
 
-	save = (std::string)currentXML + ".dat";
+    //std::cout << "Loading from: " << std::string(currentXML + ".dat") << std::endl;
+	save = std::string(currentXML + ".dat");
+    //std::cout << "save file: " << save << std::endl;
 	filedata = readFile(save.c_str());
 	data = filedata;
 	std::istringstream iss (data);
@@ -1453,8 +1457,12 @@ static bool loadedLeft = false;
 static bool loadedRight = false;
 
 World *loadWorldFromXML(std::string path){
+    C("Scanning for save file");
+    std::cout << "Scanning: " << path << std::endl;
 	if ( !currentXML.empty() )
 		currentWorld->save();
+    std::cout << "After Scanning: " << path << std::endl;
+    C("Done scanning for save file");
 
 	return loadWorldFromXMLNoSave(path);
 }
@@ -1496,7 +1504,9 @@ loadWorldFromXMLNoSave( std::string path ) {
     if ( path.empty() )
         return NULL;
 
-	currentXML = (std::string)"xml/" + path;
+    std::cout << "File path: " << path << std::endl;
+	currentXML = std::string("storyXML/" + path);
+    std::cout << "Full file path: " << currentXML << std::endl;
 
 	xml.LoadFile(currentXML.c_str());
 	wxml = xml.FirstChildElement("World");
@@ -1677,6 +1687,8 @@ loadWorldFromXMLNoSave( std::string path ) {
 		dat.close();
 		tmp->load();
 	}
+
+    std::cout << "adadadadasdsa" << std::endl;
 
 	return tmp;
 

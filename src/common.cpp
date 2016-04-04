@@ -20,6 +20,14 @@ unsigned int millis(void){
 
 #endif // __WIN32__
 
+void C(std::string m){
+	#ifdef SEGFAULT
+		std::cout << m << std::endl;
+	#else
+		(void)m;
+	#endif
+}
+
 void DEBUG_prints(const char* file, int line, const char *s,...){
 	va_list args;
 	printf("%s:%d: ",file,line);
