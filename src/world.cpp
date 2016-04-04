@@ -1549,7 +1549,7 @@ loadWorldFromXMLNoSave( std::string path ) {
     if ( path.empty() )
         return NULL;
 
-	currentXML = std::string(xmlFolder + path);
+    currentXML = std::string(xmlFolder + path);
 	xml.LoadFile( currentXML.c_str() );
 
     // attempt to load a <World> tag

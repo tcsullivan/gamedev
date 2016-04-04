@@ -10,6 +10,8 @@ extern World *currentWorld;		// main.cpp
 extern unsigned int loops;		// main.cpp
 extern unsigned int tickCount;	// main.cpp
 
+extern std::string xmlFolder;
+
 GLuint waterTex;
 
 std::vector<int (*)(NPC *)> AIpreload;	// A dynamic array of AI functions that are being preloaded
@@ -701,7 +703,7 @@ void Player::save(void){
 void Player::sspawn(float x,float y){
 	unsigned int i;
 	uint count;
-	std::ifstream in ("storyXML/main.dat",std::ios::in | std::ios::binary);
+	std::ifstream in (std::string(xmlFolder + "main.dat"),std::ios::in | std::ios::binary);
 	spawn(x,y);
 
 	if(in.good()){
