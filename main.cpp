@@ -154,6 +154,8 @@ Menu *currentMenu;
 Menu optionsMenu;
 Menu pauseMenu;
 
+std::string xmlFolder;
+
 extern WorldWeather weather;
 
 extern int  fadeIntensity;	// ui.cpp
@@ -227,7 +229,7 @@ int main(int argc, char *argv[]){
 	 * textures for the entities and stuff.
 	 */
 
-	if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)){
+	if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) | !(IMG_Init(IMG_INIT_JPG) & IMG_INIT_JPG)){
 		std::cout << "Could not init image libraries! Error: " << IMG_GetError() << std::endl;
 		return -1;
 	}
@@ -389,7 +391,9 @@ int main(int argc, char *argv[]){
 
 	fadeIntensity = 250;
 
+	std::cout << "emem" << std::endl;
 	initEverything();
+	std::cout << "meme" << std::endl;
 
 	if(!currentWorld){
 		std::cout<<"currentWorld == NULL!"<<std::endl;

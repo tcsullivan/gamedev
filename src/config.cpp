@@ -13,6 +13,8 @@ extern float VOLUME_MASTER;
 extern float VOLUME_MUSIC;
 extern float VOLUME_SFX;
 
+extern std::string xmlFolder;
+
 XMLDocument xml;
 XMLElement *scr;
 XMLElement *vol;
@@ -51,6 +53,10 @@ namespace config {
 		if(vol->FirstChildElement("sfx")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
 			VOLUME_SFX = fval;
 		else VOLUME_SFX = 50;
+
+		xmlFolder = xml.FirstChildElement("world")->Attribute("start");
+		if(xmlFolder=="\0")xmlFolder = "xml/";
+		std::cout << "Folder: " << xmlFolder << std::endl;
 
 		ui::initFonts();
 		ui::setFontFace(xml.FirstChildElement("font")->Attribute("path"));

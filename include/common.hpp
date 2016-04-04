@@ -35,6 +35,8 @@ typedef unsigned int uint;
 #undef near
 #endif
 
+//#define SEGFAULT
+
 /**
  * This flag lets the compiler know that we want to use shaders.
  */
@@ -157,6 +159,8 @@ extern float VOLUME_SFX;
 
 #define initRand(s) srand(s)
 
+
+
 /**
  * A 'wrapper' for libc's rand(), as we hope to eventually have our own random number
  * generator.
@@ -176,8 +180,7 @@ extern float VOLUME_SFX;
  */
 
 #define DEBUG_printf( message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__ )
-#define C(x)						std::cout << x << std::endl;
-
+void C(std::string m);
 /**
  * Defines pi for calculations that need it.
  */

@@ -15,6 +15,7 @@ public:
 	float width;
 	float height;
 	int   maxStackSize;
+	float attribValue;
 
 	std::string texloc;
 	Texturec *tex;

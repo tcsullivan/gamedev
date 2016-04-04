@@ -13,6 +13,7 @@
 
 	<npc name="Ralph" hasDialog="true" />
 	<npc name="Johnny" hasDialog="false" />
+	<npc name="Big Dave" hasDialog="true"/>
 
 	<page x="-200" id="assets/pages/gootaGoFast.png" />
 
@@ -65,5 +66,13 @@ And it wasn't stormy.
 
 	<text id="1" nextid="1" pause="true" >
 		Broooooooooooooo...
+	</text>
+</Dialog>
+
+<Dialog name="Big Dave">
+	<text id="0" pause="true">
+		Here have this sword!
+		<give id="Wood Sword" count="1"/>
+		<give id="Fried Chicken" count="1"/>
 	</text>
 </Dialog>
