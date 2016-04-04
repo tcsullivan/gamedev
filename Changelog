@@ -843,3 +843,30 @@
 	- prevented structures from moving
 	- began making indoor worlds good
 	- inventory slots are actually being used
+
+3/30/2016:
+==========
+
+	- implemented multiple floors in indoor worlds, xml'd
+	- made headers .hpp
+	- fixed player-following light
+	- began retexturing indoor worlds
+	- rediscovered important-text music fades
+
+3/31/2016:
+==========
+
+	- npcs and mobs can spawn on specific floors
+	- npcs can go to locations after dialog
+	- aborts/exits are better labeled
+	- began implementing food items
+	- more better item stuff
+
+4/4/2016:
+=========
+
+	- improved world handling
+	- player can now begin game inside
+	- removed unnecessary cout's
+	- began actual storyline work?
+	- began actual fighting work

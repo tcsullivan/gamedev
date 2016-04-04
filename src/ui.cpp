@@ -214,10 +214,8 @@ namespace ui {
 	*/
 
 	void initFonts(void){
-		if(FT_Init_FreeType(&ftl)){
-			std::cout<<"Error! Couldn't initialize freetype."<<std::endl;
-			abort();
-		}
+		if ( FT_Init_FreeType(&ftl) )
+			UserError("Couldn't initialize freetype.");
 
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
@@ -244,10 +242,9 @@ namespace ui {
 	*/
 
 	void setFontFace(const char *ttf){
-		if(FT_New_Face(ftl,ttf,0,&ftf)){
-			std::cout<<"Error! Couldn't open "<<ttf<<"."<<std::endl;
-			abort();
-		}
+		if ( FT_New_Face( ftl, ttf, 0, &ftf ) )
+			UserError("Error! Couldn't open " + (std::string)ttf + ".");
+
 #ifdef DEBUG
 		DEBUG_printf("Using font %s\n",ttf);
 #endif // DEBUG
@@ -527,8 +524,6 @@ namespace ui {
 		va_list dialogArgs;
 		std::unique_ptr<char[]> printfbuf (new char[512]);
 
-		std::cout << "Buying and selling on the bi-weekly!" << std::endl;
-
 		dialogPassive = passive;
 
 		std::cout << "Market Trading: " << trade.quantity[0] << " " << trade.item[0] << " for " << trade.quantity[1] << " " << trade.item[1] << std::endl;
@@ -602,9 +597,6 @@ namespace ui {
 		va_list textArgs;
 		char *printfbuf;
 
-		//if(!player->ground)return;
-
-		//memset(dialogBoxText,0,512);
 		dialogBoxText.clear();
 
 		printfbuf = new char[ 512 ];
@@ -616,16 +608,12 @@ namespace ui {
 
 		dialogBoxExists = true;
 		dialogImportant = true;
-		//toggleBlack();
 	}
 
-	void passiveImportantText(int duration, const char *text,...){
+	void passiveImportantText(int duration, const char *text, ...){
 		va_list textArgs;
 		char *printfbuf;
 
-		//if(!player->ground)return;
-
-		//memset(dialogBoxText,0,512);
 		dialogBoxText.clear();
 
 		printfbuf = new char[ 512 ];
@@ -683,11 +671,8 @@ namespace ui {
 					setFontSize(16);
 				}
 			}else if(dialogMerchant){
-				//static int dispItem;
-
 				x=offset.x-SCREEN_WIDTH/6;
 				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
-
 
 				glColor3ub(255,255,255);
 				glBegin(GL_LINE_STRIP);
@@ -965,7 +950,7 @@ namespace ui {
 		while(SDL_PollEvent(&e)){
 			switch(e.type){
 			case SDL_QUIT:
-				gameRunning=false;
+				gameRunning = false;
 				return;
 				break;
 			case SDL_MOUSEMOTION:
@@ -1285,7 +1270,7 @@ EXIT:
 
 			// escape - quit game
 			case SDL_QUIT:
-				gameRunning=false;
+				gameRunning = false;
 				break;
 
 			// mouse movement - update mouse vector
@@ -1363,11 +1348,9 @@ EXIT:
 						break;
 					case SDLK_a:
 						if(fadeEnable)break;
-						player->vel.x=-.15;
-						player->left = true;
-						player->right = false;
-						left = true;
-						right = false;
+						player->vel.x = -PLAYER_SPEED_CONSTANT;
+						player->left = left = true;
+						player->right = right = false;
 						if ( !currentWorld->toLeft.empty() ) {
 							oldpos = player->loc;
 							if((tmp = currentWorld->goWorldLeft(player)) != currentWorld){
@@ -1385,11 +1368,9 @@ EXIT:
 						break;
 					case SDLK_d:
 						if(fadeEnable)break;
-						player->vel.x=.15;
-						player->right = true;
-						player->left = false;
-						left = false;
-						right = true;
+						player->vel.x = PLAYER_SPEED_CONSTANT;
+						player->right = right = true;
+						player->left = left = false;
 						if ( !currentWorld->toRight.empty() ) {
 							oldpos = player->loc;
 							if((tmp = currentWorld->goWorldRight(player)) != currentWorld){
@@ -1461,8 +1442,7 @@ EXIT:
 			*/
 
 			case SDL_KEYUP:
-				if(SDL_KEY == SDLK_ESCAPE){
-					//gameRunning = false;
+				if ( SDL_KEY == SDLK_ESCAPE ) {
 					currentMenu = &pauseMenu;
 					player->save();
 					return;
@@ -1470,6 +1450,18 @@ EXIT:
 				switch(SDL_KEY){
 				case SDLK_z:
 					weather = WorldWeather::Snowy;
+					break;
+				case SDLK_i:
+					if ( isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorAbove( player ) ) {
+						player->loc.y += getIndoorWorldFloorHeight();
+						player->ground = false;
+					}
+					break;
+				case SDLK_k:
+					if ( isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorBelow( player ) ) {
+						player->loc.y -= getIndoorWorldFloorHeight();
+						player->ground = false;
+					}
 					break;
 				case SDLK_a:
 					left = false;

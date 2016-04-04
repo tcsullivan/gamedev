@@ -111,6 +111,13 @@ CONT:
 				}
 
 				/*
+				 * Handle 'go to' thingy
+				 */
+
+				if ( (oxml = exml->FirstChildElement("gotox")) )
+					speaker->targetx = atoi(oxml->GetText());
+
+				/*
 				 * Handle dialog options.
 				 */
 
@@ -273,21 +280,14 @@ void initEverything(void){
 	 * Read the XML directory into an array.
 	 */
 
-	C("Scanning XML directory");
-	if(getdir(std::string("./"+xmlFolder).c_str(),xmlFiles)){
-		std::cout<<"Error reading XML files!!!1"<<std::endl;
-		abort();
-	}
-	C("Done scanning XML directory");
+	if ( getdir( std::string("./" + xmlFolder).c_str(), xmlFiles ) )
+		UserError("Error reading XML files!!!");
 
 	/*
 	 * Sort the files alphabetically.
 	 */
 
-	C("Sorting XML files alphabetically");
 	strVectorSortAlpha(&xmlFiles);
-	C("Dpne sorting XML files alphabetically");
-
 
 	/*
 	 * Load the first file found as currentWorld.

@@ -177,6 +177,8 @@ public:
 	Texturec *tex;
 	Texturec *ntex;
 
+	float targetx;
+
 	unsigned int randDialog;
 
 	void draw(void);

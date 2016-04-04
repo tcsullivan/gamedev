@@ -2,11 +2,10 @@
 <IndoorWorld>
 	<style background="1" bgm="assets/music/theme_jazz.wav" />
 
-	<floor width="300">
-		<npc name="Bob" hasDialog="true" />
-	</floor>
+	<floor width="300" />
+	<floor width="200" start="100" />
 
-	<floor width="200" />
+	<npc name="Bob" hasDialog="true" floor="2" />
 
 </IndoorWorld>
 
@@ -55,7 +54,7 @@
 		<give id="Wood Sword22"  count="1"/>
 		<give id="Wood Sword23"  count="1"/>
 		<give id="Wood Sword24"  count="1"/>
-		<give id="Wood Sword25"  count="1"/>
+		<give id="Wood Sword25"  count="6"/>
 		<give id="Wood Sword26"  count="1"/>
 		<give id="Wood Sword27"  count="1"/>
 		<give id="Wood Sword28"  count="1"/>

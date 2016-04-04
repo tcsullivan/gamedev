@@ -439,7 +439,7 @@ int main(int argc, char *argv[]){
     Mix_CloseAudio();
 
     destroyInventory();
-		ui::destroyFonts();
+	ui::destroyFonts();
     Texture::freeTextures();
 
     SDL_GL_DeleteContext(mainGLContext);
@@ -480,7 +480,8 @@ void mainLoop(void){
 	deltaTime	= currentTime - prevTime;
 	prevTime	= currentTime;
 
-	if(currentMenu)goto MENU;
+	if ( currentMenu )
+		goto MENU;
 
 	/*
 	 * Run the logic handler if MSEC_PER_TICK milliseconds have passed.
@@ -520,14 +521,14 @@ void mainLoop(void){
 
 		if ( deltaTime )
 			fps = 1000 / deltaTime;
-		if(!(debugDiv % 10))
+		if ( !(debugDiv % 10) )
 			debugY = player->loc.y;
 	}
 MENU:
 	render();
 }
 
-void render(){
+void render() {
 
 	 /*
 	  *	This offset variable is what we use to move the camera and locked
@@ -752,21 +753,31 @@ void render(){
 static bool objectInteracting = false;
 
 void logic(){
-
-	/*
-	 *	NPCSelected is used to insure that only one NPC is made interactable with the mouse
-	 *	if, for example, multiple entities are occupying one space.
-	 */
-
 	static bool NPCSelected = false;
 
-	/*
-	 *	Run the world's detect function. This handles the physics of the player and any entities
-	 *	that exist in this world.
-	 */
+	// exit the game if the player falls out of the world
+	if ( player->loc.y < 0 )
+		gameRunning = false;
 
+	for ( auto &e : currentWorld->entity ) {
+		if ( player->inv->usingi ) {
+			e->hit = false;
 
-	if(player->loc.y<.02)gameRunning=false;
+			std::cout << "bang" << std::endl;
+
+			if ( player->inv->usingi && !e->hit &&
+				 player->inv->detectCollision( { e->loc.x, e->loc.y }, { e->loc.x + e->width, e->loc.y + e->height} ) ) {
+				e->health -= 25;
+				e->hit = true;
+				//for(int r = 0; r < (rand()%5);r++)
+				//	currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%4)*.001-.002), {(rand()%75+10)/100.0f,0,0}, 10000);
+				//if ( e->health <= 0 ) {
+				//for(int r = 0; r < (rand()%30)+15;r++)
+				//	currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%10)*.01-.05), {(rand()%75)+10/100.0f,0,0}, 10000);
+			}
+		}
+	}
+
 
 	/*
 	 *	Entity logic: This loop finds every entity that is alive and in the current world. It then
@@ -786,18 +797,6 @@ void logic(){
 			if(n->canMove)
 				n->wander((rand() % 120 + 30));
 
-			if(!player->inv->usingi) n->hit = false;
-
-			if(player->inv->usingi && !n->hit && player->inv->detectCollision({n->loc.x, n->loc.y},{n->loc.x+n->width,n->loc.y+n->height})){
-				n->health -= 25;
-				n->hit = true;
-				for(int r = 0; r < (rand()%5);r++)
-					currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%4)*.001-.002), {(rand()%75+10)/100.0f,0,0}, 10000);
-				if(n->health <= 0){
-					for(int r = 0; r < (rand()%30)+15;r++)
-						currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%10)*.01-.05), {(rand()%75)+10/100.0f,0,0}, 10000);
-				}
-			}
 			/*
 			 *	Don't bother handling the NPC if another has already been handled.
 	 		 */

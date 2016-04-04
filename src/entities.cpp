@@ -75,6 +75,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	loc.y = y;
 	vel.x = 0;
 	vel.y = 0;
+	targetx = 0.9112001f;
 
 	alive	= true;
 	right	= true;
@@ -407,6 +408,13 @@ wander( int timeRun )
 			direction = 0;
 
 		vel.x = .018 * HLINE * direction;
+	} else if ( targetx != 0.9112001f ) {
+		if ( loc.x > targetx + HLINE * 5)
+			vel.x = -0.018 * HLINE;
+		else if ( loc.x < targetx - HLINE * 5)
+			vel.x = 0.018 * HLINE;
+		else
+			targetx = 0.9112001f;
 	} else if ( ticksToUse == 0 ) {
 		ticksToUse = timeRun;
 
@@ -489,21 +497,17 @@ void Merchant::interact(){
 		ui::merchantBox(name, trade[currTrade], ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
 		ui::waitForDialog();
 		if(ui::dialogOptChosen == 1){
-			std::cout << "Gimme ye' munny" << std::endl;
 			if(!(player->inv->takeItem(trade[currTrade].item[1],trade[currTrade].quantity[1])))
 				player->inv->addItem(trade[currTrade].item[0],trade[currTrade].quantity[0]);
 		}else if(ui::dialogOptChosen == 2){
-			std::cout << "See ye!" << std::endl;
 		}else if(ui::merchOptChosen == 1){
 			if(currTrade != 0){
 				currTrade--;
-				std::cout << "Last trade" << std::endl;
 				interact();
 			}
 		}else if(ui::merchOptChosen == 2){
 			if(currTrade < trade.size()){
 				currTrade++;
-				std::cout << "Next trade" << std::endl;
 				interact();
 			}
 		}
