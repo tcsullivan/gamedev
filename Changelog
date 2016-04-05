@@ -870,3 +870,12 @@
 	- removed unnecessary cout's
 	- began actual storyline work?
 	- began actual fighting work
+
+4/5/2016:
+=========
+
+	- worked on item handling stuffs
+	- swords can affect all entities, added knockback
+	- began work with threading pages/triggers
+	- added debug flag for settings.xml
+	- improved particle drawing

@@ -86,6 +86,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	//canMove	= true;
 	ground	= false;
 	hit 	= false;
+	forcedMove = false;
 
 	ticksToUse = 0;
 
@@ -389,7 +390,12 @@ NOPE:
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	if(near)ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
+	if ( near )
+		ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
+	if ( health != maxHealth ) {
+		glColor3ub(150,0,0); glRectf( loc.x, loc.y + height, loc.x + width, loc.y + height + HLINE * 2 );
+		glColor3ub(255,0,0); glRectf( loc.x, loc.y + height, loc.x + width * ( health / maxHealth ), loc.y + height + HLINE * 2 );
+	}
 }
 
 /**
@@ -400,6 +406,9 @@ void NPC::
 wander( int timeRun )
 {
 	static int direction;
+
+	if ( forcedMove )
+		return;
 
 	if ( followee ) {
 		if ( loc.x < followee->loc.x - 40 )
@@ -473,6 +482,10 @@ void NPC::interact(){ //have the npc's interact back to the player
 
 void Merchant::wander(int timeRun){
 	static int direction;
+
+	if ( forcedMove )
+		return;
+
 	if ( ticksToUse == 0 ) {
 		ticksToUse = timeRun;
 
@@ -600,6 +613,9 @@ void Mob::wander(int timeRun){
 	static unsigned int heya=0,hi=0;
 	static bool YAYA = false;
 
+	if ( forcedMove )
+		return;
+
 	if ( followee ) {
 		if ( loc.x < followee->loc.x - 40 )
 			direction = 1;
@@ -667,11 +683,12 @@ void Mob::wander(int timeRun){
 		   ui::mouse.y > loc.y - width / 2	 &&
 		   ui::mouse.y < loc.y + width * 1.5 &&
 		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-			if(speed != 666){
+			std::thread([this]{hey(this);}).detach();
+			/*if(speed != 666){
 				speed = 666;
 				hey(this);
 				speed = 0;
-			}
+			}*/
 		}
 		break;
 	default:

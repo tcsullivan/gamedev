@@ -632,6 +632,11 @@ namespace ui {
 
 	void drawPage( std::string path ) {
 		pageTex = Texture::loadTexture( path );
+		std::cout<<"page set\n";
+	}
+
+	bool pageExists( void ) {
+		return pageTex;
 	}
 
 	void draw(void){
@@ -640,6 +645,8 @@ namespace ui {
 		std::string rtext;
 
 		if ( pageTex ) {
+
+			std::cout<<"page draw\n";
 
 			glEnable( GL_TEXTURE_2D);
 			glBindTexture( GL_TEXTURE_2D, pageTex );
@@ -1204,6 +1211,7 @@ namespace ui {
 		unsigned char i;
 
 		if ( pageTex ) {
+			std::cout<<"rip page\n";
 			glDeleteTextures( 1, &pageTex );
 			pageTex = 0;
 			return;
@@ -1280,7 +1288,12 @@ EXIT:
 				break;
 
 			case SDL_MOUSEBUTTONUP:
-				if(ig) {
+
+				// right click advances dialog
+				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && (dialogBoxExists | pageTex) )
+					dialogAdvance();
+
+				if ( ig ) {
 					ig->vel.x = (fr.x - mouse.x) / 50.0f;
 					ig->vel.y = (fr.y - mouse.y) / 50.0f;
 					ig = NULL;
@@ -1289,9 +1302,7 @@ EXIT:
 
 			// mouse clicks
 			case SDL_MOUSEBUTTONDOWN:
-				// right click advances dialog
-				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && (dialogBoxExists | pageTex) )
-					dialogAdvance();
+
 				// left click uses item
 				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )
 					player->inv->usingi = true;
@@ -1397,9 +1408,6 @@ EXIT:
 						} else if( (tmp = currentWorld->goInsideStructure( player )) != currentWorld )
 								currentWorld = tmp;
 						break;
-					case SDLK_i:
-						player->health -= 5;
-						break;
 					case SDLK_LSHIFT:
 						if(debug){
 							Mix_PlayChannel(1,sanic,-1);
@@ -1409,12 +1417,6 @@ EXIT:
 						break;
 					case SDLK_LCTRL:
 						player->speed = .5;
-						break;
-					case SDLK_F3:
-						debug ^= true;
-						break;
-					case SDLK_b:
-						if(debug)posFlag ^= true;
 						break;
 					case SDLK_e:
 						edown=true;
@@ -1447,7 +1449,10 @@ EXIT:
 					player->save();
 					return;
 				}
-				switch(SDL_KEY){
+				switch ( SDL_KEY ) {
+				case SDLK_F3:
+					debug ^= true;
+					break;
 				case SDLK_z:
 					weather = WorldWeather::Snowy;
 					break;
@@ -1497,23 +1502,15 @@ EXIT:
 				case SDLK_f:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
-				case SDLK_g:
-					//currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, NULL);
-					break;
-				case SDLK_h:
-					//currentWorld->addStructure(TOWN_HALL, player->loc.x, player->loc.y, NULL);
-					break;
-				case SDLK_j:
-					//currentWorld->addStructure(FOUNTAIN, player->loc.x, player->loc.y, NULL);
-					break;
-				case SDLK_v:
-					//currentWorld->addVillage(player->loc.x, player->loc.y, 5, 10, 100, NULL);
-					break;
 				case SDLK_b:
-					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
-					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
-					currentWorld->light.back().follow(currentWorld->build.back());
-					currentWorld->light.back().makeFlame();
+					if ( debug )
+						posFlag ^= true;
+					else {
+						currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
+						currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
+						currentWorld->light.back().follow(currentWorld->build.back());
+						currentWorld->light.back().makeFlame();
+					}
 					break;
 				case SDLK_F12:
 					// Make the BYTE array, factor of 3 because it's RBG.

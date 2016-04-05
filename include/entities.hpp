@@ -151,10 +151,10 @@ public:
 
 	bool near;				// Causes name to display
 	bool canMove;			// Enables movement
-	bool canJape;			// Enables world leaving
 	bool right,left;		// Direction faced by Entity
 	bool alive;
 	bool hit;
+	bool forcedMove;
 	unsigned char ground;	// Shows how the Entity is grounded (if it is)
 
 	/*

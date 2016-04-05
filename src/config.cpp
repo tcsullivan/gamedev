@@ -60,6 +60,10 @@ namespace config {
 
 		ui::initFonts();
 		ui::setFontFace(xml.FirstChildElement("font")->Attribute("path"));
+
+		if ( xml.FirstChildElement("debug") )
+			ui::debug = ui::posFlag = true;
+
 		config::update();
 	}
 

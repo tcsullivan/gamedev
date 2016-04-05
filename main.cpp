@@ -695,18 +695,27 @@ void render() {
 					getWorldWeatherStr( weather ).c_str()
 					);
 
-		if(ui::posFlag){
+		if ( ui::posFlag ) {
 			glBegin(GL_LINES);
-				glColor3ub(255,0,0);
+				/*glColor3ub(255,0,0);
 				glVertex2i(0,0);
-				glVertex2i(0,SCREEN_HEIGHT);
+				glVertex2i(0,SCREEN_HEIGHT);*/
 
-				glColor3ub(255,255,255);
+				/*glColor3ub(255,255,255);
 				glVertex2i(player->loc.x + player->width/2,0);
 				glVertex2i(player->loc.x + player->width/2,SCREEN_HEIGHT);
+				glVertex2i( offset.x - SCREEN_WIDTH / 2, player->loc.y + player->height / 2 );
+				glVertex2i( offset.x + SCREEN_WIDTH / 2, player->loc.y + player->height / 2 );*/
 
-				glVertex2i(-SCREEN_WIDTH/2+offset.x,player->loc.y);
-				glVertex2i(SCREEN_WIDTH/2+offset.x, player->loc.y);
+				/*glVertex2i( -SCREEN_WIDTH / 2 + offset.x, player->loc.y );
+				glVertex2i(  SCREEN_WIDTH / 2 + offset.x, player->loc.y );*/
+
+				glColor3ub(100,100,255);
+				for ( auto &e : currentWorld->entity ) {
+					glVertex2i( player->loc.x + player->width / 2, player->loc.y + player->height / 2 );
+					glVertex2i( e->loc.x + e->width / 2, e->loc.y + e->height / 2 );
+				}
+
 			glEnd();
 		}
 
@@ -759,16 +768,18 @@ void logic(){
 	if ( player->loc.y < 0 )
 		gameRunning = false;
 
-	for ( auto &e : currentWorld->entity ) {
-		if ( player->inv->usingi ) {
+	if ( player->inv->usingi ) {
+		for ( auto &e : currentWorld->entity ) {
 			e->hit = false;
-
-			std::cout << "bang" << std::endl;
 
 			if ( player->inv->usingi && !e->hit &&
 				 player->inv->detectCollision( { e->loc.x, e->loc.y }, { e->loc.x + e->width, e->loc.y + e->height} ) ) {
 				e->health -= 25;
 				e->hit = true;
+				e->forcedMove = true;
+				e->vel.x = 0.5f * (player->left ? -1 : 1);
+				e->vel.y = 0.2f;
+				break;
 				//for(int r = 0; r < (rand()%5);r++)
 				//	currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%4)*.001-.002), {(rand()%75+10)/100.0f,0,0}, 10000);
 				//if ( e->health <= 0 ) {
@@ -776,8 +787,8 @@ void logic(){
 				//	currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%10)*.01-.05), {(rand()%75)+10/100.0f,0,0}, 10000);
 			}
 		}
+		player->inv->usingi = false;
 	}
-
 
 	/*
 	 *	Entity logic: This loop finds every entity that is alive and in the current world. It then

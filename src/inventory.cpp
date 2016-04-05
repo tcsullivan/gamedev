@@ -522,6 +522,8 @@ void Inventory::draw(void){
 }
 
 void itemDraw(Player *p,uint id){
+	static unsigned char inc = 0;
+
 	itemLoc.y = p->loc.y+(p->height/3);
 	itemLoc.x = p->left?p->loc.x:p->loc.x+p->width;
 	glPushMatrix();
@@ -540,9 +542,16 @@ void itemDraw(Player *p,uint id){
 				p->inv->usingi = false;
 			}
 		}
-	}else hangle = 0.0f;
+	} else
+		hangle = 0;
+
 	if ( p->inv->usingi )
+		inc = 10;
+
+	if ( inc ) {
+		inc--;
 		p->inv->useItem();
+	}
 
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
@@ -564,25 +573,31 @@ void itemDraw(Player *p,uint id){
 	glUseProgram(0);
 }
 
-int Inventory::useItem(void){
+int Inventory::useItem( void )
+{
 	static bool up = false;
-	if(!invHover){
 
-		if(itemMap[items[sel].id]->type == "Sword"){
+	if ( !invHover ) {
+		if ( itemMap[items[sel].id]->type == "Sword" ) {
+			if ( swing ) {
+				int dir = player->left ? 1 : -1;
 
-			if(swing){
-				if(!player->left){
-					if(hangle==-15){up=true;Mix_PlayChannel(2,swordSwing,0);}
-					if(up)hangle-=.75*deltaTime;
-					if(hangle<=-90)hangle=-14;
-				}else{
-					if(hangle==15){up=true;Mix_PlayChannel(2,swordSwing,0);}
-					if(up)hangle+=.75*deltaTime;
-					if(hangle>=90)hangle=14;
+				if ( hangle == 15 * dir ) {
+					up = true;
+					Mix_PlayChannel( 2, swordSwing, 0 );
 				}
-			}else if(!swing){
-				swing=true;
-				Mix_PlayChannel(2,swordSwing,0);
+
+				if ( up )
+					hangle += 0.325f * dir * deltaTime;
+
+				if ( !player->left ) {
+					if ( hangle <= -90 )
+						hangle = -14;
+				} else if ( hangle >= 90 )
+						hangle = 14;
+			} else {
+				swing = true;
+				Mix_PlayChannel( 2, swordSwing, 0 );
 			}
 		}else if(itemMap[items[sel].id]->type == "Cooked Food"){
 			player->health += itemMap[items[sel].id]->attribValue;
@@ -601,7 +616,6 @@ bool Inventory::detectCollision(vec2 one, vec2 two){
 	if(items.empty() || !items[sel].count)
 		return false;
 	if(itemMap[items[sel].id]->type == "Sword"){
-		std::cout<<"Collision???"<<std::endl;
 		while(i<itemMap[items[sel].id]->height){
 			xc = itemLoc.x; yc = itemLoc.y;
 			xc += float(i) * cos((hangle+90)*PI/180);

@@ -718,7 +718,9 @@ singleDetect( Entity *e )
 	 *	Kill any dead entities.
 	*/
 
-	if ( !e->alive || e->health <= 0 ) {
+	if ( e->alive && e->health <= 0 ) {
+        e->alive = false;
+        e->health = 0;
 		for ( i = 0; i < entity.size(); i++) {
 			if ( entity[i] == e ){
 				switch ( e->type ) {
@@ -776,6 +778,15 @@ singleDetect( Entity *e )
 
 	// handle only living entities
 	if ( e->alive ) {
+
+        // forced movement gravity
+        if ( e->forcedMove ) {
+            if ( e->vel.x > .0005 || e->vel.x < -.0005 )
+                e->vel.x *= .6;
+            else
+                e->forcedMove = false;
+        }
+
 		if ( e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER )
 			return;
 
