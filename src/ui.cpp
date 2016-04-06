@@ -214,10 +214,8 @@ namespace ui {
 	*/
 
 	void initFonts(void){
-		if(FT_Init_FreeType(&ftl)){
-			std::cout<<"Error! Couldn't initialize freetype."<<std::endl;
-			abort();
-		}
+		if ( FT_Init_FreeType(&ftl) )
+			UserError("Couldn't initialize freetype.");
 
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
@@ -244,10 +242,9 @@ namespace ui {
 	*/
 
 	void setFontFace(const char *ttf){
-		if(FT_New_Face(ftl,ttf,0,&ftf)){
-			std::cout<<"Error! Couldn't open "<<ttf<<"."<<std::endl;
-			abort();
-		}
+		if ( FT_New_Face( ftl, ttf, 0, &ftf ) )
+			UserError("Error! Couldn't open " + (std::string)ttf + ".");
+
 #ifdef DEBUG
 		DEBUG_printf("Using font %s\n",ttf);
 #endif // DEBUG
@@ -527,8 +524,6 @@ namespace ui {
 		va_list dialogArgs;
 		std::unique_ptr<char[]> printfbuf (new char[512]);
 
-		std::cout << "Buying and selling on the bi-weekly!" << std::endl;
-
 		dialogPassive = passive;
 
 		std::cout << "Market Trading: " << trade.quantity[0] << " " << trade.item[0] << " for " << trade.quantity[1] << " " << trade.item[1] << std::endl;
@@ -602,9 +597,6 @@ namespace ui {
 		va_list textArgs;
 		char *printfbuf;
 
-		//if(!player->ground)return;
-
-		//memset(dialogBoxText,0,512);
 		dialogBoxText.clear();
 
 		printfbuf = new char[ 512 ];
@@ -616,16 +608,12 @@ namespace ui {
 
 		dialogBoxExists = true;
 		dialogImportant = true;
-		//toggleBlack();
 	}
 
-	void passiveImportantText(int duration, const char *text,...){
+	void passiveImportantText(int duration, const char *text, ...){
 		va_list textArgs;
 		char *printfbuf;
 
-		//if(!player->ground)return;
-
-		//memset(dialogBoxText,0,512);
 		dialogBoxText.clear();
 
 		printfbuf = new char[ 512 ];
@@ -644,6 +632,11 @@ namespace ui {
 
 	void drawPage( std::string path ) {
 		pageTex = Texture::loadTexture( path );
+		std::cout<<"page set\n";
+	}
+
+	bool pageExists( void ) {
+		return pageTex;
 	}
 
 	void draw(void){
@@ -652,6 +645,8 @@ namespace ui {
 		std::string rtext;
 
 		if ( pageTex ) {
+
+			std::cout<<"page draw\n";
 
 			glEnable( GL_TEXTURE_2D);
 			glBindTexture( GL_TEXTURE_2D, pageTex );
@@ -683,11 +678,8 @@ namespace ui {
 					setFontSize(16);
 				}
 			}else if(dialogMerchant){
-				//static int dispItem;
-
 				x=offset.x-SCREEN_WIDTH/6;
 				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
-
 
 				glColor3ub(255,255,255);
 				glBegin(GL_LINE_STRIP);
@@ -965,7 +957,7 @@ namespace ui {
 		while(SDL_PollEvent(&e)){
 			switch(e.type){
 			case SDL_QUIT:
-				gameRunning=false;
+				gameRunning = false;
 				return;
 				break;
 			case SDL_MOUSEMOTION:
@@ -1219,6 +1211,7 @@ namespace ui {
 		unsigned char i;
 
 		if ( pageTex ) {
+			std::cout<<"rip page\n";
 			glDeleteTextures( 1, &pageTex );
 			pageTex = 0;
 			return;
@@ -1285,7 +1278,7 @@ EXIT:
 
 			// escape - quit game
 			case SDL_QUIT:
-				gameRunning=false;
+				gameRunning = false;
 				break;
 
 			// mouse movement - update mouse vector
@@ -1295,7 +1288,12 @@ EXIT:
 				break;
 
 			case SDL_MOUSEBUTTONUP:
-				if(ig) {
+
+				// right click advances dialog
+				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && (dialogBoxExists | pageTex) )
+					dialogAdvance();
+
+				if ( ig ) {
 					ig->vel.x = (fr.x - mouse.x) / 50.0f;
 					ig->vel.y = (fr.y - mouse.y) / 50.0f;
 					ig = NULL;
@@ -1304,9 +1302,7 @@ EXIT:
 
 			// mouse clicks
 			case SDL_MOUSEBUTTONDOWN:
-				// right click advances dialog
-				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && (dialogBoxExists | pageTex) )
-					dialogAdvance();
+
 				// left click uses item
 				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )
 					player->inv->usingi = true;
@@ -1363,11 +1359,9 @@ EXIT:
 						break;
 					case SDLK_a:
 						if(fadeEnable)break;
-						player->vel.x=-.15;
-						player->left = true;
-						player->right = false;
-						left = true;
-						right = false;
+						player->vel.x = -PLAYER_SPEED_CONSTANT;
+						player->left = left = true;
+						player->right = right = false;
 						if ( !currentWorld->toLeft.empty() ) {
 							oldpos = player->loc;
 							if((tmp = currentWorld->goWorldLeft(player)) != currentWorld){
@@ -1385,11 +1379,9 @@ EXIT:
 						break;
 					case SDLK_d:
 						if(fadeEnable)break;
-						player->vel.x=.15;
-						player->right = true;
-						player->left = false;
-						left = false;
-						right = true;
+						player->vel.x = PLAYER_SPEED_CONSTANT;
+						player->right = right = true;
+						player->left = left = false;
 						if ( !currentWorld->toRight.empty() ) {
 							oldpos = player->loc;
 							if((tmp = currentWorld->goWorldRight(player)) != currentWorld){
@@ -1416,9 +1408,6 @@ EXIT:
 						} else if( (tmp = currentWorld->goInsideStructure( player )) != currentWorld )
 								currentWorld = tmp;
 						break;
-					case SDLK_i:
-						player->health -= 5;
-						break;
 					case SDLK_LSHIFT:
 						if(debug){
 							Mix_PlayChannel(1,sanic,-1);
@@ -1428,12 +1417,6 @@ EXIT:
 						break;
 					case SDLK_LCTRL:
 						player->speed = .5;
-						break;
-					case SDLK_F3:
-						debug ^= true;
-						break;
-					case SDLK_b:
-						if(debug)posFlag ^= true;
 						break;
 					case SDLK_e:
 						edown=true;
@@ -1461,15 +1444,29 @@ EXIT:
 			*/
 
 			case SDL_KEYUP:
-				if(SDL_KEY == SDLK_ESCAPE){
-					//gameRunning = false;
+				if ( SDL_KEY == SDLK_ESCAPE ) {
 					currentMenu = &pauseMenu;
 					player->save();
 					return;
 				}
-				switch(SDL_KEY){
+				switch ( SDL_KEY ) {
+				case SDLK_F3:
+					debug ^= true;
+					break;
 				case SDLK_z:
 					weather = WorldWeather::Snowy;
+					break;
+				case SDLK_i:
+					if ( isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorAbove( player ) ) {
+						player->loc.y += getIndoorWorldFloorHeight();
+						player->ground = false;
+					}
+					break;
+				case SDLK_k:
+					if ( isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorBelow( player ) ) {
+						player->loc.y -= getIndoorWorldFloorHeight();
+						player->ground = false;
+					}
 					break;
 				case SDLK_a:
 					left = false;
@@ -1505,23 +1502,15 @@ EXIT:
 				case SDLK_f:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
-				case SDLK_g:
-					//currentWorld->addStructure(LAMP_POST, player->loc.x, player->loc.y, NULL);
-					break;
-				case SDLK_h:
-					//currentWorld->addStructure(TOWN_HALL, player->loc.x, player->loc.y, NULL);
-					break;
-				case SDLK_j:
-					//currentWorld->addStructure(FOUNTAIN, player->loc.x, player->loc.y, NULL);
-					break;
-				case SDLK_v:
-					//currentWorld->addVillage(player->loc.x, player->loc.y, 5, 10, 100, NULL);
-					break;
 				case SDLK_b:
-					currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
-					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
-					currentWorld->light.back().follow(currentWorld->build.back());
-					currentWorld->light.back().makeFlame();
+					if ( debug )
+						posFlag ^= true;
+					else {
+						currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
+						currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
+						currentWorld->light.back().follow(currentWorld->build.back());
+						currentWorld->light.back().makeFlame();
+					}
 					break;
 				case SDLK_F12:
 					// Make the BYTE array, factor of 3 because it's RBG.

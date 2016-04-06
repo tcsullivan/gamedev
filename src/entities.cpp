@@ -77,6 +77,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	loc.y = y;
 	vel.x = 0;
 	vel.y = 0;
+	targetx = 0.9112001f;
 
 	alive	= true;
 	right	= true;
@@ -85,6 +86,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	//canMove	= true;
 	ground	= false;
 	hit 	= false;
+	forcedMove = false;
 
 	ticksToUse = 0;
 
@@ -388,7 +390,12 @@ NOPE:
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	if(near)ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
+	if ( near )
+		ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
+	if ( health != maxHealth ) {
+		glColor3ub(150,0,0); glRectf( loc.x, loc.y + height, loc.x + width, loc.y + height + HLINE * 2 );
+		glColor3ub(255,0,0); glRectf( loc.x, loc.y + height, loc.x + width * ( health / maxHealth ), loc.y + height + HLINE * 2 );
+	}
 }
 
 /**
@@ -400,6 +407,9 @@ wander( int timeRun )
 {
 	static int direction;
 
+	if ( forcedMove )
+		return;
+
 	if ( followee ) {
 		if ( loc.x < followee->loc.x - 40 )
 			direction = 1;
@@ -409,6 +419,13 @@ wander( int timeRun )
 			direction = 0;
 
 		vel.x = .018 * HLINE * direction;
+	} else if ( targetx != 0.9112001f ) {
+		if ( loc.x > targetx + HLINE * 5)
+			vel.x = -0.018 * HLINE;
+		else if ( loc.x < targetx - HLINE * 5)
+			vel.x = 0.018 * HLINE;
+		else
+			targetx = 0.9112001f;
 	} else if ( ticksToUse == 0 ) {
 		ticksToUse = timeRun;
 
@@ -465,6 +482,10 @@ void NPC::interact(){ //have the npc's interact back to the player
 
 void Merchant::wander(int timeRun){
 	static int direction;
+
+	if ( forcedMove )
+		return;
+
 	if ( ticksToUse == 0 ) {
 		ticksToUse = timeRun;
 
@@ -491,21 +512,17 @@ void Merchant::interact(){
 		ui::merchantBox(name, trade[currTrade], ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
 		ui::waitForDialog();
 		if(ui::dialogOptChosen == 1){
-			std::cout << "Gimme ye' munny" << std::endl;
 			if(!(player->inv->takeItem(trade[currTrade].item[1],trade[currTrade].quantity[1])))
 				player->inv->addItem(trade[currTrade].item[0],trade[currTrade].quantity[0]);
 		}else if(ui::dialogOptChosen == 2){
-			std::cout << "See ye!" << std::endl;
 		}else if(ui::merchOptChosen == 1){
 			if(currTrade != 0){
 				currTrade--;
-				std::cout << "Last trade" << std::endl;
 				interact();
 			}
 		}else if(ui::merchOptChosen == 2){
 			if(currTrade < trade.size()){
 				currTrade++;
-				std::cout << "Next trade" << std::endl;
 				interact();
 			}
 		}
@@ -596,6 +613,9 @@ void Mob::wander(int timeRun){
 	static unsigned int heya=0,hi=0;
 	static bool YAYA = false;
 
+	if ( forcedMove )
+		return;
+
 	if ( followee ) {
 		if ( loc.x < followee->loc.x - 40 )
 			direction = 1;
@@ -663,11 +683,12 @@ void Mob::wander(int timeRun){
 		   ui::mouse.y > loc.y - width / 2	 &&
 		   ui::mouse.y < loc.y + width * 1.5 &&
 		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-			if(speed != 666){
+			std::thread([this]{hey(this);}).detach();
+			/*if(speed != 666){
 				speed = 666;
 				hey(this);
 				speed = 0;
-			}
+			}*/
 		}
 		break;
 	default:

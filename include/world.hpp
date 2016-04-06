@@ -17,11 +17,15 @@
 
 #define GROUND_HILLINESS        10
 
+#define PLAYER_SPEED_CONSTANT 0.15f
+
 /**
  * Defines how many game ticks it takes for a day to elapse.
  */
 
 #define DAY_CYCLE 12000
+
+#define Indoorp(x) ((IndoorWorld *)x)
 
 /**
  * The background type enum.
@@ -485,6 +489,7 @@ class IndoorWorld : public World {
 private:
 
 	std::vector<std::vector<float>> floor;
+	std::vector<float> fstart;
 
 	void singleDetect( Entity *e );
 
@@ -493,6 +498,11 @@ public:
 	~IndoorWorld(void);
 
 	void addFloor( unsigned int width );
+	void addFloor( unsigned int width, unsigned int start );
+	bool moveToFloor( Entity *e, unsigned int _floor );
+
+	bool isFloorAbove( Entity *e );
+	bool isFloorBelow( Entity *e );
 
 	void draw(Player *p);				// Draws the world (ignores layers)
 };
@@ -536,6 +546,9 @@ public:
 
 	World *exitArena( Player *p );
 };
+
+bool  isCurrentWorldIndoors( void );
+float getIndoorWorldFloorHeight( void );
 
 std::string getWorldWeatherStr( WorldWeather ww );
 

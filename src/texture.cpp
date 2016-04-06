@@ -143,7 +143,6 @@ namespace Texture{
 	vec2 getIndex(Color c){
 		for(auto &i : ind){
 			if(c.red == i.color.red && c.green == i.color.green && c.blue == i.color.blue){
-				//std::cout << float(i.indexy) << "," << float(i.indexx) << std::endl;
 				return {float(i.indexx), float(i.indexy)};
 			}
 		}
@@ -152,22 +151,17 @@ namespace Texture{
 		float shit = 999;
 		for(uint y = 0; y < 8; y++){
 			for(uint x = 0; x < 4; x++){
-				//std::cout << y << "," << x << ":" << pixels[y][x].red << "," << pixels[y][x].green << "," << pixels[y][x].blue << std::endl;
 				buff = sqrt(pow((pixels[y][x].red-	c.red),  2)+
 							pow((pixels[y][x].green-c.green),2)+
 							pow((pixels[y][x].blue-	c.blue), 2));
-				//std::cout << buff << std::endl;
 				if(buff < shit){
 					shit = buff;
 					buf[0] = y;
 					buf[1] = x;
 				}
-				//
-				//std::cout << shit << std::endl;
 			}
 		}
 		ind.push_back({c, (int)buf[1], (int)buf[0]});
-		//std::cout << float(buf[1]) << ", " << float(buf[0]) << std::endl;
 		return {float(buf[1]),float(buf[0])};
 	}
 }

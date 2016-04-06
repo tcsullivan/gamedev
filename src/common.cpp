@@ -20,14 +20,6 @@ unsigned int millis(void){
 
 #endif // __WIN32__
 
-void C(std::string m){
-	#ifdef SEGFAULT
-		std::cout << m << std::endl;
-	#else
-		(void)m;
-	#endif
-}
-
 void DEBUG_prints(const char* file, int line, const char *s,...){
 	va_list args;
 	printf("%s:%d: ",file,line);
@@ -58,10 +50,10 @@ void safeSetColorA(int r,int g,int b,int a){
 	glColor4ub(r,g,b,a);
 }
 
-int getdir(const char *dir, std::vector<std::string> &files){
+int getdir(std::string dir, std::vector<std::string> &files){
     DIR *dp;
     struct dirent *dirp;
-    if(!(dp = opendir(dir))){
+    if(!(dp = opendir(dir.c_str()))){
         std::cout <<"Error ("<<errno<<") opening "<<dir<<std::endl;
         return errno;
     }
@@ -89,10 +81,8 @@ const char *readFile(const char *path){
 	unsigned int size;
 	GLchar *buf;
 
-	if(!in.is_open()){
-		std::cout<<"Error reading file "<<path<<"!"<<std::endl;
-		abort();
-	}
+	if ( !in.is_open() )
+		UserError("Error reading file " + (std::string)path + "!");
 
 	in.seekg(0,in.end);
 	buf = new GLchar[(size = in.tellg()) + 1];

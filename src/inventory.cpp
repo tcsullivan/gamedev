@@ -182,17 +182,16 @@ void Inventory::setSelection(unsigned int s){
 }
 
 void Inventory::setSelectionUp(){
-	if(!sel--)sel++;
+	if ( !sel-- )
+		sel++;
 }
 
 void Inventory::setSelectionDown(){
-	sel++;
-	if(sel>=numSlot)sel=numSlot-1;
+	if ( ++sel >= numSlot )
+		sel = numSlot - 1;
 }
 
 void Inventory::draw(void){
-	C("Inventory Start Draw");
-	static unsigned int lop = 0;
 	static std::vector<int>dfp(numSlot);
 	static std::vector<Ray>iray(numSlot);
 	static std::vector<vec2>curCoord(numSlot);
@@ -213,91 +212,82 @@ void Inventory::draw(void){
 	float angleB = (float)180/(float)numSlot;
 	float angle = float(angleB/2.0f);
 	unsigned int a = 0;
-	static bool end = false;
 	static vec2 mouseStart = {0,0};
 	C("End define");
 
-	for(auto &r : iray){
-		r.start.x = player->loc.x + (player->width/2);
-		r.start.y = player->loc.y + (player->height/2);
+	for ( auto &r : iray ) {
+		r.start.x = player->loc.x + (player->width  / 2);
+		r.start.y = player->loc.y + (player->height / 2);
 		curCoord[a++] = r.start;
-	}a=0;
+	} a = 0;
 
-	for(auto &cr : curRay){
-		cr.start.x = (offset.x + SCREEN_WIDTH/2);
-		cr.start.y = offset.y - (a*itemWide*1.5);
+	for ( auto &cr : curRay ) {
+		cr.start.x = (offset.x + SCREEN_WIDTH / 2);
+		cr.start.y =  offset.y - (a * itemWide * 1.5f);
 		curCurCoord[a++] = cr.start;
-	}a=0;
+	} a = 0;
 
-	for(int r = 0; r < 4; r++){
-		for(int c = 0; c < 8; c++){
-			//std::cout << a << ",";
-			massRay[a].x = ((offset.x - SCREEN_WIDTH/2) + itemWide) + c*itemWide*1.5;
-			massRay[a++].y = ((offset.y + SCREEN_HEIGHT/2) - itemWide*1.5) - r*itemWide*1.5;
-			//std::cout << massRay[a-1].x << "," << massRay[a-1].y << "       " << std::endl;
+	for ( int r = 0; r < 4; r++ ) {
+		for ( int c = 0; c < 8; c++ ) {
+			massRay[a  ].x = ((offset.x - SCREEN_WIDTH  / 2) + itemWide       ) + c * itemWide * 1.5f;
+			massRay[a++].y = ((offset.y + SCREEN_HEIGHT / 2) - itemWide * 1.5f) - r * itemWide * 1.5f;
 		}
-		//std::cout << std::endl;
-	}a=0;
-	//std::cout << std::endl;
+	} a = 0;
 
-	ui::fontTransInv = 255*(averagef(dfp)/range);
-	if(ui::fontTransInv > 255)
+	ui::fontTransInv = 255 * (averagef(dfp) / range);
+	if ( ui::fontTransInv > 255 )
 		ui::fontTransInv = 255;
-	if(ui::fontTransInv < 0)
+	else if ( ui::fontTransInv < 0 )
 		ui::fontTransInv = 0;
 
-	if(invOpening){
-		for(auto &d : dfp){
-			if(!a || dfp[a - 1] > 50)
-				d += 1.65 * deltaTime;
-			if(d >= range)
+	if ( invOpening ) {
+		for ( auto &d : dfp ) {
+			if ( !a || dfp[a - 1] > 50 )
+				d += 1.65f * deltaTime;
+			if ( d > range )
 				d = range;
 			a++;
-		}a=0;
-		for(auto &cd : curdfp){
-			if(!a || curdfp[a-1] > 90)
-				cd += 1.5 * deltaTime;
-			if(cd >= curRange)
+		} a = 0;
+
+		for ( auto &cd : curdfp ) {
+			if ( !a || curdfp[a - 1] > 90 )
+				cd += 1.5f * deltaTime;
+			if ( cd > curRange )
 				cd = curRange;
 			a++;
-		}a=0;
-		for(uint i = 0; i < massOrder.size();i++){
-			if(!a || massDfp[massOrder[a-1]] > massRange*.75)
-				massDfp[massOrder[a]] += 5.00 * deltaTime;
-			if(massDfp[massOrder[a]] >= massRange)
-				massDfp[massOrder[a]] = massRange;
-			a++;
-		}a=0;
+		} a = 0;
 
-		if(numSlot > 0)invOpen=true;
-	}else{
-		for(auto &d : dfp){
-			if(d > 0){
-				d -= 1.65 * deltaTime;
-			}
+		for ( unsigned int i = 0; i < massOrder.size() ; i++, a++ ) {
+			if ( !a || massDfp[ massOrder[a - 1] ] > massRange * 0.75f )
+				massDfp[ massOrder[a] ] += 5.0f * deltaTime;
+			if ( massDfp[ massOrder[a] ] > massRange )
+				massDfp[ massOrder[a] ] = massRange;
+		} a = 0;
+
+		if ( numSlot > 0 )
+			invOpen = true;
+	} else {
+		for ( auto &d : dfp ) {
+			if ( d > 0 )
+				d -= 1.65f * deltaTime;
 		}
-		for(auto &cd : curdfp){
-			if(cd > 0){
-				cd -= 1.0 * deltaTime;
-			}
+		for ( auto &cd : curdfp ) {
+			if ( cd > 0 )
+				cd -= 1.0f * deltaTime;
 		}
 
-		for(uint i = 0; i < massRay.size();i++){
-			if(!a || massDfp[massOrderClosing[a-1]] <= 0)
-				massDfp[massOrderClosing[a]] -= 10.0f * deltaTime;
-			if(massDfp[massOrderClosing[a-1]] <= 0){
-				massDfp[massOrderClosing[a-1]] = 0;
-			}
-			a++;
-		}a=0;
-		end = std::all_of(std::begin(massDfp),std::end(massDfp),[](auto d){return d <= 0;});
+		for ( unsigned int i = 0; i < massRay.size(); i++, a++ ) {
+			if ( !a || massDfp[ massOrderClosing[a - 1] ] <= 0 )
+				massDfp[ massOrderClosing[a] ] -= 10.0f * deltaTime;
+			if ( massDfp[ massOrderClosing[a - 1] ] < 0 )
+				massDfp[ massOrderClosing[a - 1] ] = 0;
+		} a = 0;
 
-		if(end){
+		if ( std::all_of( std::begin(massDfp), std::end(massDfp), [](auto d){ return d <= 0; } ) ) {
 			invOpen = false;
-			for(auto &md : massDfp){
-				if(md < 0){
+			for ( auto &md : massDfp ) {
+				if ( md < 0 )
 					md = 0;
-				}
 			}
 		}
 
@@ -529,10 +519,11 @@ void Inventory::draw(void){
 
 	if(!items.empty() && items.size() > sel && items[sel].count)
 		itemDraw(player,items[sel].id);
-	lop++;
 }
 
 void itemDraw(Player *p,uint id){
+	static unsigned char inc = 0;
+
 	itemLoc.y = p->loc.y+(p->height/3);
 	itemLoc.x = p->left?p->loc.x:p->loc.x+p->width;
 	glPushMatrix();
@@ -551,10 +542,15 @@ void itemDraw(Player *p,uint id){
 				p->inv->usingi = false;
 			}
 		}
-	}else hangle = 0.0f;
-	if(p->inv->usingi){
+	} else
+		hangle = 0;
+
+	if ( p->inv->usingi )
+		inc = 10;
+
+	if ( inc ) {
+		inc--;
 		p->inv->useItem();
-		std::cout << "using" << std::endl;
 	}
 
 	glUseProgram(shaderProgram);
@@ -577,25 +573,31 @@ void itemDraw(Player *p,uint id){
 	glUseProgram(0);
 }
 
-int Inventory::useItem(void){
+int Inventory::useItem( void )
+{
 	static bool up = false;
-	if(!invHover){
 
-		if(itemMap[items[sel].id]->type == "Sword"){
+	if ( !invHover ) {
+		if ( itemMap[items[sel].id]->type == "Sword" ) {
+			if ( swing ) {
+				int dir = player->left ? 1 : -1;
 
-			if(swing){
-				if(!player->left){
-					if(hangle==-15){up=true;Mix_PlayChannel(2,swordSwing,0);}
-					if(up)hangle-=.75*deltaTime;
-					if(hangle<=-90)hangle=-14;
-				}else{
-					if(hangle==15){up=true;Mix_PlayChannel(2,swordSwing,0);}
-					if(up)hangle+=.75*deltaTime;
-					if(hangle>=90)hangle=14;
+				if ( hangle == 15 * dir ) {
+					up = true;
+					Mix_PlayChannel( 2, swordSwing, 0 );
 				}
-			}else if(!swing){
-				swing=true;
-				Mix_PlayChannel(2,swordSwing,0);
+
+				if ( up )
+					hangle += 0.325f * dir * deltaTime;
+
+				if ( !player->left ) {
+					if ( hangle <= -90 )
+						hangle = -14;
+				} else if ( hangle >= 90 )
+						hangle = 14;
+			} else {
+				swing = true;
+				Mix_PlayChannel( 2, swordSwing, 0 );
 			}
 		}else if(itemMap[items[sel].id]->type == "Cooked Food"){
 			player->health += itemMap[items[sel].id]->attribValue;
@@ -614,7 +616,6 @@ bool Inventory::detectCollision(vec2 one, vec2 two){
 	if(items.empty() || !items[sel].count)
 		return false;
 	if(itemMap[items[sel].id]->type == "Sword"){
-		std::cout<<"Collision???"<<std::endl;
 		while(i<itemMap[items[sel].id]->height){
 			xc = itemLoc.x; yc = itemLoc.y;
 			xc += float(i) * cos((hangle+90)*PI/180);

@@ -180,7 +180,13 @@ extern float VOLUME_SFX;
  */
 
 #define DEBUG_printf( message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__ )
-void C(std::string m);
+
+#ifdef SEGFAULT
+#define C(x) std::cout << m << std::endl
+#else
+#define C(x)
+#endif
+
 /**
  * Defines pi for calculations that need it.
  */
@@ -241,7 +247,7 @@ void safeSetColorA(int r,int g,int b,int a);
 unsigned int millis(void);
 #endif // __WIN32__
 
-int getdir(const char *dir, std::vector<std::string> &files);
+int getdir(std::string dir, std::vector<std::string> &files);
 void strVectorSortAlpha(std::vector<std::string> *v);
 
 const char *readFile(const char *path);

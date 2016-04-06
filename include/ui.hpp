@@ -154,6 +154,7 @@ namespace ui {
 	void merchantBox();
 	void closeBox();
 	void waitForDialog(void);
+	bool pageExists( void );
 
 	void drawPage( std::string path );
 	/*

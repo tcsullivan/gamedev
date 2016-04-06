@@ -312,10 +312,8 @@ update( Player *p, unsigned int delta )
 	p->loc.y += p->vel.y			 * delta;
 	p->loc.x +=(p->vel.x * p->speed) * delta;
 
-	if ( p->loc.y > 5000 ) {
-		std::cout << "Too high for me m8." << std::endl;
-		abort();
-	}
+	if ( p->loc.y > 5000 )
+        UserError("Too high for me m8.");
 
 	// update entity coords
 	for ( auto &e : entity ) {
@@ -353,9 +351,9 @@ update( Player *p, unsigned int delta )
 	}
 
     // handle music fades
-	if ( ui::dialogImportant )
-		Mix_FadeOutMusic(2000);
-	else if( !Mix_PlayingMusic() )
+	if ( ui::dialogImportant ) {
+		//Mix_FadeOutMusic(2000);
+	} else if( !Mix_PlayingMusic() )
 		Mix_FadeInMusic(bgmObj,-1,2000);
 }
 
@@ -553,9 +551,6 @@ void World::draw(Player *p){
             l.fireFlicker = .9+((rand()%2)/10.0f);
             l.fireLoc.x = l.loc.x + (rand()%2-1)*3;
             l.fireLoc.y = l.loc.y + (rand()%2-1)*3;
-
-            //std::cout << l.fireLoc.x << "," << l.fireLoc.y << std::endl;
-            //std::cout << l.loc.x << "," << l.loc.y << std::endl << std::endl;
         }else{
             l.fireFlicker = 1.0f;
         }
@@ -740,7 +735,9 @@ singleDetect( Entity *e )
 	 *	Kill any dead entities.
 	*/
 
-	if ( !e->alive || e->health <= 0 ) {
+	if ( e->alive && e->health <= 0 ) {
+        e->alive = false;
+        e->health = 0;
 		for ( i = 0; i < entity.size(); i++) {
 			if ( entity[i] == e ){
 				switch ( e->type ) {
@@ -792,48 +789,50 @@ singleDetect( Entity *e )
 				return;
 			}
 		}
-		std::cout<<"RIP "<<e->name<<"."<<std::endl;
-		exit(0);
+		std::cout << "RIP " << e->name << "." << std::endl;
+		exit( 0 );
 	}
 
 	// handle only living entities
 	if ( e->alive ) {
+
+        // forced movement gravity
+        if ( e->forcedMove ) {
+            if ( e->vel.x > .0005 || e->vel.x < -.0005 )
+                e->vel.x *= .6;
+            else
+                e->forcedMove = false;
+        }
+
 		if ( e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER )
 			return;
 
-		/*
-		 *	Calculate the line that this entity is currently standing on.
-		 */
-
-		l=(e->loc.x + e->width / 2 - worldStart) / HLINE;
+		// calculate the line that this entity is currently standing on
+		l = (e->loc.x + e->width / 2 - worldStart) / HLINE;
 		if ( l < 0 )
             l = 0;
 		i = l;
 		if ( i > lineCount - 1 )
             i = lineCount - 1;
 
-		/*
-		 *	If the entity is under the world/line, pop it back to the surface.
-		*/
-
+		// if the entity is under the world/line, pop it back to the surface
 		if ( e->loc.y < worldData[i].groundHeight ) {
-            int dir = e->vel.x > 0 ? -1 : 1;
-            if ( worldData[i].groundHeight - 30 > worldData[i + dir].groundHeight ) {
-                e->loc.x += HLINE * 8 * dir;
-                e->loc.y = worldData[i + 8 * dir].groundHeight;
+            int dir = e->vel.x < 0 ? -1 : 1;
+            if ( worldData[i + (dir * 8)].groundHeight - 30 > worldData[i + dir].groundHeight ) {
+                e->loc.x -= ( PLAYER_SPEED_CONSTANT + 2.7 ) * e->speed * 2 * dir;
+                e->vel.x = 0;
             } else {
                 e->loc.y = worldData[i].groundHeight - .001 * deltaTime;
 		        e->ground = true;
 		        e->vel.y = 0;
             }
 
-		/*
-		 *	Handle gravity if the entity is above the line.
-		 */
+		}
 
-		} else {
+        // handle gravity if the entity is above the line
+        else {
 
-			if(e->type == STRUCTURET && e->loc.y > 2000){
+			if ( e->type == STRUCTURET ) {
 				e->loc.y = worldData[i].groundHeight;
 				e->vel.y = 0;
 				e->ground = true;
@@ -1015,11 +1014,11 @@ addParticle( float x, float y, float w, float h, float vx, float vy, Color color
     particles.back().gravity = gravity;
 }
 
-
-void World::addLight(vec2 loc, Color color){
-	if(light.size() < 64){
-		light.push_back(Light(loc,color,1));
-	}
+void World::
+addLight( vec2 loc, Color color )
+{
+	if ( light.size() < 64 )
+        light.push_back( Light( loc, color, 1 ) );
 }
 
 std::string World::
@@ -1034,7 +1033,6 @@ setToRight( std::string file )
 	return (toRight = file);
 }
 
-//what is this clyne why are they differnet
 World *World::
 goWorldLeft( Player *p )
 {
@@ -1102,8 +1100,8 @@ goInsideStructure( Player *p )
 			if ( p->loc.x            > b->loc.x            &&
 			     p->loc.x + p->width < b->loc.x + b->width ) {
 
-        if ( b->inside.empty() )
-          return this;
+                if ( b->inside.empty() )
+                    return this;
 
 				inside.push_back(currentXML.c_str() + xmlFolder.size());
 
@@ -1113,11 +1111,13 @@ goInsideStructure( Player *p )
 				ui::waitForCover();
 				ui::toggleBlackFast();
 
+                glClearColor(0,0,0,1);
+
 				return tmp;
 			}
 		}
 	} else {
-    current = currentXML.c_str() + xmlFolder.size();
+        current = currentXML.c_str() + xmlFolder.size();
 		tmp = loadWorldFromXML( inside.back() );
 		for ( auto &b : tmp->build ) {
 			if ( current == b->inside ) {
@@ -1129,6 +1129,8 @@ goInsideStructure( Player *p )
 				p->loc.x = b->loc.x + (b->width / 2);
 
 				ui::toggleBlackFast();
+
+                glClearColor(1,1,1,1);
 
 				return tmp;
 			}
@@ -1150,12 +1152,12 @@ addHill( const ivec2 peak, const unsigned int width )
 {
 	int start = peak.x - width / 2, end = start + width, offset;
 	const float thing = peak.y - worldData[start].groundHeight;
-  const float period = PI / width;
+    const float period = PI / width;
 
 	if ( start < 0 ) {
-    offset = -start;
-		start = 0;
-  }
+        offset = -start;
+        start = 0;
+    }
 
 	if ( end > (signed)worldData.size() )
 	  end = worldData.size();
@@ -1199,20 +1201,15 @@ void World::save(void){
 	}
 
 	data.append("dOnE\0");
-    std::cout << "Writing to the file" << std::endl;
 	out.write(data.c_str(),data.size());
-
 	out.close();
-    std::cout << "Done saving" << std::endl;
 }
 
 void World::load(void){
 	std::string save,data,line;
 	const char *filedata;
 
-    //std::cout << "Loading from: " << std::string(currentXML + ".dat") << std::endl;
 	save = std::string(currentXML + ".dat");
-    //std::cout << "save file: " << save << std::endl;
 	filedata = readFile(save.c_str());
 	data = filedata;
 	std::istringstream iss (data);
@@ -1261,6 +1258,15 @@ void World::load(void){
 	delete[] filedata;
 }
 
+float getIndoorWorldFloorHeight( void )
+{
+    return INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS;
+}
+
+bool isCurrentWorldIndoors( void ) {
+    return !inside.empty();
+}
+
 IndoorWorld::IndoorWorld(void){
 }
 
@@ -1276,35 +1282,88 @@ addFloor( unsigned int width )
     if ( floor.empty() )
         generate( width );
     floor.emplace_back( width, floor.size() * INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS );
+    fstart.push_back( 0 );
+}
+
+
+void IndoorWorld::
+addFloor( unsigned int width, unsigned int start )
+{
+    if ( floor.empty() )
+        generate( width );
+    floor.emplace_back( width, floor.size() * INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS );
+    fstart.push_back( start );
+}
+
+bool IndoorWorld::
+moveToFloor( Entity *e, unsigned int _floor )
+{
+    if ( _floor > floor.size() )
+        return false;
+
+    e->loc.y = floor[_floor - 1][0];
+    return true;
+}
+
+bool IndoorWorld::
+isFloorAbove( Entity *e )
+{
+    for ( unsigned int i = 0; i < floor.size(); i++ ) {
+        if ( floor[i][0] + INDOOR_FLOOR_HEIGHTT - 100 > e->loc.y )
+            return (i + 1) != floor.size();
+    }
+    return false;
+}
+
+bool IndoorWorld::
+isFloorBelow( Entity *e )
+{
+    for ( unsigned int i = 0; i < floor.size(); i++ ) {
+        if ( floor[i][0] + INDOOR_FLOOR_HEIGHTT - 100 > e->loc.y )
+            return i > 0;
+    }
+    return false;
 }
 
 void IndoorWorld::
 singleDetect( Entity *e )
 {
+    unsigned int floornum = 0;
+    float start, end;
+
     if ( !e->alive )
         return;
     if ( e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER )
         return;
 
-    for ( auto &f : floor ) {
-        if ( f[0] + INDOOR_FLOOR_HEIGHTT < e->loc.y ) {
-            C("floor");
-            if ( e->loc.y < f[0] ) {
-                e->loc.y = f[0];
+    for ( ; floornum < floor.size(); floornum++ ) {
+        if ( floor[floornum][0] + INDOOR_FLOOR_HEIGHTT - 100 > e->loc.y ) {
+            if ( e->loc.y < floor[floornum][0] ) {
+                e->loc.y = floor[floornum][0];
                 e->vel.y = 0;
                 e->ground = true;
-            } else if ( e->vel.y > -2 )
-                e->vel.y -= GRAVITY_CONSTANT * deltaTime;
+            }
             break;
         }
     }
 
-    if(e->loc.x < worldStart){												// Left bound
-            e->vel.x=0;
-        e->loc.x=(float)worldStart + HLINE / 2;
-    }else if(e->loc.x + e->width + HLINE > worldStart + worldStart * -2){	// Right bound
-        e->vel.x=0;
-        e->loc.x=worldStart + worldStart * -2 - e->width - HLINE;
+    if ( e->vel.y > -2 )
+        e->vel.y -= GRAVITY_CONSTANT * deltaTime;
+
+    if ( e->ground ) {
+        e->loc.y = ceil( e->loc.y );
+        e->vel.y = 0;
+    }
+
+    start = worldStart + fstart[floornum] * HLINE;
+    end = start + floor[floornum].size() * HLINE;
+
+    if ( e->loc.x < start ) {
+        e->vel.x = 0;
+        e->loc.x = start + HLINE / 2;
+    } else if ( e->loc.x + e->width + HLINE > end ) {
+        e->vel.x = 0;
+        e->loc.x = end - e->width - HLINE;
     }
 
 }
@@ -1312,14 +1371,14 @@ singleDetect( Entity *e )
 void IndoorWorld::
 draw( Player *p )
 {
-	unsigned int i;
+	unsigned int i,f;
 	int x;
 
     // draw lights
     for ( auto &l : light ) {
         if ( l.belongsTo ) {
             l.loc.x = l.following->loc.x + SCREEN_WIDTH / 2;
-            l.loc.y = l.following->loc.y;
+            l.loc.y = ( l.following->loc.y > SCREEN_HEIGHT / 2 ) ? SCREEN_HEIGHT / 2 : l.following->loc.y;
         }
         if ( l.flame ) {
             l.fireFlicker = .9 + ( (rand() % 2) / 10.0f );
@@ -1384,14 +1443,15 @@ draw( Player *p )
 	glUniform1i( glGetUniformLocation(shaderProgram, "sampler"), 0 );
 	glBegin( GL_QUADS );
         safeSetColor( 150, 100, 50 );
-        for ( auto &f : floor ) {
+        for ( f = 0; f < floor.size(); f++ ) {
             i = 0;
-    		for ( h : f ) {
-    			x = worldStart + i++ * HLINE;
+    		for ( h : floor[f] ) {
+    			x = worldStart + fstart[f] * HLINE + (i * HLINE);
     			glVertex2i( x        , h                          );
     			glVertex2i( x + HLINE, h                          );
     			glVertex2i( x + HLINE, h - INDOOR_FLOOR_THICKNESS );
     			glVertex2i( x        , h - INDOOR_FLOOR_THICKNESS );
+                i++;
     		}
         }
 	glEnd();
@@ -1474,7 +1534,7 @@ std::string getWorldWeatherStr( WorldWeather ww )
         return "Rainy";
         break;
     default:
-        return "Look at the screen u scrub";
+        return "Snowy";
         break;
     }
 }
@@ -1483,12 +1543,8 @@ static bool loadedLeft = false;
 static bool loadedRight = false;
 
 World *loadWorldFromXML(std::string path){
-    C("Scanning for save file");
-    std::cout << "Scanning: " << path << std::endl;
 	if ( !currentXML.empty() )
 		currentWorld->save();
-    std::cout << "After Scanning: " << path << std::endl;
-    C("Done scanning for save file");
 
 	return loadWorldFromXMLNoSave(path);
 }
@@ -1504,8 +1560,6 @@ World *loadWorldFromPtr( World *ptr )
     loadedRight = true;
     currentWorldToRight = loadWorldFromXML( tmp->toRight );
     loadedRight = false;
-
-    std::cout<<tmp->npc.back()->name<<std::endl;
 
     return tmp;
 }
@@ -1523,99 +1577,160 @@ loadWorldFromXMLNoSave( std::string path ) {
 	World *tmp;
 	float spawnx, randx;
 	bool dialog,Indoor;
+    unsigned int flooor;
 
 	const char *ptr;
-	std::string name;
+	std::string name, sptr;
 
+    // no file? -> no world
     if ( path.empty() )
         return NULL;
 
-    std::cout << "File path: " << path << std::endl;
-	currentXML = std::string(xmlFolder + path);
-    std::cout << "Full file path: " << currentXML << std::endl;
+    currentXML = std::string(xmlFolder + path);
+	xml.LoadFile( currentXML.c_str() );
 
-	xml.LoadFile(currentXML.c_str());
-	wxml = xml.FirstChildElement("World");
-
-	if(wxml){
+    // attempt to load a <World> tag
+	if ( (wxml = xml.FirstChildElement("World")) ) {
 		wxml = wxml->FirstChildElement();
 		vil = xml.FirstChildElement("World")->FirstChildElement("village");
-		Indoor = false;
 		tmp = new World();
-	}else if((wxml = xml.FirstChildElement("IndoorWorld"))){
-		wxml = wxml->FirstChildElement();
-		vil = NULL;
-		Indoor = true;
-		tmp = new IndoorWorld();
+        Indoor = false;
 	}
 
-	while(wxml){
+    // attempt to load an <IndoorWorld> tag
+    else if( (wxml = xml.FirstChildElement("IndoorWorld")) ) {
+		wxml = wxml->FirstChildElement();
+		vil = NULL;
+		tmp = new IndoorWorld();
+        Indoor = true;
+	}
+
+    // error: can't load a world...
+    else
+        UserError("XML Error: Cannot find a <World> or <IndoorWorld> tag in " + currentXML + "!");
+
+    // iterate through world tags
+	while ( wxml ) {
 		name = wxml->Name();
 
+        // world linkage
 		if ( name == "link" ) {
-			if ((ptr = wxml->Attribute("left"))) {
-				tmp->setToLeft(ptr);
+
+            // links world to the left
+			if ( (ptr = wxml->Attribute("left")) ) {
+				tmp->setToLeft( ptr );
+
+                // load the left world if it isn't
                 if ( !loadedLeft ) {
                     loadedLeft = true;
                     currentWorldToLeft = loadWorldFromXMLNoSave( ptr );
                     loadedLeft = false;
                 }
-			} else if ((ptr = wxml->Attribute("right"))) {
-				tmp->setToRight(ptr);
+			}
+
+            // links world to the right
+            else if ( (ptr = wxml->Attribute("right")) ) {
+				tmp->setToRight( ptr );
+
+                // load the right world if it isn't
                 if ( !loadedRight ) {
                     loadedRight = true;
                     currentWorldToRight = loadWorldFromXMLNoSave( ptr );
                     loadedRight = false;
                 }
-			} else
-                abort();
-		} else if ( name == "style" ) {
-			tmp->setStyle(wxml->StrAttribute("folder"));
-			tmp->setBackground((WorldBGType)wxml->UnsignedAttribute("background"));
-			tmp->setBGM(wxml->StrAttribute("bgm"));
-		} else if ( name == "generation" ) {
-			if ( !Indoor && !strcmp(wxml->Attribute("type"),"Random") )
-				tmp->generate(wxml->UnsignedAttribute("width"));
-			else if ( Indoor )
-				abort();
-		} else if ( name == "mob" ) {
-			unsigned int type;
-			type = wxml->UnsignedAttribute("type");
-			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
-				tmp->addMob(type,0,100);
-			else
-				tmp->addMob(type,spawnx,wxml->FloatAttribute("y"));
-			if(wxml->QueryBoolAttribute("aggressive",&dialog) == XML_NO_ERROR)
-				tmp->mob.back()->aggressive = dialog;
-
-		} else if ( name == "npc" ) {
-			const char *npcname;
-
-			if(wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR)
-				tmp->addNPC(0,100);
-			else
-				tmp->addNPC(spawnx,wxml->FloatAttribute("y"));
-
-
-			if((npcname = wxml->Attribute("name"))){
-				delete[] tmp->npc.back()->name;
-				tmp->npc.back()->name = new char[strlen(npcname) + 1];
-				strcpy(tmp->npc.back()->name,npcname);
 			}
 
-			dialog = false;
-			if(wxml->QueryBoolAttribute("hasDialog",&dialog) == XML_NO_ERROR && dialog)
-				tmp->npc.back()->addAIFunc(commonAIFunc,false);
-			else tmp->npc.back()->dialogIndex = 9999;
+            // error, invalid link tag
+            else
+                UserError("XML Error: Invalid <link> tag in " + currentXML + "!");
 
-		} else if ( name == "structure" ) {
-			tmp->addStructure((BUILD_SUB)wxml->UnsignedAttribute("type"),
-							   wxml->QueryFloatAttribute("x",&spawnx) != XML_NO_ERROR ?
-							   			getRand() % tmp->getTheWidth() / 2.0f :
-							   			spawnx,
+		}
+
+        // style tags
+        else if ( name == "style" ) {
+            // set style folder
+			tmp->setStyle( wxml->StrAttribute("folder") );
+
+            // set background folder
+            if ( wxml->QueryUnsignedAttribute("background", &flooor) != XML_NO_ERROR )
+                UserError("XML Error: No background given in <style> in " + currentXML + "!");
+			tmp->setBackground( (WorldBGType)flooor );
+
+            // set BGM file
+            tmp->setBGM( wxml->StrAttribute("bgm") );
+		}
+
+        // world generation (for outdoor areas)
+        else if ( name == "generation" ) {
+            // random gen.
+			if ( !Indoor && wxml->StrAttribute("type") == "Random" )
+				tmp->generate( wxml->UnsignedAttribute("width") );
+            else {
+                if ( Indoor )
+                    UserError("XML Error: <generation> tags can't be in <IndoorWorld> tags (in " + currentXML + ")!");
+                else
+                    UserError("XML Error: Invalid <generation> tag in " + currentXML + "!");
+            }
+		}
+
+        // mob creation
+        else if ( name == "mob" ) {
+            // type info
+            if ( wxml->QueryUnsignedAttribute("type", &flooor) != XML_NO_ERROR )
+                UserError("XML Error: Invalid type value in <mob> in " + currentXML + "!");
+
+            // spawn at coordinate if desired
+			if ( wxml->QueryFloatAttribute( "x", &spawnx ) == XML_NO_ERROR )
+				tmp->addMob( flooor, spawnx, wxml->FloatAttribute("y"));
+			else
+				tmp->addMob( flooor, 0, 100 );
+
+            // aggressive tag
+			if ( wxml->QueryBoolAttribute( "aggressive", &dialog ) == XML_NO_ERROR )
+				tmp->mob.back()->aggressive = dialog;
+
+            // indoor spawning floor selection
+            if ( Indoor && wxml->QueryUnsignedAttribute( "floor", &flooor ) == XML_NO_ERROR )
+                Indoorp(tmp)->moveToFloor( tmp->npc.back(), flooor );
+		}
+
+        // npc creation
+        else if ( name == "npc" ) {
+			const char *npcname;
+
+            // spawn at coordinates if desired
+			if ( wxml->QueryFloatAttribute( "x", &spawnx ) == XML_NO_ERROR)
+				tmp->addNPC( spawnx, wxml->FloatAttribute("y") );
+			else
+				tmp->addNPC( 0, 100 );
+
+            // name override
+			if ( (npcname = wxml->Attribute("name")) ) {
+                delete[] tmp->npc.back()->name;
+				tmp->npc.back()->name = new char[strlen(npcname) + 1];
+				strcpy( tmp->npc.back()->name, npcname );
+			}
+
+            // dialog enabling
+			dialog = false;
+			if ( wxml->QueryBoolAttribute( "hasDialog", &dialog ) == XML_NO_ERROR && dialog )
+				tmp->npc.back()->addAIFunc( commonAIFunc, false );
+			else
+                tmp->npc.back()->dialogIndex = 9999;
+
+            if ( Indoor && wxml->QueryUnsignedAttribute( "floor", &flooor ) == XML_NO_ERROR )
+                Indoorp(tmp)->moveToFloor( tmp->npc.back(), flooor );
+		}
+
+        // structure creation
+        else if ( name == "structure" ) {
+			tmp->addStructure( (BUILD_SUB) wxml->UnsignedAttribute("type"),
+							   wxml->QueryFloatAttribute( "x", &spawnx ) != XML_NO_ERROR ?
+							       getRand() % tmp->getTheWidth() / 2.0f : spawnx,
 							   100,
 							   wxml->StrAttribute("texture"),
-							   wxml->StrAttribute("inside"));
+							   wxml->StrAttribute("inside")
+                             );
 		} else if ( name == "trigger" ) {
 			tmp->addMob(MS_TRIGGER,wxml->FloatAttribute("x"),0,commonTriggerFunc);
 			tmp->mob.back()->heyid = wxml->Attribute("id");
@@ -1627,7 +1742,10 @@ loadWorldFromXMLNoSave( std::string path ) {
 		} else if ( name == "time" ) {
             tickCount = std::stoi( wxml->GetText() );
         } else if ( Indoor && name == "floor" ) {
-            ((IndoorWorld *)tmp)->addFloor( wxml->UnsignedAttribute("width") );
+            if ( wxml->QueryFloatAttribute("start",&spawnx) == XML_NO_ERROR )
+                Indoorp(tmp)->addFloor( wxml->UnsignedAttribute("width"), spawnx );
+            else
+                Indoorp(tmp)->addFloor( wxml->UnsignedAttribute("width") );
         }
 
 		wxml = wxml->NextSiblingElement();
@@ -1659,7 +1777,6 @@ loadWorldFromXMLNoSave( std::string path ) {
 							   vil->StrAttribute("inside"));
 		}else if ( name == "stall" ) {
 			if(!strcmp(vil->Attribute("type"),"market")){
-				std::cout << "Market" << std::endl;
 				tmp->addStructure((BUILD_SUB)70,
 							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ?
 							   randx : spawnx,
@@ -1669,22 +1786,17 @@ loadWorldFromXMLNoSave( std::string path ) {
 				tmp->addMerchant(0,100);
                 tmp->merchant.back()->inside = tmp->build.back();
 				if(vil->FirstChildElement("buy")){
-					std::cout << "Buy" << std::endl;
-				}if(vil->FirstChildElement("sell")){
-					std::cout << "Sell" << std::endl;
-				}if(vil->FirstChildElement("trade")){
-					std::cout << "Trade" << std::endl;
+				}else if(vil->FirstChildElement("sell")){
+				}else if(vil->FirstChildElement("trade")){
 					tmp->merchant.back()->trade.push_back(Trade(vil->FirstChildElement("trade")->IntAttribute("quantity"),
 																vil->FirstChildElement("trade")->Attribute("item"),
 																vil->FirstChildElement("trade")->IntAttribute("quantity1"),
 																vil->FirstChildElement("trade")->Attribute("item1")));
 					tmp->merchant.back()->trade.push_back(Trade(1,"Wood Sword", 420, "Dank MayMay"));
 				}
-				std::cout << "new trade" << std::endl;
 				strcpy(tmp->merchant.back()->name,"meme");
 
 			}else if(!strcmp(vil->Attribute("type"),"trader")){
-				std::cout << "Trader" << std::endl;
 				tmp->addStructure((BUILD_SUB)71,
 							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ?
 							   randx : spawnx,
@@ -1714,10 +1826,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 		tmp->load();
 	}
 
-    std::cout << "adadadadasdsa" << std::endl;
-
 	return tmp;
-
 }
 
 Village::Village(const char *meme, World *w){
