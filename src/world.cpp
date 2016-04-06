@@ -434,20 +434,20 @@ void World::draw(Player *p){
 	safeSetColorA( 255, 255, 255, weather == WorldWeather::Snowy ? 150 : 255 - worldShade * 4);
 
 	glBegin( GL_QUADS );
-		glTexCoord2i( 0, 0 ); glVertex2i( offset.x - SCREEN_WIDTH/2-5, SCREEN_HEIGHT );
-		glTexCoord2i( 1, 0 ); glVertex2i( offset.x + SCREEN_WIDTH/2+5, SCREEN_HEIGHT );
-		glTexCoord2i( 1, 1 ); glVertex2i( offset.x + SCREEN_WIDTH/2+5, 0 );
-		glTexCoord2i( 0, 1 ); glVertex2i( offset.x - SCREEN_WIDTH/2-5, 0 );
+		glTexCoord2i( 0, 0 ); glVertex2i( offset.x - SCREEN_WIDTH/2-5, offset.y + SCREEN_HEIGHT/2 );
+		glTexCoord2i( 1, 0 ); glVertex2i( offset.x + SCREEN_WIDTH/2+5, offset.y + SCREEN_HEIGHT/2 );
+		glTexCoord2i( 1, 1 ); glVertex2i( offset.x + SCREEN_WIDTH/2+5, offset.y - SCREEN_HEIGHT/2 );
+		glTexCoord2i( 0, 1 ); glVertex2i( offset.x - SCREEN_WIDTH/2-5, offset.y - SCREEN_HEIGHT/2 );
 	glEnd();
 
 	bgTex->bindNext();
 	safeSetColorA( 255, 255, 255, worldShade * 4);
 
 	glBegin( GL_QUADS );
-		glTexCoord2i( 0, 0 ); glVertex2i(  worldStart, SCREEN_HEIGHT );
-		glTexCoord2i( 1, 0 ); glVertex2i( -worldStart, SCREEN_HEIGHT );
-		glTexCoord2i( 1, 1 ); glVertex2i( -worldStart, 0 );
-		glTexCoord2i( 0, 1 ); glVertex2i(  worldStart, 0 );
+        glTexCoord2i( 0, 0 ); glVertex2i( offset.x - SCREEN_WIDTH/2-5, offset.y + SCREEN_HEIGHT/2 );
+        glTexCoord2i( 1, 0 ); glVertex2i( offset.x + SCREEN_WIDTH/2+5, offset.y + SCREEN_HEIGHT/2 );
+        glTexCoord2i( 1, 1 ); glVertex2i( offset.x + SCREEN_WIDTH/2+5, offset.y - SCREEN_HEIGHT/2 );
+        glTexCoord2i( 0, 1 ); glVertex2i( offset.x - SCREEN_WIDTH/2-5, offset.y - SCREEN_HEIGHT/2 );
 	glEnd();
 
 	glDisable( GL_TEXTURE_2D );
@@ -524,7 +524,15 @@ void World::draw(Player *p){
 
 	// draw particles and buildings
 
-	std::for_each( particles.begin(), particles.end(), [](Particles part) { if ( part.behind ) part.draw(); });
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, colorIndex);
+
+    glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
+    glUseProgram(shaderProgram);
+
+    std::for_each( particles.begin(), particles.end(), [](Particles part) { if ( part.behind ) part.draw(); });
+
+    glUseProgram(0);
 
 	for ( auto &b : build )
 		b->draw();
@@ -671,7 +679,16 @@ void World::draw(Player *p){
      * Draw remaining entities.
      */
 
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, colorIndex);
+
+    glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
+    glUseProgram(shaderProgram);
+
 	std::for_each( particles.begin(), particles.end(), [](Particles part) { if ( !part.behind ) part.draw(); });
+
+    glUseProgram(0);
 
 	for ( auto &n : npc )
 		n->draw();
@@ -1383,9 +1400,18 @@ draw( Player *p )
 	/*
 	 *	Draw all entities.
 	*/
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, colorIndex);
 
-	for ( auto &part : particles )
-		part.draw();
+    glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
+    glUseProgram(shaderProgram);
+
+    std::for_each( particles.begin(), particles.end(), [](Particles &part) { part.draw(); });
+
+    glUseProgram(0);
+
+	/*for ( auto &part : particles )
+		part.draw();*/
 
 	for ( auto &e : entity )
 		e->draw();
@@ -1542,7 +1568,7 @@ loadWorldFromXMLNoSave( std::string path ) {
                     loadedRight = false;
                 }
 			} else
-				abort();
+                abort();
 		} else if ( name == "style" ) {
 			tmp->setStyle(wxml->StrAttribute("folder"));
 			tmp->setBackground((WorldBGType)wxml->UnsignedAttribute("background"));

@@ -1,10 +1,12 @@
 <?xml version="1.0"?>
 <World>
 
-	<style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/" />
+	<style background="0" bgm="assets/music/embark.wav" folder="assets/style/farming/" />
 	<generation type="Random" width="500" />
 	<time>12000</time>
 
-	<hill peakx="0" peaky="1000" width="50" />
+	<hill peakx="0" peaky="1000" width="75" />
+
+	<structure type="0" x="-300" texture="assets/style/farming/farmHouse.png"/>
 
 </World>

@@ -102,11 +102,7 @@ public:
 
 	}
 	void draw(){
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, colorIndex);
-		glUseProgram(shaderProgram);
-		glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
-		glEnable(GL_TEXTURE_2D);
+		//glEnable(GL_TEXTURE_2D);
 		glColor3ub(255,255,255);
 		glBegin(GL_QUADS);
 			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y);
@@ -114,8 +110,8 @@ public:
 			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x + width, loc.y + height);
 			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y + width);
 		glEnd();
-		glDisable(GL_TEXTURE_2D);
-		glUseProgram(0);
+		//glDisable(GL_TEXTURE_2D);
+		//glUseProgram(0);
 	}
 	bool kill(float delta){
 		duration -= delta;

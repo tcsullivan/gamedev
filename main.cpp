@@ -221,6 +221,9 @@ int main(int argc, char *argv[]){
 		return -1;
 	}
 
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
 	// Run SDL_Quit when main returns
 	atexit(SDL_Quit);
 
@@ -337,6 +340,8 @@ int main(int argc, char *argv[]){
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	SDL_ShowCursor(SDL_DISABLE);
+
+	//glEnable(GL_CULL_FACE);
 
 	Texture::initColorIndex();
 	initEntity();
