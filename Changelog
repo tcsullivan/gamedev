@@ -879,3 +879,28 @@
 	- began work with threading pages/triggers
 	- added debug flag for settings.xml
 	- improved particle drawing
+
+4/6/2016:
+=========
+
+	- began considering vertex-based rendering
+	- discovered really weird thread handling issues
+	- broke world transitions
+
+4/7/2016:
+=========
+
+	- fixed world transitions
+	- implemented rain
+	- added custom health values in XML
+	- player can't leave arenas until mob death
+	- typeOut speed is consistent
+	- continued smart renderinging
+
+4/11/2016:
+==========
+
+	- heavily revised merchant code
+	- fixed bug that caused game to crash idly
+	- fixed bug with spawning NPCs at specific coordinates
+	- added functionality to ui to auto-complete the next typeOut

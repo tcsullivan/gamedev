@@ -20,12 +20,6 @@ using namespace tinyxml2;
 #define INDOOR_FLOOR_THICKNESS      50
 #define INDOOR_FLOOR_HEIGHTT        400
 
-/**
- * Gravity thing
- */
-
-#define GRAVITY_CONSTANT        0.001f
-
 extern Player *player;						// main.cpp?
 extern World  *currentWorld;				// main.cpp
 extern World  *currentWorldToLeft;			// main.cpp
@@ -335,8 +329,8 @@ update( Player *p, unsigned int delta )
     particles.erase( std::remove_if( particles.begin(), particles.end(), [&delta](Particles &part){return part.kill(delta);}), particles.end());
     for ( auto part = particles.begin(); part != particles.end(); part++ ) {
 		if ( (*part).canMove ) {
-			(*part).loc.y += (*part).vely * delta;
-			(*part).loc.x += (*part).velx * delta;
+			(*part).loc.y += (*part).vel.y * delta;
+			(*part).loc.x += (*part).vel.x * delta;
 
 			for ( auto &b : build ) {
 				if ( b->bsubtype == FOUNTAIN ) {
@@ -429,7 +423,19 @@ void World::draw(Player *p){
 	// the sunny wallpaper is faded with the night depending on tickCount
 
 	bgTex->bind( 0 );
-	safeSetColorA( 255, 255, 255, weather == WorldWeather::Snowy ? 150 : 255 - worldShade * 4);
+    int alpha;
+    switch( weather ) {
+    case WorldWeather::Snowy:
+        alpha = 150;
+        break;
+    case WorldWeather::Rain:
+        alpha = 0;
+        break;
+    default:
+        alpha = 255 - worldShade * 4;
+        break;
+    }
+	safeSetColorA( 255, 255, 255, alpha );
 
 	glBegin( GL_QUADS );
 		glTexCoord2i( 0, 0 ); glVertex2i( offset.x - SCREEN_WIDTH/2-5, offset.y + SCREEN_HEIGHT/2 );
@@ -439,7 +445,7 @@ void World::draw(Player *p){
 	glEnd();
 
 	bgTex->bindNext();
-	safeSetColorA( 255, 255, 255, worldShade * 4);
+	safeSetColorA( 255, 255, 255, !alpha ? 255 : worldShade * 4);
 
 	glBegin( GL_QUADS );
         glTexCoord2i( 0, 0 ); glVertex2i( offset.x - SCREEN_WIDTH/2-5, offset.y + SCREEN_HEIGHT/2 );
@@ -532,8 +538,17 @@ void World::draw(Player *p){
 
     glUseProgram(0);
 
-	for ( auto &b : build )
-		b->draw();
+	for ( auto &b : build ) {
+        if ( b->bsubtype == STALL_MARKET ) {
+            for ( auto &n : npc ) {
+                if ( n->type == MERCHT && ((Merchant *)n)->inside == b ) {
+                    n->draw();
+                    break;
+                }
+            }
+        }
+        b->draw();
+    }
 
 	// draw light elements?
 
@@ -570,9 +585,8 @@ void World::draw(Player *p){
         }
 	}
 
-    for(uint i = 0; i < light.size(); i++){
+    for ( uint i = 0; i < light.size(); i++ )
         flameArray[i] = light[i].fireFlicker;
-    }
 
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
@@ -685,8 +699,10 @@ void World::draw(Player *p){
 
     glUseProgram(0);
 
-	for ( auto &n : npc )
-		n->draw();
+	for ( auto &n : npc ) {
+		if ( n->type != MERCHT )
+            n->draw();
+    }
 
 	for ( auto &m : mob )
 		m->draw();
@@ -818,7 +834,7 @@ singleDetect( Entity *e )
 		// if the entity is under the world/line, pop it back to the surface
 		if ( e->loc.y < worldData[i].groundHeight ) {
             int dir = e->vel.x < 0 ? -1 : 1;
-            if ( worldData[i + (dir * 8)].groundHeight - 30 > worldData[i + dir].groundHeight ) {
+            if ( i + (dir * 2) < worldData.size() && worldData[i + (dir * 2)].groundHeight - 30 > worldData[i + dir].groundHeight ) {
                 e->loc.x -= ( PLAYER_SPEED_CONSTANT + 2.7 ) * e->speed * 2 * dir;
                 e->vel.x = 0;
             } else {
@@ -869,11 +885,11 @@ detect( Player *p )
 	int l;
 
 	// handle the player
-	std::thread( &World::singleDetect, this, p).detach();
+	std::thread( &World::singleDetect, this, p ).detach();
 
     // handle other entities
 	for ( auto &e : entity )
-		std::thread(&World::singleDetect,this,e).detach();
+		std::thread( &World::singleDetect, this, e ).detach();
 
     // handle particles
 	for ( auto &part : particles ) {
@@ -887,14 +903,7 @@ detect( Player *p )
 		if ( l > (int)(lineCount - 1) )
 			l = lineCount - 1;
 
-		// handle ground collision
-		if ( part.loc.y < worldData[l].groundHeight ) {
-			part.loc.y = worldData[l].groundHeight;
-			part.vely = 0;
-			part.velx = 0;
-			part.canMove = false;
-		} else if ( part.gravity && part.vely > -2 )
-			part.vely -= GRAVITY_CONSTANT * deltaTime;
+		part.update( GRAVITY_CONSTANT, worldData[l].groundHeight );
 	}
 
 	// handle particle creation
@@ -1500,8 +1509,9 @@ Arena::~Arena(void){
 
 World *Arena::exitArena(Player *p){
 	World *tmp;
-	if(p->loc.x + p->width / 2 > mob[0]->loc.x				&&
-	   p->loc.x + p->width / 2 < mob[0]->loc.x + HLINE * 12 ){
+	if ( !mmob->alive &&
+         p->loc.x + p->width / 2 > mob[0]->loc.x &&
+	     p->loc.x + p->width / 2 < mob[0]->loc.x + HLINE * 12 ) {
 		tmp = battleNest.front();
 		battleNest.erase(battleNest.begin());
 
@@ -1640,6 +1650,10 @@ loadWorldFromXMLNoSave( std::string path ) {
                 }
 			}
 
+			// tells what world is outside, if in a structure
+			else if ( Indoor && (ptr = wxml->Attribute("outside")) )
+				inside.push_back( ptr );
+
             // error, invalid link tag
             else
                 UserError("XML Error: Invalid <link> tag in " + currentXML + "!");
@@ -1692,6 +1706,10 @@ loadWorldFromXMLNoSave( std::string path ) {
             // indoor spawning floor selection
             if ( Indoor && wxml->QueryUnsignedAttribute( "floor", &flooor ) == XML_NO_ERROR )
                 Indoorp(tmp)->moveToFloor( tmp->npc.back(), flooor );
+
+            // custom health value
+            if ( wxml->QueryFloatAttribute( "health", &spawnx) == XML_NO_ERROR )
+                tmp->mob.back()->health = tmp->mob.back()->maxHealth = spawnx;
 		}
 
         // npc creation
@@ -1700,7 +1718,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 
             // spawn at coordinates if desired
 			if ( wxml->QueryFloatAttribute( "x", &spawnx ) == XML_NO_ERROR)
-				tmp->addNPC( spawnx, wxml->FloatAttribute("y") );
+				tmp->addNPC( spawnx, 100 );
 			else
 				tmp->addNPC( 0, 100 );
 
@@ -1720,6 +1738,10 @@ loadWorldFromXMLNoSave( std::string path ) {
 
             if ( Indoor && wxml->QueryUnsignedAttribute( "floor", &flooor ) == XML_NO_ERROR )
                 Indoorp(tmp)->moveToFloor( tmp->npc.back(), flooor );
+
+            // custom health value
+            if ( wxml->QueryFloatAttribute( "health", &spawnx) == XML_NO_ERROR )
+                tmp->mob.back()->health = tmp->mob.back()->maxHealth = spawnx;
 		}
 
         // structure creation
@@ -1732,7 +1754,7 @@ loadWorldFromXMLNoSave( std::string path ) {
 							   wxml->StrAttribute("inside")
                              );
 		} else if ( name == "trigger" ) {
-			tmp->addMob(MS_TRIGGER,wxml->FloatAttribute("x"),0,commonTriggerFunc);
+			tmp->addMob( MS_TRIGGER, wxml->FloatAttribute("x"), 0, commonTriggerFunc );
 			tmp->mob.back()->heyid = wxml->Attribute("id");
 		} else if ( name == "page" ) {
 			tmp->addMob( MS_PAGE, wxml->FloatAttribute("x"), 0, commonPageFunc );
@@ -1748,6 +1770,7 @@ loadWorldFromXMLNoSave( std::string path ) {
                 Indoorp(tmp)->addFloor( wxml->UnsignedAttribute("width") );
         }
 
+        spawnx = 0;
 		wxml = wxml->NextSiblingElement();
 	}
 
@@ -1775,34 +1798,53 @@ loadWorldFromXMLNoSave( std::string path ) {
 							   100,
 							   vil->StrAttribute("texture"),
 							   vil->StrAttribute("inside"));
-		}else if ( name == "stall" ) {
-			if(!strcmp(vil->Attribute("type"),"market")){
-				tmp->addStructure((BUILD_SUB)70,
-							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ?
-							   randx : spawnx,
-							   100,
-							   vil->StrAttribute("texture"),
-							   vil->StrAttribute("inside"));
-				tmp->addMerchant(0,100);
-                tmp->merchant.back()->inside = tmp->build.back();
-				if(vil->FirstChildElement("buy")){
-				}else if(vil->FirstChildElement("sell")){
-				}else if(vil->FirstChildElement("trade")){
-					tmp->merchant.back()->trade.push_back(Trade(vil->FirstChildElement("trade")->IntAttribute("quantity"),
-																vil->FirstChildElement("trade")->Attribute("item"),
-																vil->FirstChildElement("trade")->IntAttribute("quantity1"),
-																vil->FirstChildElement("trade")->Attribute("item1")));
-					tmp->merchant.back()->trade.push_back(Trade(1,"Wood Sword", 420, "Dank MayMay"));
-				}
-				strcpy(tmp->merchant.back()->name,"meme");
+		} else if ( name == "stall" ) {
+            sptr = vil->StrAttribute("type");
 
-			}else if(!strcmp(vil->Attribute("type"),"trader")){
-				tmp->addStructure((BUILD_SUB)71,
-							   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ?
-							   randx : spawnx,
-							   100,
-							   vil->StrAttribute("texture"),
-							   vil->StrAttribute("inside"));
+            // handle markets
+            if ( sptr == "market" ) {
+
+                // create a structure and a merchant, and pair them
+                tmp->addStructure( STALL_MARKET,
+                                   vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? randx : spawnx,
+                                   100,
+							       vil->StrAttribute("texture"),
+							       vil->StrAttribute("inside")
+                                 );
+				tmp->addMerchant( 0, 100 );
+
+                tmp->merchant.back()->inside = tmp->build.back();
+            }
+
+            // handle traders
+            else if ( sptr == "trader") {
+				tmp->addStructure( STALL_TRADER,
+							       vil->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ? randx : spawnx,
+							       100,
+							       vil->StrAttribute("texture"),
+							       vil->StrAttribute("inside")
+                                 );
+			}
+
+            // loop through buy/sell/trade tags
+            XMLElement *sxml = vil->FirstChildElement();
+            std::string tag;
+            while ( sxml ) {
+                tag = sxml->Name();
+
+                if ( tag == "buy" ) {
+                    // TODO
+                } else if ( tag == "sell" ) {
+                    // TODO
+                } else if ( tag == "trade" ) {
+                	tmp->merchant.back()->trade.push_back( Trade( sxml->IntAttribute("quantity"),
+																  sxml->StrAttribute("item"),
+																  sxml->IntAttribute("quantity1"),
+																  sxml->StrAttribute("item1")
+                                                         ));
+				}
+
+                sxml = sxml->NextSiblingElement();
 			}
 		}
 

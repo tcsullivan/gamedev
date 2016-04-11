@@ -20,6 +20,12 @@
 #define PLAYER_SPEED_CONSTANT 0.15f
 
 /**
+ * Gravity thing
+ */
+
+#define GRAVITY_CONSTANT        0.001f
+
+/**
  * Defines how many game ticks it takes for a day to elapse.
  */
 

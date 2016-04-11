@@ -63,13 +63,27 @@ void getRandomName(Entity *e){
 
 	switch(bufs[0]){
 	default :
-	case 'm': e->gender = MALE;  break;
-	case 'f': e->gender = FEMALE;break;
+	case 'm':
+		e->gender = MALE;
+		break;
+	case 'f':
+		e->gender = FEMALE;
+		break;
 	}
 
-	strcpy(e->name,bufs+1);
+	strcpy( e->name, bufs + 1 );
 
 	delete[] bufs;
+}
+
+Trade::Trade(int qo, std::string o, int qt, std::string t){
+	item[0] = o;
+	item[1] = t;
+
+	quantity[0] = qo;
+	quantity[1] = qt;
+
+	std::cout << "Trading: " << quantity[0] << " " << item[0] << " for " << quantity[1] << " " << item[1] << std::endl;
 }
 
 void Entity::spawn(float x, float y){	//spawns the entity you pass to it based off of coords and global entity settings
@@ -89,6 +103,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	forcedMove = false;
 
 	ticksToUse = 0;
+	hitCooldown = 0;
 
 	if(!maxHealth)health = maxHealth = 1;
 
@@ -376,7 +391,12 @@ void Entity::draw(void){		//draws the entities
 		tex->bind(0);
 		break;
 	}
-	glColor3ub(255,255,255);
+
+	if ( hitCooldown )
+		glColor3ub(255,255,0);
+	else
+		glColor3ub(255,255,255);
+
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glBegin(GL_QUADS);
@@ -409,6 +429,9 @@ wander( int timeRun )
 
 	if ( forcedMove )
 		return;
+
+	if ( hitCooldown )
+		hitCooldown--;
 
 	if ( followee ) {
 		if ( loc.x < followee->loc.x - 40 )
@@ -500,9 +523,13 @@ void Merchant::wander(int timeRun){
 
 	if( vel.x < 0)
 		currentWorld->goWorldLeft( this );
-	if(inside != nullptr){
-		if(loc.x <= inside->loc.x)loc.x = inside->loc.x;
-		if(loc.x + width >= inside->loc.x + inside->width)loc.x = inside->loc.x + inside->width - width;
+	if ( inside != nullptr ) {
+		loc.y = inside->loc.y + HLINE * 2;
+		vel.y = GRAVITY_CONSTANT * 5;
+		if ( loc.x <= inside->loc.x + HLINE * 5 )
+			loc.x = inside->loc.x + HLINE * 5;
+		else if ( loc.x + width >= inside->loc.x + inside->width - HLINE * 5 )
+			loc.x = inside->loc.x + inside->width - width - HLINE * 5;
 	}
 	ticksToUse--;
 }
@@ -511,20 +538,43 @@ void Merchant::interact(){
 	std::thread([this]{
 		ui::merchantBox(name, trade[currTrade], ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
 		ui::waitForDialog();
-		if(ui::dialogOptChosen == 1){
-			if(!(player->inv->takeItem(trade[currTrade].item[1],trade[currTrade].quantity[1])))
+
+		// handle normal dialog options
+		switch ( ui::dialogOptChosen ) {
+		// Accept
+		case 1:
+			if ( !(player->inv->takeItem( trade[currTrade].item[1], trade[currTrade].quantity[1])) )
 				player->inv->addItem(trade[currTrade].item[0],trade[currTrade].quantity[0]);
-		}else if(ui::dialogOptChosen == 2){
-		}else if(ui::merchOptChosen == 1){
-			if(currTrade != 0){
+			break;
+
+		// Good-bye
+		case 2:
+			break;
+
+		default:
+			break;
+		}
+
+		// handle merchant-specific dialog options
+		switch ( ui::merchOptChosen ) {
+		// left arrow
+		case 1:
+			if ( currTrade )
 				currTrade--;
-				interact();
-			}
-		}else if(ui::merchOptChosen == 2){
-			if(currTrade < trade.size()){
+			ui::dontTypeOut();
+			interact(); // TODO should we nest like this?
+			break;
+
+		// right arrow
+		case 2:
+			if ( currTrade < trade.size() - 1 )
 				currTrade++;
-				interact();
-			}
+			ui::dontTypeOut();
+			interact();
+			break;
+
+		default:
+			break;
 		}
 	}).detach();
 }
@@ -676,20 +726,11 @@ void Mob::wander(int timeRun){
 			//hey(this);
 		break;
 	case MS_PAGE:
-		if(player->loc.x > loc.x - 100		 &&
-		   player->loc.x < loc.x + 100		 &&
-		   ui::mouse.x > loc.x				 &&
-		   ui::mouse.x < loc.x + width		 &&
-		   ui::mouse.y > loc.y - width / 2	 &&
-		   ui::mouse.y < loc.y + width * 1.5 &&
-		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-			std::thread([this]{hey(this);}).detach();
-			/*if(speed != 666){
-				speed = 666;
-				hey(this);
-				speed = 0;
-			}*/
-		}
+		if(player->loc.x > loc.x - 100 && player->loc.x < loc.x + 100           && // within player ranger
+		   ui::mouse.x > loc.x && ui::mouse.x < loc.x + width                   && // mouse x
+		   ui::mouse.y > loc.y - width / 2 && ui::mouse.y < loc.y + width * 1.5 && // mouse y
+		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))           // right click
+			hey(this);
 		break;
 	default:
 		break;

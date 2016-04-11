@@ -65,8 +65,9 @@ static unsigned char fontColor[4] = {255,255,255,255};
 
 static std::vector<std::pair<std::string,vec3>> dialogOptText;
 static std::string dialogBoxText;
-static vec3 merchArrowLoc[2];
+static std::vector<vec3> merchArrowLoc ( 2, vec3 { 0, 0, 0 } );
 static bool typeOutDone = true;
+static bool typeOutSustain = false;
 
 /*
  * Menu-related objects
@@ -95,6 +96,7 @@ Mix_Chunk *battleStart;
 Mix_Chunk *sanic;
 
 static GLuint pageTex = 0;
+static bool   pageTexReady = false;
 
 void Menu::gotoParent(){
 	if(parent == NULL){
@@ -264,13 +266,15 @@ namespace ui {
 			}
 			ftex = &ftex16;
 			ftdat = &ftdat16;
-		} else if ( size == 24 ){
+			fontSize = 16;
+		} else if ( size == 24 ) {
 			if ( !ft24loaded ) {
 				loadFontSize( fontSize = size, ftex24, ftdat24 );
 				ft24loaded = true;
 			}
 			ftex = &ftex24;
 			ftdat = &ftdat24;
+			fontSize = 24;
 		}
 	}
 
@@ -410,6 +414,14 @@ namespace ui {
 		return width;
 	}
 
+	/**
+ 	 * Prevents typeOut from typing the next string it's given.
+	 */
+
+	 void dontTypeOut( void ) {
+		 typeOutSustain = true;
+	 }
+
 	/*
 	 *	Draw a string in a typewriter-esque fashion. Each letter is rendered as calls are made
 	 *	to this function. Passing a different string to the function will reset the counters.
@@ -417,34 +429,30 @@ namespace ui {
 
 	std::string ret;
 	std::string typeOut( std::string str ) {
-		static unsigned int sinc,	//	Acts as a delayer for the space between each character.
+		static unsigned int tadv = TICKS_PER_SEC / 12;
+		static unsigned int tickk,
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
 
-		/*
-		 *	Reset values if a new string is being passed.
-		*/
-
-		if(strncmp(ret.c_str(),str.c_str(),linc-1)){
-			ret.clear();			//	Zero the buffer
-			size=str.size();		//	Set the new target string size
-			linc=0;					//	Reset the incrementers
-			sinc=1;
-			typeOutDone = false;
+		// reset values if a new string is being passed.
+		if ( !linc || ret.substr( 0, linc ) != str.substr( 0, linc ) ) {
+			tickk = tickCount + tadv;
+			ret  = str.substr( 0, 1 );
+			size = str.size();			//	Set the new target string size
+			linc = 1;					//	Reset the incrementers
+			if ( (typeOutDone = typeOutSustain) )
+				typeOutSustain = false;
 		}
 
-		/*
-		 *	Draw the next letter if necessary.
-		*/
-
-		if(typeOutDone)
+		if ( typeOutDone )
 			return str;
-		else if(++sinc==2){
-			sinc=0;
 
-			ret.append(str, linc, 1);
+		// Draw the next letter if necessary.
+		else if ( tickk <= tickCount ) {
+			tickk = tickCount + tadv;
+			ret += str[linc];
 
-			if(linc<size)
+			if ( linc < size )
 				linc++;
 			else
 				typeOutDone = true;
@@ -519,15 +527,11 @@ namespace ui {
 		ret.clear();
 	}
 
-
 	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...){
 		va_list dialogArgs;
 		std::unique_ptr<char[]> printfbuf (new char[512]);
 
 		dialogPassive = passive;
-
-		std::cout << "Market Trading: " << trade.quantity[0] << " " << trade.item[0] << " for " << trade.quantity[1] << " " << trade.item[1] << std::endl;
-
 		merchTrade = trade;
 
 		// clear the buffer
@@ -575,24 +579,21 @@ namespace ui {
 	 * Wait for a dialog box to be dismissed.
 	 */
 
-	void waitForDialog(void){
-		do{
-			//std::thread(dialogAdvance);
-			//mainLoop();
-		}while(dialogBoxExists);
+	void waitForDialog ( void ) {
+		while ( dialogBoxExists );
 	}
-	void waitForCover(void){
-		do{
+
+	void waitForCover ( void ) {
+		while ( fadeIntensity < 255 )
 			mainLoop();
-		}while(fadeIntensity < 255);
 		fadeIntensity = 255;
 	}
-	void waitForNothing(unsigned int ms){
+
+	void waitForNothing ( unsigned int ms ) {
 		unsigned int target = millis() + ms;
-		do{
-			mainLoop();
-		}while(millis() < target);
+		while ( millis() < target );
 	}
+
 	void importantText(const char *text,...){
 		va_list textArgs;
 		char *printfbuf;
@@ -632,11 +633,7 @@ namespace ui {
 
 	void drawPage( std::string path ) {
 		pageTex = Texture::loadTexture( path );
-		std::cout<<"page set\n";
-	}
-
-	bool pageExists( void ) {
-		return pageTex;
+		pageTexReady = true;
 	}
 
 	void draw(void){
@@ -644,11 +641,8 @@ namespace ui {
 		float x,y,tmp;
 		std::string rtext;
 
-		if ( pageTex ) {
-
-			std::cout<<"page draw\n";
-
-			glEnable( GL_TEXTURE_2D);
+		if ( pageTexReady ) {
+			glEnable( GL_TEXTURE_2D );
 			glBindTexture( GL_TEXTURE_2D, pageTex );
 			glBegin( GL_QUADS );
 				glTexCoord2i( 0, 0 ); glVertex2i( offset.x - 300, SCREEN_HEIGHT - 100 );
@@ -656,9 +650,9 @@ namespace ui {
 				glTexCoord2i( 1, 1 ); glVertex2i( offset.x + 300, SCREEN_HEIGHT - 600 );
 				glTexCoord2i( 0, 1 ); glVertex2i( offset.x - 300, SCREEN_HEIGHT - 600 );
 			glEnd();
-			glDisable( GL_TEXTURE_2D);
+			glDisable( GL_TEXTURE_2D );
 
-		} else if (dialogBoxExists){
+		} else if (dialogBoxExists) {
 
 			rtext=typeOut(dialogBoxText);
 
@@ -677,10 +671,11 @@ namespace ui {
 					putStringCentered(offset.x,offset.y,rtext.c_str());
 					setFontSize(16);
 				}
-			}else if(dialogMerchant){
+			}else if ( dialogMerchant ) {
 				x=offset.x-SCREEN_WIDTH/6;
 				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
 
+				// draw the box border
 				glColor3ub(255,255,255);
 				glBegin(GL_LINE_STRIP);
 					glVertex2f(x-1 				   ,y+1);
@@ -690,6 +685,7 @@ namespace ui {
 					glVertex2f(x - 1,y+1);
 				glEnd();
 
+				// draw the box
 				glColor3ub(0,0,0);
 				glRectf(x,y,x+SCREEN_WIDTH/3,y-SCREEN_HEIGHT*.6);
 
@@ -757,12 +753,12 @@ namespace ui {
 					setFontColor(255, 255, 255);
 
 					// draw option
+					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 2 - (fontSize + HLINE) * (i + 1);
 					tmp = putStringCentered(offset.x, dialogOptText[i].second.y, dialogOptText[i].first);
 
 					// get coordinate information on option
 					dialogOptText[i].second.z = offset.x + tmp;
 					dialogOptText[i].second.x = offset.x - tmp;
-					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 2 - (fontSize + HLINE) * (i + 1);
 
 					// make text yellow if the mouse hovers over the text
 					if(mouse.x > dialogOptText[i].second.x && mouse.x < dialogOptText[i].second.z &&
@@ -792,7 +788,7 @@ namespace ui {
 				glColor3ub(0,0,0);
 				glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
 
-				rtext=typeOut(dialogBoxText);
+				rtext = typeOut(dialogBoxText);
 
 				putString(x+HLINE,y-fontSize-HLINE,rtext);
 
@@ -813,8 +809,11 @@ namespace ui {
 				setFontColor(255,255,255);
 			}
 
-			if ( rtext != dialogBoxText )
-				Mix_PlayChannel(1,dialogClick,0);
+			static unsigned int rtext_oldsize = 0;
+			if ( rtext_oldsize != rtext.size() ) {
+				if ( !isspace( rtext[(rtext_oldsize = rtext.size()) - 1] ) )
+					Mix_PlayChannel( 1, dialogClick, 0 );
+			}
 
 		}if(!fadeIntensity){
 			vec2 hub = {
@@ -1211,16 +1210,16 @@ namespace ui {
 		unsigned char i;
 
 		if ( pageTex ) {
-			std::cout<<"rip page\n";
 			glDeleteTextures( 1, &pageTex );
 			pageTex = 0;
+			pageTexReady = false;
 			return;
 		}
 
-		if(!typeOutDone){
+		/*if(!typeOutDone){
 			typeOutDone = true;
 			return;
-		}
+		}*/
 
 		for(i=0;i<dialogOptText.size();i++){
 			if(mouse.x > dialogOptText[i].second.x &&
@@ -1231,10 +1230,14 @@ namespace ui {
 				goto EXIT;
 			}
 		}
-		if(dialogMerchant){
-			for(i=0;i<2;i++){
+
+		if ( dialogMerchant ) {
+			for ( i = 0; i < merchArrowLoc.size(); i++ ) {
+
+				// TODO neaten this if statement
+
 				if(((merchArrowLoc[i].x < merchArrowLoc[i].z) ?
-					(mouse.x > merchArrowLoc[i].x && mouse.x < merchArrowLoc[i].z) :
+				    (mouse.x > merchArrowLoc[i].x && mouse.x < merchArrowLoc[i].z) :
 				    (mouse.x < merchArrowLoc[i].x && mouse.x > merchArrowLoc[i].z) &&
 					 mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8)){
 						merchOptChosen = i + 1;
@@ -1288,11 +1291,6 @@ EXIT:
 				break;
 
 			case SDL_MOUSEBUTTONUP:
-
-				// right click advances dialog
-				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && (dialogBoxExists | pageTex) )
-					dialogAdvance();
-
 				if ( ig ) {
 					ig->vel.x = (fr.x - mouse.x) / 50.0f;
 					ig->vel.y = (fr.y - mouse.y) / 50.0f;
@@ -1302,6 +1300,10 @@ EXIT:
 
 			// mouse clicks
 			case SDL_MOUSEBUTTONDOWN:
+
+				// right click advances dialog
+				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && (dialogBoxExists | pageTexReady) )
+					dialogAdvance();
 
 				// left click uses item
 				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )
@@ -1405,8 +1407,8 @@ EXIT:
 							currentWorld = ((Arena *)currentWorld)->exitArena( player );
 							if ( tmp != currentWorld )
 								toggleBlackFast();
-						} else if( (tmp = currentWorld->goInsideStructure( player )) != currentWorld )
-								currentWorld = tmp;
+						} else if ( (tmp = currentWorld->goInsideStructure( player )) != currentWorld )
+							currentWorld = tmp;
 						break;
 					case SDLK_LSHIFT:
 						if(debug){
@@ -1454,7 +1456,7 @@ EXIT:
 					debug ^= true;
 					break;
 				case SDLK_z:
-					weather = WorldWeather::Snowy;
+					weather = WorldWeather::Rain;
 					break;
 				case SDLK_i:
 					if ( isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorAbove( player ) ) {
@@ -1517,9 +1519,6 @@ EXIT:
 					static GLubyte* pixels;
 					pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
 					glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-					//static std::thread scr;
-					//scr = std::thread(takeScreenshot,pixels);
-					//scr.detach();
 					takeScreenshot(pixels);
 
 					std::cout << "Took screenshot" << std::endl;
@@ -1543,7 +1542,7 @@ EXIT:
 			}
 		}
 
-			// Flush preloaded AI functions if necessary
+		// Flush preloaded AI functions if necessary
 		if ( !dialogBoxExists && AIpreaddr.size() ) {
 			while ( !AIpreaddr.empty() ) {
 				AIpreaddr.front()->addAIFunc( AIpreload.front(), false );

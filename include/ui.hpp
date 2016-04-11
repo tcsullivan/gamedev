@@ -154,9 +154,11 @@ namespace ui {
 	void merchantBox();
 	void closeBox();
 	void waitForDialog(void);
-	bool pageExists( void );
 
+	bool pageExists( void );
 	void drawPage( std::string path );
+
+	void dontTypeOut( void );
 	/*
 	 *	Draws a larger string in the center of the screen. Drawing is done inside this function.
 	*/

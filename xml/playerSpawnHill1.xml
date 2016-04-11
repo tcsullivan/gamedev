@@ -7,15 +7,15 @@
 
 	<hill peakx="0" peaky="1000" width="50" />
 
-	<mob x="300" type="1" aggressive="false" />
+	<mob x="300" type="1" aggressive="false" health="1000" />
 
 	<!--<trigger x="-300" id="Test" />-->
 
-	<npc name="Ralph" hasDialog="true" />
-	<npc name="Johnny" hasDialog="false" />
-	<npc name="Big Dave" hasDialog="true"/>
+	<npc name="Ralph" hasDialog="true" x="300" />
+	<npc name="Johnny" hasDialog="false" x="300" />
+	<npc name="Big Dave" hasDialog="true" x="300" />
 
-	<page x="-200" id="assets/pages/gootaGoFast.png" />
+	<page x="-200" id="assets/door.png" />
 
 	<village name="Swaggggggggggggg">
 		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>

@@ -219,20 +219,9 @@ CONT:
 }
 
 void commonPageFunc( Mob *callee ){
-	//static bool lock = false;
-
-	/*if ( !lock ) {
-		lock = true;*/
-	if ( !ui::dialogBoxExists ) {
-		std::cout<<"begin\n";
-		ui::drawPage( callee->heyid );
-		while( ui::pageExists() );
-		std::cout<<"done\n";
-		//ui::waitForDialog();
-
-		callee->health = 0;
-		//lock = false;
-	}
+	ui::drawPage( callee->heyid );
+	ui::waitForDialog();
+	callee->health = 0;
 }
 
 void commonTriggerFunc(Mob *callee){
