@@ -257,7 +257,7 @@ void Inventory::draw(void){
 			a++;
 		} a = 0;
 
-		for ( unsigned int i = 0; i < massOrder.size() ; i++, a++ ) {
+		while ( ++a < massOrder.size() ) {
 			if ( !a || massDfp[ massOrder[a - 1] ] > massRange * 0.75f )
 				massDfp[ massOrder[a] ] += 5.0f * deltaTime;
 			if ( massDfp[ massOrder[a] ] > massRange )
@@ -276,7 +276,8 @@ void Inventory::draw(void){
 				cd -= 1.0f * deltaTime;
 		}
 
-		for ( unsigned int i = 0; i < massRay.size(); i++, a++ ) {
+        a = 0;
+		while ( ++a < massRay.size() ) {
 			if ( !a || massDfp[ massOrderClosing[a - 1] ] <= 0 )
 				massDfp[ massOrderClosing[a] ] -= 10.0f * deltaTime;
 			if ( massDfp[ massOrderClosing[a - 1] ] < 0 )

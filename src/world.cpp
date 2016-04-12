@@ -259,8 +259,8 @@ generate( unsigned int width )
 
     // create slopes from the points that were just defined, populate the rest of the WorldData structure
 
-    for(wditer = worldData.begin(); wditer != worldData.end(); wditer++){
-        if ((*wditer).groundHeight)
+    for(wditer = worldData.begin() + 1; wditer != worldData.end(); wditer++){
+        if ( (*wditer).groundHeight && wditer + GROUND_HILLINESS < worldData.end() )
 			// wditer + GROUND_HILLINESS can go out of bounds (invalid read)
             geninc = ( (*(wditer + GROUND_HILLINESS)).groundHeight - (*wditer).groundHeight ) / (float)GROUND_HILLINESS;
         else
@@ -1152,14 +1152,17 @@ goInsideStructure( Player *p )
 void World::
 addHole( unsigned int start, unsigned int end )
 {
-	for ( unsigned int i = end; i-- > start; )
+    if ( end > worldData.size() )
+        end = worldData.size();
+    
+	for ( unsigned int i = start; i < end; i++ )
 		worldData[i].groundHeight = 0;
 }
 
 void World::
 addHill( const ivec2 peak, const unsigned int width )
 {
-	int start = peak.x - width / 2, end = start + width, offset;
+	int start = peak.x - width / 2, end = start + width, offset = 0;
 	const float thing = peak.y - worldData[start].groundHeight;
     const float period = PI / width;
 

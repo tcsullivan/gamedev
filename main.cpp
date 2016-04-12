@@ -709,9 +709,8 @@ void render() {
 
 	}
 
-	if(currentMenu){
-		ui::drawMenu(currentMenu);
-	}
+	if ( currentMenu )
+		ui::menu::draw();
 
 	// draw the mouse cursor
 	glColor3ub(255,255,255);
