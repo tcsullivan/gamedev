@@ -475,7 +475,6 @@ void mainLoop(void){
 	if(!prevTime){
 		prevTime=currentTime;
 	}
-
 	/*
 	 * Update timing values. This is crucial to calling logic and updating the window (basically
 	 * the entire game).
@@ -704,7 +703,7 @@ void render() {
 			glBegin(GL_LINES);
 				/*glColor3ub(255,0,0);
 				glVertex2i(0,0);
-				glVertex2i(0,SCREEN_HEIGHT);*/
+				glVertexdw2i(0,SCREEN_HEIGHT);*/
 
 				/*glColor3ub(255,255,255);
 				glVertex2i(player->loc.x + player->width/2,0);

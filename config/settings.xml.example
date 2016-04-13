@@ -23,3 +23,5 @@ Available fonts:
     <music volume="50"/>
     <sfx volume="50"/>
 </volume>
+
+<world start="xml/"/>
