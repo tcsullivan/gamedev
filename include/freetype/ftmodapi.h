@@ -118,7 +118,7 @@ FT_BEGIN_HEADER
   /*    module :: The module to initialize.                                */
   /*                                                                       */
   typedef FT_Error
-  (*FT_Module_Constructor)( FT_Module  module );
+  (*FT_Module_Constructor)(FT_Module  module);
 
 
   /*************************************************************************/
@@ -133,7 +133,7 @@ FT_BEGIN_HEADER
   /*    module :: The module to finalize.                                  */
   /*                                                                       */
   typedef void
-  (*FT_Module_Destructor)( FT_Module  module );
+  (*FT_Module_Destructor)(FT_Module  module);
 
 
   /*************************************************************************/
@@ -150,8 +150,8 @@ FT_BEGIN_HEADER
   /*    name ::   The name of the interface in the module.                 */
   /*                                                                       */
   typedef FT_Module_Interface
-  (*FT_Module_Requester)( FT_Module    module,
-                          const char*  name );
+  (*FT_Module_Requester)(FT_Module    module,
+                          const char*  name);
 
 
   /*************************************************************************/
@@ -221,9 +221,9 @@ FT_BEGIN_HEADER
   /*    An error will be returned if a module already exists by that name, */
   /*    or if the module requires a version of FreeType that is too great. */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Add_Module( FT_Library              library,
-                 const FT_Module_Class*  clazz );
+  FT_EXPORT(FT_Error)
+  FT_Add_Module(FT_Library              library,
+                 const FT_Module_Class*  clazz);
 
 
   /*************************************************************************/
@@ -246,9 +246,9 @@ FT_BEGIN_HEADER
   /*    FreeType's internal modules aren't documented very well, and you   */
   /*    should look up the source code for details.                        */
   /*                                                                       */
-  FT_EXPORT( FT_Module )
-  FT_Get_Module( FT_Library   library,
-                 const char*  module_name );
+  FT_EXPORT(FT_Module)
+  FT_Get_Module(FT_Library   library,
+                 const char*  module_name);
 
 
   /*************************************************************************/
@@ -271,9 +271,9 @@ FT_BEGIN_HEADER
   /* <Note>                                                                */
   /*    The module object is destroyed by the function in case of success. */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Remove_Module( FT_Library  library,
-                    FT_Module   module );
+  FT_EXPORT(FT_Error)
+  FT_Remove_Module(FT_Library  library,
+                    FT_Module   module);
 
 
   /**********************************************************************
@@ -319,7 +319,7 @@ FT_BEGIN_HEADER
    *
    *
    *      bar = 1;
-   *      FT_Property_Set( library, "foo", "bar", &bar );
+   *      FT_Property_Set(library, "foo", "bar", &bar);
    *    }
    *
    *    Note that the FreeType Cache sub-system doesn't recognize module
@@ -336,11 +336,11 @@ FT_BEGIN_HEADER
    *    2.4.11
    *
    */
-  FT_EXPORT( FT_Error )
-  FT_Property_Set( FT_Library        library,
+  FT_EXPORT(FT_Error)
+  FT_Property_Set(FT_Library        library,
                    const FT_String*  module_name,
                    const FT_String*  property_name,
-                   const void*       value );
+                   const void*       value);
 
 
   /**********************************************************************
@@ -390,7 +390,7 @@ FT_BEGIN_HEADER
    *      range  baz;
    *
    *
-   *      FT_Property_Get( library, "foo", "baz", &baz );
+   *      FT_Property_Get(library, "foo", "baz", &baz);
    *    }
    *
    *    It is not possible to retrieve properties of the FreeType Cache
@@ -400,11 +400,11 @@ FT_BEGIN_HEADER
    *    2.4.11
    *
    */
-  FT_EXPORT( FT_Error )
-  FT_Property_Get( FT_Library        library,
+  FT_EXPORT(FT_Error)
+  FT_Property_Get(FT_Library        library,
                    const FT_String*  module_name,
                    const FT_String*  property_name,
-                   void*             value );
+                   void*             value);
 
 
   /*************************************************************************/
@@ -430,8 +430,8 @@ FT_BEGIN_HEADER
   /* <Since>                                                               */
   /*    2.4.2                                                              */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Reference_Library( FT_Library  library );
+  FT_EXPORT(FT_Error)
+  FT_Reference_Library(FT_Library  library);
 
 
   /*************************************************************************/
@@ -464,9 +464,9 @@ FT_BEGIN_HEADER
   /*    See the discussion of reference counters in the description of     */
   /*    @FT_Reference_Library.                                             */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_New_Library( FT_Memory    memory,
-                  FT_Library  *alibrary );
+  FT_EXPORT(FT_Error)
+  FT_New_Library(FT_Memory    memory,
+                  FT_Library  *alibrary);
 
 
   /*************************************************************************/
@@ -488,13 +488,13 @@ FT_BEGIN_HEADER
   /*    See the discussion of reference counters in the description of     */
   /*    @FT_Reference_Library.                                             */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Done_Library( FT_Library  library );
+  FT_EXPORT(FT_Error)
+  FT_Done_Library(FT_Library  library);
 
 /* */
 
   typedef void
-  (*FT_DebugHook_Func)( void*  arg );
+  (*FT_DebugHook_Func)(void*  arg);
 
 
   /*************************************************************************/
@@ -524,10 +524,10 @@ FT_BEGIN_HEADER
   /*    the symbol `FT_DEBUG_HOOK_TRUETYPE' isn't available publicly.      */
   /*    This is a bug and will be fixed in a forthcoming release.          */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_Set_Debug_Hook( FT_Library         library,
+  FT_EXPORT(void)
+  FT_Set_Debug_Hook(FT_Library         library,
                      FT_UInt            hook_index,
-                     FT_DebugHook_Func  debug_hook );
+                     FT_DebugHook_Func  debug_hook);
 
 
   /*************************************************************************/
@@ -543,8 +543,8 @@ FT_BEGIN_HEADER
   /* <InOut>                                                               */
   /*    library :: A handle to a new library object.                       */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_Add_Default_Modules( FT_Library  library );
+  FT_EXPORT(void)
+  FT_Add_Default_Modules(FT_Library  library);
 
 
 
@@ -626,8 +626,8 @@ FT_BEGIN_HEADER
    *     2.2
    *
    */
-  FT_EXPORT( FT_TrueTypeEngineType )
-  FT_Get_TrueType_Engine_Type( FT_Library  library );
+  FT_EXPORT(FT_TrueTypeEngineType)
+  FT_Get_TrueType_Engine_Type(FT_Library  library);
 
 
   /* */

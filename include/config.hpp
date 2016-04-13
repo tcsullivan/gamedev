@@ -10,9 +10,9 @@
 
 
 namespace config {
-    void read( void );
-    void update( void );
-    void save( void );
+    void read(void);
+    void update(void);
+    void save(void);
 }
 
 #endif //CONFIG_H

@@ -195,9 +195,9 @@ FT_BEGIN_HEADER
    * @since:
    *   2.3.0
    */
-  FT_EXPORT( FT_Error )
-  FT_Library_SetLcdFilter( FT_Library    library,
-                           FT_LcdFilter  filter );
+  FT_EXPORT(FT_Error)
+  FT_Library_SetLcdFilter(FT_Library    library,
+                           FT_LcdFilter  filter);
 
 
   /**************************************************************************
@@ -236,9 +236,9 @@ FT_BEGIN_HEADER
    * @since:
    *   2.4.0
    */
-  FT_EXPORT( FT_Error )
-  FT_Library_SetLcdFilterWeights( FT_Library      library,
-                                  unsigned char  *weights );
+  FT_EXPORT(FT_Error)
+  FT_Library_SetLcdFilterWeights(FT_Library      library,
+                                  unsigned char  *weights);
 
   /* */
 

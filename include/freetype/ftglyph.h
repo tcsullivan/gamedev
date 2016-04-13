@@ -231,9 +231,9 @@ FT_BEGIN_HEADER
   /* <Return>                                                              */
   /*    FreeType error code.  0~means success.                             */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Get_Glyph( FT_GlyphSlot  slot,
-                FT_Glyph     *aglyph );
+  FT_EXPORT(FT_Error)
+  FT_Get_Glyph(FT_GlyphSlot  slot,
+                FT_Glyph     *aglyph);
 
 
   /*************************************************************************/
@@ -255,9 +255,9 @@ FT_BEGIN_HEADER
   /* <Return>                                                              */
   /*    FreeType error code.  0~means success.                             */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Glyph_Copy( FT_Glyph   source,
-                 FT_Glyph  *target );
+  FT_EXPORT(FT_Error)
+  FT_Glyph_Copy(FT_Glyph   source,
+                 FT_Glyph  *target);
 
 
   /*************************************************************************/
@@ -284,10 +284,10 @@ FT_BEGIN_HEADER
   /*    The 2x2 transformation matrix is also applied to the glyph's       */
   /*    advance vector.                                                    */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Glyph_Transform( FT_Glyph    glyph,
+  FT_EXPORT(FT_Error)
+  FT_Glyph_Transform(FT_Glyph    glyph,
                       FT_Matrix*  matrix,
-                      FT_Vector*  delta );
+                      FT_Vector*  delta);
 
 
   /*************************************************************************/
@@ -417,10 +417,10 @@ FT_BEGIN_HEADER
   /*    To get the bbox in grid-fitted pixel coordinates, set `bbox_mode'  */
   /*    to @FT_GLYPH_BBOX_PIXELS.                                          */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_Glyph_Get_CBox( FT_Glyph  glyph,
+  FT_EXPORT(void)
+  FT_Glyph_Get_CBox(FT_Glyph  glyph,
                      FT_UInt   bbox_mode,
-                     FT_BBox  *acbox );
+                     FT_BBox  *acbox);
 
 
   /*************************************************************************/
@@ -467,17 +467,17 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*                                                                       */
   /*        // load glyph                                                  */
-  /*        error = FT_Load_Char( face, glyph_index, FT_LOAD_DEFAUT );     */
+  /*        error = FT_Load_Char(face, glyph_index, FT_LOAD_DEFAUT);     */
   /*                                                                       */
   /*        // extract glyph image                                         */
-  /*        error = FT_Get_Glyph( face->glyph, &glyph );                   */
+  /*        error = FT_Get_Glyph(face->glyph, &glyph);                   */
   /*                                                                       */
   /*        // convert to a bitmap (default render mode + destroying old)  */
-  /*        if ( glyph->format != FT_GLYPH_FORMAT_BITMAP )                 */
+  /*        if (glyph->format != FT_GLYPH_FORMAT_BITMAP)                 */
   /*        {                                                              */
-  /*          error = FT_Glyph_To_Bitmap( &glyph, FT_RENDER_MODE_NORMAL,   */
-  /*                                      0, 1 );                          */
-  /*          if ( error ) // `glyph' unchanged                            */
+  /*          error = FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL,   */
+  /*                                      0, 1);                          */
+  /*          if (error) // `glyph' unchanged                            */
   /*            ...                                                        */
   /*        }                                                              */
   /*                                                                       */
@@ -488,7 +488,7 @@ FT_BEGIN_HEADER
   /*        ...                                                            */
   /*                                                                       */
   /*        // discard glyph image (bitmap or not)                         */
-  /*        FT_Done_Glyph( glyph );                                        */
+  /*        FT_Done_Glyph(glyph);                                        */
   /*      }                                                                */
   /*                                                                       */
   /*                                                                       */
@@ -501,13 +501,13 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*        ...                                                            */
   /*                                                                       */
-  /*        for ( idx = 0; i < MAX_GLYPHS; i++ )                           */
-  /*          error = FT_Load_Glyph( face, idx, FT_LOAD_DEFAULT ) ||       */
-  /*                  FT_Get_Glyph ( face->glyph, &glyph[idx] );           */
+  /*        for (idx = 0; i < MAX_GLYPHS; i++)                           */
+  /*          error = FT_Load_Glyph(face, idx, FT_LOAD_DEFAULT) ||       */
+  /*                  FT_Get_Glyph (face->glyph, &glyph[idx]);           */
   /*                                                                       */
   /*        ...                                                            */
   /*                                                                       */
-  /*        for ( idx = 0; i < MAX_GLYPHS; i++ )                           */
+  /*        for (idx = 0; i < MAX_GLYPHS; i++)                           */
   /*        {                                                              */
   /*          FT_Glyph  bitmap = glyphs[idx];                              */
   /*                                                                       */
@@ -516,24 +516,24 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*          // after this call, `bitmap' no longer points into           */
   /*          // the `glyphs' array (and the old value isn't destroyed)    */
-  /*          FT_Glyph_To_Bitmap( &bitmap, FT_RENDER_MODE_MONO, 0, 0 );    */
+  /*          FT_Glyph_To_Bitmap(&bitmap, FT_RENDER_MODE_MONO, 0, 0);    */
   /*                                                                       */
   /*          ...                                                          */
   /*                                                                       */
-  /*          FT_Done_Glyph( bitmap );                                     */
+  /*          FT_Done_Glyph(bitmap);                                     */
   /*        }                                                              */
   /*                                                                       */
   /*        ...                                                            */
   /*                                                                       */
-  /*        for ( idx = 0; i < MAX_GLYPHS; i++ )                           */
-  /*          FT_Done_Glyph( glyphs[idx] );                                */
+  /*        for (idx = 0; i < MAX_GLYPHS; i++)                           */
+  /*          FT_Done_Glyph(glyphs[idx]);                                */
   /*      }                                                                */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Glyph_To_Bitmap( FT_Glyph*       the_glyph,
+  FT_EXPORT(FT_Error)
+  FT_Glyph_To_Bitmap(FT_Glyph*       the_glyph,
                       FT_Render_Mode  render_mode,
                       FT_Vector*      origin,
-                      FT_Bool         destroy );
+                      FT_Bool         destroy);
 
 
   /*************************************************************************/
@@ -547,8 +547,8 @@ FT_BEGIN_HEADER
   /* <Input>                                                               */
   /*    glyph :: A handle to the target glyph object.                      */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_Done_Glyph( FT_Glyph  glyph );
+  FT_EXPORT(void)
+  FT_Done_Glyph(FT_Glyph  glyph);
 
   /* */
 
@@ -580,9 +580,9 @@ FT_BEGIN_HEADER
   /* <Note>                                                                */
   /*    The result is undefined if either `a' or `b' is zero.              */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_Matrix_Multiply( const FT_Matrix*  a,
-                      FT_Matrix*        b );
+  FT_EXPORT(void)
+  FT_Matrix_Multiply(const FT_Matrix*  a,
+                      FT_Matrix*        b);
 
 
   /*************************************************************************/
@@ -600,8 +600,8 @@ FT_BEGIN_HEADER
   /* <Return>                                                              */
   /*    FreeType error code.  0~means success.                             */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Matrix_Invert( FT_Matrix*  matrix );
+  FT_EXPORT(FT_Error)
+  FT_Matrix_Invert(FT_Matrix*  matrix);
 
 
   /* */

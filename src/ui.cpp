@@ -12,6 +12,8 @@ extern SDL_Window *window;
 
 extern Player *player;
 extern World  *currentWorld;
+extern World  *currentWorldToLeft;
+extern World  *currentWorldToRight;
 extern WorldWeather weather;
 
 /*
@@ -42,12 +44,12 @@ typedef struct {
 	vec2 ad;
 } FT_Info;
 
-static std::vector<FT_Info> ftdat16 ( 93, { { 0, 0 }, { 0, 0 }, { 0, 0 } } );
-static std::vector<GLuint>  ftex16  ( 93, 0 );
+static std::vector<FT_Info> ftdat16 (93, { { 0, 0 }, { 0, 0 }, { 0, 0 } });
+static std::vector<GLuint>  ftex16  (93, 0);
 static bool ft16loaded = false;
 
-static std::vector<FT_Info> ftdat24 ( 93, { { 0, 0 }, { 0, 0 }, { 0, 0 } } );
-static std::vector<GLuint>  ftex24  ( 93, 0 );
+static std::vector<FT_Info> ftdat24 (93, { { 0, 0 }, { 0, 0 }, { 0, 0 } });
+static std::vector<GLuint>  ftex24  (93, 0);
 static bool ft24loaded = false;
 
 static auto *ftdat = &ftdat16;
@@ -61,7 +63,7 @@ static unsigned char fontColor[4] = {255,255,255,255};
 
 static std::vector<std::pair<std::string,vec3>> dialogOptText;
 static std::string dialogBoxText;
-static std::vector<vec3> merchArrowLoc ( 2, vec3 { 0, 0, 0 } );
+static std::vector<vec3> merchArrowLoc (2, vec3 { 0, 0, 0 });
 static bool typeOutDone = true;
 static bool typeOutSustain = false;
 
@@ -86,7 +88,7 @@ Mix_Chunk *sanic;
 static GLuint pageTex = 0;
 static bool   pageTexReady = false;
 
-void loadFontSize( unsigned int size, std::vector<GLuint> &tex, std::vector<FT_Info> &dat )
+void loadFontSize(unsigned int size, std::vector<GLuint> &tex, std::vector<FT_Info> &dat)
 {
 	FT_Set_Pixel_Sizes(ftf,0,size);
 
@@ -94,8 +96,8 @@ void loadFontSize( unsigned int size, std::vector<GLuint> &tex, std::vector<FT_I
 	 *	Pre-render 'all' the characters.
 	*/
 
-	glDeleteTextures( 93, tex.data() );
-	glGenTextures( 93, tex.data() );		//	Generate new texture name/locations?
+	glDeleteTextures(93, tex.data());
+	glGenTextures(93, tex.data());		//	Generate new texture name/locations?
 
 	for(char i=33;i<126;i++){
 
@@ -103,8 +105,8 @@ void loadFontSize( unsigned int size, std::vector<GLuint> &tex, std::vector<FT_I
 		 *	Load the character from the font family file.
 		*/
 
-		if ( FT_Load_Char ( ftf, i, FT_LOAD_RENDER ) )
-			UserError( "Error! Unsupported character " + i );
+		if (FT_Load_Char (ftf, i, FT_LOAD_RENDER))
+			UserError("Error! Unsupported character " + i);
 
 		/*
 		 *	Transfer the character's bitmap (?) to a texture for rendering.
@@ -113,8 +115,8 @@ void loadFontSize( unsigned int size, std::vector<GLuint> &tex, std::vector<FT_I
 		glBindTexture(GL_TEXTURE_2D,tex[i-33]);
 		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S		,GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T		,GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER	,GL_LINEAR		 );
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER	,GL_LINEAR		 );
+		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER	,GL_LINEAR		);
+		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER	,GL_LINEAR		);
 		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 
 		/*
@@ -124,9 +126,9 @@ void loadFontSize( unsigned int size, std::vector<GLuint> &tex, std::vector<FT_I
 		*/
 
 
-		std::vector<uint32_t> buf ( ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows, 0xFFFFFFFF );
+		std::vector<uint32_t> buf (ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows, 0xFFFFFFFF);
 
-		for( unsigned int j = buf.size(); j--; )
+		for(unsigned int j = buf.size(); j--;)
 			buf[j] ^= !ftf->glyph->bitmap.buffer[j] ? buf[j] : 0;
 
 		dat[i - 33].wh.x = ftf->glyph->bitmap.width;
@@ -136,8 +138,8 @@ void loadFontSize( unsigned int size, std::vector<GLuint> &tex, std::vector<FT_I
 		dat[i - 33].ad.x = ftf->glyph->advance.x >> 6;
 		dat[i - 33].ad.y = ftf->glyph->advance.y >> 6;
 
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ftf->glyph->bitmap.width, ftf->glyph->bitmap.rows,
-			          0, GL_RGBA, GL_UNSIGNED_BYTE, buf.data() );
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ftf->glyph->bitmap.width, ftf->glyph->bitmap.rows,
+			          0, GL_RGBA, GL_UNSIGNED_BYTE, buf.data());
 	}
 }
 
@@ -193,7 +195,7 @@ namespace ui {
 	*/
 
 	void initFonts(void){
-		if ( FT_Init_FreeType(&ftl) )
+		if (FT_Init_FreeType(&ftl))
 			UserError("Couldn't initialize freetype.");
 
 #ifdef DEBUG
@@ -221,7 +223,7 @@ namespace ui {
 	*/
 
 	void setFontFace(const char *ttf){
-		if ( FT_New_Face( ftl, ttf, 0, &ftf ) )
+		if (FT_New_Face(ftl, ttf, 0, &ftf))
 			UserError("Error! Couldn't open " + (std::string)ttf + ".");
 
 #ifdef DEBUG
@@ -236,17 +238,17 @@ namespace ui {
 	*/
 
 	void setFontSize(unsigned int size){
-		if ( size == 16 ) {
-			if( !ft16loaded ) {
-				loadFontSize( fontSize = size, ftex16, ftdat16 );
+		if (size == 16) {
+			if(!ft16loaded) {
+				loadFontSize(fontSize = size, ftex16, ftdat16);
 				ft16loaded = true;
 			}
 			ftex = &ftex16;
 			ftdat = &ftdat16;
 			fontSize = 16;
-		} else if ( size == 24 ) {
-			if ( !ft24loaded ) {
-				loadFontSize( fontSize = size, ftex24, ftdat24 );
+		} else if (size == 24) {
+			if (!ft24loaded) {
+				loadFontSize(fontSize = size, ftex24, ftdat24);
 				ft24loaded = true;
 			}
 			ftex = &ftex24;
@@ -316,7 +318,7 @@ namespace ui {
 	 *	Draw a string at the specified coordinates.
 	*/
 
-	float putString( const float x, const float y, std::string s ) {
+	float putString(const float x, const float y, std::string s) {
 		unsigned int i=0;
 		vec2 add, o = {x, y};
 
@@ -341,7 +343,7 @@ namespace ui {
   					i++;
   			}
 
-			switch ( s[i] ) {
+			switch (s[i]) {
 			case '\n':
 				o.y -= fontSize * 1.05f;
 				o.x = x;
@@ -357,7 +359,7 @@ namespace ui {
 				o.x += fontSize / 2;
 				break;
 			default:
-				add = putChar( floor(o.x), floor(o.y), s[i] );
+				add = putChar(floor(o.x), floor(o.y), s[i]);
 				o.x += add.x;
 				o.y += add.y;
 				break;
@@ -368,12 +370,12 @@ namespace ui {
 		return o.x;	// i.e. the string width
 	}
 
-	float putStringCentered( const float x, const float y, std::string s ) {
+	float putStringCentered(const float x, const float y, std::string s) {
 		unsigned int i = 0;
 		float width = 0;
 
 		do {
-			switch ( s[i] ) {
+			switch (s[i]) {
 			case '\n':
 				// TODO
 				break;
@@ -395,7 +397,7 @@ namespace ui {
  	 * Prevents typeOut from typing the next string it's given.
 	 */
 
-	 void dontTypeOut( void ) {
+	 void dontTypeOut(void) {
 		 typeOutSustain = true;
 	 }
 
@@ -405,31 +407,31 @@ namespace ui {
 	*/
 
 	std::string ret;
-	std::string typeOut( std::string str ) {
+	std::string typeOut(std::string str) {
 		static unsigned int tadv = TICKS_PER_SEC / 12;
 		static unsigned int tickk,
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
 
 		// reset values if a new string is being passed.
-		if ( !linc || ret.substr( 0, linc ) != str.substr( 0, linc ) ) {
+		if (!linc || ret.substr(0, linc) != str.substr(0, linc)) {
 			tickk = tickCount + tadv;
-			ret  = str.substr( 0, 1 );
+			ret  = str.substr(0, 1);
 			size = str.size();			//	Set the new target string size
 			linc = 1;					//	Reset the incrementers
-			if ( (typeOutDone = typeOutSustain) )
+			if ((typeOutDone = typeOutSustain))
 				typeOutSustain = false;
 		}
 
-		if ( typeOutDone )
+		if (typeOutDone)
 			return str;
 
 		// Draw the next letter if necessary.
-		else if ( tickk <= tickCount ) {
+		else if (tickk <= tickCount) {
 			tickk = tickCount + tadv;
 			ret += str[linc];
 
-			if ( linc < size )
+			if (linc < size)
 				linc++;
 			else
 				typeOutDone = true;
@@ -442,7 +444,7 @@ namespace ui {
 	 *	Draw a formatted string to the specified coordinates.
 	*/
 
-	float putText( const float x, const float y, const char *str, ... ) {
+	float putText(const float x, const float y, const char *str, ...) {
 		va_list args;
 		std::unique_ptr<char[]> buf (new char[512]);
 
@@ -458,10 +460,10 @@ namespace ui {
 		va_end(args);
 
 		// draw the string and return the width
-		return putString( x, y, buf.get() );
+		return putString(x, y, buf.get());
 	}
 
-	void dialogBox( const char *name, const char *opt, bool passive, const char *text, ... ) {
+	void dialogBox(const char *name, const char *opt, bool passive, const char *text, ...) {
 		va_list dialogArgs;
 		std::unique_ptr<char[]> printfbuf (new char[512]);
 
@@ -483,13 +485,13 @@ namespace ui {
 
 		dialogOptChosen = 0;
 
-		if ( opt ) {
+		if (opt) {
 			std::string soptbuf = opt;
 			char *sopt = strtok(&soptbuf[0], ":");
 
 			// cycle through options
 			while(sopt){
-				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}) );
+				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}));
 				sopt = strtok(NULL,":");
 			}
 		}
@@ -533,7 +535,7 @@ namespace ui {
 
 			// cycle through options
 			while(sopt){
-				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}) );
+				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}));
 				sopt = strtok(NULL,":");
 			}
 		}
@@ -556,19 +558,19 @@ namespace ui {
 	 * Wait for a dialog box to be dismissed.
 	 */
 
-	void waitForDialog ( void ) {
-		while ( dialogBoxExists );
+	void waitForDialog (void) {
+		while (dialogBoxExists);
 	}
 
-	void waitForCover ( void ) {
-		while ( fadeIntensity < 255 )
+	void waitForCover (void) {
+		while (fadeIntensity < 255)
 			mainLoop();
 		fadeIntensity = 255;
 	}
 
-	void waitForNothing ( unsigned int ms ) {
+	void waitForNothing (unsigned int ms) {
 		unsigned int target = millis() + ms;
-		while ( millis() < target );
+		while (millis() < target);
 	}
 
 	void importantText(const char *text,...){
@@ -608,8 +610,8 @@ namespace ui {
 	}
 
 
-	void drawPage( std::string path ) {
-		pageTex = Texture::loadTexture( path );
+	void drawPage(std::string path) {
+		pageTex = Texture::loadTexture(path);
 		pageTexReady = true;
 	}
 
@@ -618,16 +620,16 @@ namespace ui {
 		float x,y,tmp;
 		std::string rtext;
 
-		if ( pageTexReady ) {
-			glEnable( GL_TEXTURE_2D );
-			glBindTexture( GL_TEXTURE_2D, pageTex );
-			glBegin( GL_QUADS );
-				glTexCoord2i( 0, 0 ); glVertex2i( offset.x - 300, SCREEN_HEIGHT - 100 );
-				glTexCoord2i( 1, 0 ); glVertex2i( offset.x + 300, SCREEN_HEIGHT - 100 );
-				glTexCoord2i( 1, 1 ); glVertex2i( offset.x + 300, SCREEN_HEIGHT - 600 );
-				glTexCoord2i( 0, 1 ); glVertex2i( offset.x - 300, SCREEN_HEIGHT - 600 );
+		if (pageTexReady) {
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, pageTex);
+			glBegin(GL_QUADS);
+				glTexCoord2i(0, 0); glVertex2i(offset.x - 300, SCREEN_HEIGHT - 100);
+				glTexCoord2i(1, 0); glVertex2i(offset.x + 300, SCREEN_HEIGHT - 100);
+				glTexCoord2i(1, 1); glVertex2i(offset.x + 300, SCREEN_HEIGHT - 600);
+				glTexCoord2i(0, 1); glVertex2i(offset.x - 300, SCREEN_HEIGHT - 600);
 			glEnd();
-			glDisable( GL_TEXTURE_2D );
+			glDisable(GL_TEXTURE_2D);
 
 		} else if (dialogBoxExists) {
 
@@ -648,7 +650,7 @@ namespace ui {
 					putStringCentered(offset.x,offset.y,rtext.c_str());
 					setFontSize(16);
 				}
-			}else if ( dialogMerchant ) {
+			}else if (dialogMerchant) {
 				x=offset.x-SCREEN_WIDTH/6;
 				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
 
@@ -711,8 +713,8 @@ namespace ui {
 				for(i = 0; i < 2; i++){
 					if(((merchArrowLoc[i].x < merchArrowLoc[i].z) ?
 						(mouse.x > merchArrowLoc[i].x     && mouse.x < merchArrowLoc[i].z) :
-						(mouse.x < merchArrowLoc[i].x     && mouse.x > merchArrowLoc[i].z)    ) &&
-					     mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8 ) {
+						(mouse.x < merchArrowLoc[i].x     && mouse.x > merchArrowLoc[i].z)) &&
+					     mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8) {
 						glColor3ub(255,255, 0);
 					}else{
 						glColor3ub(255,255,255);
@@ -739,7 +741,7 @@ namespace ui {
 
 					// make text yellow if the mouse hovers over the text
 					if(mouse.x > dialogOptText[i].second.x && mouse.x < dialogOptText[i].second.z &&
-					   mouse.y > dialogOptText[i].second.y && mouse.y < dialogOptText[i].second.y + 16 ){
+					   mouse.y > dialogOptText[i].second.y && mouse.y < dialogOptText[i].second.y + 16){
 						  setFontColor(255, 255, 0);
 						  putStringCentered(offset.x, dialogOptText[i].second.y, dialogOptText[i].first);
 					}
@@ -778,7 +780,7 @@ namespace ui {
 					if(mouse.x > dialogOptText[i].second.x &&
 					   mouse.x < dialogOptText[i].second.z &&
 					   mouse.y > dialogOptText[i].second.y &&
-					   mouse.y < dialogOptText[i].second.y + 16 ){ // fontSize
+					   mouse.y < dialogOptText[i].second.y + 16){ // fontSize
 						  setFontColor(255,255,0);
 						  putStringCentered(offset.x,dialogOptText[i].second.y,dialogOptText[i].first);
 					}
@@ -787,9 +789,9 @@ namespace ui {
 			}
 
 			static unsigned int rtext_oldsize = 0;
-			if ( rtext_oldsize != rtext.size() ) {
-				if ( !isspace( rtext[(rtext_oldsize = rtext.size()) - 1] ) )
-					Mix_PlayChannel( 1, dialogClick, 0 );
+			if (rtext_oldsize != rtext.size()) {
+				if (!isspace(rtext[(rtext_oldsize = rtext.size()) - 1]))
+					Mix_PlayChannel(1, dialogClick, 0);
 			}
 
 		}if(!fadeIntensity){
@@ -861,8 +863,8 @@ namespace ui {
 	void dialogAdvance(void){
 		unsigned char i;
 
-		if ( pageTex ) {
-			glDeleteTextures( 1, &pageTex );
+		if (pageTex) {
+			glDeleteTextures(1, &pageTex);
 			pageTex = 0;
 			pageTexReady = false;
 			return;
@@ -877,14 +879,14 @@ namespace ui {
 			if(mouse.x > dialogOptText[i].second.x &&
 			   mouse.x < dialogOptText[i].second.z &&
 			   mouse.y > dialogOptText[i].second.y &&
-			   mouse.y < dialogOptText[i].second.y + 16 ){ // fontSize
+			   mouse.y < dialogOptText[i].second.y + 16){ // fontSize
 				dialogOptChosen = i + 1;
 				goto EXIT;
 			}
 		}
 
-		if ( dialogMerchant ) {
-			for ( i = 0; i < merchArrowLoc.size(); i++ ) {
+		if (dialogMerchant) {
+			for (i = 0; i < merchArrowLoc.size(); i++) {
 
 				// TODO neaten this if statement
 
@@ -922,8 +924,8 @@ EXIT:
 		SDL_Event e;
 
 		// update mouse coords
-		mouse.x = premouse.x + offset.x - ( SCREEN_WIDTH / 2 );
-		mouse.y = ( offset.y + SCREEN_HEIGHT / 2 ) - premouse.y;
+		mouse.x = premouse.x + offset.x - (SCREEN_WIDTH / 2);
+		mouse.y = (offset.y + SCREEN_HEIGHT / 2) - premouse.y;
 
 		static vec2 fr;
 		static Entity *ig;
@@ -943,7 +945,7 @@ EXIT:
 				break;
 
 			case SDL_MOUSEBUTTONUP:
-				if ( ig ) {
+				if (ig) {
 					ig->vel.x = (fr.x - mouse.x) / 50.0f;
 					ig->vel.y = (fr.y - mouse.y) / 50.0f;
                     //ig->forcedMove = true; // kills vel.x too quickly
@@ -955,22 +957,22 @@ EXIT:
 			case SDL_MOUSEBUTTONDOWN:
 
 				// right click advances dialog
-				if ( ( e.button.button & SDL_BUTTON_RIGHT ) && (dialogBoxExists | pageTexReady) )
+				if ((e.button.button & SDL_BUTTON_RIGHT) && (dialogBoxExists | pageTexReady))
 					dialogAdvance();
 
 				// left click uses item
-				if ( ( e.button.button & SDL_BUTTON_LEFT ) && !dialogBoxExists )
+				if ((e.button.button & SDL_BUTTON_LEFT) && !dialogBoxExists)
 					player->inv->usingi = true;
 
-				if( mouse.x > player->loc.x && mouse.x < player->loc.x + player->width &&
-					mouse.y > player->loc.y && mouse.y < player->loc.y + player->height ) {
+				if(mouse.x > player->loc.x && mouse.x < player->loc.x + player->width &&
+					mouse.y > player->loc.y && mouse.y < player->loc.y + player->height) {
 					player->vel.y = .05;
 					fr = mouse;
 					ig = player;
 				} else {
-					for ( auto &e : currentWorld->entity ) {
-						if( mouse.x > e->loc.x && mouse.x < e->loc.x + e->width &&
-							mouse.y > e->loc.y && mouse.y < e->loc.y + e->height ) {
+					for (auto &e : currentWorld->entity) {
+						if(mouse.x > e->loc.x && mouse.x < e->loc.x + e->width &&
+							mouse.y > e->loc.y && mouse.y < e->loc.y + e->height) {
 							e->vel.y = .05;
 							fr = mouse;
 							ig = e;
@@ -997,8 +999,8 @@ EXIT:
 			case SDL_KEYDOWN:
 
 				// space - make player jump
-				if ( SDL_KEY == SDLK_SPACE ) {
-					if ( player->ground ) {
+				if (SDL_KEY == SDLK_SPACE) {
+					if (player->ground) {
 						player->loc.y += HLINE * 2;
 						player->vel.y = .4;
 						player->ground = false;
@@ -1006,7 +1008,7 @@ EXIT:
 					break;
 
 				// only let other keys be handled if dialog allows it
-				} else if ( !dialogBoxExists || dialogPassive ) {
+				} else if (!dialogBoxExists || dialogPassive) {
 					tmp = currentWorld;
 					switch(SDL_KEY){
 					case SDLK_t:
@@ -1017,7 +1019,7 @@ EXIT:
 						player->vel.x = -PLAYER_SPEED_CONSTANT;
 						player->left = left = true;
 						player->right = right = false;
-						if ( !currentWorld->toLeft.empty() ) {
+						if (currentWorldToLeft) {
 							oldpos = player->loc;
 							if((tmp = currentWorld->goWorldLeft(player)) != currentWorld){
 								tmppos = player->loc;
@@ -1037,7 +1039,7 @@ EXIT:
 						player->vel.x = PLAYER_SPEED_CONSTANT;
 						player->right = right = true;
 						player->left = left = false;
-						if ( !currentWorld->toRight.empty() ) {
+						if (currentWorldToRight) {
 							oldpos = player->loc;
 							if((tmp = currentWorld->goWorldRight(player)) != currentWorld){
 								tmppos = player->loc;
@@ -1055,12 +1057,12 @@ EXIT:
 					case SDLK_s:
 						break;
 					case SDLK_w:
-						if ( inBattle ) {
+						if (inBattle) {
 							tmp = currentWorld;
-							currentWorld = ((Arena *)currentWorld)->exitArena( player );
-							if ( tmp != currentWorld )
+							currentWorld = ((Arena *)currentWorld)->exitArena(player);
+							if (tmp != currentWorld)
 								toggleBlackFast();
-						} else if ( (tmp = currentWorld->goInsideStructure( player )) != currentWorld )
+						} else if ((tmp = currentWorld->goInsideStructure(player)) != currentWorld)
 							currentWorld = tmp;
 						break;
 					case SDLK_LSHIFT:
@@ -1099,12 +1101,12 @@ EXIT:
 			*/
 
 			case SDL_KEYUP:
-				if ( SDL_KEY == SDLK_ESCAPE ) {
+				if (SDL_KEY == SDLK_ESCAPE) {
 					currentMenu = &pauseMenu;
 					player->save();
 					return;
 				}
-				switch ( SDL_KEY ) {
+				switch (SDL_KEY) {
 				case SDLK_F3:
 					debug ^= true;
 					break;
@@ -1112,13 +1114,13 @@ EXIT:
 					weather = WorldWeather::Rain;
 					break;
 				case SDLK_i:
-					if ( isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorAbove( player ) ) {
+					if (isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorAbove(player)) {
 						player->loc.y += getIndoorWorldFloorHeight();
 						player->ground = false;
 					}
 					break;
 				case SDLK_k:
-					if ( isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorBelow( player ) ) {
+					if (isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorBelow(player)) {
 						player->loc.y -= getIndoorWorldFloorHeight();
 						player->ground = false;
 					}
@@ -1151,20 +1153,20 @@ EXIT:
 					break;
 				case SDLK_l:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
-					currentWorld->light.back().follow(player);
-					currentWorld->light.back().makeFlame();
+					currentWorld->getLastLight()->follow(player);
+					currentWorld->getLastLight()->makeFlame();
 					break;
 				case SDLK_f:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
 					break;
 				case SDLK_b:
-					if ( debug )
+					if (debug)
 						posFlag ^= true;
 					else {
 						currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
 						currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
-						currentWorld->light.back().follow(currentWorld->build.back());
-						currentWorld->light.back().makeFlame();
+						currentWorld->getLastLight()->follow(currentWorld->build.back());
+						currentWorld->getLastLight()->makeFlame();
 					}
 					break;
 				case SDLK_F12:
@@ -1196,11 +1198,11 @@ EXIT:
 		}
 
 		// Flush preloaded AI functions if necessary
-		if ( !dialogBoxExists && AIpreaddr.size() ) {
-			while ( !AIpreaddr.empty() ) {
-				AIpreaddr.front()->addAIFunc( AIpreload.front(), false );
-				AIpreaddr.erase( AIpreaddr.begin() );
-				AIpreload.erase( AIpreload.begin() );
+		if (!dialogBoxExists && AIpreaddr.size()) {
+			while (!AIpreaddr.empty()) {
+				AIpreaddr.front()->addAIFunc(AIpreload.front(), false);
+				AIpreaddr.erase(AIpreaddr.begin());
+				AIpreload.erase(AIpreload.begin());
 			}
 		}
 	}
@@ -1225,9 +1227,9 @@ EXIT:
 		fadeWhite   = true;
 		fadeFast    = true;
 
-		Mix_PlayChannel( 1, battleStart, 0 );
+		Mix_PlayChannel(1, battleStart, 0);
 	}
-    
+
     void takeScreenshot(GLubyte* pixels){
 		std::vector<GLubyte> bgr (SCREEN_WIDTH * SCREEN_HEIGHT * 3, 0);
 

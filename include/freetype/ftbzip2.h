@@ -87,9 +87,9 @@ FT_BEGIN_HEADER
   *   This function may return `FT_Err_Unimplemented_Feature' if your build
   *   of FreeType was not compiled with bzip2 support.
   */
-  FT_EXPORT( FT_Error )
-  FT_Stream_OpenBzip2( FT_Stream  stream,
-                       FT_Stream  source );
+  FT_EXPORT(FT_Error)
+  FT_Stream_OpenBzip2(FT_Stream  stream,
+                       FT_Stream  source);
 
  /* */
 

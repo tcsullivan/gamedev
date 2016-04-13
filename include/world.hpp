@@ -14,7 +14,6 @@
 #define GROUND_HEIGHT_INITIAL   80
 #define GROUND_HEIGHT_MINIMUM   60
 #define GROUND_HEIGHT_MAXIMUM   110
-
 #define GROUND_HILLINESS        10
 
 #define PLAYER_SPEED_CONSTANT 0.15f
@@ -175,7 +174,7 @@ protected:
 	 * World::detect(), which is why it is declared private.
 	 */
 
-	virtual void singleDetect( Entity *e );
+	virtual void singleDetect(Entity *e);
 
 	/**
 	 * Empties all entity vectors.
@@ -187,7 +186,7 @@ protected:
 	 * call this function.
 	 */
 
-	void deleteEntities( void );
+	void deleteEntities(void);
 
 	/**
 	 * Number of lines in the world.
@@ -232,8 +231,6 @@ protected:
 	std::vector<std::string> bgFiles;
 	std::vector<std::string> bgFilesIndoors;
 
-public:
-
 	/**
 	 * The filename of the XML file for the world to the left; NULL if no world
 	 * is present.
@@ -249,16 +246,34 @@ public:
 	std::string toRight;
 
 	/**
-	 * Sets what XML file to use for loading the world to the left.
+	 * Vector of all building textures for the current world style
 	 */
 
-	std::string setToLeft( std::string file );
+	std::vector<std::string> sTexLoc;
+
+	std::vector<Light>     light;
+	std::vector<Village>   village;
+	std::vector<Particles> particles;
+	std::vector<Object>	   object;
+	std::vector<Mob>       mob;
+
+public:
+
+	Light *getLastLight(void);
+	Mob   *getLastMob(void);
+
+	std::string getSTextureLocation(unsigned int index) const;
 
 	/**
-	 * Sets what XML file to use for loading the world to the right.
+	 * These handle accessing/modifying pathnames for worlds linked to the left
+	 * and right of this one.
 	 */
 
-	std::string setToRight( std::string file );
+	std::string setToLeft(std::string file);
+	std::string setToRight(std::string file);
+
+	std::string getToLeft(void) const;
+	std::string getToRight(void) const;
 
 	/**
 	 * A vector of pointers to every NPC, Structure, Mob, and Object in this
@@ -281,45 +296,12 @@ public:
 	std::vector<Structures	*>	build;
 
 	/**
-	 * A vector of all Mobs in this world.
-	 */
-
-	std::vector<Mob			*>	mob;
-
-	/**
-	 * A vector of all Objects in this world.
-	 */
-
-	std::vector<Object		*>	object;
-
-	/**
-	 * A vector of all particles in this world.
-	 */
-
-	std::vector<Particles> particles;
-
-
-	std::vector<Village 	*>	village;
-
-	/**
-	 * A vector of all light elements in this world.
-	 */
-
-	std::vector<Light>  light;
-
-	/**
-	 * Vector of all building textures for the current world style
-	 */
-
-	std::vector<std::string> sTexLoc;
-
-	/**
 	 * NULLifies pointers and allocates necessary memory. This should be
 	 * followed by some combination of setBackground(), setBGM(), or
 	 * generate().
 	 */
 
-	World( void );
+	World(void);
 
 	/**
 	 * Frees resources taken by the world.
@@ -335,6 +317,7 @@ public:
 	 */
 
 	void addStructure(BUILD_SUB subtype,float x,float y, std::string tex, std::string inside);
+	Village *addVillage(std::string name, World *world);
 
 	/**
 	 * Adds a Mob to the world with the specified type and coordinates.
@@ -367,7 +350,7 @@ public:
 	 * upon object interaction.
 	 */
 
-	void addObject( std::string in, std::string pickupDialog, float x, float y);
+	void addObject(std::string in, std::string pickupDialog, float x, float y);
 
 	/**
 	 * Adds a particle to the world with the specified coordinates, dimensions,
@@ -375,7 +358,7 @@ public:
 	 */
 
 	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d);
-	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d, bool gravity );
+	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d, unsigned char flags);
 
 	/**
 	 * Adds a light to the world with the specified coordinates and color.
@@ -388,7 +371,7 @@ public:
 	 * and a velocity. The provided delta time is used for smoother updating.
 	 */
 
-	void update( Player *p, unsigned int delta );
+	void update(Player *p, unsigned int delta);
 
 	/**
 	 * Generate a world of the provided width. Worlds are drawn centered on the
@@ -445,7 +428,7 @@ public:
 	 */
 
 	World *goWorldLeft(Player *p);
-	bool   goWorldLeft( NPC *e );
+	bool   goWorldLeft(NPC *e);
 
 	/**
 	 * Attempts to let the player enter the right-linked world specified by
@@ -475,7 +458,7 @@ public:
 	 * hill can be.
 	 */
 
-	void addHill( ivec2 peak, unsigned int width );
+	void addHill(ivec2 peak, unsigned int width);
 
 	/**
 	 * Gets the world's width.
@@ -497,18 +480,18 @@ private:
 	std::vector<std::vector<float>> floor;
 	std::vector<float> fstart;
 
-	void singleDetect( Entity *e );
+	void singleDetect(Entity *e);
 
 public:
 	IndoorWorld(void);
 	~IndoorWorld(void);
 
-	void addFloor( unsigned int width );
-	void addFloor( unsigned int width, unsigned int start );
-	bool moveToFloor( Entity *e, unsigned int _floor );
+	void addFloor(unsigned int width);
+	void addFloor(unsigned int width, unsigned int start);
+	bool moveToFloor(Entity *e, unsigned int _floor);
 
-	bool isFloorAbove( Entity *e );
-	bool isFloorBelow( Entity *e );
+	bool isFloorAbove(Entity *e);
+	bool isFloorBelow(Entity *e);
 
 	void draw(Player *p);				// Draws the world (ignores layers)
 };
@@ -537,26 +520,26 @@ public:
 	 * world `leave` upon exit.
 	 */
 
-	Arena( World *leave, Player *p, Mob *m );
+	Arena(World *leave, Player *p, Mob *m);
 
 	/**
 	 * Frees resources taken by the arena.
 	 */
 
-	~Arena( void );
+	~Arena(void);
 
 	/**
 	 * Attempts to exit the world, returning the player to the world they were
 	 * last in.
 	 */
 
-	World *exitArena( Player *p );
+	World *exitArena(Player *p);
 };
 
-bool  isCurrentWorldIndoors( void );
-float getIndoorWorldFloorHeight( void );
+bool  isCurrentWorldIndoors(void);
+float getIndoorWorldFloorHeight(void);
 
-std::string getWorldWeatherStr( WorldWeather ww );
+std::string getWorldWeatherStr(WorldWeather ww);
 
 /**
  * Loads the player into the world created by the given XML file. If a world is
@@ -572,6 +555,6 @@ World *loadWorldFromXML(std::string path);
 
 World *loadWorldFromXMLNoSave(std::string path);
 
-World *loadWorldFromPtr( World *ptr );
+World *loadWorldFromPtr(World *ptr);
 
 #endif // WORLD_H

@@ -121,7 +121,7 @@ FT_BEGIN_HEADER
   /* FT_UNUSED is a macro used to indicate that a given parameter is not  */
   /* used -- this is only used to get rid of unpleasant compiler warnings */
 #ifndef FT_UNUSED
-#define FT_UNUSED( arg )  ( (arg) = (arg) )
+#define FT_UNUSED(arg)  ((arg) = (arg))
 #endif
 
 
@@ -143,7 +143,7 @@ FT_BEGIN_HEADER
   /*   This is the only necessary change, so it is defined here instead    */
   /*   providing a new configuration file.                                 */
   /*                                                                       */
-#if defined( __APPLE__ ) || ( defined( __MWERKS__ ) && defined( macintosh ) )
+#if defined(__APPLE__) || (defined(__MWERKS__) && defined(macintosh))
   /* no Carbon frameworks for 64bit 10.4.x */
   /* AvailabilityMacros.h is available since Mac OS X 10.2,        */
   /* so guess the system version by maximum errno before inclusion */
@@ -151,12 +151,12 @@ FT_BEGIN_HEADER
 #ifdef ECANCELED /* defined since 10.2 */
 #include "AvailabilityMacros.h"
 #endif
-#if defined( __LP64__ ) && \
-    ( MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4 )
+#if defined(__LP64__) && \
+    (MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4)
 #undef FT_MACINTOSH
 #endif
 
-#elif defined( __SC__ ) || defined( __MRC__ )
+#elif defined(__SC__) || defined(__MRC__)
   /* Classic MacOS compilers */
 #include "ConditionalMacros.h"
 #if TARGET_OS_MAC
@@ -167,8 +167,8 @@ FT_BEGIN_HEADER
 
 
   /* Fix compiler warning with sgi compiler */
-#if defined( __sgi ) && !defined( __GNUC__ )
-#if defined( _COMPILER_VERSION ) && ( _COMPILER_VERSION >= 730 )
+#if defined(__sgi) && !defined(__GNUC__)
+#if defined(_COMPILER_VERSION) && (_COMPILER_VERSION >= 730)
 #pragma set woff 3505
 #endif
 #endif
@@ -297,14 +297,14 @@ FT_BEGIN_HEADER
 #define FT_INT64   long
 #define FT_UINT64  unsigned long
 
-#elif defined( _MSC_VER ) && _MSC_VER >= 900  /* Visual C++ (and Intel C++) */
+#elif defined(_MSC_VER) && _MSC_VER >= 900  /* Visual C++ (and Intel C++) */
 
   /* this compiler provides the __int64 type */
 #define FT_LONG64
 #define FT_INT64   __int64
 #define FT_UINT64  unsigned __int64
 
-#elif defined( __BORLANDC__ )  /* Borland C++ */
+#elif defined(__BORLANDC__)  /* Borland C++ */
 
   /* XXXX: We should probably check the value of __BORLANDC__ in order */
   /*       to test the compiler version.                               */
@@ -314,17 +314,17 @@ FT_BEGIN_HEADER
 #define FT_INT64   __int64
 #define FT_UINT64  unsigned __int64
 
-#elif defined( __WATCOMC__ )   /* Watcom C++ */
+#elif defined(__WATCOMC__)   /* Watcom C++ */
 
   /* Watcom doesn't provide 64-bit data types */
 
-#elif defined( __MWERKS__ )    /* Metrowerks CodeWarrior */
+#elif defined(__MWERKS__)    /* Metrowerks CodeWarrior */
 
 #define FT_LONG64
 #define FT_INT64   long long int
 #define FT_UINT64  unsigned long long int
 
-#elif defined( __GNUC__ )
+#elif defined(__GNUC__)
 
   /* GCC provides the `long long' type */
 #define FT_LONG64
@@ -341,7 +341,7 @@ FT_BEGIN_HEADER
   /* is defined.  You can however ignore this rule by defining the         */
   /* FT_CONFIG_OPTION_FORCE_INT64 configuration macro.                     */
   /*                                                                       */
-#if defined( FT_LONG64 ) && !defined( FT_CONFIG_OPTION_FORCE_INT64 )
+#if defined(FT_LONG64) && !defined(FT_CONFIG_OPTION_FORCE_INT64)
 
 #ifdef __STDC__
 
@@ -363,7 +363,7 @@ FT_BEGIN_HEADER
 
 
 #define FT_BEGIN_STMNT  do {
-#define FT_END_STMNT    } while ( 0 )
+#define FT_END_STMNT    } while (0)
 #define FT_DUMMY_STMNT  FT_BEGIN_STMNT FT_END_STMNT
 
 
@@ -371,15 +371,15 @@ FT_BEGIN_HEADER
   /* Provide assembler fragments for performance-critical functions. */
   /* These must be defined `static __inline__' with GCC.             */
 
-#if defined( __CC_ARM ) || defined( __ARMCC__ )  /* RVCT */
+#if defined(__CC_ARM) || defined(__ARMCC__)  /* RVCT */
 
 #define FT_MULFIX_ASSEMBLER  FT_MulFix_arm
 
   /* documentation is in freetype.h */
 
   static __inline FT_Int32
-  FT_MulFix_arm( FT_Int32  a,
-                 FT_Int32  b )
+  FT_MulFix_arm(FT_Int32  a,
+                 FT_Int32  b)
   {
     register FT_Int32  t, t2;
 
@@ -402,17 +402,17 @@ FT_BEGIN_HEADER
 
 #ifdef __GNUC__
 
-#if defined( __arm__ )                                 && \
-    ( !defined( __thumb__ ) || defined( __thumb2__ ) ) && \
-    !( defined( __CC_ARM ) || defined( __ARMCC__ ) )
+#if defined(__arm__)                                 && \
+    (!defined(__thumb__) || defined(__thumb2__)) && \
+    !(defined(__CC_ARM) || defined(__ARMCC__))
 
 #define FT_MULFIX_ASSEMBLER  FT_MulFix_arm
 
   /* documentation is in freetype.h */
 
   static __inline__ FT_Int32
-  FT_MulFix_arm( FT_Int32  a,
-                 FT_Int32  b )
+  FT_MulFix_arm(FT_Int32  a,
+                 FT_Int32  b)
   {
     register FT_Int32  t, t2;
 
@@ -431,24 +431,24 @@ FT_BEGIN_HEADER
       "orr    %0, %0, %2, lsl #16\n\t"  /* %0 |= %2 << 16 */
       : "=r"(a), "=&r"(t2), "=&r"(t)
       : "r"(a), "r"(b)
-      : "cc" );
+      : "cc");
     return a;
   }
 
 #endif /* __arm__                      && */
-       /* ( __thumb2__ || !__thumb__ ) && */
-       /* !( __CC_ARM || __ARMCC__ )      */
+       /* (__thumb2__ || !__thumb__) && */
+       /* !(__CC_ARM || __ARMCC__)      */
 
 
-#if defined( __i386__ )
+#if defined(__i386__)
 
 #define FT_MULFIX_ASSEMBLER  FT_MulFix_i386
 
   /* documentation is in freetype.h */
 
   static __inline__ FT_Int32
-  FT_MulFix_i386( FT_Int32  a,
-                  FT_Int32  b )
+  FT_MulFix_i386(FT_Int32  a,
+                  FT_Int32  b)
   {
     register FT_Int32  result;
 
@@ -465,7 +465,7 @@ FT_BEGIN_HEADER
       "addl  %%edx, %%eax\n"
       : "=a"(result), "=d"(b)
       : "a"(a), "d"(b)
-      : "%ecx", "cc" );
+      : "%ecx", "cc");
     return result;
   }
 
@@ -483,8 +483,8 @@ FT_BEGIN_HEADER
   /* documentation is in freetype.h */
 
   static __inline FT_Int32
-  FT_MulFix_i386( FT_Int32  a,
-                  FT_Int32  b )
+  FT_MulFix_i386(FT_Int32  a,
+                  FT_Int32  b)
   {
     register FT_Int32  result;
 
@@ -511,17 +511,17 @@ FT_BEGIN_HEADER
 #endif /* _MSC_VER */
 
 
-#if defined( __GNUC__ ) && defined( __x86_64__ )
+#if defined(__GNUC__) && defined(__x86_64__)
 
 #define FT_MULFIX_ASSEMBLER  FT_MulFix_x86_64
 
   static __inline__ FT_Int32
-  FT_MulFix_x86_64( FT_Int32  a,
-                    FT_Int32  b )
+  FT_MulFix_x86_64(FT_Int32  a,
+                    FT_Int32  b)
   {
     /* Temporarily disable the warning that C90 doesn't support */
     /* `long long'.                                             */
-#if ( __GNUC__ > 4 ) || ( ( __GNUC__ == 4 ) && ( __GNUC_MINOR__ >= 6 ) )
+#if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wlong-long"
 #endif
@@ -536,7 +536,7 @@ FT_BEGIN_HEADER
     tmp  = ret >> 63;
     ret += 0x8000 + tmp;
 
-    return (FT_Int32)( ret >> 16 );
+    return (FT_Int32)(ret >> 16);
 #else
 
     /* For some reason, GCC 4.6 on Ubuntu 12.04 generates invalid machine  */
@@ -558,12 +558,12 @@ FT_BEGIN_HEADER
       "sar $16, %0\n"
       : "=&r"(result), "=&r"(wide_a)
       : "r"(wide_b)
-      : "cc" );
+      : "cc");
 
     return (FT_Int32)result;
 #endif
 
-#if ( __GNUC__ > 4 ) || ( ( __GNUC__ == 4 ) && ( __GNUC_MINOR__ >= 6 ) )
+#if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic pop
 #endif
   }
@@ -582,31 +582,31 @@ FT_BEGIN_HEADER
 
 #ifdef FT_MAKE_OPTION_SINGLE_OBJECT
 
-#define FT_LOCAL( x )      static  x
-#define FT_LOCAL_DEF( x )  static  x
+#define FT_LOCAL(x)      static  x
+#define FT_LOCAL_DEF(x)  static  x
 
 #else
 
 #ifdef __cplusplus
-#define FT_LOCAL( x )      extern "C"  x
-#define FT_LOCAL_DEF( x )  extern "C"  x
+#define FT_LOCAL(x)      extern "C"  x
+#define FT_LOCAL_DEF(x)  extern "C"  x
 #else
-#define FT_LOCAL( x )      extern  x
-#define FT_LOCAL_DEF( x )  x
+#define FT_LOCAL(x)      extern  x
+#define FT_LOCAL_DEF(x)  x
 #endif
 
 #endif /* FT_MAKE_OPTION_SINGLE_OBJECT */
 
-#define FT_LOCAL_ARRAY( x )      extern const  x
-#define FT_LOCAL_ARRAY_DEF( x )  const  x
+#define FT_LOCAL_ARRAY(x)      extern const  x
+#define FT_LOCAL_ARRAY_DEF(x)  const  x
 
 
 #ifndef FT_BASE
 
 #ifdef __cplusplus
-#define FT_BASE( x )  extern "C"  x
+#define FT_BASE(x)  extern "C"  x
 #else
-#define FT_BASE( x )  extern  x
+#define FT_BASE(x)  extern  x
 #endif
 
 #endif /* !FT_BASE */
@@ -615,9 +615,9 @@ FT_BEGIN_HEADER
 #ifndef FT_BASE_DEF
 
 #ifdef __cplusplus
-#define FT_BASE_DEF( x )  x
+#define FT_BASE_DEF(x)  x
 #else
-#define FT_BASE_DEF( x )  x
+#define FT_BASE_DEF(x)  x
 #endif
 
 #endif /* !FT_BASE_DEF */
@@ -626,9 +626,9 @@ FT_BEGIN_HEADER
 #ifndef FT_EXPORT
 
 #ifdef __cplusplus
-#define FT_EXPORT( x )  extern "C"  x
+#define FT_EXPORT(x)  extern "C"  x
 #else
-#define FT_EXPORT( x )  extern  x
+#define FT_EXPORT(x)  extern  x
 #endif
 
 #endif /* !FT_EXPORT */
@@ -637,9 +637,9 @@ FT_BEGIN_HEADER
 #ifndef FT_EXPORT_DEF
 
 #ifdef __cplusplus
-#define FT_EXPORT_DEF( x )  extern "C"  x
+#define FT_EXPORT_DEF(x)  extern "C"  x
 #else
-#define FT_EXPORT_DEF( x )  extern  x
+#define FT_EXPORT_DEF(x)  extern  x
 #endif
 
 #endif /* !FT_EXPORT_DEF */
@@ -648,9 +648,9 @@ FT_BEGIN_HEADER
 #ifndef FT_EXPORT_VAR
 
 #ifdef __cplusplus
-#define FT_EXPORT_VAR( x )  extern "C"  x
+#define FT_EXPORT_VAR(x)  extern "C"  x
 #else
-#define FT_EXPORT_VAR( x )  extern  x
+#define FT_EXPORT_VAR(x)  extern  x
 #endif
 
 #endif /* !FT_EXPORT_VAR */
@@ -680,9 +680,9 @@ FT_BEGIN_HEADER
   /*                                                                 */
 #ifndef FT_CALLBACK_DEF
 #ifdef __cplusplus
-#define FT_CALLBACK_DEF( x )  extern "C"  x
+#define FT_CALLBACK_DEF(x)  extern "C"  x
 #else
-#define FT_CALLBACK_DEF( x )  static  x
+#define FT_CALLBACK_DEF(x)  static  x
 #endif
 #endif /* FT_CALLBACK_DEF */
 

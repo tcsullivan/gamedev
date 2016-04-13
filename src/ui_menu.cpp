@@ -6,9 +6,9 @@ extern Menu *currentMenu;
 extern Menu pauseMenu;
 
 void Menu::
-gotoParent( void )
+gotoParent(void)
 {
-	if ( !parent ) {
+	if (!parent) {
 		currentMenu = NULL;
 		config::update();
 	} else
@@ -16,7 +16,7 @@ gotoParent( void )
 }
 
 void Menu::
-gotoChild( void )
+gotoChild(void)
 {
 	currentMenu = child;
 }
@@ -78,7 +78,7 @@ namespace ui {
             return temp;
         }
 
-        void draw( void ) {
+        void draw(void) {
             SDL_Event e;
             
             setFontSize(24);

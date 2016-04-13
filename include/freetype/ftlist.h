@@ -90,9 +90,9 @@ FT_BEGIN_HEADER
   /* <Return>                                                              */
   /*    List node.  NULL if it wasn't found.                               */
   /*                                                                       */
-  FT_EXPORT( FT_ListNode )
-  FT_List_Find( FT_List  list,
-                void*    data );
+  FT_EXPORT(FT_ListNode)
+  FT_List_Find(FT_List  list,
+                void*    data);
 
 
   /*************************************************************************/
@@ -107,9 +107,9 @@ FT_BEGIN_HEADER
   /*    list :: A pointer to the parent list.                              */
   /*    node :: The node to append.                                        */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_List_Add( FT_List      list,
-               FT_ListNode  node );
+  FT_EXPORT(void)
+  FT_List_Add(FT_List      list,
+               FT_ListNode  node);
 
 
   /*************************************************************************/
@@ -124,9 +124,9 @@ FT_BEGIN_HEADER
   /*    list :: A pointer to parent list.                                  */
   /*    node :: The node to insert.                                        */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_List_Insert( FT_List      list,
-                  FT_ListNode  node );
+  FT_EXPORT(void)
+  FT_List_Insert(FT_List      list,
+                  FT_ListNode  node);
 
 
   /*************************************************************************/
@@ -144,9 +144,9 @@ FT_BEGIN_HEADER
   /* <InOut>                                                               */
   /*    list :: A pointer to the parent list.                              */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_List_Remove( FT_List      list,
-                  FT_ListNode  node );
+  FT_EXPORT(void)
+  FT_List_Remove(FT_List      list,
+                  FT_ListNode  node);
 
 
   /*************************************************************************/
@@ -162,9 +162,9 @@ FT_BEGIN_HEADER
   /*    list :: A pointer to the parent list.                              */
   /*    node :: The node to move.                                          */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_List_Up( FT_List      list,
-              FT_ListNode  node );
+  FT_EXPORT(void)
+  FT_List_Up(FT_List      list,
+              FT_ListNode  node);
 
 
   /*************************************************************************/
@@ -183,8 +183,8 @@ FT_BEGIN_HEADER
   /*            Can be used to point to the iteration's state.             */
   /*                                                                       */
   typedef FT_Error
-  (*FT_List_Iterator)( FT_ListNode  node,
-                       void*        user );
+  (*FT_List_Iterator)(FT_ListNode  node,
+                       void*        user);
 
 
   /*************************************************************************/
@@ -206,10 +206,10 @@ FT_BEGIN_HEADER
   /* <Return>                                                              */
   /*    The result (a FreeType error code) of the last iterator call.      */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_List_Iterate( FT_List           list,
+  FT_EXPORT(FT_Error)
+  FT_List_Iterate(FT_List           list,
                    FT_List_Iterator  iterator,
-                   void*             user );
+                   void*             user);
 
 
   /*************************************************************************/
@@ -231,9 +231,9 @@ FT_BEGIN_HEADER
   /*              be used to point to the iteration's state.               */
   /*                                                                       */
   typedef void
-  (*FT_List_Destructor)( FT_Memory  memory,
+  (*FT_List_Destructor)(FT_Memory  memory,
                          void*      data,
-                         void*      user );
+                         void*      user);
 
 
   /*************************************************************************/
@@ -259,11 +259,11 @@ FT_BEGIN_HEADER
   /*    This function expects that all nodes added by @FT_List_Add or      */
   /*    @FT_List_Insert have been dynamically allocated.                   */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_List_Finalize( FT_List             list,
+  FT_EXPORT(void)
+  FT_List_Finalize(FT_List             list,
                     FT_List_Destructor  destroy,
                     FT_Memory           memory,
-                    void*               user );
+                    void*               user);
 
 
   /* */

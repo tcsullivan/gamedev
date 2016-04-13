@@ -86,8 +86,8 @@ FT_BEGIN_HEADER
    *
    */
   typedef void*
-  (*FT_Alloc_Func)( FT_Memory  memory,
-                    long       size );
+  (*FT_Alloc_Func)(FT_Memory  memory,
+                    long       size);
 
 
   /*************************************************************************
@@ -107,8 +107,8 @@ FT_BEGIN_HEADER
    *
    */
   typedef void
-  (*FT_Free_Func)( FT_Memory  memory,
-                   void*      block );
+  (*FT_Free_Func)(FT_Memory  memory,
+                   void*      block);
 
 
   /*************************************************************************
@@ -140,10 +140,10 @@ FT_BEGIN_HEADER
    *
    */
   typedef void*
-  (*FT_Realloc_Func)( FT_Memory  memory,
+  (*FT_Realloc_Func)(FT_Memory  memory,
                       long       cur_size,
                       long       new_size,
-                      void*      block );
+                      void*      block);
 
 
   /*************************************************************************
@@ -245,10 +245,10 @@ FT_BEGIN_HEADER
    *
    */
   typedef unsigned long
-  (*FT_Stream_IoFunc)( FT_Stream       stream,
+  (*FT_Stream_IoFunc)(FT_Stream       stream,
                        unsigned long   offset,
                        unsigned char*  buffer,
-                       unsigned long   count );
+                       unsigned long   count);
 
 
   /*************************************************************************
@@ -265,7 +265,7 @@ FT_BEGIN_HEADER
    *
    */
   typedef void
-  (*FT_Stream_CloseFunc)( FT_Stream  stream );
+  (*FT_Stream_CloseFunc)(FT_Stream  stream);
 
 
   /*************************************************************************

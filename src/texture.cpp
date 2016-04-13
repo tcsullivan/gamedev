@@ -78,7 +78,7 @@ namespace Texture{
 					 GL_RGBA,
 					 GL_UNSIGNED_BYTE,
 					 image->pixels
-					 );
+					);
 
 		// add texture to LoadedTexture
 		LoadedTexture.push_back(texture_t{fileName,object,{image->w,image->h}});
@@ -171,25 +171,25 @@ Texturec::Texturec(uint amt, ...){
 	texState = 0;
 	va_start(fNames, amt);
 	for(unsigned int i = 0; i < amt; i++)
-		image.push_back( Texture::loadTexture(va_arg(fNames, char *)) );
+		image.push_back(Texture::loadTexture(va_arg(fNames, char *)));
 	va_end(fNames);
 }
 
-Texturec::Texturec( std::initializer_list<std::string> l )
+Texturec::Texturec(std::initializer_list<std::string> l)
 {
 	texState = 0;
-	std::for_each( l.begin(), l.end(), [&](std::string s){ image.push_back( Texture::loadTexture( s ) ); });
+	std::for_each(l.begin(), l.end(), [&](std::string s){ image.push_back(Texture::loadTexture(s)); });
 }
 
 Texturec::Texturec(std::vector<std::string>v){
 	texState = 0;
-	std::for_each( v.begin(), v.end(), [&](std::string s){ image.push_back( Texture::loadTexture( s ) ); });
+	std::for_each(v.begin(), v.end(), [&](std::string s){ image.push_back(Texture::loadTexture(s)); });
 }
 
 Texturec::Texturec(uint amt,const char **paths){
 	texState = 0;
 	for(unsigned int i = 0; i < amt; i++)
-		image.push_back( Texture::loadTexture(paths[i]) );
+		image.push_back(Texture::loadTexture(paths[i]));
 }
 
 Texturec::~Texturec(){

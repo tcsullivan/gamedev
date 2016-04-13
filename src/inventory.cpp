@@ -49,7 +49,7 @@ int Inventory::addItem(std::string name,uint count){
 					return 0;
 				}
 			}
-			items.push_back( item_t { count, i });
+			items.push_back(item_t { count, i });
 			return 0;
 		}
 	}
@@ -145,11 +145,11 @@ const char *getItemTexturePath(std::string name){
 }
 
 GLuint getItemTexture(std::string name){
-	for ( int i = itemMap.size(); i--; ) {
-		if ( itemMap[i]->name == name )
+	for (int i = itemMap.size(); i--;) {
+		if (itemMap[i]->name == name)
 			return itemtex[i];
 	}
-	DEBUG_printf("Failed to find texture for item %s!", name.c_str() );
+	DEBUG_printf("Failed to find texture for item %s!", name.c_str());
 	return 0;
 }
 
@@ -182,12 +182,12 @@ void Inventory::setSelection(unsigned int s){
 }
 
 void Inventory::setSelectionUp(){
-	if ( !sel-- )
+	if (!sel--)
 		sel++;
 }
 
 void Inventory::setSelectionDown(){
-	if ( ++sel >= numSlot )
+	if (++sel >= numSlot)
 		sel = numSlot - 1;
 }
 
@@ -215,79 +215,79 @@ void Inventory::draw(void){
 	static vec2 mouseStart = {0,0};
 	C("End define");
 
-	for ( auto &r : iray ) {
+	for (auto &r : iray) {
 		r.start.x = player->loc.x + (player->width  / 2);
 		r.start.y = player->loc.y + (player->height / 2);
 		curCoord[a++] = r.start;
 	} a = 0;
 
-	for ( auto &cr : curRay ) {
+	for (auto &cr : curRay) {
 		cr.start.x = (offset.x + SCREEN_WIDTH / 2);
 		cr.start.y =  offset.y - (a * itemWide * 1.5f);
 		curCurCoord[a++] = cr.start;
 	} a = 0;
 
-	for ( int r = 0; r < 4; r++ ) {
-		for ( int c = 0; c < 8; c++ ) {
-			massRay[a  ].x = ((offset.x - SCREEN_WIDTH  / 2) + itemWide       ) + c * itemWide * 1.5f;
+	for (int r = 0; r < 4; r++) {
+		for (int c = 0; c < 8; c++) {
+			massRay[a  ].x = ((offset.x - SCREEN_WIDTH  / 2) + itemWide) + c * itemWide * 1.5f;
 			massRay[a++].y = ((offset.y + SCREEN_HEIGHT / 2) - itemWide * 1.5f) - r * itemWide * 1.5f;
 		}
 	} a = 0;
 
 	ui::fontTransInv = 255 * (averagef(dfp) / range);
-	if ( ui::fontTransInv > 255 )
+	if (ui::fontTransInv > 255)
 		ui::fontTransInv = 255;
-	else if ( ui::fontTransInv < 0 )
+	else if (ui::fontTransInv < 0)
 		ui::fontTransInv = 0;
 
-	if ( invOpening ) {
-		for ( auto &d : dfp ) {
-			if ( !a || dfp[a - 1] > 50 )
+	if (invOpening) {
+		for (auto &d : dfp) {
+			if (!a || dfp[a - 1] > 50)
 				d += 1.65f * deltaTime;
-			if ( d > range )
+			if (d > range)
 				d = range;
 			a++;
 		} a = 0;
 
-		for ( auto &cd : curdfp ) {
-			if ( !a || curdfp[a - 1] > 90 )
+		for (auto &cd : curdfp) {
+			if (!a || curdfp[a - 1] > 90)
 				cd += 1.5f * deltaTime;
-			if ( cd > curRange )
+			if (cd > curRange)
 				cd = curRange;
 			a++;
 		} a = 0;
 
-		while ( ++a < massOrder.size() ) {
-			if ( !a || massDfp[ massOrder[a - 1] ] > massRange * 0.75f )
+		while (++a < massOrder.size()) {
+			if (!a || massDfp[ massOrder[a - 1] ] > massRange * 0.75f)
 				massDfp[ massOrder[a] ] += 5.0f * deltaTime;
-			if ( massDfp[ massOrder[a] ] > massRange )
+			if (massDfp[ massOrder[a] ] > massRange)
 				massDfp[ massOrder[a] ] = massRange;
 		} a = 0;
 
-		if ( numSlot > 0 )
+		if (numSlot > 0)
 			invOpen = true;
 	} else {
-		for ( auto &d : dfp ) {
-			if ( d > 0 )
+		for (auto &d : dfp) {
+			if (d > 0)
 				d -= 1.65f * deltaTime;
 		}
-		for ( auto &cd : curdfp ) {
-			if ( cd > 0 )
+		for (auto &cd : curdfp) {
+			if (cd > 0)
 				cd -= 1.0f * deltaTime;
 		}
 
         a = 0;
-		while ( ++a < massRay.size() ) {
-			if ( !a || massDfp[ massOrderClosing[a - 1] ] <= 0 )
+		while (++a < massRay.size()) {
+			if (!a || massDfp[ massOrderClosing[a - 1] ] <= 0)
 				massDfp[ massOrderClosing[a] ] -= 10.0f * deltaTime;
-			if ( massDfp[ massOrderClosing[a - 1] ] < 0 )
+			if (massDfp[ massOrderClosing[a - 1] ] < 0)
 				massDfp[ massOrderClosing[a - 1] ] = 0;
 		} a = 0;
 
-		if ( std::all_of( std::begin(massDfp), std::end(massDfp), [](auto d){ return d <= 0; } ) ) {
+		if (std::all_of(std::begin(massDfp), std::end(massDfp), [](auto d){ return d <= 0; })) {
 			invOpen = false;
-			for ( auto &md : massDfp ) {
-				if ( md < 0 )
+			for (auto &md : massDfp) {
+				if (md < 0)
 					md = 0;
 			}
 		}
@@ -546,10 +546,10 @@ void itemDraw(Player *p,uint id){
 	} else
 		hangle = 0;
 
-	if ( p->inv->usingi )
+	if (p->inv->usingi)
 		inc = 10;
 
-	if ( inc ) {
+	if (inc) {
 		inc--;
 		p->inv->useItem();
 	}
@@ -574,31 +574,31 @@ void itemDraw(Player *p,uint id){
 	glUseProgram(0);
 }
 
-int Inventory::useItem( void )
+int Inventory::useItem(void)
 {
 	static bool up = false;
 
-	if ( !invHover ) {
-		if ( itemMap[items[sel].id]->type == "Sword" ) {
-			if ( swing ) {
+	if (!invHover) {
+		if (itemMap[items[sel].id]->type == "Sword") {
+			if (swing) {
 				int dir = player->left ? 1 : -1;
 
-				if ( hangle == 15 * dir ) {
+				if (hangle == 15 * dir) {
 					up = true;
-					Mix_PlayChannel( 2, swordSwing, 0 );
+					Mix_PlayChannel(2, swordSwing, 0);
 				}
 
-				if ( up )
+				if (up)
 					hangle += 0.325f * dir * deltaTime;
 
-				if ( !player->left ) {
-					if ( hangle <= -90 )
+				if (!player->left) {
+					if (hangle <= -90)
 						hangle = -14;
-				} else if ( hangle >= 90 )
+				} else if (hangle >= 90)
 						hangle = 14;
 			} else {
 				swing = true;
-				Mix_PlayChannel( 2, swordSwing, 0 );
+				Mix_PlayChannel(2, swordSwing, 0);
 			}
 		}else if(itemMap[items[sel].id]->type == "Cooked Food"){
 			player->health += itemMap[items[sel].id]->attribValue;

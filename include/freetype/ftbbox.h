@@ -81,9 +81,9 @@ FT_BEGIN_HEADER
   /*    properly shift and scale the subglyphs), then extracting the BBox, */
   /*    which can be eventually converted back to font units.              */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Outline_Get_BBox( FT_Outline*  outline,
-                       FT_BBox     *abbox );
+  FT_EXPORT(FT_Error)
+  FT_Outline_Get_BBox(FT_Outline*  outline,
+                       FT_BBox     *abbox);
 
 
   /* */

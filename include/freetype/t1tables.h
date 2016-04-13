@@ -424,8 +424,8 @@ FT_BEGIN_HEADER
    *    Boolean.  True if glyph names are reliable.
    *
    */
-  FT_EXPORT( FT_Int )
-  FT_Has_PS_Glyph_Names( FT_Face  face );
+  FT_EXPORT(FT_Int)
+  FT_Has_PS_Glyph_Names(FT_Face  face);
 
 
   /************************************************************************
@@ -456,9 +456,9 @@ FT_BEGIN_HEADER
    *    return the `FT_Err_Invalid_Argument' error code.
    *
    */
-  FT_EXPORT( FT_Error )
-  FT_Get_PS_Font_Info( FT_Face      face,
-                       PS_FontInfo  afont_info );
+  FT_EXPORT(FT_Error)
+  FT_Get_PS_Font_Info(FT_Face      face,
+                       PS_FontInfo  afont_info);
 
 
   /************************************************************************
@@ -489,9 +489,9 @@ FT_BEGIN_HEADER
    *    the `FT_Err_Invalid_Argument' error code.
    *
    */
-  FT_EXPORT( FT_Error )
-  FT_Get_PS_Font_Private( FT_Face     face,
-                          PS_Private  afont_private );
+  FT_EXPORT(FT_Error)
+  FT_Get_PS_Font_Private(FT_Face     face,
+                          PS_Private  afont_private);
 
 
   /*************************************************************************/
@@ -645,12 +645,12 @@ FT_BEGIN_HEADER
    *    the `FT_Err_Invalid_Argument' error code.
    *
    */
-  FT_EXPORT( FT_Long )
-  FT_Get_PS_Font_Value( FT_Face       face,
+  FT_EXPORT(FT_Long)
+  FT_Get_PS_Font_Value(FT_Face       face,
                         PS_Dict_Keys  key,
                         FT_UInt       idx,
                         void         *value,
-                        FT_Long       value_len );
+                        FT_Long       value_len);
 
   /* */
 

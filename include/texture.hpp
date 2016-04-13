@@ -73,7 +73,7 @@ public:
 
 	Texturec(uint amt,const char **paths);
 	Texturec(std::vector<std::string>vec);
-	Texturec( std::initializer_list<std::string> l );
+	Texturec(std::initializer_list<std::string> l);
 
 	/**
 	 * Frees memory taken by the image array.

@@ -113,11 +113,11 @@ FT_BEGIN_HEADER
   /*    A scaled advance is returned in 16.16 format but isn't transformed */
   /*    by the affine transformation specified by @FT_Set_Transform.       */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Get_Advance( FT_Face    face,
+  FT_EXPORT(FT_Error)
+  FT_Get_Advance(FT_Face    face,
                   FT_UInt    gindex,
                   FT_Int32   load_flags,
-                  FT_Fixed  *padvance );
+                  FT_Fixed  *padvance);
 
 
   /*************************************************************************/
@@ -164,12 +164,12 @@ FT_BEGIN_HEADER
   /*    transformed by the affine transformation specified by              */
   /*    @FT_Set_Transform.                                                 */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Get_Advances( FT_Face    face,
+  FT_EXPORT(FT_Error)
+  FT_Get_Advances(FT_Face    face,
                    FT_UInt    start,
                    FT_UInt    count,
                    FT_Int32   load_flags,
-                   FT_Fixed  *padvances );
+                   FT_Fixed  *padvances);
 
 /* */
 
