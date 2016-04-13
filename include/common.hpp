@@ -35,6 +35,19 @@ typedef unsigned int uint;
 #undef near
 #endif
 
+/**
+ * Defines how many game ticks should occur in one second, affecting how often
+ * game logic is handled.
+ */
+
+#define TICKS_PER_SEC 20
+
+/**
+ * Defines how many milliseconds each game tick will take.
+ */
+
+#define MSEC_PER_TICK ( 1000 / TICKS_PER_SEC )
+
 //#define SEGFAULT
 
 /**

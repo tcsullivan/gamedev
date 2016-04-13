@@ -56,15 +56,7 @@ class Trade{
 public:
 	std::string item[2];
 	int quantity[2];
-	Trade(int qo, const char* o, int qt, const char* t){
-		item[0] = o;
-		item[1] = t;
-
-		quantity[0] = qo;
-		quantity[1] = qt;
-
-		std::cout << "Trading: " << quantity[0] << " " << item[0] << " for " << quantity[1] << " " << item[1] << std::endl;
-	}
+	Trade(int qo, std::string o, int qt, std::string t);
 	Trade(){}
 };
 
@@ -75,8 +67,7 @@ public:
 	vec2 loc;
 	float width;
 	float height;
-	float velx;
-	float vely;
+	vec2 vel;
 	Color color;
 	vec2 index;
 	float duration;
@@ -84,25 +75,25 @@ public:
 	bool fountain;
 	bool gravity;
 	bool behind;
+	bool bounce;
 	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d){
 		loc.x = x;
 		loc.y = y;
+		vel.x = vx;
+		vel.y = vy;
 		width = w;
 		height = h;
-		velx = vx;
-		vely = vy;
 		color = c;
 		duration = d;
 		fountain = false;
 		gravity = true;
 		behind = false;
+		bounce = false;
 		index = Texture::getIndex(c);
 	}
 	~Particles(){
-
 	}
 	void draw(){
-		//glEnable(GL_TEXTURE_2D);
 		glColor3ub(255,255,255);
 		glBegin(GL_QUADS);
 			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y);
@@ -110,15 +101,23 @@ public:
 			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x + width, loc.y + height);
 			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y + width);
 		glEnd();
-		//glDisable(GL_TEXTURE_2D);
-		//glUseProgram(0);
+	}
+	void update( float _gravity, float ground_y ) {
+		// handle ground collision
+		if ( loc.y < ground_y ) {
+			loc.y = ground_y;
+			if ( bounce ) {
+				vel.y *= -0.2f;
+				vel.x /= 4;
+			} else {
+				vel.x = vel.y = 0;
+				canMove = false;
+			}
+		} else if ( gravity && vel.y > -1 )
+			vel.y -= _gravity * deltaTime;
 	}
 	bool kill(float delta){
-		duration -= delta;
-		if(duration <= 0.0f){
-			return true;
-		}
-		else return false;
+		return (duration -= delta) <= 0;
 	}
 };
 
@@ -140,6 +139,8 @@ public:
 	float height;
 
 	float speed;	// A speed factor for X movement
+
+	unsigned int hitCooldown;
 
 	/*
 	 *	Movement flags
@@ -229,7 +230,7 @@ public:
 	virtual void wander(int);
 };
 
-class Merchant : public NPC{
+class Merchant : public NPC {
 public:
 	std::vector<Trade>trade;
 	uint currTrade;

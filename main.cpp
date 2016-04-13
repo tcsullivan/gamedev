@@ -25,19 +25,6 @@ using namespace tinyxml2;
 #include <entities.hpp>
 
 /**
- * Defines how many game ticks should occur in one second, affecting how often
- * game logic is handled.
- */
-
-#define TICKS_PER_SEC 20
-
-/**
- * Defines how many milliseconds each game tick will take.
- */
-
-#define MSEC_PER_TICK ( 1000 / TICKS_PER_SEC )
-
-/**
  * The window object returned by SDL when we create the main window.
  */
 
@@ -232,7 +219,7 @@ int main(int argc, char *argv[]){
 	 * textures for the entities and stuff.
 	 */
 
-	if(!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) | !(IMG_Init(IMG_INIT_JPG) & IMG_INIT_JPG)){
+	if(!(IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) & (IMG_INIT_PNG | IMG_INIT_JPG))){
 		std::cout << "Could not init image libraries! Error: " << IMG_GetError() << std::endl;
 		return -1;
 	}
@@ -357,7 +344,6 @@ int main(int argc, char *argv[]){
 	GLint bufferln = GL_FALSE;
 	int logLength;
 
-
 	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragShader, 1, &shaderSource, NULL);
 	glCompileShader(fragShader);
@@ -370,9 +356,8 @@ int main(int argc, char *argv[]){
 	glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
 	std::cout << &fragShaderError[0] << std::endl;
 
-	if(bufferln == GL_FALSE){
-		std::cout << "Error compiling shader" << std::endl;
-	}
+	if ( bufferln == GL_FALSE )
+		UserError("Error compiling shader");
 
 	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, fragShader);
@@ -396,9 +381,7 @@ int main(int argc, char *argv[]){
 
 	fadeIntensity = 250;
 
-	std::cout << "emem" << std::endl;
 	initEverything();
-	std::cout << "meme" << std::endl;
 
 	if(!currentWorld){
 		std::cout<<"currentWorld == NULL!"<<std::endl;
@@ -725,14 +708,10 @@ void render() {
 
 	}
 
-	if(currentMenu){
-		ui::drawMenu(currentMenu);
-	}
+	if ( currentMenu )
+		ui::menu::draw();
 
-	/*
-	 * Draw a white triangle as a replacement for the mouse's cursor.
-	 */
-
+	// draw the mouse cursor
 	glColor3ub(255,255,255);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, mouseTex);
@@ -747,17 +726,6 @@ void render() {
 	/**************************
 	****  END RENDERING   ****
 	**************************/
-
-	/*
-	 * These next two function finish the rendering
-	 *
-	 *	glPopMatrix			This anchors all of the matrices and blends them to a single
-	 *						matrix so the renderer can draw this to the screen, since screens
-	 *						are only 2 dimensions, we have to combine the matrixes to be 2d.
-	 *
-	 *  SDL_GL_SwapWindow	Since SDL has control over our renderer, we need to now give our
-	 *						new matrix to SDL so it can pass it to the window.
-	 */
 
 	glPopMatrix();
 	SDL_GL_SwapWindow(window);
@@ -781,6 +749,7 @@ void logic(){
 				e->health -= 25;
 				e->hit = true;
 				e->forcedMove = true;
+				e->hitCooldown = 10;
 				e->vel.x = 0.5f * (player->left ? -1 : 1);
 				e->vel.y = 0.2f;
 				break;
@@ -879,7 +848,7 @@ void logic(){
 			switch(m->subtype){
 			case MS_RABBIT:
 			case MS_BIRD:
-				m->wander((rand()%240 + 15));	// Make the mob wander :)
+				m->wander((rand()%240 + 15));	// Make the mob wander
 				break;
 			case MS_TRIGGER:
 			case MS_PAGE:
@@ -967,6 +936,7 @@ void logic(){
 									   { 0, 0, 255 },										// RGB color
 									   2500													// duration (ms)
 									   );
+			currentWorld->particles.back().bounce = true;
 		 }
 	 } else if ( weather == WorldWeather::Snowy ) {
 		 for ( unsigned int r = (randGet() % 25) + 11; r--; ) {

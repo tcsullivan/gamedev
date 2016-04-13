@@ -11,54 +11,16 @@
 
 #include <config.hpp>
 #include <world.hpp>
+#include <ui_menu.hpp>
+
 #include <ft2build.h>
 #include <SDL2/SDL_opengl.h>
 #include <thread>
 #include FT_FREETYPE_H
 
+#define SDL_KEY e.key.keysym.sym
+
 #define DEBUG
-
-typedef void(*menuFunc)();
-
-struct menuItem{
-	int member;
-	union{
-		struct{
-			vec2 loc;
-			dim2 dim;
-			Color color;
-			const char* text;
-			menuFunc func;
-		}button;
-		struct{
-			vec2 loc;
-			dim2 dim;
-			Color color;
-			float minValue;
-			float maxValue;
-			const char* text;
-			float* var;
-
-			float sliderLoc;
-		}slider;
-	};
-};
-
-class Menu{
-public:
-	std::vector<menuItem>items;
-	Menu *child;
-	Menu *parent;
-	~Menu(){
-		child = NULL;
-		parent = NULL;
-		delete child;
-		delete parent;
-	}
-
-	void gotoChild();
-	void gotoParent();
-};
 
 typedef uint8_t  BYTE;
 typedef uint16_t WORD;
@@ -87,15 +49,13 @@ typedef struct{
 } __attribute__ ((packed)) BITMAPINFOHEADER;
 
 namespace ui {
-	menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f);
-	menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t);
-	menuItem createParentButton(vec2 l, dim2 d, Color c, const char* t);
-	menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v);
+
 	/**
 	 *	Contains the coordinates of the mouse inside the window.
 	 */
 
 	extern vec2 mouse;
+    extern vec2 premouse;
 
 	/*
 	 *	These flags are used elsewhere.
@@ -154,9 +114,11 @@ namespace ui {
 	void merchantBox();
 	void closeBox();
 	void waitForDialog(void);
-	bool pageExists( void );
 
+	bool pageExists( void );
 	void drawPage( std::string path );
+
+	void dontTypeOut( void );
 	/*
 	 *	Draws a larger string in the center of the screen. Drawing is done inside this function.
 	*/
@@ -170,12 +132,8 @@ namespace ui {
 
 	void draw(void);
 
-
-	/*
-	 *	Draw various menu items
-	*/
 	void quitGame();
-	void drawMenu(Menu* menu);
+	
 
 
 	/*

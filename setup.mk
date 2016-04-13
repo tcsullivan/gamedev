@@ -2,4 +2,4 @@
 TARGET_OS = linux
 
 # Bits setting, 32 or 64
-TARGET_BITS = 32
+TARGET_BITS = 64
