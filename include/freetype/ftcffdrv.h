@@ -133,10 +133,10 @@ FT_BEGIN_HEADER
    *     FT_UInt     hinting_engine = FT_CFF_HINTING_ADOBE;
    *
    *
-   *     FT_Init_FreeType( &library );
+   *     FT_Init_FreeType(&library);
    *
-   *     FT_Property_Set( library, "cff",
-   *                               "hinting-engine", &hinting_engine );
+   *     FT_Property_Set(library, "cff",
+   *                               "hinting-engine", &hinting_engine);
    *   }
    *
    * @note:
@@ -184,10 +184,10 @@ FT_BEGIN_HEADER
    *     FT_Bool     no_stem_darkening = TRUE;
    *
    *
-   *     FT_Init_FreeType( &library );
+   *     FT_Init_FreeType(&library);
    *
-   *     FT_Property_Set( library, "cff",
-   *                               "no-stem-darkening", &no_stem_darkening );
+   *     FT_Property_Set(library, "cff",
+   *                               "no-stem-darkening", &no_stem_darkening);
    *   }
    *
    * @note:
@@ -224,10 +224,10 @@ FT_BEGIN_HEADER
    *                                      2000,   0 }; // x4, y4
    *
    *
-   *     FT_Init_FreeType( &library );
+   *     FT_Init_FreeType(&library);
    *
-   *     FT_Property_Set( library, "cff",
-   *                               "darkening-parameters", darken_params );
+   *     FT_Property_Set(library, "cff",
+   *                               "darkening-parameters", darken_params);
    *   }
    *
    *   The x~values give the stem width, and the y~values the darkening

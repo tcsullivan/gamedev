@@ -231,7 +231,7 @@ int main(int argc, char *argv[]){
 	 * (Attempt to) Initialize SDL_mixer libraries for loading and playing music/sound files.
 	 */
 
-	if(Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
+	if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
 		std::cout << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
 		return -1;
 	}
@@ -268,7 +268,7 @@ int main(int argc, char *argv[]){
 							  SCREEN_WIDTH,
 							  SCREEN_HEIGHT,
 							  SDL_CreateWindowFlags
-							  );
+							 );
 
     /*
      * Exit if the window cannot be created
@@ -356,7 +356,7 @@ int main(int argc, char *argv[]){
 	glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
 	std::cout << &fragShaderError[0] << std::endl;
 
-	if ( bufferln == GL_FALSE )
+	if (bufferln == GL_FALSE)
 		UserError("Error compiling shader");
 
 	shaderProgram = glCreateProgram();
@@ -366,7 +366,7 @@ int main(int argc, char *argv[]){
 
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &bufferln);
     glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
-    std::vector<char> programError( (logLength > 1) ? logLength : 1 );
+    std::vector<char> programError((logLength > 1) ? logLength : 1);
     glGetProgramInfoLog(shaderProgram, logLength, NULL, &programError[0]);
     std::cout << &programError[0] << std::endl;
 
@@ -412,7 +412,7 @@ int main(int argc, char *argv[]){
 	glClearColor(1,1,1,1);
 
 	gameRunning = true;
-	while ( gameRunning )
+	while (gameRunning)
 		mainLoop();
 
 	/**************************
@@ -467,7 +467,7 @@ void mainLoop(void){
 	deltaTime	= currentTime - prevTime;
 	prevTime	= currentTime;
 
-	if ( currentMenu )
+	if (currentMenu)
 		goto MENU;
 
 	/*
@@ -496,19 +496,19 @@ void mainLoop(void){
 	/*pool.Enqueue([](){
 		currentWorld->update(player,deltaTime);
 	});*/
-	currentWorld->update( player, deltaTime );
+	currentWorld->update(player, deltaTime);
 	currentWorld->detect(player);
 
 	/*
 	 * Update debug variables if necessary
 	 */
 
-	if ( ++debugDiv == 20 ) {
+	if (++debugDiv == 20) {
 		debugDiv=0;
 
-		if ( deltaTime )
+		if (deltaTime)
 			fps = 1000 / deltaTime;
-		if ( !(debugDiv % 10) )
+		if (!(debugDiv % 10))
 			debugY = player->loc.y;
 	}
 MENU:
@@ -599,7 +599,7 @@ void render() {
 	 *					GL_COLOR_BUFFER_BIT allows the matrices to have color on them
 	 */
 
-	glPushAttrib( GL_DEPTH_BUFFER_BIT);
+	glPushAttrib(GL_DEPTH_BUFFER_BIT);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	/**************************
@@ -679,10 +679,10 @@ void render() {
 					tickCount,
 					handAngle,
 					VOLUME_MASTER,
-					getWorldWeatherStr( weather ).c_str()
+					getWorldWeatherStr(weather).c_str()
 					);
 
-		if ( ui::posFlag ) {
+		if (ui::posFlag) {
 			glBegin(GL_LINES);
 				/*glColor3ub(255,0,0);
 				glVertex2i(0,0);
@@ -691,16 +691,16 @@ void render() {
 				/*glColor3ub(255,255,255);
 				glVertex2i(player->loc.x + player->width/2,0);
 				glVertex2i(player->loc.x + player->width/2,SCREEN_HEIGHT);
-				glVertex2i( offset.x - SCREEN_WIDTH / 2, player->loc.y + player->height / 2 );
-				glVertex2i( offset.x + SCREEN_WIDTH / 2, player->loc.y + player->height / 2 );*/
+				glVertex2i(offset.x - SCREEN_WIDTH / 2, player->loc.y + player->height / 2);
+				glVertex2i(offset.x + SCREEN_WIDTH / 2, player->loc.y + player->height / 2);*/
 
-				/*glVertex2i( -SCREEN_WIDTH / 2 + offset.x, player->loc.y );
-				glVertex2i(  SCREEN_WIDTH / 2 + offset.x, player->loc.y );*/
+				/*glVertex2i(-SCREEN_WIDTH / 2 + offset.x, player->loc.y);
+				glVertex2i( SCREEN_WIDTH / 2 + offset.x, player->loc.y);*/
 
 				glColor3ub(100,100,255);
-				for ( auto &e : currentWorld->entity ) {
-					glVertex2i( player->loc.x + player->width / 2, player->loc.y + player->height / 2 );
-					glVertex2i( e->loc.x + e->width / 2, e->loc.y + e->height / 2 );
+				for (auto &e : currentWorld->entity) {
+					glVertex2i(player->loc.x + player->width / 2, player->loc.y + player->height / 2);
+					glVertex2i(e->loc.x + e->width / 2, e->loc.y + e->height / 2);
 				}
 
 			glEnd();
@@ -708,7 +708,7 @@ void render() {
 
 	}
 
-	if ( currentMenu )
+	if (currentMenu)
 		ui::menu::draw();
 
 	// draw the mouse cursor
@@ -731,21 +731,20 @@ void render() {
 	SDL_GL_SwapWindow(window);
 }
 
-static bool objectInteracting = false;
-
 void logic(){
-	static bool NPCSelected = false;
+	static bool NPCSelected    = false;
+	static bool ObjectSelected = false;
 
 	// exit the game if the player falls out of the world
-	if ( player->loc.y < 0 )
+	if (player->loc.y < 0)
 		gameRunning = false;
 
-	if ( player->inv->usingi ) {
-		for ( auto &e : currentWorld->entity ) {
+	if (player->inv->usingi) {
+		for (auto &e : currentWorld->entity) {
 			e->hit = false;
 
-			if ( player->inv->usingi && !e->hit &&
-				 player->inv->detectCollision( { e->loc.x, e->loc.y }, { e->loc.x + e->width, e->loc.y + e->height} ) ) {
+			if (player->inv->usingi && !e->hit &&
+				 player->inv->detectCollision({ e->loc.x, e->loc.y }, { e->loc.x + e->width, e->loc.y + e->height})) {
 				e->health -= 25;
 				e->hit = true;
 				e->forcedMove = true;
@@ -755,7 +754,7 @@ void logic(){
 				break;
 				//for(int r = 0; r < (rand()%5);r++)
 				//	currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%4)*.001-.002), {(rand()%75+10)/100.0f,0,0}, 10000);
-				//if ( e->health <= 0 ) {
+				//if (e->health <= 0) {
 				//for(int r = 0; r < (rand()%30)+15;r++)
 				//	currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%10)*.01-.05), {(rand()%75)+10/100.0f,0,0}, 10000);
 			}
@@ -763,126 +762,49 @@ void logic(){
 		player->inv->usingi = false;
 	}
 
-	/*
-	 *	Entity logic: This loop finds every entity that is alive and in the current world. It then
-	 *	basically runs their AI functions depending on what type of entity they are. For NPCs,
-	 *	click detection is done as well for NPC/player interaction.
-	 */
+	for (auto &e : currentWorld->entity) {
+		if (e->alive) {
+			if (e->type == NPCT || e->type == MERCHT || e->type == OBJECTT) {
 
-	for(auto &n : currentWorld->npc){
-		if(n->alive){
-
-			/*
-			 *	Make the NPC 'wander' about the world if they're allowed to do so.
-			 *	Entity->canMove is modified when a player interacts with an NPC so
-			 *	that the NPC doesn't move when it talks to the player.
-			 */
-
-			if(n->canMove)
-				n->wander((rand() % 120 + 30));
-
-			/*
-			 *	Don't bother handling the NPC if another has already been handled.
-	 		 */
-
-			if(NPCSelected){
-				n->near=false;
-				break;
-			}
-
-			/*
-			 *	Check if the NPC is under the mouse.
-			 */
-
-			if(ui::mouse.x >= n->loc.x 				&&
-			   ui::mouse.x <= n->loc.x + n->width 	&&
-			   ui::mouse.y >= n->loc.y				&&
-			   ui::mouse.y <= n->loc.y + n->width	){
-
-				/*
-				 *	Check of the NPC is close enough to the player for interaction to be
-				 *	considered legal. In other words, require the player to be close to
-				 *	the NPC in order to interact with it.
-				 *
-				 *	This uses the Pythagorean theorem to check for NPCs within a certain
- 				 */
-
-				if(pow((n->loc.x - player->loc.x),2) + pow((n->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
-
-					/*
-					 *	Set Entity->near so that this NPC's name is drawn under them, and toggle NPCSelected
-					 *	so this NPC is the only one that's clickable.
-					 */
-
-					n->near=true;
-					NPCSelected=true;
-
-					/*
-					 *	Check for a right click, and allow the NPC to interact with the
-					 *	player if one was made.
-					 */
-
-					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-
-						if(!ui::dialogBoxExists)
-							n->interact();
-
+				if (e->type == OBJECTT && ObjectSelected) {
+					e->near = false;
+					continue;
+				} else { // has to be NPC
+					if (e->canMove) {
+						e->wander((rand() % 120 + 30));
+						if (NPCSelected) {
+							e->near = false;
+							continue;
+						}
 					}
 				}
 
-				/*
-				 *	Hide the NPC's name if the mouse isn't on the NPC.
-				 */
+				if(e->isInside(ui::mouse) && player->isNear(*e)) {
+					if (e->type == OBJECTT)
+						ObjectSelected = true;
+					else
+						NPCSelected = true;
+					e->near = true;
 
-			}else n->near=false;
-		}
-	}
-
-	for(auto &m : currentWorld->mob){
-		if(m->alive){
-
-			/*
-			 *	Run the Mob's AI function.
-			 */
-
-			switch(m->subtype){
-			case MS_RABBIT:
-			case MS_BIRD:
-				m->wander((rand()%240 + 15));	// Make the mob wander
-				break;
-			case MS_TRIGGER:
-			case MS_PAGE:
-				m->wander(0);
-				break;
-			case MS_DOOR:
-				break;
-			default:
-				std::cout<<"Unhandled mob of subtype "<<m->subtype<<"."<<std::endl;
-				break;
-			}
-		}
-	}
-
-	if(!objectInteracting){
-		for(auto &o : currentWorld->object){
-			if(o->alive){
-				if(ui::mouse.x >= o->loc.x 				&&
-				   ui::mouse.x <= o->loc.x + o->width 	&&
-				   ui::mouse.y >= o->loc.y				&&
-				   ui::mouse.y <= o->loc.y + o->height	){
-					if(pow((o->loc.x - player->loc.x),2) + pow((o->loc.y - player->loc.y),2) <= pow(40*HLINE,2)){
-
-						/*
-						 *	Check for a right click, and allow the Object to interact with the
-						 *	player if one was made.
-						*/
-
-						if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-							objectInteracting=true;
-							o->interact();
-							objectInteracting=false;
-						}
-					}
+					if ((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) && !ui::dialogBoxExists)
+						e->interact();
+				} else
+					e->near = false;
+			} else if (e->type == MOBT) {
+				switch (e->subtype) {
+				case MS_RABBIT:
+				case MS_BIRD:
+					e->wander((rand()%240 + 15));
+					break;
+				case MS_TRIGGER:
+				case MS_PAGE:
+					e->wander(0);
+					break;
+				case MS_DOOR:
+					break;
+				default:
+					std::cout<<"Unhandled mob of subtype "<<e->subtype<<"."<<std::endl;
+					break;
 				}
 			}
 		}
@@ -893,7 +815,7 @@ void logic(){
 	 */
 
 	if(!(tickCount%DAY_CYCLE)||!tickCount){
-		if ( weather == WorldWeather::Sunny )
+		if (weather == WorldWeather::Sunny)
 			weather = WorldWeather::Dark;
 		else {
 			weather = WorldWeather::Sunny;
@@ -925,8 +847,8 @@ void logic(){
 	 * Rain?
 	 */
 
-	 if ( weather == WorldWeather::Rain ) {
-		 for ( unsigned int r = (randGet() % 25) + 11; r--; ) {
+	 if (weather == WorldWeather::Rain) {
+		 for (unsigned int r = (randGet() % 25) + 11; r--;) {
 			 currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
 									   offset.y + SCREEN_HEIGHT / 2,
 									   HLINE * 1.25,										// width
@@ -934,12 +856,12 @@ void logic(){
 									   randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
 									   (4 + randGet() % 6) * .05,							// vel.y
 									   { 0, 0, 255 },										// RGB color
-									   2500													// duration (ms)
-									   );
-			currentWorld->particles.back().bounce = true;
+									   2500,												// duration (ms)
+									   (1 << 0) | (1 << 1)									// gravity and bounce
+									  );
 		 }
-	 } else if ( weather == WorldWeather::Snowy ) {
-		 for ( unsigned int r = (randGet() % 25) + 11; r--; ) {
+	 } else if (weather == WorldWeather::Snowy) {
+		 for (unsigned int r = (randGet() % 25) + 11; r--;) {
 			 currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
 									   offset.y + SCREEN_HEIGHT / 2,
 									   HLINE * 1.25,										// width
@@ -948,8 +870,8 @@ void logic(){
 									   (4 + randGet() % 6) * -.03,							// vel.y
 									   { 255, 255, 255 },									// RGB color
 									   5000,												// duration (ms)
-									   false
-									   );
+									   0													// no gravity, no bounce
+									  );
 		 }
 	 }
 

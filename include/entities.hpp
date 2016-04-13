@@ -13,6 +13,7 @@
 #define NPCp(n)			((NPC *)n)
 #define Structurep(n)	((Structures *)n)
 #define Mobp(n)			((Mob *)n)
+#define Objectp(n)		((Object *)n)
 
 #define PLAYER_INV_SIZE	43	// The size of the player's inventory
 #define NPC_INV_SIZE	3	// Size of an NPC's inventory
@@ -102,18 +103,18 @@ public:
 			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y + width);
 		glEnd();
 	}
-	void update( float _gravity, float ground_y ) {
+	void update(float _gravity, float ground_y) {
 		// handle ground collision
-		if ( loc.y < ground_y ) {
+		if (loc.y < ground_y) {
 			loc.y = ground_y;
-			if ( bounce ) {
+			if (bounce) {
 				vel.y *= -0.2f;
 				vel.x /= 4;
 			} else {
 				vel.x = vel.y = 0;
 				canMove = false;
 			}
-		} else if ( gravity && vel.y > -1 )
+		} else if (gravity && vel.y > -1)
 			vel.y -= _gravity * deltaTime;
 	}
 	bool kill(float delta){
@@ -187,6 +188,9 @@ public:
 	virtual void interact(){}
 
 	void follow(Entity *e);
+
+	bool isNear(Entity e);
+	bool isInside(vec2 coord) const;
 
 	virtual ~Entity(){}
 };

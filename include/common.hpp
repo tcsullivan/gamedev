@@ -46,7 +46,7 @@ typedef unsigned int uint;
  * Defines how many milliseconds each game tick will take.
  */
 
-#define MSEC_PER_TICK ( 1000 / TICKS_PER_SEC )
+#define MSEC_PER_TICK (1000 / TICKS_PER_SEC)
 
 //#define SEGFAULT
 
@@ -192,7 +192,7 @@ extern float VOLUME_SFX;
  * DEBUG must be defined for this macro to function.
  */
 
-#define DEBUG_printf( message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__ )
+#define DEBUG_printf(message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__)
 
 #ifdef SEGFAULT
 #define C(x) std::cout << m << std::endl

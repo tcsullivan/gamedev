@@ -910,3 +910,11 @@
 
 	- potentially fixed inventory drawing bug
 	- moved menu library to its own file
+
+4/13/2016:
+==========
+
+	- began making the world great again
+	- adopted indent style: linuxxxx kernel
+	- began converting pointers to better things
+	- parentheses

@@ -156,14 +156,14 @@ FT_BEGIN_HEADER
   *   doesn't exist in the font, or the application hasn't asked for
   *   validation.
   */
-  FT_EXPORT( FT_Error )
-  FT_OpenType_Validate( FT_Face    face,
+  FT_EXPORT(FT_Error)
+  FT_OpenType_Validate(FT_Face    face,
                         FT_UInt    validation_flags,
                         FT_Bytes  *BASE_table,
                         FT_Bytes  *GDEF_table,
                         FT_Bytes  *GPOS_table,
                         FT_Bytes  *GSUB_table,
-                        FT_Bytes  *JSTF_table );
+                        FT_Bytes  *JSTF_table);
 
   /* */
 
@@ -187,9 +187,9 @@ FT_BEGIN_HEADER
   *   This function must be used to free the buffer allocated by
   *   @FT_OpenType_Validate only.
   */
-  FT_EXPORT( void )
-  FT_OpenType_Free( FT_Face   face,
-                    FT_Bytes  table );
+  FT_EXPORT(void)
+  FT_OpenType_Free(FT_Face   face,
+                    FT_Bytes  table);
 
 
  /* */

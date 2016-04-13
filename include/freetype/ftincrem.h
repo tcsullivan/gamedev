@@ -176,9 +176,9 @@ FT_BEGIN_HEADER
    *
    */
   typedef FT_Error
-  (*FT_Incremental_GetGlyphDataFunc)( FT_Incremental  incremental,
+  (*FT_Incremental_GetGlyphDataFunc)(FT_Incremental  incremental,
                                       FT_UInt         glyph_index,
-                                      FT_Data*        adata );
+                                      FT_Data*        adata);
 
 
   /***************************************************************************
@@ -201,8 +201,8 @@ FT_BEGIN_HEADER
    *
    */
   typedef void
-  (*FT_Incremental_FreeGlyphDataFunc)( FT_Incremental  incremental,
-                                       FT_Data*        data );
+  (*FT_Incremental_FreeGlyphDataFunc)(FT_Incremental  incremental,
+                                       FT_Data*        data);
 
 
   /***************************************************************************
@@ -239,10 +239,10 @@ FT_BEGIN_HEADER
    */
   typedef FT_Error
   (*FT_Incremental_GetGlyphMetricsFunc)
-                      ( FT_Incremental              incremental,
+                      (FT_Incremental              incremental,
                         FT_UInt                     glyph_index,
                         FT_Bool                     vertical,
-                        FT_Incremental_MetricsRec  *ametrics );
+                        FT_Incremental_MetricsRec  *ametrics);
 
 
   /**************************************************************************
@@ -306,7 +306,7 @@ FT_BEGIN_HEADER
    *       open_args.params     = &parameter; // we use one optional argument
    *
    *       // open the font
-   *       error = FT_Open_Face( library, &open_args, index, &face );
+   *       error = FT_Open_Face(library, &open_args, index, &face);
    *       ...
    *     }
    *
@@ -341,7 +341,7 @@ FT_BEGIN_HEADER
    *   an incremental loading object to be used by FreeType.
    *
    */
-#define FT_PARAM_TAG_INCREMENTAL  FT_MAKE_TAG( 'i', 'n', 'c', 'r' )
+#define FT_PARAM_TAG_INCREMENTAL  FT_MAKE_TAG('i', 'n', 'c', 'r')
 
   /* */
 

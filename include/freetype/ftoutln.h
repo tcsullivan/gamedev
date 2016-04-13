@@ -112,10 +112,10 @@ FT_BEGIN_HEADER
   /*    outline for stroking purposes (otherwise it would result in a      */
   /*    visible dot when round caps are used).                             */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Outline_Decompose( FT_Outline*              outline,
+  FT_EXPORT(FT_Error)
+  FT_Outline_Decompose(FT_Outline*              outline,
                         const FT_Outline_Funcs*  func_interface,
-                        void*                    user );
+                        void*                    user);
 
 
   /*************************************************************************/
@@ -148,18 +148,18 @@ FT_BEGIN_HEADER
   /*    The reason why this function takes a `library' parameter is simply */
   /*    to use the library's memory allocator.                             */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Outline_New( FT_Library   library,
+  FT_EXPORT(FT_Error)
+  FT_Outline_New(FT_Library   library,
                   FT_UInt      numPoints,
                   FT_Int       numContours,
-                  FT_Outline  *anoutline );
+                  FT_Outline  *anoutline);
 
 
-  FT_EXPORT( FT_Error )
-  FT_Outline_New_Internal( FT_Memory    memory,
+  FT_EXPORT(FT_Error)
+  FT_Outline_New_Internal(FT_Memory    memory,
                            FT_UInt      numPoints,
                            FT_Int       numContours,
-                           FT_Outline  *anoutline );
+                           FT_Outline  *anoutline);
 
 
   /*************************************************************************/
@@ -186,14 +186,14 @@ FT_BEGIN_HEADER
   /*    The reason why this function takes an `library' parameter is       */
   /*    simply to use ft_mem_free().                                       */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Outline_Done( FT_Library   library,
-                   FT_Outline*  outline );
+  FT_EXPORT(FT_Error)
+  FT_Outline_Done(FT_Library   library,
+                   FT_Outline*  outline);
 
 
-  FT_EXPORT( FT_Error )
-  FT_Outline_Done_Internal( FT_Memory    memory,
-                            FT_Outline*  outline );
+  FT_EXPORT(FT_Error)
+  FT_Outline_Done_Internal(FT_Memory    memory,
+                            FT_Outline*  outline);
 
 
   /*************************************************************************/
@@ -210,8 +210,8 @@ FT_BEGIN_HEADER
   /* <Return>                                                              */
   /*    FreeType error code.  0~means success.                             */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Outline_Check( FT_Outline*  outline );
+  FT_EXPORT(FT_Error)
+  FT_Outline_Check(FT_Outline*  outline);
 
 
   /*************************************************************************/
@@ -240,9 +240,9 @@ FT_BEGIN_HEADER
   /* <Note>                                                                */
   /*    See @FT_Glyph_Get_CBox for a discussion of tricky fonts.           */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_Outline_Get_CBox( const FT_Outline*  outline,
-                       FT_BBox           *acbox );
+  FT_EXPORT(void)
+  FT_Outline_Get_CBox(const FT_Outline*  outline,
+                       FT_BBox           *acbox);
 
 
   /*************************************************************************/
@@ -261,10 +261,10 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    yOffset :: The vertical offset.                                    */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_Outline_Translate( const FT_Outline*  outline,
+  FT_EXPORT(void)
+  FT_Outline_Translate(const FT_Outline*  outline,
                         FT_Pos             xOffset,
-                        FT_Pos             yOffset );
+                        FT_Pos             yOffset);
 
 
   /*************************************************************************/
@@ -286,9 +286,9 @@ FT_BEGIN_HEADER
   /* <Return>                                                              */
   /*    FreeType error code.  0~means success.                             */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Outline_Copy( const FT_Outline*  source,
-                   FT_Outline        *target );
+  FT_EXPORT(FT_Error)
+  FT_Outline_Copy(const FT_Outline*  source,
+                   FT_Outline        *target);
 
 
   /*************************************************************************/
@@ -310,9 +310,9 @@ FT_BEGIN_HEADER
   /*    You can use @FT_Outline_Translate if you need to translate the     */
   /*    outline's points.                                                  */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_Outline_Transform( const FT_Outline*  outline,
-                        const FT_Matrix*   matrix );
+  FT_EXPORT(void)
+  FT_Outline_Transform(const FT_Outline*  outline,
+                        const FT_Matrix*   matrix);
 
 
   /*************************************************************************/
@@ -350,14 +350,14 @@ FT_BEGIN_HEADER
   /*    Example call:                                                      */
   /*                                                                       */
   /*    {                                                                  */
-  /*      FT_Load_Glyph( face, index, FT_LOAD_DEFAULT );                   */
-  /*      if ( face->slot->format == FT_GLYPH_FORMAT_OUTLINE )             */
-  /*        FT_Outline_Embolden( &face->slot->outline, strength );         */
+  /*      FT_Load_Glyph(face, index, FT_LOAD_DEFAULT);                   */
+  /*      if (face->slot->format == FT_GLYPH_FORMAT_OUTLINE)             */
+  /*        FT_Outline_Embolden(&face->slot->outline, strength);         */
   /*    }                                                                  */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Outline_Embolden( FT_Outline*  outline,
-                       FT_Pos       strength );
+  FT_EXPORT(FT_Error)
+  FT_Outline_Embolden(FT_Outline*  outline,
+                       FT_Pos       strength);
 
 
   /*************************************************************************/
@@ -371,10 +371,10 @@ FT_BEGIN_HEADER
   /*    @FT_Outline_Embolden, which uses the same strength in both         */
   /*    directions.                                                        */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Outline_EmboldenXY( FT_Outline*  outline,
+  FT_EXPORT(FT_Error)
+  FT_Outline_EmboldenXY(FT_Outline*  outline,
                          FT_Pos       xstrength,
-                         FT_Pos       ystrength );
+                         FT_Pos       ystrength);
 
 
   /*************************************************************************/
@@ -396,8 +396,8 @@ FT_BEGIN_HEADER
   /*    It shouldn't be used by a normal client application, unless it     */
   /*    knows what it is doing.                                            */
   /*                                                                       */
-  FT_EXPORT( void )
-  FT_Outline_Reverse( FT_Outline*  outline );
+  FT_EXPORT(void)
+  FT_Outline_Reverse(FT_Outline*  outline);
 
 
   /*************************************************************************/
@@ -431,10 +431,10 @@ FT_BEGIN_HEADER
   /*    you select the gray-level rasterizer, and you want less than 256   */
   /*    gray levels, you have to use @FT_Outline_Render directly.          */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Outline_Get_Bitmap( FT_Library        library,
+  FT_EXPORT(FT_Error)
+  FT_Outline_Get_Bitmap(FT_Library        library,
                          FT_Outline*       outline,
-                         const FT_Bitmap  *abitmap );
+                         const FT_Bitmap  *abitmap);
 
 
   /*************************************************************************/
@@ -473,10 +473,10 @@ FT_BEGIN_HEADER
   /*    See the @FT_RASTER_FLAG_DIRECT value of the `flags' field in the   */
   /*    @FT_Raster_Params structure for more details.                      */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Outline_Render( FT_Library         library,
+  FT_EXPORT(FT_Error)
+  FT_Outline_Render(FT_Library         library,
                      FT_Outline*        outline,
-                     FT_Raster_Params*  params );
+                     FT_Raster_Params*  params);
 
 
  /**************************************************************************
@@ -549,8 +549,8 @@ FT_BEGIN_HEADER
   *   The orientation.
   *
   */
-  FT_EXPORT( FT_Orientation )
-  FT_Outline_Get_Orientation( FT_Outline*  outline );
+  FT_EXPORT(FT_Orientation)
+  FT_Outline_Get_Orientation(FT_Outline*  outline);
 
 
   /* */

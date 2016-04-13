@@ -611,12 +611,12 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*                                                                       */
   /*      vert_header =                                                    */
-  /*        (TT_VertHeader*)FT_Get_Sfnt_Table( face, ft_sfnt_vhea );       */
+  /*        (TT_VertHeader*)FT_Get_Sfnt_Table(face, ft_sfnt_vhea);       */
   /*    }                                                                  */
   /*                                                                       */
-  FT_EXPORT( void* )
-  FT_Get_Sfnt_Table( FT_Face      face,
-                     FT_Sfnt_Tag  tag );
+  FT_EXPORT(void*)
+  FT_Get_Sfnt_Table(FT_Face      face,
+                     FT_Sfnt_Tag  tag);
 
 
  /**************************************************************************
@@ -667,14 +667,14 @@ FT_BEGIN_HEADER
   *       FT_ULong  length = 0;
   *
   *
-  *       error = FT_Load_Sfnt_Table( face, tag, 0, NULL, &length );
-  *       if ( error ) { ... table does not exist ... }
+  *       error = FT_Load_Sfnt_Table(face, tag, 0, NULL, &length);
+  *       if (error) { ... table does not exist ... }
   *
-  *       buffer = malloc( length );
-  *       if ( buffer == NULL ) { ... not enough memory ... }
+  *       buffer = malloc(length);
+  *       if (buffer == NULL) { ... not enough memory ... }
   *
-  *       error = FT_Load_Sfnt_Table( face, tag, 0, buffer, &length );
-  *       if ( error ) { ... could not load table ... }
+  *       error = FT_Load_Sfnt_Table(face, tag, 0, buffer, &length);
+  *       if (error) { ... could not load table ... }
   *     }
   *
   *   Note that structures like @TT_Header or @TT_OS2 can't be used with
@@ -683,12 +683,12 @@ FT_BEGIN_HEADER
   *   size (e.g. 32bit vs. 64bit) or order (big endian vs. little endian).
   *
   */
-  FT_EXPORT( FT_Error )
-  FT_Load_Sfnt_Table( FT_Face    face,
+  FT_EXPORT(FT_Error)
+  FT_Load_Sfnt_Table(FT_Face    face,
                       FT_ULong   tag,
                       FT_Long    offset,
                       FT_Byte*   buffer,
-                      FT_ULong*  length );
+                      FT_ULong*  length);
 
 
  /**************************************************************************
@@ -726,11 +726,11 @@ FT_BEGIN_HEADER
   *   missing.
   *
   */
-  FT_EXPORT( FT_Error )
-  FT_Sfnt_Table_Info( FT_Face    face,
+  FT_EXPORT(FT_Error)
+  FT_Sfnt_Table_Info(FT_Face    face,
                       FT_UInt    table_index,
                       FT_ULong  *tag,
-                      FT_ULong  *length );
+                      FT_ULong  *length);
 
 
   /*************************************************************************/
@@ -753,8 +753,8 @@ FT_BEGIN_HEADER
   /*    For a format~14 cmap (to access Unicode IVS), the return value is  */
   /*    0xFFFFFFFF.                                                        */
   /*                                                                       */
-  FT_EXPORT( FT_ULong )
-  FT_Get_CMap_Language_ID( FT_CharMap  charmap );
+  FT_EXPORT(FT_ULong)
+  FT_Get_CMap_Language_ID(FT_CharMap  charmap);
 
 
   /*************************************************************************/
@@ -773,8 +773,8 @@ FT_BEGIN_HEADER
   /*    The format of `charmap'.  If `charmap' doesn't belong to a         */
   /*    TrueType/sfnt face, return -1.                                     */
   /*                                                                       */
-  FT_EXPORT( FT_Long )
-  FT_Get_CMap_Format( FT_CharMap  charmap );
+  FT_EXPORT(FT_Long)
+  FT_Get_CMap_Format(FT_CharMap  charmap);
 
   /* */
 

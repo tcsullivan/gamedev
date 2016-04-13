@@ -122,8 +122,8 @@ FT_BEGIN_HEADER
   /* <Return>                                                              */
   /*    The number of strings in the `name' table.                         */
   /*                                                                       */
-  FT_EXPORT( FT_UInt )
-  FT_Get_Sfnt_Name_Count( FT_Face  face );
+  FT_EXPORT(FT_UInt)
+  FT_Get_Sfnt_Name_Count(FT_Face  face);
 
 
   /*************************************************************************/
@@ -154,10 +154,10 @@ FT_BEGIN_HEADER
   /*    `name' table entries, then do a loop until you get the right       */
   /*    platform, encoding, and name ID.                                   */
   /*                                                                       */
-  FT_EXPORT( FT_Error )
-  FT_Get_Sfnt_Name( FT_Face       face,
+  FT_EXPORT(FT_Error)
+  FT_Get_Sfnt_Name(FT_Face       face,
                     FT_UInt       idx,
-                    FT_SfntName  *aname );
+                    FT_SfntName  *aname);
 
 
   /***************************************************************************
@@ -172,7 +172,7 @@ FT_BEGIN_HEADER
    *   legacy systems that have a 4-face-per-family restriction.
    *
    */
-#define FT_PARAM_TAG_IGNORE_PREFERRED_FAMILY  FT_MAKE_TAG( 'i', 'g', 'p', 'f' )
+#define FT_PARAM_TAG_IGNORE_PREFERRED_FAMILY  FT_MAKE_TAG('i', 'g', 'p', 'f')
 
 
   /***************************************************************************
@@ -187,7 +187,7 @@ FT_BEGIN_HEADER
    *   systems that have a 4-face-per-family restriction.
    *
    */
-#define FT_PARAM_TAG_IGNORE_PREFERRED_SUBFAMILY  FT_MAKE_TAG( 'i', 'g', 'p', 's' )
+#define FT_PARAM_TAG_IGNORE_PREFERRED_SUBFAMILY  FT_MAKE_TAG('i', 'g', 'p', 's')
 
   /* */
 

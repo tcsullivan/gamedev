@@ -71,7 +71,7 @@ void getRandomName(Entity *e){
 		break;
 	}
 
-	strcpy( e->name, bufs + 1 );
+	strcpy(e->name, bufs + 1);
 
 	delete[] bufs;
 }
@@ -315,11 +315,15 @@ void Object::reloadTexture(void){
 	height = getItemHeight(iname);
 }
 
+bool Entity::isNear(Entity e){
+	return pow(e.loc.x - loc.x, 2) + pow(e.loc.y - loc.y, 2) <= pow(40 * HLINE, 2);
+}
+
 void Entity::draw(void){		//draws the entities
 	glPushMatrix();
 	glColor3ub(255,255,255);
 
-	if ( !alive )
+	if (!alive)
 		return;
 
 	if(type==NPCT){
@@ -392,7 +396,7 @@ void Entity::draw(void){		//draws the entities
 		break;
 	}
 
-	if ( hitCooldown )
+	if (hitCooldown)
 		glColor3ub(255,255,0);
 	else
 		glColor3ub(255,255,255);
@@ -410,11 +414,11 @@ NOPE:
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	if ( near )
+	if (near)
 		ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
-	if ( health != maxHealth ) {
-		glColor3ub(150,0,0); glRectf( loc.x, loc.y + height, loc.x + width, loc.y + height + HLINE * 2 );
-		glColor3ub(255,0,0); glRectf( loc.x, loc.y + height, loc.x + width * ( health / maxHealth ), loc.y + height + HLINE * 2 );
+	if (health != maxHealth) {
+		glColor3ub(150,0,0); glRectf(loc.x, loc.y + height, loc.x + width, loc.y + height + HLINE * 2);
+		glColor3ub(255,0,0); glRectf(loc.x, loc.y + height, loc.x + width * (health / maxHealth), loc.y + height + HLINE * 2);
 	}
 }
 
@@ -423,46 +427,46 @@ NOPE:
  */
 
 void NPC::
-wander( int timeRun )
+wander(int timeRun)
 {
 	static int direction;
 
-	if ( forcedMove )
+	if (forcedMove)
 		return;
 
-	if ( hitCooldown )
+	if (hitCooldown)
 		hitCooldown--;
 
-	if ( followee ) {
-		if ( loc.x < followee->loc.x - 40 )
+	if (followee) {
+		if (loc.x < followee->loc.x - 40)
 			direction = 1;
-		else if ( loc.x > followee->loc.x + 40 )
+		else if (loc.x > followee->loc.x + 40)
 			direction = -1;
 		else
 			direction = 0;
 
 		vel.x = .018 * HLINE * direction;
-	} else if ( targetx != 0.9112001f ) {
-		if ( loc.x > targetx + HLINE * 5)
+	} else if (targetx != 0.9112001f) {
+		if (loc.x > targetx + HLINE * 5)
 			vel.x = -0.018 * HLINE;
-		else if ( loc.x < targetx - HLINE * 5)
+		else if (loc.x < targetx - HLINE * 5)
 			vel.x = 0.018 * HLINE;
 		else
 			targetx = 0.9112001f;
-	} else if ( ticksToUse == 0 ) {
+	} else if (ticksToUse == 0) {
 		ticksToUse = timeRun;
 
 		vel.x = .008 * HLINE;
 		direction = (getRand() % 3 - 1);
 
-		if ( direction == 0 )
+		if (direction == 0)
 			ticksToUse *= 2;
 
 		vel.x *= direction;
 	}
 
-	if( vel.x < 0)
-		currentWorld->goWorldLeft( this );
+	if(vel.x < 0)
+		currentWorld->goWorldLeft(this);
 
 	ticksToUse--;
 }
@@ -506,29 +510,29 @@ void NPC::interact(){ //have the npc's interact back to the player
 void Merchant::wander(int timeRun){
 	static int direction;
 
-	if ( forcedMove )
+	if (forcedMove)
 		return;
 
-	if ( ticksToUse == 0 ) {
+	if (ticksToUse == 0) {
 		ticksToUse = timeRun;
 
 		vel.x = .008 * HLINE;
 		direction = (getRand() % 3 - 1);
 
-		if ( direction == 0 )
+		if (direction == 0)
 			ticksToUse *= 2;
 
 		vel.x *= direction;
 	}
 
-	if( vel.x < 0)
-		currentWorld->goWorldLeft( this );
-	if ( inside != nullptr ) {
+	if(vel.x < 0)
+		currentWorld->goWorldLeft(this);
+	if (inside != nullptr) {
 		loc.y = inside->loc.y + HLINE * 2;
 		vel.y = GRAVITY_CONSTANT * 5;
-		if ( loc.x <= inside->loc.x + HLINE * 5 )
+		if (loc.x <= inside->loc.x + HLINE * 5)
 			loc.x = inside->loc.x + HLINE * 5;
-		else if ( loc.x + width >= inside->loc.x + inside->width - HLINE * 5 )
+		else if (loc.x + width >= inside->loc.x + inside->width - HLINE * 5)
 			loc.x = inside->loc.x + inside->width - width - HLINE * 5;
 	}
 	ticksToUse--;
@@ -540,10 +544,10 @@ void Merchant::interact(){
 		ui::waitForDialog();
 
 		// handle normal dialog options
-		switch ( ui::dialogOptChosen ) {
+		switch (ui::dialogOptChosen) {
 		// Accept
 		case 1:
-			if ( !(player->inv->takeItem( trade[currTrade].item[1], trade[currTrade].quantity[1])) )
+			if (!(player->inv->takeItem(trade[currTrade].item[1], trade[currTrade].quantity[1])))
 				player->inv->addItem(trade[currTrade].item[0],trade[currTrade].quantity[0]);
 			break;
 
@@ -556,10 +560,10 @@ void Merchant::interact(){
 		}
 
 		// handle merchant-specific dialog options
-		switch ( ui::merchOptChosen ) {
+		switch (ui::merchOptChosen) {
 		// left arrow
 		case 1:
-			if ( currTrade )
+			if (currTrade)
 				currTrade--;
 			ui::dontTypeOut();
 			interact(); // TODO should we nest like this?
@@ -567,7 +571,7 @@ void Merchant::interact(){
 
 		// right arrow
 		case 2:
-			if ( currTrade < trade.size() - 1 )
+			if (currTrade < trade.size() - 1)
 				currTrade++;
 			ui::dontTypeOut();
 			interact();
@@ -582,10 +586,10 @@ void Merchant::interact(){
 void Object::interact(void){
 	std::thread([this]{
 		if(questObject && alive){
-			ui::dialogBox( player->name, ":Yes:No", false, pickupDialog.c_str());
+			ui::dialogBox(player->name, ":Yes:No", false, pickupDialog.c_str());
 			ui::waitForDialog();
 			if(ui::dialogOptChosen == 1){
-				player->inv->addItem( iname, 1 );
+				player->inv->addItem(iname, 1);
 				alive = false;
 			}
 		}else{
@@ -595,9 +599,14 @@ void Object::interact(void){
 	}).detach();
 }
 
-void Entity::
-follow( Entity *e )
-{
+bool Entity::isInside(vec2 coord) const {
+	return coord.x >= loc.x &&
+	   	   coord.x <= loc.x + width &&
+	   	   coord.y >= loc.y	&&
+	       coord.y <= loc.y + height;
+}
+
+void Entity::follow(Entity *e){
 	followee = e;
 }
 
@@ -630,19 +639,19 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 
 	//unsigned int tempN = (getRand() % 5 + 2);
 
-	if ( textureLoc.empty() )
-		textureLoc = inWorld->sTexLoc[sub];
+	if (textureLoc.empty())
+		textureLoc = inWorld->getSTextureLocation(sub);
 
 	switch(sub){
 		case STALL_MARKET:
 			tex = new Texturec({ textureLoc });
-			dim = Texture::imageDim( textureLoc );
+			dim = Texture::imageDim(textureLoc);
 			width = dim.x;
 			height = dim.y;
 			break;
 		default:
 			tex = new Texturec({ textureLoc });
-			dim = Texture::imageDim( textureLoc );
+			dim = Texture::imageDim(textureLoc);
 			width = dim.x;
 			height = dim.y;
 			inv = NULL;
@@ -663,13 +672,13 @@ void Mob::wander(int timeRun){
 	static unsigned int heya=0,hi=0;
 	static bool YAYA = false;
 
-	if ( forcedMove )
+	if (forcedMove)
 		return;
 
-	if ( followee ) {
-		if ( loc.x < followee->loc.x - 40 )
+	if (followee) {
+		if (loc.x < followee->loc.x - 40)
 			direction = 1;
-		else if ( loc.x > followee->loc.x + 40 )
+		else if (loc.x > followee->loc.x + 40)
 			direction = -1;
 		else
 			direction = 0;
@@ -680,11 +689,11 @@ void Mob::wander(int timeRun){
 
 	if(aggressive && !YAYA &&
 	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
-	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height ){
-		if ( !ui::dialogBoxExists ) {
+	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height){
+		if (!ui::dialogBoxExists) {
 			Arena *a = new Arena(currentWorld,player,this);
 			a->setStyle("");
-			a->setBackground( WorldBGType::Forest );
+			a->setBackground(WorldBGType::Forest);
 			a->setBGM("assets/music/embark.wav");
 
 			ui::toggleWhiteFast();
@@ -721,7 +730,7 @@ void Mob::wander(int timeRun){
 		break;
 	case MS_TRIGGER:
 		if(player->loc.x + player->width / 2 > loc.x		 &&
-		   player->loc.x + player->width / 2 < loc.x + width )
+		   player->loc.x + player->width / 2 < loc.x + width)
 			std::thread([this]{hey(this);}).detach();
 			//hey(this);
 		break;

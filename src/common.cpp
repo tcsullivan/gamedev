@@ -81,7 +81,7 @@ const char *readFile(const char *path){
 	unsigned int size;
 	GLchar *buf;
 
-	if ( !in.is_open() )
+	if (!in.is_open())
 		UserError("Error reading file " + (std::string)path + "!");
 
 	in.seekg(0,in.end);
@@ -95,7 +95,7 @@ const char *readFile(const char *path){
 }
 
 void
-UserError( std::string reason )
+UserError(std::string reason)
 {
     std::cout << "User error: " << reason << "!" << std::endl;
     abort();

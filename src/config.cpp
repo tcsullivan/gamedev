@@ -21,7 +21,7 @@ XMLElement *vol;
 
 namespace config {
 
-	void read( void ) {
+	void read(void) {
 		unsigned int uval;
 		float fval;
 		bool bval;
@@ -61,19 +61,19 @@ namespace config {
 		ui::initFonts();
 		ui::setFontFace(xml.FirstChildElement("font")->Attribute("path"));
 
-		if ( xml.FirstChildElement("debug") )
+		if (xml.FirstChildElement("debug"))
 			ui::debug = ui::posFlag = true;
 
 		config::update();
 	}
 
-	void update( void ) {
+	void update(void) {
 		Mix_Volume(0,VOLUME_MASTER);
 		Mix_Volume(1,VOLUME_SFX * (VOLUME_MASTER/100.0f));
 		Mix_VolumeMusic(VOLUME_MUSIC * (VOLUME_MASTER/100.0f));
 	}
 
-	void save( void ) {
+	void save(void) {
 		vol->FirstChildElement("master")->SetAttribute("volume",VOLUME_MASTER);
 		vol->FirstChildElement("music")->SetAttribute("volume",VOLUME_MUSIC);
 		vol->FirstChildElement("sfx")->SetAttribute("volume", VOLUME_SFX);

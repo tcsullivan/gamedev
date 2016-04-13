@@ -69,10 +69,10 @@ int commonAIFunc(NPC *speaker){
 				if((oxml = exml->FirstChildElement("quest"))){
 					std::string qname;
 
-					while ( oxml ) {
-						if ( !(qname = oxml->StrAttribute("assign")).empty() )
+					while (oxml) {
+						if (!(qname = oxml->StrAttribute("assign")).empty())
 							player->qh.assign(qname,"None",(std::string)oxml->GetText());
-						else if( !(qname = oxml->StrAttribute("check")).empty() ){
+						else if(!(qname = oxml->StrAttribute("check")).empty()){
 							if(player->qh.hasQuest(qname) && player->qh.finish(qname)){
 								goto CONT;
 							}else{
@@ -114,7 +114,7 @@ CONT:
 				 * Handle 'go to' thingy
 				 */
 
-				if ( (oxml = exml->FirstChildElement("gotox")) )
+				if ((oxml = exml->FirstChildElement("gotox")))
 					speaker->targetx = atoi(oxml->GetText());
 
 				/*
@@ -218,8 +218,8 @@ CONT:
 	return 0;
 }
 
-void commonPageFunc( Mob *callee ){
-	ui::drawPage( callee->heyid );
+void commonPageFunc(Mob *callee){
+	ui::drawPage(callee->heyid);
 	ui::waitForDialog();
 	callee->health = 0;
 }
@@ -272,7 +272,7 @@ void initEverything(void){
 	 * Read the XML directory into an array.
 	 */
 
-	if ( getdir( std::string("./" + xmlFolder).c_str(), xmlFiles ) )
+	if (getdir(std::string("./" + xmlFolder).c_str(), xmlFiles))
 		UserError("Error reading XML files!!!");
 
 	/*
@@ -312,7 +312,7 @@ void initEverything(void){
 	optionsMenu.items.push_back(ui::menu::createSlider({-200,000}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "SFX", &VOLUME_SFX));
 	optionsMenu.child = NULL;
 	optionsMenu.parent = &pauseMenu;
-	// optionsMenu.push_back(ui::menu::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"), );
+	// optionsMenu.push_back(ui::menu::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"),);
 
 	/*
 	 * Spawn the player and begin the game.

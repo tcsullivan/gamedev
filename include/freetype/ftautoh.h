@@ -93,17 +93,17 @@ FT_BEGIN_HEADER
    *     FT_Prop_GlyphToScriptMap  prop;
    *
    *
-   *     FT_Init_FreeType( &library );
-   *     FT_New_Face( library, "foo.ttf", 0, &face );
+   *     FT_Init_FreeType(&library);
+   *     FT_New_Face(library, "foo.ttf", 0, &face);
    *
    *     prop.face = face;
    *
-   *     FT_Property_Get( library, "autofitter",
-   *                               "glyph-to-script-map", &prop );
+   *     FT_Property_Get(library, "autofitter",
+   *                               "glyph-to-script-map", &prop);
    *
    *     // adjust `prop.map' as needed right here
    *
-   *     FT_Load_Glyph( face, ..., FT_LOAD_FORCE_AUTOHINT );
+   *     FT_Load_Glyph(face, ..., FT_LOAD_FORCE_AUTOHINT);
    *   }
    *
    */
@@ -272,10 +272,10 @@ FT_BEGIN_HEADER
    *     FT_UInt     fallback_script = FT_AUTOHINTER_SCRIPT_NONE;
    *
    *
-   *     FT_Init_FreeType( &library );
+   *     FT_Init_FreeType(&library);
    *
-   *     FT_Property_Set( library, "autofitter",
-   *                               "fallback-script", &fallback_script );
+   *     FT_Property_Set(library, "autofitter",
+   *                               "fallback-script", &fallback_script);
    *   }
    *
    * @note:
@@ -310,15 +310,15 @@ FT_BEGIN_HEADER
    *     FT_Prop_IncreaseXHeight  prop;
    *
    *
-   *     FT_Init_FreeType( &library );
-   *     FT_New_Face( library, "foo.ttf", 0, &face );
-   *     FT_Set_Char_Size( face, 10 * 64, 0, 72, 0 );
+   *     FT_Init_FreeType(&library);
+   *     FT_New_Face(library, "foo.ttf", 0, &face);
+   *     FT_Set_Char_Size(face, 10 * 64, 0, 72, 0);
    *
    *     prop.face  = face;
    *     prop.limit = 14;
    *
-   *     FT_Property_Set( library, "autofitter",
-   *                               "increase-x-height", &prop );
+   *     FT_Property_Set(library, "autofitter",
+   *                               "increase-x-height", &prop);
    *   }
    *
    * @note:
