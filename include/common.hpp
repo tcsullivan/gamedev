@@ -48,6 +48,11 @@ typedef unsigned int uint;
 
 #define MSEC_PER_TICK (1000 / TICKS_PER_SEC)
 
+/**
+ * This flag lets the compuler know that we are testing for segfault locations.
+ * If this flag is enabled, the function C(x) will print 'x' to terminal
+ */
+
 //#define SEGFAULT
 
 /**
@@ -57,17 +62,17 @@ typedef unsigned int uint;
 #define SHADERS
 
 template<typename N>
-N abso(N v){
-	if(v < 0){
+N abso(N v) {
+	if (v < 0) {
 		return v * -1;
 	}else
 		return v;
 }
 
 template<class A>
-float averagef(A v){
+float averagef(A v) {
 	float avg = 0;
-	for(auto &a : v){
+	for(auto &a : v) {
 		avg += a;
 	}
 	avg /= v.size();
@@ -112,16 +117,16 @@ struct col {
 	float red;
 	float green;
 	float blue;
-	col operator-=(float a){
+	col operator-=(float a) {
 		red-=a;
 		green-=a;
 		blue-=a;
 		return{red+a,green+a,blue+a};
 	}
-	col operator+=(float a){
+	col operator+=(float a) {
 		return{red+a,green+a,blue+a};
 	}
-	col operator=(float a){
+	col operator=(float a) {
 		return{red=a,green=a,blue=a};
 	}
 };
@@ -195,7 +200,7 @@ extern float VOLUME_SFX;
 #define DEBUG_printf(message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__)
 
 #ifdef SEGFAULT
-#define C(x) std::cout << m << std::endl
+#define C(x) std::cout << x << std::endl
 #else
 #define C(x)
 #endif
@@ -268,7 +273,7 @@ const char *readFile(const char *path);
 int strCreateFunc(const char *equ);
 
 template<typename N, size_t s>
-size_t arrAmt(N (&)[s]){return s;}
+size_t arrAmt(N (&)[s]) {return s;}
 
 void UserError(std::string reason);
 

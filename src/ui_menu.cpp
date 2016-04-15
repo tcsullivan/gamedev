@@ -5,27 +5,27 @@ extern bool gameRunning;
 extern Menu *currentMenu;
 extern Menu pauseMenu;
 
-void Menu::
-gotoParent(void)
+void Menu::gotoParent(void)
 {
 	if (!parent) {
-		currentMenu = NULL;
+		currentMenu = nullptr;
 		config::update();
-	} else
+	} else {
 		currentMenu = parent;
+	}
 }
 
-void Menu::
-gotoChild(void)
+void Menu::gotoChild(void)
 {
 	currentMenu = child;
 }
 
 namespace ui {
     namespace menu {
-        menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f){
+        menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f)
+		{
             menuItem temp;
-            
+
             temp.member = 0;
             temp.button.loc = l;
             temp.button.dim = d;
@@ -36,9 +36,10 @@ namespace ui {
             return temp;
         }
 
-        menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t){
+        menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t)
+		{
             menuItem temp;
-            
+
             temp.member = -1;
             temp.button.loc = l;
             temp.button.dim = d;
@@ -49,7 +50,8 @@ namespace ui {
             return temp;
         }
 
-        menuItem createParentButton(vec2 l, dim2 d, Color c, const char* t){
+        menuItem createParentButton(vec2 l, dim2 d, Color c, const char* t)
+		{
             menuItem temp;
 
             temp.member = -2;
@@ -62,7 +64,8 @@ namespace ui {
             return temp;
         }
 
-        menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v){
+        menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v)
+		{
             menuItem temp;
 
             temp.member = 1;
@@ -78,9 +81,10 @@ namespace ui {
             return temp;
         }
 
-        void draw(void) {
+        void draw(void)
+		{
             SDL_Event e;
-            
+
             setFontSize(24);
             config::update();
 
@@ -88,8 +92,8 @@ namespace ui {
             mouse.y = (offset.y+SCREEN_HEIGHT/2)-ui::premouse.y;
 
             //custom event polling for menu's so all other events are ignored
-            while(SDL_PollEvent(&e)){
-                switch(e.type){
+            while(SDL_PollEvent(&e)) {
+                switch (e.type) {
                 case SDL_QUIT:
                     gameRunning = false;
                     return;
@@ -99,7 +103,7 @@ namespace ui {
                     premouse.y=e.motion.y;
                     break;
                 case SDL_KEYUP:
-                    if(SDL_KEY == SDLK_ESCAPE){
+                    if (SDL_KEY == SDLK_ESCAPE) {
                         currentMenu->gotoParent();
                         return;
                     }
@@ -113,9 +117,9 @@ namespace ui {
             glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
 
             //loop through all elements of the menu
-            for(auto &m : currentMenu->items){
+            for (auto &m : currentMenu->items) {
                 //if the menu is any type of button
-                if(m.member == 0 || m.member == -1 || m.member == -2){
+                if (m.member == 0 || m.member == -1 || m.member == -2) {
 
                     //draw the button background
                     glColor3f(m.button.color.red,m.button.color.green,m.button.color.blue);
@@ -129,8 +133,8 @@ namespace ui {
                                       m.button.text);
 
                     //tests if the mouse is over the button
-                    if(mouse.x >= offset.x+m.button.loc.x && mouse.x <= offset.x+m.button.loc.x + m.button.dim.x){
-                        if(mouse.y >= offset.y+m.button.loc.y && mouse.y <= offset.y+m.button.loc.y + m.button.dim.y){
+                    if (mouse.x >= offset.x+m.button.loc.x && mouse.x <= offset.x+m.button.loc.x + m.button.dim.x) {
+                        if (mouse.y >= offset.y+m.button.loc.y && mouse.y <= offset.y+m.button.loc.y + m.button.dim.y) {
 
                             //if the mouse if over the button, it draws this white outline
                             glColor3f(1.0f,1.0f,1.0f);
@@ -143,8 +147,8 @@ namespace ui {
                             glEnd();
 
                             //if the mouse is over the button and clicks
-                            if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
-                                switch(m.member){
+                            if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                                switch(m.member) {
                                     case 0: //normal button
                                         m.button.func();
                                         break;
@@ -160,14 +164,14 @@ namespace ui {
                     }
 
                     //if element is a slider
-                }else if(m.member == 1){
+                }else if (m.member == 1) {
                     //combining slider text with variable amount
                     char outSV[32];
                     sprintf(outSV, "%s: %.1f",m.slider.text, *m.slider.var);
 
                     float sliderW, sliderH;
 
-                    if(m.slider.dim.y > m.slider.dim.x){
+                    if (m.slider.dim.y > m.slider.dim.x) {
                         //width of the slider handle
                         sliderW = m.slider.dim.x;
                         sliderH = m.slider.dim.y * .05;
@@ -189,7 +193,7 @@ namespace ui {
 
                     //draw the slider handle
                     glColor4f(m.slider.color.red,m.slider.color.green,m.slider.color.blue, 1.0f);
-                    if(m.slider.dim.y > m.slider.dim.x){
+                    if (m.slider.dim.y > m.slider.dim.x) {
                         glRectf(offset.x+m.slider.loc.x,
                             offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05),
                             offset.x+m.slider.loc.x + sliderW,
@@ -207,8 +211,8 @@ namespace ui {
                         putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y/2)) - ui::fontSize/2, outSV);
                     }
                     //test if mouse is inside of the slider's borders
-                    if(mouse.x >= offset.x+m.slider.loc.x && mouse.x <= offset.x+m.slider.loc.x + m.slider.dim.x){
-                        if(mouse.y >= offset.y+m.slider.loc.y && mouse.y <= offset.y+m.slider.loc.y + m.slider.dim.y){
+                    if (mouse.x >= offset.x+m.slider.loc.x && mouse.x <= offset.x+m.slider.loc.x + m.slider.dim.x) {
+                        if (mouse.y >= offset.y+m.slider.loc.y && mouse.y <= offset.y+m.slider.loc.y + m.slider.dim.y) {
 
                             //if it is we draw a white border around it
                             glColor3f(1.0f,1.0f,1.0f);
@@ -219,7 +223,7 @@ namespace ui {
                                 glVertex2f(offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y+m.slider.dim.y);
                                 glVertex2f(offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y);
 
-                                if(m.slider.dim.y > m.slider.dim.x){
+                                if (m.slider.dim.y > m.slider.dim.x) {
                                     //and a border around the slider handle
                                     glVertex2f(offset.x+m.slider.loc.x, 		  offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05));
                                     glVertex2f(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05));
@@ -238,9 +242,9 @@ namespace ui {
                             glEnd();
 
                             //if we are inside the slider and click it will set the slider to that point
-                            if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+                            if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
                                 //change handle location
-                                if(m.slider.dim.y > m.slider.dim.x){
+                                if (m.slider.dim.y > m.slider.dim.x) {
                                     *m.slider.var = (((mouse.y-offset.y) - m.slider.loc.y)/m.slider.dim.y)*100;
                                     //draw a white box over the handle
                                     glColor3f(1.0f,1.0f,1.0f);
@@ -261,8 +265,8 @@ namespace ui {
                             }
 
                             //makes sure handle can't go below or above min and max values
-                            if(*m.slider.var >= m.slider.maxValue)*m.slider.var = m.slider.maxValue;
-                            else if(*m.slider.var <= m.slider.minValue)*m.slider.var = m.slider.minValue;
+                            if (*m.slider.var >= m.slider.maxValue)*m.slider.var = m.slider.maxValue;
+                            else if (*m.slider.var <= m.slider.minValue)*m.slider.var = m.slider.minValue;
                         }
                     }
                 }

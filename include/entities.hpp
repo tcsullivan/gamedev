@@ -58,7 +58,7 @@ public:
 	std::string item[2];
 	int quantity[2];
 	Trade(int qo, std::string o, int qt, std::string t);
-	Trade(){}
+	Trade() {}
 };
 
 class World;
@@ -77,7 +77,7 @@ public:
 	bool gravity;
 	bool behind;
 	bool bounce;
-	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d){
+	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d) {
 		loc.x = x;
 		loc.y = y;
 		vel.x = vx;
@@ -92,9 +92,9 @@ public:
 		bounce = false;
 		index = Texture::getIndex(c);
 	}
-	~Particles(){
+	~Particles() {
 	}
-	void draw(){
+	void draw() {
 		glColor3ub(255,255,255);
 		glBegin(GL_QUADS);
 			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y);
@@ -117,7 +117,7 @@ public:
 		} else if (gravity && vel.y > -1)
 			vel.y -= _gravity * deltaTime;
 	}
-	bool kill(float delta){
+	bool kill(float delta) {
 		return (duration -= delta) <= 0;
 	}
 };
@@ -184,15 +184,15 @@ public:
 
 	int ticksToUse;				// Used by wander()
 
-	virtual void wander(int){}
-	virtual void interact(){}
+	virtual void wander(int) {}
+	virtual void interact() {}
 
 	void follow(Entity *e);
 
 	bool isNear(Entity e);
 	bool isInside(vec2 coord) const;
 
-	virtual ~Entity(){}
+	virtual ~Entity() {}
 };
 
 class Player : public Entity{
@@ -234,10 +234,17 @@ public:
 	virtual void wander(int);
 };
 
-class Merchant : public NPC {
+class Merchant : public NPC{
 public:
 	std::vector<Trade>trade;
 	uint currTrade;
+
+	std::string text[4];
+	std::string *toSay;
+	//greeting
+	//accept
+	//deny
+	//farewell
 
 	void interact();
 	Structures *inside;

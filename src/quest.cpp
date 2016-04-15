@@ -5,7 +5,7 @@
 
 extern Player *player;
 
-int QuestHandler::assign(std::string title,std::string desc,std::string req){
+int QuestHandler::assign(std::string title,std::string desc,std::string req) {
 	Quest tmp;
 	char *tok;
 
@@ -31,16 +31,16 @@ int QuestHandler::assign(std::string title,std::string desc,std::string req){
 	return 0;
 }
 
-int QuestHandler::drop(std::string title){
-	current.erase(std::remove_if(current.begin(),
+int QuestHandler::drop(std::string title) {
+	current.erase(std::remove_if (current.begin(),
 								   current.end(),
-								   [&](Quest q){ return q.title == title; }),
+								   [&](Quest q) { return q.title == title; }),
 				   current.end());
 
 	return 0;
 }
 
-int QuestHandler::finish(std::string t){
+int QuestHandler::finish(std::string t) {
 	for (auto c = current.begin(); c != current.end(); c++) {
 		if ((*c).title == t) {
 			for (auto &n : (*c).need) {
@@ -58,7 +58,7 @@ int QuestHandler::finish(std::string t){
 	return 0;
 }
 
-bool QuestHandler::hasQuest(std::string t){
+bool QuestHandler::hasQuest(std::string t) {
 	for (auto &c : current) {
 		if (c.title == t)
 			return true;

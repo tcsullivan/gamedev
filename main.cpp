@@ -67,12 +67,6 @@ World *currentWorld        = NULL,
 Player *player;
 
 /**
- * TODO
- */
-
-extern Menu *currentMenu;
-
-/**
  * The current number of ticks, used for logic operations and day/night cycles.
  */
 
@@ -137,6 +131,7 @@ unsigned int loops = 0;
 
 vec2 offset;
 
+//std::shared_ptr<Menu>currentMenu;
 Menu *currentMenu;
 Menu optionsMenu;
 Menu pauseMenu;

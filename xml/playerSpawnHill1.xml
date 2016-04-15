@@ -7,7 +7,7 @@
 
 	<hill peakx="0" peaky="1000" width="50" />
 
-	<mob x="300" type="1" aggressive="false" health="1000" />
+	<!-- <mob x="300" type="1" aggressive="false" health="1000" /> -->
 
 	<!--<trigger x="-300" id="Test" />-->
 
@@ -21,13 +21,16 @@
 		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
 		<structure type="5" x="-500" />
 		<stall type="market" texture="assets/style/classic/stall.png">
-			<buy item="Dank MayMay" cost="420"/>
-			<sell item="Dank MayMay" cost="666"/>
+			<text>
+				<greet>Welcome to Smithy's! What would you like to purchase today?</greet>
+				<accept>Thanks!</accept>
+				<deny>Come back with more money to get this item!</deny>
+				<leave>Have a great day, and watch out for my rabbit Mr. Cuddles, he might try to attack you.</leave>
+			</text>
 			<trade quantity="420" item="Dank MayMay" quantity1="1" item1="Wood Sword"/>
 			<trade quantity="666" item="Wood Sword" quantity1="420" item1="Dank MayMay"/>
 		</stall>
 	</village>
-
 </World>
 
 <Trigger id="Test">It was a dark and stormy night...

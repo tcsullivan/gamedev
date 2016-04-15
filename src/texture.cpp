@@ -31,13 +31,13 @@ static std::vector<texture_t> LoadedTexture;
 namespace Texture{
 	Color pixels[8][4];
 
-	GLuint loadTexture(std::string fileName){
+	GLuint loadTexture(std::string fileName) {
 		SDL_Surface *image;
 		GLuint object = 0;
 
 		// check if texture is already loaded
-		for(auto &t : LoadedTexture){
-			if(t.name == fileName){
+		for(auto &t : LoadedTexture) {
+			if (t.name == fileName) {
 
 #ifdef DEBUG
 				DEBUG_printf("Reusing loaded texture for %s\n", fileName.c_str());
@@ -48,7 +48,7 @@ namespace Texture{
 		}
 
 		// load SDL_surface of texture
-		if(!(image = IMG_Load(fileName.c_str())))
+		if (!(image = IMG_Load(fileName.c_str())))
 			return 0;
 
 #ifdef DEBUG
@@ -89,23 +89,23 @@ namespace Texture{
 		return object;
 	}
 
-	dim2 imageDim(std::string fileName){
-		for(auto &t : LoadedTexture){
-			if(t.name == fileName)
+	dim2 imageDim(std::string fileName) {
+		for(auto &t : LoadedTexture) {
+			if (t.name == fileName)
 				return t.dim;
 		}
 		return {0,0};
 	}
 
-	void freeTextures(void){
-		while(!LoadedTexture.empty()){
+	void freeTextures(void) {
+		while(!LoadedTexture.empty()) {
 			glDeleteTextures(1, &LoadedTexture.back().tex);
 			LoadedTexture.pop_back();
 		}
 	}
 
 	#define CINDEX_WIDTH (8*4*3)
-	void initColorIndex(){
+	void initColorIndex() {
 		unsigned int i;
 		GLubyte *buffer;
 		GLfloat *bufferf;
@@ -122,9 +122,9 @@ namespace Texture{
 			bufferf[i] = (float)buffer[i] / 255.0f;
 
 		i = 0;
-		for(unsigned int y = 0; y < 8; y++){
-			for(unsigned int x = 0; x < 4; x++){
-					if(i >= CINDEX_WIDTH){
+		for(unsigned int y = 0; y < 8; y++) {
+			for(unsigned int x = 0; x < 4; x++) {
+					if (i >= CINDEX_WIDTH) {
 						delete[] buffer;
 						delete[] bufferf;
 						return;
@@ -140,21 +140,21 @@ namespace Texture{
 
 	//sqrt((255-145)^2+(90-145)^2+(0-0)^2);
 	std::vector<index_t>ind;
-	vec2 getIndex(Color c){
-		for(auto &i : ind){
-			if(c.red == i.color.red && c.green == i.color.green && c.blue == i.color.blue){
+	vec2 getIndex(Color c) {
+		for(auto &i : ind) {
+			if (c.red == i.color.red && c.green == i.color.green && c.blue == i.color.blue) {
 				return {float(i.indexx), float(i.indexy)};
 			}
 		}
 		uint buf[2];
 		float buff = 999;
 		float shit = 999;
-		for(uint y = 0; y < 8; y++){
-			for(uint x = 0; x < 4; x++){
+		for(uint y = 0; y < 8; y++) {
+			for(uint x = 0; x < 4; x++) {
 				buff = sqrt(pow((pixels[y][x].red-	c.red),  2)+
 							pow((pixels[y][x].green-c.green),2)+
 							pow((pixels[y][x].blue-	c.blue), 2));
-				if(buff < shit){
+				if (buff < shit) {
 					shit = buff;
 					buf[0] = y;
 					buf[1] = x;
@@ -166,7 +166,7 @@ namespace Texture{
 	}
 }
 
-Texturec::Texturec(uint amt, ...){
+Texturec::Texturec(uint amt, ...) {
 	va_list fNames;
 	texState = 0;
 	va_start(fNames, amt);
@@ -178,32 +178,32 @@ Texturec::Texturec(uint amt, ...){
 Texturec::Texturec(std::initializer_list<std::string> l)
 {
 	texState = 0;
-	std::for_each(l.begin(), l.end(), [&](std::string s){ image.push_back(Texture::loadTexture(s)); });
+	std::for_each(l.begin(), l.end(), [&](std::string s) { image.push_back(Texture::loadTexture(s)); });
 }
 
-Texturec::Texturec(std::vector<std::string>v){
+Texturec::Texturec(std::vector<std::string>v) {
 	texState = 0;
-	std::for_each(v.begin(), v.end(), [&](std::string s){ image.push_back(Texture::loadTexture(s)); });
+	std::for_each(v.begin(), v.end(), [&](std::string s) { image.push_back(Texture::loadTexture(s)); });
 }
 
-Texturec::Texturec(uint amt,const char **paths){
+Texturec::Texturec(uint amt,const char **paths) {
 	texState = 0;
 	for(unsigned int i = 0; i < amt; i++)
 		image.push_back(Texture::loadTexture(paths[i]));
 }
 
-Texturec::~Texturec(){
+Texturec::~Texturec() {
 }
 
-void Texturec::bind(unsigned int bn){
+void Texturec::bind(unsigned int bn) {
 	texState = bn;
 	glBindTexture(GL_TEXTURE_2D,image[(int)texState]);
 }
 
-void Texturec::bindNext(){
+void Texturec::bindNext() {
 	bind(++texState);
 }
 
-void Texturec::bindPrev(){
+void Texturec::bindPrev() {
 	bind(--texState);
 }

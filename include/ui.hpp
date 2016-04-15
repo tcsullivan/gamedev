@@ -22,30 +22,25 @@
 
 #define DEBUG
 
-typedef uint8_t  BYTE;
-typedef uint16_t WORD;
-typedef uint32_t DWORD;
-typedef  int32_t LONG;
-
 typedef struct{
-	WORD 	bfType;
-	DWORD 	bfSize;
-	WORD 	bfReserved1, bfReserved2;
-	DWORD 	bfOffBits; //how many bytes before the image data
+	uint16_t 	bfType;
+	uint32_t 	bfSize;
+	uint16_t 	bfReserved1, bfReserved2;
+	uint32_t 	bfOffBits; //how many bytes before the image data
 } __attribute__ ((packed)) BITMAPFILEHEADER;
 
 typedef struct{
-	DWORD 	biSize; //size of header in bytes
-	LONG 	biWidth;
-	LONG 	biHeight;
-	WORD 	biPlanes;
-	WORD 	biBitCount; //how many bits are in a pixel
-	DWORD 	biCompression;
-	DWORD 	biSizeImage; //size of image in bytes
-	LONG 	biXPelsPerMeter;
-	LONG 	biYPelsPerMeter;
-	DWORD 	biClrUsed; //how many colors there are
-	DWORD 	biClrImportant; //important colors
+	uint32_t 	biSize; //size of header in bytes
+	 int32_t 	biWidth;
+	 int32_t 	biHeight;
+	uint16_t 	biPlanes;
+	uint16_t 	biBitCount; //how many bits are in a pixel
+	uint32_t 	biCompression;
+	uint32_t 	biSizeImage; //size of image in bytes
+	 int32_t 	biXPelsPerMeter;
+	 int32_t 	biYPelsPerMeter;
+	uint32_t 	biClrUsed; //how many colors there are
+	uint32_t 	biClrImportant; //important colors
 } __attribute__ ((packed)) BITMAPINFOHEADER;
 
 namespace ui {

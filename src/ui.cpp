@@ -1,7 +1,7 @@
 #include <ui.hpp>
 
 extern std::vector<menuItem> optionsMenu;
-extern Menu *currentMenu;
+extern Menu* currentMenu;
 extern Menu pauseMenu;
 
 extern SDL_Window *window;
@@ -99,7 +99,7 @@ void loadFontSize(unsigned int size, std::vector<GLuint> &tex, std::vector<FT_In
 	glDeleteTextures(93, tex.data());
 	glGenTextures(93, tex.data());		//	Generate new texture name/locations?
 
-	for(char i=33;i<126;i++){
+	for(char i=33;i<126;i++) {
 
 		/*
 		 *	Load the character from the font family file.
@@ -194,7 +194,7 @@ namespace ui {
 	 *	Initialises the Freetype library, and sets a font size.
 	*/
 
-	void initFonts(void){
+	void initFonts(void) {
 		if (FT_Init_FreeType(&ftl))
 			UserError("Couldn't initialize freetype.");
 
@@ -209,7 +209,7 @@ namespace ui {
 		fontSize = 0;
 	}
 
-	void destroyFonts(void){
+	void destroyFonts(void) {
 		FT_Done_Face(ftf);
 		FT_Done_FreeType(ftl);
 
@@ -222,7 +222,7 @@ namespace ui {
 	 *	Sets a new font family to use (*.ttf).
 	*/
 
-	void setFontFace(const char *ttf){
+	void setFontFace(const char *ttf) {
 		if (FT_New_Face(ftl, ttf, 0, &ftf))
 			UserError("Error! Couldn't open " + (std::string)ttf + ".");
 
@@ -237,9 +237,9 @@ namespace ui {
 	 *	Sets a new font size (default: 12).
 	*/
 
-	void setFontSize(unsigned int size){
+	void setFontSize(unsigned int size) {
 		if (size == 16) {
-			if(!ft16loaded) {
+			if (!ft16loaded) {
 				loadFontSize(fontSize = size, ftex16, ftdat16);
 				ft16loaded = true;
 			}
@@ -261,14 +261,14 @@ namespace ui {
 	 *	Set a color for font rendering (default: white).
 	*/
 
-	void setFontColor(unsigned char r,unsigned char g,unsigned char b){
+	void setFontColor(unsigned char r,unsigned char g,unsigned char b) {
 		fontColor[0]=r;
 		fontColor[1]=g;
 		fontColor[2]=b;
 		fontColor[3]=255;
 	}
 
-	void setFontColor(unsigned char r,unsigned char g,unsigned char b, unsigned char a){
+	void setFontColor(unsigned char r,unsigned char g,unsigned char b, unsigned char a) {
 		fontColor[0]=r;
 		fontColor[1]=g;
 		fontColor[2]=b;
@@ -279,7 +279,7 @@ namespace ui {
 	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
 	*/
 
-	vec2 putChar(float xx,float yy,char c){
+	vec2 putChar(float xx,float yy,char c) {
 		vec2 c1,c2;
 
 		int x = xx, y = yy;
@@ -327,19 +327,19 @@ namespace ui {
 		*/
 
 		do{
-			if(i && ((i / 110.0) == (i / 110))){
+			if (i && ((i / 110.0) == (i / 110))) {
 				o.y -= fontSize * 1.05f;
 				o.x = x;
-				if(s[i] == ' ')
+				if (s[i] == ' ')
 					i++;
 			}
 
-			if(i && (i / (float)textWrapLimit == i / textWrapLimit)){
+			if (i && (i / (float)textWrapLimit == i / textWrapLimit)) {
  				o.y -= fontSize * 1.05f;
  				o.x = x;
 
 				// skip a space if it's there since we just newline'd
-  				if(s[i] == ' ')
+  				if (s[i] == ' ')
   					i++;
   			}
 
@@ -490,7 +490,7 @@ namespace ui {
 			char *sopt = strtok(&soptbuf[0], ":");
 
 			// cycle through options
-			while(sopt){
+			while(sopt) {
 				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}));
 				sopt = strtok(NULL,":");
 			}
@@ -506,7 +506,7 @@ namespace ui {
 		ret.clear();
 	}
 
-	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...){
+	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...) {
 		va_list dialogArgs;
 		std::unique_ptr<char[]> printfbuf (new char[512]);
 
@@ -529,12 +529,12 @@ namespace ui {
 		merchOptChosen = 0;
 
 		// handle options if desired
-		if(opt){
+		if (opt) {
 			std::string soptbuf = opt;
 			char *sopt = strtok(&soptbuf[0], ":");
 
 			// cycle through options
-			while(sopt){
+			while(sopt) {
 				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}));
 				sopt = strtok(NULL,":");
 			}
@@ -549,7 +549,7 @@ namespace ui {
 		ret.clear();
 	}
 
-	void merchantBox(){
+	void merchantBox() {
 		textWrapLimit = 50;
 		dialogMerchant = true;
 	}
@@ -573,7 +573,7 @@ namespace ui {
 		while (millis() < target);
 	}
 
-	void importantText(const char *text,...){
+	void importantText(const char *text,...) {
 		va_list textArgs;
 		char *printfbuf;
 
@@ -590,7 +590,7 @@ namespace ui {
 		dialogImportant = true;
 	}
 
-	void passiveImportantText(int duration, const char *text, ...){
+	void passiveImportantText(int duration, const char *text, ...) {
 		va_list textArgs;
 		char *printfbuf;
 
@@ -615,7 +615,7 @@ namespace ui {
 		pageTexReady = true;
 	}
 
-	void draw(void){
+	void draw(void) {
 		unsigned char i;
 		float x,y,tmp;
 		std::string rtext;
@@ -635,17 +635,17 @@ namespace ui {
 
 			rtext=typeOut(dialogBoxText);
 
-			if(dialogImportant){
+			if (dialogImportant) {
 				setFontColor(255,255,255);
-				if(dialogPassive){
+				if (dialogPassive) {
 					dialogPassiveTime -= deltaTime;
-					if(dialogPassiveTime < 0){
+					if (dialogPassiveTime < 0) {
 						dialogPassive = false;
 						dialogImportant = false;
 						dialogBoxExists = false;
 					}
 				}
-				if(fadeIntensity == 255 || dialogPassive){
+				if (fadeIntensity == 255 || dialogPassive) {
 					setFontSize(24);
 					putStringCentered(offset.x,offset.y,rtext.c_str());
 					setFontSize(16);
@@ -710,8 +710,8 @@ namespace ui {
 				merchArrowLoc[0].z = offset.x - (SCREEN_WIDTH / 8.5);
 				merchArrowLoc[1].z = offset.x + (SCREEN_WIDTH / 8.5);
 
-				for(i = 0; i < 2; i++){
-					if(((merchArrowLoc[i].x < merchArrowLoc[i].z) ?
+				for(i = 0; i < 2; i++) {
+					if (((merchArrowLoc[i].x < merchArrowLoc[i].z) ?
 						(mouse.x > merchArrowLoc[i].x     && mouse.x < merchArrowLoc[i].z) :
 						(mouse.x < merchArrowLoc[i].x     && mouse.x > merchArrowLoc[i].z)) &&
 					     mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8) {
@@ -728,7 +728,7 @@ namespace ui {
 
 
 				// draw / handle dialog options if they exist
-				for(i = 0; i < dialogOptText.size(); i++){
+				for(i = 0; i < dialogOptText.size(); i++) {
 					setFontColor(255, 255, 255);
 
 					// draw option
@@ -740,8 +740,8 @@ namespace ui {
 					dialogOptText[i].second.x = offset.x - tmp;
 
 					// make text yellow if the mouse hovers over the text
-					if(mouse.x > dialogOptText[i].second.x && mouse.x < dialogOptText[i].second.z &&
-					   mouse.y > dialogOptText[i].second.y && mouse.y < dialogOptText[i].second.y + 16){
+					if (mouse.x > dialogOptText[i].second.x && mouse.x < dialogOptText[i].second.z &&
+					   mouse.y > dialogOptText[i].second.y && mouse.y < dialogOptText[i].second.y + 16) {
 						  setFontColor(255, 255, 0);
 						  putStringCentered(offset.x, dialogOptText[i].second.y, dialogOptText[i].first);
 					}
@@ -771,16 +771,16 @@ namespace ui {
 
 				putString(x+HLINE,y-fontSize-HLINE,rtext);
 
-				for(i=0;i<dialogOptText.size();i++){
+				for(i=0;i<dialogOptText.size();i++) {
 					setFontColor(255,255,255);
 					tmp = putStringCentered(offset.x,dialogOptText[i].second.y,dialogOptText[i].first);
 					dialogOptText[i].second.z = offset.x + tmp;
 					dialogOptText[i].second.x = offset.x - tmp;
 					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 4 + (fontSize + HLINE) * (i + 1);
-					if(mouse.x > dialogOptText[i].second.x &&
+					if (mouse.x > dialogOptText[i].second.x &&
 					   mouse.x < dialogOptText[i].second.z &&
 					   mouse.y > dialogOptText[i].second.y &&
-					   mouse.y < dialogOptText[i].second.y + 16){ // fontSize
+					   mouse.y < dialogOptText[i].second.y + 16) { // fontSize
 						  setFontColor(255,255,0);
 						  putStringCentered(offset.x,dialogOptText[i].second.y,dialogOptText[i].first);
 					}
@@ -794,7 +794,7 @@ namespace ui {
 					Mix_PlayChannel(1, dialogClick, 0);
 			}
 
-		}if(!fadeIntensity){
+		}if (!fadeIntensity) {
 			vec2 hub = {
 				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
 				(offset.y+SCREEN_HEIGHT/2)-fontSize
@@ -803,7 +803,7 @@ namespace ui {
 			putText(hub.x,hub.y,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
 												(unsigned)player->maxHealth
 												);
-			if(player->alive){
+			if (player->alive) {
 				glColor3ub(150,0,0);
 				hub.y-=fontSize*1.15;
 				glRectf(hub.x,
@@ -822,13 +822,13 @@ namespace ui {
 			*/
 
 			setFontColor(255,255,255,fontTransInv);
-			if(player->inv->invOpen){
+			if (player->inv->invOpen) {
 				hub.y = player->loc.y + fontSize * 8;
 				hub.x = player->loc.x;// + player->width / 2;
 
 				putStringCentered(hub.x,hub.y,"Current Quests:");
 
-				for(auto &c : player->qh.current){
+				for(auto &c : player->qh.current) {
 					hub.y -= fontSize * 1.15;
 					putStringCentered(hub.x,hub.y,c.title.c_str());
 				}
@@ -847,7 +847,7 @@ namespace ui {
 		}
 	}
 
-	void quitGame(){
+	void quitGame() {
 		dialogBoxExists = false;
 		currentMenu = NULL;
 		gameRunning = false;
@@ -855,12 +855,12 @@ namespace ui {
 		config::save();
 	}
 
-	void closeBox(){
+	void closeBox() {
 		dialogBoxExists = false;
 		dialogMerchant = false;
 	}
 
-	void dialogAdvance(void){
+	void dialogAdvance(void) {
 		unsigned char i;
 
 		if (pageTex) {
@@ -870,16 +870,16 @@ namespace ui {
 			return;
 		}
 
-		/*if(!typeOutDone){
+		/*if (!typeOutDone) {
 			typeOutDone = true;
 			return;
 		}*/
 
-		for(i=0;i<dialogOptText.size();i++){
-			if(mouse.x > dialogOptText[i].second.x &&
+		for(i=0;i<dialogOptText.size();i++) {
+			if (mouse.x > dialogOptText[i].second.x &&
 			   mouse.x < dialogOptText[i].second.z &&
 			   mouse.y > dialogOptText[i].second.y &&
-			   mouse.y < dialogOptText[i].second.y + 16){ // fontSize
+			   mouse.y < dialogOptText[i].second.y + 16) { // fontSize
 				dialogOptChosen = i + 1;
 				goto EXIT;
 			}
@@ -890,10 +890,10 @@ namespace ui {
 
 				// TODO neaten this if statement
 
-				if(((merchArrowLoc[i].x < merchArrowLoc[i].z) ?
+				if (((merchArrowLoc[i].x < merchArrowLoc[i].z) ?
 				    (mouse.x > merchArrowLoc[i].x && mouse.x < merchArrowLoc[i].z) :
 				    (mouse.x < merchArrowLoc[i].x && mouse.x > merchArrowLoc[i].z) &&
-					 mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8)){
+					 mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8)) {
 						merchOptChosen = i + 1;
 						goto EXIT;
 				}
@@ -902,20 +902,20 @@ namespace ui {
 
 
 EXIT:
-		//if(!dialogMerchant)closeBox();
+		//if (!dialogMerchant)closeBox();
 		dialogBoxExists = false;
 		dialogMerchant = false;
 
 		//DONE:
 
 		// handle important text
-		if(dialogImportant){
+		if (dialogImportant) {
 			dialogImportant = false;
 			setFontSize(16);
 		}
 	}
 
-	void handleEvents(void){
+	void handleEvents(void) {
 		static bool left=true,right=false;
 		static int heyOhLetsGo = 0;
 		static int mouseWheelUpCount = 0, mouseWheelDownCount = 0;
@@ -930,8 +930,8 @@ EXIT:
 		static vec2 fr;
 		static Entity *ig;
 
-		while(SDL_PollEvent(&e)){
-			switch(e.type){
+		while(SDL_PollEvent(&e)) {
+			switch(e.type) {
 
 			// escape - quit game
 			case SDL_QUIT:
@@ -964,14 +964,14 @@ EXIT:
 				if ((e.button.button & SDL_BUTTON_LEFT) && !dialogBoxExists)
 					player->inv->usingi = true;
 
-				if(mouse.x > player->loc.x && mouse.x < player->loc.x + player->width &&
+				if (mouse.x > player->loc.x && mouse.x < player->loc.x + player->width &&
 					mouse.y > player->loc.y && mouse.y < player->loc.y + player->height) {
 					player->vel.y = .05;
 					fr = mouse;
 					ig = player;
 				} else {
 					for (auto &e : currentWorld->entity) {
-						if(mouse.x > e->loc.x && mouse.x < e->loc.x + e->width &&
+						if (mouse.x > e->loc.x && mouse.x < e->loc.x + e->width &&
 							mouse.y > e->loc.y && mouse.y < e->loc.y + e->height) {
 							e->vel.y = .05;
 							fr = mouse;
@@ -983,13 +983,13 @@ EXIT:
 
 				break;
 			case SDL_MOUSEWHEEL:
-				if (e.wheel.y < 0){
-					if(mouseWheelUpCount++ && mouseWheelUpCount%5==0){
+				if (e.wheel.y < 0) {
+					if (mouseWheelUpCount++ && mouseWheelUpCount%5==0) {
 						player->inv->setSelectionUp();
 						mouseWheelUpCount = 0;
 					}
 				}else{
-					if(mouseWheelDownCount-- && mouseWheelDownCount%5==0){
+					if (mouseWheelDownCount-- && mouseWheelDownCount%5==0) {
 						player->inv->setSelectionDown();
 						mouseWheelDownCount = 0;
 					}
@@ -1010,18 +1010,18 @@ EXIT:
 				// only let other keys be handled if dialog allows it
 				} else if (!dialogBoxExists || dialogPassive) {
 					tmp = currentWorld;
-					switch(SDL_KEY){
+					switch(SDL_KEY) {
 					case SDLK_t:
 						tickCount += 50;
 						break;
 					case SDLK_a:
-						if(fadeEnable)break;
+						if (fadeEnable)break;
 						player->vel.x = -PLAYER_SPEED_CONSTANT;
 						player->left = left = true;
 						player->right = right = false;
 						if (currentWorldToLeft) {
 							oldpos = player->loc;
-							if((tmp = currentWorld->goWorldLeft(player)) != currentWorld){
+							if ((tmp = currentWorld->goWorldLeft(player)) != currentWorld) {
 								tmppos = player->loc;
 								player->loc = oldpos;
 
@@ -1035,13 +1035,13 @@ EXIT:
 						}
 						break;
 					case SDLK_d:
-						if(fadeEnable)break;
+						if (fadeEnable)break;
 						player->vel.x = PLAYER_SPEED_CONSTANT;
 						player->right = right = true;
 						player->left = left = false;
 						if (currentWorldToRight) {
 							oldpos = player->loc;
-							if((tmp = currentWorld->goWorldRight(player)) != currentWorld){
+							if ((tmp = currentWorld->goWorldRight(player)) != currentWorld) {
 								tmppos = player->loc;
 								player->loc = oldpos;
 
@@ -1066,7 +1066,7 @@ EXIT:
 							currentWorld = tmp;
 						break;
 					case SDLK_LSHIFT:
-						if(debug){
+						if (debug) {
 							Mix_PlayChannel(1,sanic,-1);
 							player->speed = 4.0f;
 						}else
@@ -1077,17 +1077,17 @@ EXIT:
 						break;
 					case SDLK_e:
 						edown=true;
-						if(!heyOhLetsGo){
+						if (!heyOhLetsGo) {
 							heyOhLetsGo = loops;
 							player->inv->mouseSel = false;
 						}
-						if(loops - heyOhLetsGo >= 2 && !(player->inv->invOpen) && !(player->inv->selected))
+						if (loops - heyOhLetsGo >= 2 && !(player->inv->invOpen) && !(player->inv->selected))
 							player->inv->invHover=true;
 						break;
 					default:
 						break;
 					}
-					if(tmp != currentWorld){
+					if (tmp != currentWorld) {
 						std::swap(tmp,currentWorld);
 						toggleBlackFast();
 						waitForCover();
@@ -1132,7 +1132,7 @@ EXIT:
 					right = false;
 					break;
 				case SDLK_LSHIFT:
-					if(player->speed == 4){
+					if (player->speed == 4) {
 						Mix_FadeOutChannel(1,2000);
 					}
 					player->speed = 1;
@@ -1142,10 +1142,10 @@ EXIT:
 					break;
 				case SDLK_e:
 					edown=false;
-					if(player->inv->invHover){
+					if (player->inv->invHover) {
 						player->inv->invHover = false;
 					}else{
-						if(!player->inv->selected)player->inv->invOpening ^= true;
+						if (!player->inv->selected)player->inv->invOpening ^= true;
 						else player->inv->selected = false;
 						player->inv->mouseSel = false;
 					}
@@ -1188,7 +1188,7 @@ EXIT:
 					break;
 				}
 
-				if(!left&&!right)
+				if (!left&&!right)
 					player->vel.x=0;
 
 				break;
@@ -1207,22 +1207,22 @@ EXIT:
 		}
 	}
 
-	void toggleBlack(void){
+	void toggleBlack(void) {
 		fadeEnable ^= true;
 		fadeWhite   = false;
 		fadeFast    = false;
 	}
-	void toggleBlackFast(void){
+	void toggleBlackFast(void) {
 		fadeEnable ^= true;
 		fadeWhite   = false;
 		fadeFast    = true;
 	}
-	void toggleWhite(void){
+	void toggleWhite(void) {
 		fadeEnable ^= true;
 		fadeWhite   = true;
 		fadeFast    = false;
 	}
-	void toggleWhiteFast(void){
+	void toggleWhiteFast(void) {
 		fadeEnable ^= true;
 		fadeWhite   = true;
 		fadeFast    = true;
@@ -1230,10 +1230,10 @@ EXIT:
 		Mix_PlayChannel(1, battleStart, 0);
 	}
 
-    void takeScreenshot(GLubyte* pixels){
+    void takeScreenshot(GLubyte* pixels) {
 		std::vector<GLubyte> bgr (SCREEN_WIDTH * SCREEN_HEIGHT * 3, 0);
 
-		for(uint x = 0; x < SCREEN_WIDTH*SCREEN_HEIGHT*3; x+=3){
+		for(uint x = 0; x < SCREEN_WIDTH*SCREEN_HEIGHT*3; x+=3) {
 			bgr[x] = pixels[x+2];
 			bgr[x+1] = pixels[x+1];
 			bgr[x+2] = pixels[x];

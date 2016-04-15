@@ -102,7 +102,7 @@ public:
 	float fireFlicker;
 	vec2 fireLoc;
 
-	Light(vec2 l, Color c, float r){
+	Light(vec2 l, Color c, float r) {
 		loc = l;
 		color = c;
 		radius = r;
@@ -113,11 +113,11 @@ public:
 		flame = false;
 	}
 
-	void makeFlame(void){
+	void makeFlame(void) {
 		flame = true;
 	}
 
-	void follow(Entity *f){
+	void follow(Entity *f) {
 		following=f;
 		belongsTo = true;
 	}
@@ -137,7 +137,7 @@ public:
 	std::vector<Structures *> build;
 
 	Village(const char *meme, World *w);
-	~Village(void){}
+	~Village(void) {}
 };
 
 /**

@@ -36,11 +36,11 @@ const char *randomDialog[RAND_DIALOG_COUNT] = {
 	"What's a bagel? I don't know because I'm mormon"
 };
 
-void initEntity(){
+void initEntity() {
 	waterTex = Texture::loadTexture("assets/waterTex.png");
 }
 
-void getRandomName(Entity *e){
+void getRandomName(Entity *e) {
 	unsigned int tempNum,max=0;
 	char *bufs;
 
@@ -61,7 +61,7 @@ void getRandomName(Entity *e){
 
 	names.close();
 
-	switch(bufs[0]){
+	switch(bufs[0]) {
 	default :
 	case 'm':
 		e->gender = MALE;
@@ -76,7 +76,7 @@ void getRandomName(Entity *e){
 	delete[] bufs;
 }
 
-Trade::Trade(int qo, std::string o, int qt, std::string t){
+Trade::Trade(int qo, std::string o, int qt, std::string t) {
 	item[0] = o;
 	item[1] = t;
 
@@ -86,7 +86,7 @@ Trade::Trade(int qo, std::string o, int qt, std::string t){
 	std::cout << "Trading: " << quantity[0] << " " << item[0] << " for " << quantity[1] << " " << item[1] << std::endl;
 }
 
-void Entity::spawn(float x, float y){	//spawns the entity you pass to it based off of coords and global entity settings
+void Entity::spawn(float x, float y) {	//spawns the entity you pass to it based off of coords and global entity settings
 	loc.x = x;
 	loc.y = y;
 	vel.x = 0;
@@ -105,10 +105,10 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	ticksToUse = 0;
 	hitCooldown = 0;
 
-	if(!maxHealth)health = maxHealth = 1;
+	if (!maxHealth)health = maxHealth = 1;
 
-	if(type==MOBT){
-		if(Mobp(this)->subtype == MS_BIRD){
+	if (type==MOBT) {
+		if (Mobp(this)->subtype == MS_BIRD) {
 			Mobp(this)->init_y=loc.y;
 		}
 	}
@@ -119,7 +119,7 @@ void Entity::spawn(float x, float y){	//spawns the entity you pass to it based o
 	followee = NULL;
 }
 
-Player::Player(){ //sets all of the player specific traits on object creation
+Player::Player() { //sets all of the player specific traits on object creation
 	width = HLINE * 10;
 	height = HLINE * 16;
 
@@ -140,13 +140,13 @@ Player::Player(){ //sets all of the player specific traits on object creation
 							"assets/player/playerk8.png");
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
-Player::~Player(){
+Player::~Player() {
 	delete inv;
 	delete tex;
 	delete[] name;
 }
 
-NPC::NPC(){	//sets all of the NPC specific traits on object creation
+NPC::NPC() {	//sets all of the NPC specific traits on object creation
 	width = HLINE * 10;
 	height = HLINE * 16;
 
@@ -165,8 +165,8 @@ NPC::NPC(){	//sets all of the NPC specific traits on object creation
 	dialogIndex = 0;
 }
 
-NPC::~NPC(){
-	while(!aiFunc.empty()){
+NPC::~NPC() {
+	while(!aiFunc.empty()) {
 		aiFunc.pop_back();
 	}
 
@@ -175,7 +175,7 @@ NPC::~NPC(){
 	delete[] name;
 }
 
-Merchant::Merchant(){	//sets all of the Merchant specific traits on object creation
+Merchant::Merchant() {	//sets all of the Merchant specific traits on object creation
 	width = HLINE * 10;
 	height = HLINE * 16;
 
@@ -200,8 +200,8 @@ Merchant::Merchant(){	//sets all of the Merchant specific traits on object creat
 	dialogIndex = 0;
 }
 
-Merchant::~Merchant(){
-	/*while(!aiFunc.empty()){
+Merchant::~Merchant() {
+	/*while(!aiFunc.empty()) {
 		aiFunc.pop_back();
 	}*/
 	delete inside;
@@ -210,7 +210,7 @@ Merchant::~Merchant(){
 	//delete[] name;
 }
 
-Structures::Structures(){ //sets the structure type
+Structures::Structures() { //sets the structure type
 	health = maxHealth = 1;
 
 	alive = false;
@@ -221,21 +221,21 @@ Structures::Structures(){ //sets the structure type
 	//inv = NULL;
 	canMove = false;
 }
-Structures::~Structures(){
+Structures::~Structures() {
 	delete tex;
 
-	if(name)
+	if (name)
 		delete[] name;
 }
 
-Mob::Mob(int sub){
+Mob::Mob(int sub) {
 	type = MOBT;
 	aggressive = false;
 
 	maxHealth = health = 50;
 	canMove = true;
 
-	switch((subtype = sub)){
+	switch((subtype = sub)) {
 	case MS_RABBIT:
 		width  = HLINE * 10;
 		height = HLINE * 8;
@@ -265,13 +265,13 @@ Mob::Mob(int sub){
 
 	inv = new Inventory(NPC_INV_SIZE);
 }
-Mob::~Mob(){
+Mob::~Mob() {
 	delete inv;
 	delete tex;
 	delete[] name;
 }
 
-Object::Object(){
+Object::Object() {
 	type = OBJECTT;
 	alive = true;
 	near = false;
@@ -285,7 +285,7 @@ Object::Object(){
 	inv = NULL;
 }
 
-Object::Object(std::string in, std::string pd){
+Object::Object(std::string in, std::string pd) {
 	iname = in;
 
 	pickupDialog = pd;
@@ -301,13 +301,13 @@ Object::Object(std::string in, std::string pd){
 	tex = new Texturec(1,getItemTexturePath(in));
 	inv = NULL;
 }
-Object::~Object(){
+Object::~Object() {
 	delete tex;
 	delete[] name;
 }
 
-void Object::reloadTexture(void){
-	if(tex)
+void Object::reloadTexture(void) {
+	if (tex)
 		delete tex;
 
 	tex = new Texturec(1,getItemTexturePath(iname));
@@ -315,47 +315,47 @@ void Object::reloadTexture(void){
 	height = getItemHeight(iname);
 }
 
-bool Entity::isNear(Entity e){
+bool Entity::isNear(Entity e) {
 	return pow(e.loc.x - loc.x, 2) + pow(e.loc.y - loc.y, 2) <= pow(40 * HLINE, 2);
 }
 
-void Entity::draw(void){		//draws the entities
+void Entity::draw(void) {		//draws the entities
 	glPushMatrix();
 	glColor3ub(255,255,255);
 
 	if (!alive)
 		return;
 
-	if(type==NPCT){
-		if(NPCp(this)->aiFunc.size()){
+	if (type==NPCT) {
+		if (NPCp(this)->aiFunc.size()) {
 			glColor3ub(255,255,0);
 			glRectf(loc.x+width/3,loc.y+height,loc.x+width*2/3,loc.y+height+width/3);
 		}
-		if(gender == MALE){
+		if (gender == MALE) {
 			glColor3ub(255,255,255);
-		}else if(gender == FEMALE){
+		}else if (gender == FEMALE) {
 			glColor3ub(255,105,180);
 		}
 	}
-	if(left){
+	if (left) {
 		glScalef(-1.0f,1.0f,1.0f);
 		glTranslatef(0-width-loc.x*2,0,0);
 	}
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glEnable(GL_TEXTURE_2D);
-	switch(type){
+	switch(type) {
 	case PLAYERT:
 		static int texState = 0;
-		if(speed && !(loops % ((2.0f/speed) < 1 ? 1 : (int)((float)2.0f/(float)speed)))){
-			if(++texState==9)texState=1;
+		if (speed && !(loops % ((2.0f/speed) < 1 ? 1 : (int)((float)2.0f/(float)speed)))) {
+			if (++texState==9)texState=1;
 			glActiveTexture(GL_TEXTURE0);
 			tex->bind(texState);
 		}
-		if(!ground){
+		if (!ground) {
 			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(0);
-		}else if(vel.x){
+		}else if (vel.x) {
 			glActiveTexture(GL_TEXTURE0 + 0);
 			tex->bind(texState);
 		}else{
@@ -364,7 +364,7 @@ void Entity::draw(void){		//draws the entities
 		}
 		break;
 	case MOBT:
-		switch(subtype){
+		switch(subtype) {
 			case MS_RABBIT:
 				glActiveTexture(GL_TEXTURE0 + 0);
 				tex->bind(!ground);
@@ -382,8 +382,8 @@ void Entity::draw(void){		//draws the entities
 		}
 		break;
 	case STRUCTURET:
-		for(auto &strt : currentWorld->build){
-			if(this == strt){
+		for(auto &strt : currentWorld->build) {
+			if (this == strt) {
 				glActiveTexture(GL_TEXTURE0);
 				tex->bind(0);
 				break;
@@ -465,14 +465,14 @@ wander(int timeRun)
 		vel.x *= direction;
 	}
 
-	if(vel.x < 0)
+	if (vel.x < 0)
 		currentWorld->goWorldLeft(this);
 
 	ticksToUse--;
 }
 
-void NPC::addAIFunc(int (*func)(NPC *),bool preload){
-	if(preload){										// Preload AI functions so that they're given after
+void NPC::addAIFunc(int (*func)(NPC *),bool preload) {
+	if (preload) {										// Preload AI functions so that they're given after
 														// the current dialog box is closed
 		AIpreload.push_back(func);
 		AIpreaddr.push_back(this);
@@ -480,11 +480,11 @@ void NPC::addAIFunc(int (*func)(NPC *),bool preload){
 	else aiFunc.push_back(func);
 }
 
-void NPC::clearAIFunc(void){
+void NPC::clearAIFunc(void) {
 	aiFunc.clear();
 }
 
-void NPC::interact(){ //have the npc's interact back to the player
+void NPC::interact() { //have the npc's interact back to the player
 	std::thread([this]{
 		int (*func)(NPC *);
 		loc.y += 5;
@@ -493,11 +493,11 @@ void NPC::interact(){ //have the npc's interact back to the player
 		left = (player->loc.x < loc.x);
 		right = !left;
 
-		if(aiFunc.size()){
+		if (aiFunc.size()) {
 			func=aiFunc.front();
 
-			if(!func(this)){
-				if(aiFunc.size())aiFunc.erase(aiFunc.begin());
+			if (!func(this)) {
+				if (aiFunc.size())aiFunc.erase(aiFunc.begin());
 			}
 		}else{
 			ui::dialogBox(name,NULL,false,randomDialog[randDialog]);
@@ -507,7 +507,7 @@ void NPC::interact(){ //have the npc's interact back to the player
 	}).detach();
 }
 
-void Merchant::wander(int timeRun){
+void Merchant::wander(int timeRun) {
 	static int direction;
 
 	if (forcedMove)
@@ -525,7 +525,7 @@ void Merchant::wander(int timeRun){
 		vel.x *= direction;
 	}
 
-	if(vel.x < 0)
+	if (vel.x < 0)
 		currentWorld->goWorldLeft(this);
 	if (inside != nullptr) {
 		loc.y = inside->loc.y + HLINE * 2;
@@ -538,17 +538,23 @@ void Merchant::wander(int timeRun){
 	ticksToUse--;
 }
 
-void Merchant::interact(){
+void Merchant::interact() {
 	std::thread([this]{
-		ui::merchantBox(name, trade[currTrade], ":Accept:Good-Bye", false, "Welcome to Smithy\'s. Buy your sausages here you freaking meme lording screw-face");
+		ui::merchantBox(name, trade[currTrade], ":Accept:Good-Bye", false, toSay->c_str());
 		ui::waitForDialog();
 
 		// handle normal dialog options
 		switch (ui::dialogOptChosen) {
 		// Accept
 		case 1:
-			if (!(player->inv->takeItem(trade[currTrade].item[1], trade[currTrade].quantity[1])))
+			if (!(player->inv->takeItem(trade[currTrade].item[1], trade[currTrade].quantity[1]))) {
 				player->inv->addItem(trade[currTrade].item[0],trade[currTrade].quantity[0]);
+				toSay = &text[1];
+				interact();
+			} else {
+				toSay = &text[2];
+				interact();
+			}
 			break;
 
 		// Good-bye
@@ -579,16 +585,17 @@ void Merchant::interact(){
 
 		default:
 			break;
+		toSay = &text[0];
 		}
 	}).detach();
 }
 
-void Object::interact(void){
+void Object::interact(void) {
 	std::thread([this]{
-		if(questObject && alive){
+		if (questObject && alive) {
 			ui::dialogBox(player->name, ":Yes:No", false, pickupDialog.c_str());
 			ui::waitForDialog();
-			if(ui::dialogOptChosen == 1){
+			if (ui::dialogOptChosen == 1) {
 				player->inv->addItem(iname, 1);
 				alive = false;
 			}
@@ -606,7 +613,7 @@ bool Entity::isInside(vec2 coord) const {
 	       coord.y <= loc.y + height;
 }
 
-void Entity::follow(Entity *e){
+void Entity::follow(Entity *e) {
 	followee = e;
 }
 
@@ -621,7 +628,7 @@ void Entity::follow(Entity *e){
  *							point to have non-normal traits so it could be invisible or invincible...
 */
 
-unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
+unsigned int Structures::spawn(BUILD_SUB sub, float x, float y) {
 	loc.x = x;
 	loc.y = y;
 	type = STRUCTURET;
@@ -642,7 +649,7 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
 	if (textureLoc.empty())
 		textureLoc = inWorld->getSTextureLocation(sub);
 
-	switch(sub){
+	switch(sub) {
 		case STALL_MARKET:
 			tex = new Texturec({ textureLoc });
 			dim = Texture::imageDim(textureLoc);
@@ -667,7 +674,7 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y){
  *	See NPC::wander for the explaination of the argument's variable
 */
 
-void Mob::wander(int timeRun){
+void Mob::wander(int timeRun) {
 	static int direction;	//variable to decide what direction the entity moves
 	static unsigned int heya=0,hi=0;
 	static bool YAYA = false;
@@ -687,9 +694,9 @@ void Mob::wander(int timeRun){
 		return;
 	}
 
-	if(aggressive && !YAYA &&
+	if (aggressive && !YAYA &&
 	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
-	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height){
+	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height) {
 		if (!ui::dialogBoxExists) {
 			Arena *a = new Arena(currentWorld,player,this);
 			a->setStyle("");
@@ -705,16 +712,16 @@ void Mob::wander(int timeRun){
 		}
 	}
 
-	switch(subtype){
+	switch(subtype) {
 	case MS_RABBIT:
-		if(!ticksToUse){
+		if (!ticksToUse) {
 			ticksToUse = timeRun;
 			direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
 												//this lets the entity move left, right, or stay still
-			if(direction==0)ticksToUse/=2;
+			if (direction==0)ticksToUse/=2;
 			vel.x *= direction;	//changes the velocity based off of the direction
 		}
-		if(ground && direction){
+		if (ground && direction) {
 			vel.y=.15;
 			loc.y+=HLINE*.25;
 			ground=false;
@@ -723,19 +730,19 @@ void Mob::wander(int timeRun){
 		ticksToUse--; //removes one off of the entities timer
 		break;
 	case MS_BIRD:
-		if(loc.y<=init_y-.2)vel.y=.02*deltaTime;	// TODO handle direction
+		if (loc.y<=init_y-.2)vel.y=.02*deltaTime;	// TODO handle direction
 		vel.x=.02*deltaTime;
-		if(++heya==200){heya=0;hi^=1;}
-		if(hi)vel.x*=-1;
+		if (++heya==200) {heya=0;hi^=1;}
+		if (hi)vel.x*=-1;
 		break;
 	case MS_TRIGGER:
-		if(player->loc.x + player->width / 2 > loc.x		 &&
+		if (player->loc.x + player->width / 2 > loc.x		 &&
 		   player->loc.x + player->width / 2 < loc.x + width)
 			std::thread([this]{hey(this);}).detach();
 			//hey(this);
 		break;
 	case MS_PAGE:
-		if(player->loc.x > loc.x - 100 && player->loc.x < loc.x + 100           && // within player ranger
+		if (player->loc.x > loc.x - 100 && player->loc.x < loc.x + 100           && // within player ranger
 		   ui::mouse.x > loc.x && ui::mouse.x < loc.x + width                   && // mouse x
 		   ui::mouse.y > loc.y - width / 2 && ui::mouse.y < loc.y + width * 1.5 && // mouse y
 		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))           // right click
@@ -746,7 +753,7 @@ void Mob::wander(int timeRun){
 	}
 }
 
-void Player::save(void){
+void Player::save(void) {
 	std::string data;
 	std::ofstream out ("xml/main.dat",std::ios::out | std::ios::binary);
 	std::cout<<"Saving player data..."<<std::endl;
@@ -767,13 +774,13 @@ void Player::save(void){
 	out.close();
 }
 
-void Player::sspawn(float x,float y){
+void Player::sspawn(float x,float y) {
 	unsigned int i;
 	uint count;
 	std::ifstream in (std::string(xmlFolder + "main.dat"),std::ios::in | std::ios::binary);
 	spawn(x,y);
 
-	if(in.good()){
+	if (in.good()) {
 		std::istringstream data;
 		std::string ddata;
 		std::streampos len;
@@ -799,7 +806,7 @@ void Player::sspawn(float x,float y){
 		tickCount = std::stoi(ddata);
 
 		std::getline(data,ddata);
-		for(i = std::stoi(ddata);i;i--){
+		for(i = std::stoi(ddata);i;i--) {
 			std::getline(data,ddata);
 			count = std::stoi(ddata);
 			std::getline(data,ddata);

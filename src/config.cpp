@@ -29,33 +29,33 @@ namespace config {
 		xml.LoadFile("config/settings.xml");
 		scr = xml.FirstChildElement("screen");
 
-		if(scr->QueryUnsignedAttribute("width",&uval) == XML_NO_ERROR)
+		if (scr->QueryUnsignedAttribute("width",&uval) == XML_NO_ERROR)
 			SCREEN_WIDTH = uval;
 		else SCREEN_WIDTH = 1280;
-		if(scr->QueryUnsignedAttribute("height",&uval) == XML_NO_ERROR)
+		if (scr->QueryUnsignedAttribute("height",&uval) == XML_NO_ERROR)
 			SCREEN_HEIGHT = uval;
 		else SCREEN_HEIGHT = 800;
-		if(scr->QueryBoolAttribute("fullscreen",&bval) == XML_NO_ERROR)
+		if (scr->QueryBoolAttribute("fullscreen",&bval) == XML_NO_ERROR)
 			FULLSCREEN = bval;
 		else FULLSCREEN = false;
-		if(xml.FirstChildElement("hline")->QueryUnsignedAttribute("size",&uval) == XML_NO_ERROR)
+		if (xml.FirstChildElement("hline")->QueryUnsignedAttribute("size",&uval) == XML_NO_ERROR)
 			HLINE = uval;
 		else HLINE = 3;
 
 		vol = xml.FirstChildElement("volume");
 
-		if(vol->FirstChildElement("master")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
+		if (vol->FirstChildElement("master")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
 			VOLUME_MASTER = fval;
 		else VOLUME_MASTER = 50;
-		if(vol->FirstChildElement("music")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
+		if (vol->FirstChildElement("music")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
 			VOLUME_MUSIC = fval;
 		else VOLUME_MUSIC = 50;
-		if(vol->FirstChildElement("sfx")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
+		if (vol->FirstChildElement("sfx")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
 			VOLUME_SFX = fval;
 		else VOLUME_SFX = 50;
 
 		xmlFolder = xml.FirstChildElement("world")->Attribute("start");
-		if(xmlFolder=="\0")xmlFolder = "xml/";
+		if (xmlFolder=="\0")xmlFolder = "xml/";
 		std::cout << "Folder: " << xmlFolder << std::endl;
 
 		ui::initFonts();

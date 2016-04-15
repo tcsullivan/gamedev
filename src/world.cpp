@@ -171,7 +171,7 @@ deleteEntities(void)
 	mob.clear();
 
 	merchant.clear();
-	while(!npc.empty()){
+	while(!npc.empty()) {
 		delete npc.back();
 		npc.pop_back();
 	}
@@ -209,7 +209,7 @@ World::
 ~World(void)
 {
     // sdl2_mixer's object
-	if(bgmObj)
+	if (bgmObj)
 		Mix_FreeMusic(bgmObj);
 
 	delete bgTex;
@@ -250,7 +250,7 @@ generate(unsigned int width)
 
     // create slopes from the points that were just defined, populate the rest of the WorldData structure
 
-    for(wditer = worldData.begin() + 1; wditer != worldData.end(); wditer++){
+    for(wditer = worldData.begin() + 1; wditer != worldData.end(); wditer++) {
         if ((*wditer).groundHeight && wditer + GROUND_HILLINESS < worldData.end())
 			// wditer + GROUND_HILLINESS can go out of bounds (invalid read)
             geninc = ((*(wditer + GROUND_HILLINESS)).groundHeight - (*wditer).groundHeight) / (float)GROUND_HILLINESS;
@@ -268,7 +268,7 @@ generate(unsigned int width)
         else if ((*wditer).groundHeight > GROUND_HEIGHT_MAXIMUM)
 			(*wditer).groundHeight = GROUND_HEIGHT_MAXIMUM;
 
-		if((*wditer).groundHeight <= 0)
+		if ((*wditer).groundHeight <= 0)
 			(*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
 
     }
@@ -317,7 +317,7 @@ update(Player *p, unsigned int delta)
             e->loc.y += e->vel.y * delta;
 	}
     // iterate through particles
-    particles.erase(std::remove_if(particles.begin(), particles.end(), [&delta](Particles &part){return part.kill(delta);}), particles.end());
+    particles.erase(std::remove_if (particles.begin(), particles.end(), [&delta](Particles &part) {return part.kill(delta);}), particles.end());
     for (auto part = particles.begin(); part != particles.end(); part++) {
 		if ((*part).canMove) {
 			(*part).loc.y += (*part).vel.y * delta;
@@ -338,7 +338,7 @@ update(Player *p, unsigned int delta)
     // handle music fades
 	if (ui::dialogImportant) {
 		//Mix_FadeOutMusic(2000);
-	} else if(!Mix_PlayingMusic())
+	} else if (!Mix_PlayingMusic())
 		Mix_FadeInMusic(bgmObj,-1,2000);
 }
 
@@ -352,7 +352,7 @@ update(Player *p, unsigned int delta)
 void World::
 setBGM(std::string path)
 {
-	if(!path.empty())
+	if (!path.empty())
 		bgmObj = Mix_LoadMUS((bgm = path).c_str());
 }
 
@@ -385,7 +385,7 @@ bgmPlay(World *prev) const
  * screen.
  */
 
-void World::draw(Player *p){
+void World::draw(Player *p) {
     // iterators
     int i, iStart, iEnd;
 
@@ -450,7 +450,7 @@ void World::draw(Player *p){
 	// draw the stars if the time deems it appropriate
 
 	//if ((((weather == WorldWeather::Dark) & (tickCount % DAY_CYCLE)) < DAY_CYCLE / 2)   ||
-	//    (((weather == WorldWeather::Sunny) & (tickCount % DAY_CYCLE)) > DAY_CYCLE * .75)){
+	//    (((weather == WorldWeather::Sunny) & (tickCount % DAY_CYCLE)) > DAY_CYCLE * .75)) {
 	if (worldShade > 0) {
 
 		safeSetColorA(255, 255, 255, 255 - (getRand() % 30 - 15));
@@ -485,7 +485,7 @@ void World::draw(Player *p){
 		safeSetColorA(bgDraw[i][0] + shadeBackground * 2, bgDraw[i][0] + shadeBackground * 2, bgDraw[i][0] + shadeBackground * 2, bgDraw[i][1]);
 
 		glBegin(GL_QUADS);
-			for(int j = worldStart; j <= -worldStart; j += 600){
+			for(int j = worldStart; j <= -worldStart; j += 600) {
 				glTexCoord2i(0, 1); glVertex2i(j        + offset.x * bgDraw[i][2], GROUND_HEIGHT_MINIMUM);
 				glTexCoord2i(1, 1); glVertex2i((j + 600) + offset.x * bgDraw[i][2], GROUND_HEIGHT_MINIMUM);
 				glTexCoord2i(1, 0); glVertex2i((j + 600) + offset.x * bgDraw[i][2], GROUND_HEIGHT_MINIMUM + 400);
@@ -548,12 +548,12 @@ void World::draw(Player *p){
 	glActiveTexture(GL_TEXTURE0);
 	bgTex->bindNext();
 
-    for(auto &l : light){
-        if(l.belongsTo){
+    for(auto &l : light) {
+        if (l.belongsTo) {
             l.loc.x = l.following->loc.x + SCREEN_WIDTH/2;
             l.loc.y = l.following->loc.y;
         }
-        if(l.flame){
+        if (l.flame) {
             l.fireFlicker = .9+((rand()%2)/10.0f);
             l.fireLoc.x = l.loc.x + (rand()%2-1)*3;
             l.fireLoc.y = l.loc.y + (rand()%2-1)*3;
@@ -567,7 +567,7 @@ void World::draw(Player *p){
     GLfloat flameArray[64];
 
 	for (uint i = 0; i < light.size(); i++) {
-        if(light[i].flame){
+        if (light[i].flame) {
     		pointArray[2 * i    ] = light[i].fireLoc.x - offset.x;
     		pointArray[2 * i + 1] = light[i].fireLoc.y;
         }else{
@@ -651,7 +651,7 @@ void World::draw(Player *p){
 			memset(cgh, 0 , 2 * sizeof(float));
 
 		// flatten the grass if the player is standing on it.
-		if(!worldData[i].grassUnpressed){
+		if (!worldData[i].grassUnpressed) {
 			cgh[0] /= 4;
 			cgh[1] /= 4;
 		}
@@ -746,12 +746,12 @@ singleDetect(Entity *e)
         e->alive = false;
         e->health = 0;
 		for (i = 0; i < entity.size(); i++) {
-			if (entity[i] == e){
+			if (entity[i] == e) {
 				switch (e->type) {
 				case STRUCTURET:
 					killed = "structure";
-					for(j=0;j<build.size();j++){
-						if(build[j]==e){
+					for(j=0;j<build.size();j++) {
+						if (build[j]==e) {
 							delete build[j];
 							build.erase(build.begin()+j);
 							break;
@@ -760,8 +760,8 @@ singleDetect(Entity *e)
 					break;
 				case NPCT:
 					killed = "NPC";
-					for(j=0;j<npc.size();j++){
-						if(npc[j]==e){
+					for(j=0;j<npc.size();j++) {
+						if (npc[j]==e) {
 							delete npc[j];
 							npc.erase(npc.begin()+j);
 							break;
@@ -770,8 +770,8 @@ singleDetect(Entity *e)
 					break;
 				case MOBT:
 					killed = "mob";
-					/*for(j=0;j<mob.size();j++){
-						if(mob[j]==e){
+					/*for(j=0;j<mob.size();j++) {
+						if (mob[j]==e) {
 							delete mob[j];
 							mob.erase(mob.begin()+j);
 							break;
@@ -851,10 +851,10 @@ singleDetect(Entity *e)
 		 *	Insure that the entity doesn't fall off either edge of the world.
 		*/
 
-		if(e->loc.x < worldStart){												// Left bound
+		if (e->loc.x < worldStart) {												// Left bound
 			e->vel.x=0;
 			e->loc.x=(float)worldStart + HLINE / 2;
-		}else if(e->loc.x + e->width + HLINE > worldStart + worldStart * -2){	// Right bound
+		}else if (e->loc.x + e->width + HLINE > worldStart + worldStart * -2) {	// Right bound
 			e->vel.x=0;
 			e->loc.x=worldStart + worldStart * -2 - e->width - HLINE;
 		}
@@ -949,7 +949,7 @@ detect(Player *p)
 	}
 }
 
-void World::addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::string inside){
+void World::addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::string inside) {
 	build.push_back(new Structures());
 	build.back()->inWorld = this;
 	build.back()->textureLoc = tex;
@@ -968,14 +968,14 @@ addVillage(std::string name, World *world)
     return &village.back();
 }
 
-void World::addMob(int t,float x,float y){
+void World::addMob(int t,float x,float y) {
 	mob.emplace_back(t);
 	mob.back().spawn(x,y);
 
 	entity.push_back(&mob.back());
 }
 
-void World::addMob(int t,float x,float y,void (*hey)(Mob *)){
+void World::addMob(int t,float x,float y,void (*hey)(Mob *)) {
 	mob.emplace_back(t);
 	mob.back().spawn(x,y);
 	mob.back().hey = hey;
@@ -983,14 +983,14 @@ void World::addMob(int t,float x,float y,void (*hey)(Mob *)){
 	entity.push_back(&mob.back());
 }
 
-void World::addNPC(float x,float y){
+void World::addNPC(float x,float y) {
 	npc.push_back(new NPC());
 	npc.back()->spawn(x,y);
 
 	entity.push_back(npc.back());
 }
 
-void World::addMerchant(float x, float y){
+void World::addMerchant(float x, float y) {
 	merchant.push_back(new Merchant());
 	merchant.back()->spawn(x,y);
 
@@ -998,7 +998,7 @@ void World::addMerchant(float x, float y){
 	entity.push_back(npc.back());
 }
 
-void World::addObject(std::string in, std::string p, float x, float y){
+void World::addObject(std::string in, std::string p, float x, float y) {
 	object.emplace_back(in, p);
 	object.back().spawn(x, y);
 
@@ -1079,7 +1079,7 @@ goWorldLeft(Player *p)
 	World *tmp;
 
     // check if player is at world edge
-	if(!toLeft.empty() && p->loc.x < worldStart + HLINE * 15.0f) {
+	if (!toLeft.empty() && p->loc.x < worldStart + HLINE * 15.0f) {
 
         // load world (`toLeft` conditional confirms existance)
 	    tmp = loadWorldFromPtr(currentWorldToLeft);
@@ -1098,7 +1098,7 @@ bool World::
 goWorldLeft(NPC *e)
 {
 	// check if entity is at world edge
-	if(!toLeft.empty() && e->loc.x < worldStart + HLINE * 15.0f) {
+	if (!toLeft.empty() && e->loc.x < worldStart + HLINE * 15.0f) {
 
         currentWorldToLeft->addNPC(e->loc.x,e->loc.y);
         e->alive = false;
@@ -1117,7 +1117,7 @@ goWorldRight(Player *p)
 {
 	World *tmp;
 
-	if(!toRight.empty() && p->loc.x + p->width > -worldStart - HLINE * 15) {
+	if (!toRight.empty() && p->loc.x + p->width > -worldStart - HLINE * 15) {
 		tmp = loadWorldFromPtr(currentWorldToRight);
 
 		p->loc.x = tmp->worldStart - HLINE * -15.0f;
@@ -1218,7 +1218,7 @@ getTheWidth(void) const
 	return worldStart * -2;
 }
 
-void World::save(void){
+void World::save(void) {
 	std::string data;
 
 	std::string save = (std::string)currentXML + ".dat";
@@ -1226,18 +1226,18 @@ void World::save(void){
 
 	std::cout<<"Saving to "<<save<<" ..."<<std::endl;
 
-	for(auto &n : npc){
+	for(auto &n : npc) {
 		data.append(std::to_string(n->dialogIndex) + "\n");
 		data.append(std::to_string((int)n->loc.x) + "\n");
 		data.append(std::to_string((int)n->loc.y) + "\n");
 	}
 
-	for(auto &b : build){
+	for(auto &b : build) {
 		data.append(std::to_string((int)b->loc.x) + "\n");
 		data.append(std::to_string((int)b->loc.y) + "\n");
 	}
 
-	for(auto &m : mob){
+	for(auto &m : mob) {
 		data.append(std::to_string((int)m.loc.x) + "\n");
 		data.append(std::to_string((int)m.loc.y) + "\n");
 		data.append(std::to_string((int)m.alive) + "\n");
@@ -1248,7 +1248,7 @@ void World::save(void){
 	out.close();
 }
 
-void World::load(void){
+void World::load(void) {
 	std::string save,data,line;
 	const char *filedata;
 
@@ -1257,44 +1257,44 @@ void World::load(void){
 	data = filedata;
 	std::istringstream iss (data);
 
-	for(auto &n : npc){
+	for(auto &n : npc) {
 		std::getline(iss,line);
-		if(line == "dOnE")return;
-		if((n->dialogIndex = std::stoi(line)) != 9999)
+		if (line == "dOnE")return;
+		if ((n->dialogIndex = std::stoi(line)) != 9999)
 			n->addAIFunc(commonAIFunc,false);
 		else n->clearAIFunc();
 
 		std::getline(iss,line);
-		if(line == "dOnE")return;
+		if (line == "dOnE")return;
 		n->loc.x = std::stoi(line);
 		std::getline(iss,line);
-		if(line == "dOnE")return;
+		if (line == "dOnE")return;
 		n->loc.y = std::stoi(line);
 	}
 
-	for(auto &b : build){
+	for(auto &b : build) {
 		std::getline(iss,line);
-		if(line == "dOnE")return;
+		if (line == "dOnE")return;
 		b->loc.x = std::stoi(line);
 		std::getline(iss,line);
-		if(line == "dOnE")return;
+		if (line == "dOnE")return;
 		b->loc.y = std::stoi(line);
 	}
 
-	for(auto &m : mob){
+	for(auto &m : mob) {
 		std::getline(iss,line);
-		if(line == "dOnE")return;
+		if (line == "dOnE")return;
 		m.loc.x = std::stoi(line);
 		std::getline(iss,line);
-		if(line == "dOnE")return;
+		if (line == "dOnE")return;
 		m.loc.y = std::stoi(line);
 		std::getline(iss,line);
-		if(line == "dOnE")return;
+		if (line == "dOnE")return;
 		m.alive = std::stoi(line);
 	}
 
-	while(std::getline(iss,line)){
-		if(line == "dOnE")
+	while(std::getline(iss,line)) {
+		if (line == "dOnE")
 			break;
 	}
 
@@ -1310,10 +1310,10 @@ bool isCurrentWorldIndoors(void) {
     return !inside.empty();
 }
 
-IndoorWorld::IndoorWorld(void){
+IndoorWorld::IndoorWorld(void) {
 }
 
-IndoorWorld::~IndoorWorld(void){
+IndoorWorld::~IndoorWorld(void) {
 	delete bgTex;
 
 	deleteEntities();
@@ -1436,7 +1436,7 @@ draw(Player *p)
     GLfloat flameArray[64];
 
 	for (i = 0; i < light.size(); i++) {
-        if(light[i].flame){
+        if (light[i].flame) {
     		pointArray[2 * i    ] = light[i].fireLoc.x - offset.x;
     		pointArray[2 * i + 1] = light[i].fireLoc.y;
         }else{
@@ -1522,7 +1522,7 @@ draw(Player *p)
 	p->draw();
 }
 
-Arena::Arena(World *leave,Player *p,Mob *m){
+Arena::Arena(World *leave,Player *p,Mob *m) {
 	generate(800);
 	addMob(MS_DOOR,100,100);
 
@@ -1537,11 +1537,11 @@ Arena::Arena(World *leave,Player *p,Mob *m){
 	battleNestLoc.push_back(p->loc);
 }
 
-Arena::~Arena(void){
+Arena::~Arena(void) {
 	deleteEntities();
 }
 
-World *Arena::exitArena(Player *p){
+World *Arena::exitArena(Player *p) {
 	World *tmp;
 	if (!mmob->alive &&
          p->loc.x + p->width / 2 > mob[0].loc.x &&
@@ -1586,7 +1586,7 @@ std::string getWorldWeatherStr(WorldWeather ww)
 static bool loadedLeft = false;
 static bool loadedRight = false;
 
-World *loadWorldFromXML(std::string path){
+World *loadWorldFromXML(std::string path) {
 	if (!currentXML.empty())
 		currentWorld->save();
 
@@ -1642,7 +1642,7 @@ loadWorldFromXMLNoSave(std::string path) {
 	}
 
     // attempt to load an <IndoorWorld> tag
-    else if((wxml = xml.FirstChildElement("IndoorWorld"))) {
+    else if ((wxml = xml.FirstChildElement("IndoorWorld"))) {
 		wxml = wxml->FirstChildElement();
 		vil = NULL;
 		tmp = new IndoorWorld();
@@ -1815,10 +1815,9 @@ loadWorldFromXMLNoSave(std::string path) {
 		vil = vil->FirstChildElement();
 	}
 
-	while(vil){
+	while(vil) {
 		name = vil->Name();
 		randx = 0;
-		//static BuySell bs;
 
 		/**
 		 * 	READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
@@ -1864,17 +1863,38 @@ loadWorldFromXMLNoSave(std::string path) {
             while (sxml) {
                 tag = sxml->Name();
 
-                if (tag == "buy") {
+                if (tag == "buy") { //converts price to the currencies determined in items.xml
                     // TODO
-                } else if (tag == "sell") {
+                } else if (tag == "sell") { //converts price so the player can sell
                     // TODO
-                } else if (tag == "trade") {
+                } else if (tag == "trade") { //doesn't have to convert anything, we just trade multiple items
                 	tmp->merchant.back()->trade.push_back(Trade(sxml->IntAttribute("quantity"),
-																  sxml->StrAttribute("item"),
-																  sxml->IntAttribute("quantity1"),
-																  sxml->StrAttribute("item1")
-                                           ));
-				}
+																sxml->StrAttribute("item"),
+																sxml->IntAttribute("quantity1"),
+																sxml->StrAttribute("item1")));
+				} else if (tag == "text") { //this is what the merchant says
+                    std::cout << "text" << std::endl;
+
+                    XMLElement *txml = sxml->FirstChildElement();
+                    std::string textOption;
+
+                    while (txml) {
+                        textOption = txml->Name();
+                        const char* buf = txml->GetText();
+
+                        if (textOption == "greet") { //when you talk to him
+                            tmp->merchant.back()->text[0] = std::string(buf, strlen(buf));
+                            tmp->merchant.back()->toSay = &tmp->merchant.back()->text[0];
+                        } else if (textOption == "accept") { //when he accepts the trade
+                            tmp->merchant.back()->text[1] = std::string(buf, strlen(buf));
+                        } else if (textOption == "deny") { //when you don't have enough money
+                            tmp->merchant.back()->text[2] = std::string(buf, strlen(buf));
+                        } else if (textOption == "leave") { //when you leave the merchant
+                            tmp->merchant.back()->text[3] = std::string(buf, strlen(buf));
+                        }
+                        txml = txml->NextSiblingElement();
+                    }
+                }
 
                 sxml = sxml->NextSiblingElement();
 			}
@@ -1882,11 +1902,11 @@ loadWorldFromXMLNoSave(std::string path) {
 
 		vptr->build.push_back(tmp->build.back());
 
-		if(vptr->build.back()->loc.x < vptr->start.x){
+		if (vptr->build.back()->loc.x < vptr->start.x) {
 			vptr->start.x = vptr->build.back()->loc.x;
 		}
 
-		if(vptr->build.back()->loc.x + vptr->build.back()->width > vptr->end.x){
+		if (vptr->build.back()->loc.x + vptr->build.back()->width > vptr->end.x) {
 			vptr->end.x = vptr->build.back()->loc.x + vptr->build.back()->width;
 		}
 
@@ -1895,7 +1915,7 @@ loadWorldFromXMLNoSave(std::string path) {
 	}
 
 	std::ifstream dat (((std::string)currentXML + ".dat").c_str());
-	if(dat.good()){
+	if (dat.good()) {
 		dat.close();
 		tmp->load();
 	}
@@ -1903,7 +1923,7 @@ loadWorldFromXMLNoSave(std::string path) {
 	return tmp;
 }
 
-Village::Village(const char *meme, World *w){
+Village::Village(const char *meme, World *w) {
 	name = meme;
 	start.x = w->getTheWidth() / 2.0f;
 	end.x = -start.x;

@@ -614,7 +614,7 @@ char* XMLDocument::Identify(char* p, XMLNode** node)
     TIXMLASSERT(p);
     char* const start = p;
     p = XMLUtil::SkipWhiteSpace(p);
-    if(!*p) {
+    if (!*p) {
         *node = 0;
         TIXMLASSERT(p);
         return p;

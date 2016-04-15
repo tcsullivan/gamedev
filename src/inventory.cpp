@@ -14,15 +14,29 @@ static const unsigned char numSlot = 7;
 Mix_Chunk* swordSwing;
 
 static std::vector<Item *> itemMap;
+static std::vector<Currency *> currencyMap;
 static GLuint *itemtex;
 void itemDraw(Player *p,uint id);
 
-void items(void){
+void items(void) {
 	XMLDocument xml;
-	XMLElement *exml;
 	xml.LoadFile("config/items.xml");
-	exml = xml.FirstChildElement("item");
-	while(exml){
+	XMLElement *exml = xml.FirstChildElement("item");
+	XMLElement *cxml = xml.FirstChildElement("currency");
+	while (cxml) {
+
+		currencyMap.push_back(new Currency());
+
+		currencyMap.back()->width  = 7*HLINE;
+		currencyMap.back()->height = 7*HLINE;
+
+		currencyMap.back()->name = cxml->Attribute("name");
+		currencyMap.back()->value = cxml->FloatAttribute("value");
+
+
+		cxml = cxml->NextSiblingElement();
+	}
+	while (exml) {
 
 		itemMap.push_back(new Item());
 
@@ -40,11 +54,11 @@ void items(void){
 	}
 }
 
-int Inventory::addItem(std::string name,uint count){
-	for(unsigned int i=0;i<itemMap.size();i++){
-		if(itemMap[i]->name == name){
-			for(auto &in : items){
-				if(in.id == i){
+int Inventory::addItem(std::string name,uint count) {
+	for(unsigned int i=0;i<itemMap.size();i++) {
+		if (itemMap[i]->name == name) {
+			for(auto &in : items) {
+				if (in.id == i) {
 					in.count += count;
 					return 0;
 				}
@@ -56,34 +70,34 @@ int Inventory::addItem(std::string name,uint count){
 	return -1;
 }
 
-int Inventory::takeItem(std::string name,uint count){
+int Inventory::takeItem(std::string name,uint count) {
 	unsigned int id = 999999;
 
 	/*
 	 * Name to ID lookup
 	 */
 
-	for(unsigned int i=0;i<itemMap.size();i++){
-		if(itemMap[i]->name == name){
+	for(unsigned int i=0;i<itemMap.size();i++) {
+		if (itemMap[i]->name == name) {
 			id = i;
 			break;
 		}
 	}
 
-	if(id == 999999)
+	if (id == 999999)
 		return -1; //if no such item exists
 
 	/*
 	 * Inventory lookup
 	 */
 
-	for(unsigned int i=0;i<items.size();i++){
-		if(items[i].id == id){
-			if(count > items[i].count)
+	for(unsigned int i=0;i<items.size();i++) {
+		if (items[i].id == id) {
+			if (count > items[i].count)
 				return -(items[i].count - count);
 			else{
 				items[i].count -= count;
-				if(!items[i].count)
+				if (!items[i].count)
 					items.erase(items.begin()+i);
 			}
 			return 0;
@@ -92,33 +106,33 @@ int Inventory::takeItem(std::string name,uint count){
 	return -2;
 }
 
-int Inventory::hasItem(std::string name){
+int Inventory::hasItem(std::string name) {
 	unsigned int id = 999999;
 
-	for(unsigned int i=0;i<itemMap.size();i++){
-		if(itemMap[i]->name == name){
+	for(unsigned int i=0;i<itemMap.size();i++) {
+		if (itemMap[i]->name == name) {
 			id = i;
 			break;
 		}
 	}
 
-	if(id == 999999)
+	if (id == 999999)
 		return 0;
 
-	for(auto &i : items){
-		if(i.id == id)
+	for(auto &i : items) {
+		if (i.id == id)
 			return i.count;
 	}
 
 	return 0;
 }
 
-void initInventorySprites(void){
+void initInventorySprites(void) {
 
 	items();
 	itemtex = new GLuint[itemMap.size()];
 
-	for(unsigned int i = 0;i<itemMap.size();i++){
+	for(unsigned int i = 0;i<itemMap.size();i++) {
 		itemtex[i] = Texture::loadTexture(getItemTexturePath(itemMap[i]->name));
 	}
 
@@ -126,9 +140,9 @@ void initInventorySprites(void){
 	Mix_Volume(2,100);
 }
 
-void destroyInventory(void){
+void destroyInventory(void) {
 
-	while(!itemMap.empty()){
+	while(!itemMap.empty()) {
 		delete itemMap.front();
 		itemMap.erase(itemMap.begin());
 	}
@@ -136,15 +150,15 @@ void destroyInventory(void){
 	Mix_FreeChunk(swordSwing);
 }
 
-const char *getItemTexturePath(std::string name){
-	for(auto &i : itemMap){
-		if(i->name == name)
+const char *getItemTexturePath(std::string name) {
+	for(auto &i : itemMap) {
+		if (i->name == name)
 			return i->texloc.c_str();
 	}
 	return NULL;
 }
 
-GLuint getItemTexture(std::string name){
+GLuint getItemTexture(std::string name) {
 	for (int i = itemMap.size(); i--;) {
 		if (itemMap[i]->name == name)
 			return itemtex[i];
@@ -153,45 +167,45 @@ GLuint getItemTexture(std::string name){
 	return 0;
 }
 
-float getItemWidth(std::string name){
-	for(auto &i : itemMap){
-		if(i->name == name)
+float getItemWidth(std::string name) {
+	for(auto &i : itemMap) {
+		if (i->name == name)
 			return i->width;
 	}
 	return 0;
 }
 
-float getItemHeight(std::string name){
-	for(auto &i : itemMap){
-		if(i->name == name)
+float getItemHeight(std::string name) {
+	for(auto &i : itemMap) {
+		if (i->name == name)
 			return i->height;
 	}
 	return 0;
 }
 
-Inventory::Inventory(unsigned int s){
+Inventory::Inventory(unsigned int s) {
 	sel=0;
 	size=s;
 }
 
-Inventory::~Inventory(void){
+Inventory::~Inventory(void) {
 }
 
-void Inventory::setSelection(unsigned int s){
+void Inventory::setSelection(unsigned int s) {
 	sel=s;
 }
 
-void Inventory::setSelectionUp(){
+void Inventory::setSelectionUp() {
 	if (!sel--)
 		sel++;
 }
 
-void Inventory::setSelectionDown(){
+void Inventory::setSelectionDown() {
 	if (++sel >= numSlot)
 		sel = numSlot - 1;
 }
 
-void Inventory::draw(void){
+void Inventory::draw(void) {
 	static std::vector<int>dfp(numSlot);
 	static std::vector<Ray>iray(numSlot);
 	static std::vector<vec2>curCoord(numSlot);
@@ -257,11 +271,12 @@ void Inventory::draw(void){
 			a++;
 		} a = 0;
 
-		while (++a < massOrder.size()) {
-			if (!a || massDfp[ massOrder[a - 1] ] > massRange * 0.75f)
-				massDfp[ massOrder[a] ] += 5.0f * deltaTime;
-			if (massDfp[ massOrder[a] ] > massRange)
-				massDfp[ massOrder[a] ] = massRange;
+		while (a < massOrder.size()) {
+			if (!a || massDfp[massOrder[a - 1]] > massRange * 0.75f)
+				massDfp[massOrder[a]] += 5.0f * deltaTime;
+			if (massDfp[massOrder[a]] > massRange)
+				massDfp[massOrder[a]] = massRange;
+			a++;
 		} a = 0;
 
 		if (numSlot > 0)
@@ -276,15 +291,15 @@ void Inventory::draw(void){
 				cd -= 1.0f * deltaTime;
 		}
 
-        a = 0;
-		while (++a < massRay.size()) {
-			if (!a || massDfp[ massOrderClosing[a - 1] ] <= 0)
-				massDfp[ massOrderClosing[a] ] -= 10.0f * deltaTime;
-			if (massDfp[ massOrderClosing[a - 1] ] < 0)
-				massDfp[ massOrderClosing[a - 1] ] = 0;
+		while (a < massRay.size()) {
+			if (!a || massDfp[massOrderClosing[a - 1]] <= 0)
+				massDfp[massOrderClosing[a]] -= 10.0f * deltaTime;
+			else if (massDfp[massOrderClosing[a - 1]] < 0)
+				massDfp[massOrderClosing[a - 1]] = 0;
+			a++;
 		} a = 0;
 
-		if (std::all_of(std::begin(massDfp), std::end(massDfp), [](auto d){ return d <= 0; })) {
+		if (std::all_of(std::begin(massDfp), std::end(massDfp), [](auto d) { return d <= 0; })) {
 			invOpen = false;
 			for (auto &md : massDfp) {
 				if (md < 0)
@@ -299,9 +314,9 @@ void Inventory::draw(void){
 	 */
 
 	 C("Start drawing inventory");
-	if(invOpen){
+	if (invOpen) {
 
-		for(auto &mr : massRay){
+		for(auto &mr : massRay) {
 			glColor4f(0.0f,0.0f,0.0f, ((float)massDfp[a]/(float)massRange)*.5f);
 			glBegin(GL_QUADS);
 				glVertex2i(mr.x-(itemWide/2),		 mr.y-(itemWide/2));
@@ -309,12 +324,12 @@ void Inventory::draw(void){
 				glVertex2i(mr.x-(itemWide/2)+itemWide,mr.y-(itemWide/2)+itemWide);
 				glVertex2i(mr.x-(itemWide/2),		 mr.y-(itemWide/2)+itemWide);
 			glEnd();
-			if(!items.empty() && a < items.size() && items[a+numSlot].count){
+			if (!items.empty() && a+numSlot < items.size() && items[a+numSlot].count) {
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, itemtex[items[a+numSlot].id]);
 				glColor4f(1.0f, 1.0f, 1.0f, ((float)massDfp[a]/(float)(massRange?massRange:1))*0.8f);
 				glBegin(GL_QUADS);
-					if(itemMap[items[a].id]->height > itemMap[items[a+numSlot].id]->width){
+					if (itemMap[items[a+numSlot].id]->height > itemMap[items[a+numSlot].id]->width) {
 						glTexCoord2i(0,1);glVertex2i(mr.x-((itemWide/2)*((float)itemMap[items[a+numSlot].id]->width/(float)itemMap[items[a+numSlot].id]->height)),	mr.y-(itemWide/2));
 						glTexCoord2i(1,1);glVertex2i(mr.x+((itemWide/2)*((float)itemMap[items[a+numSlot].id]->width/(float)itemMap[items[a+numSlot].id]->height)),	mr.y-(itemWide/2));
 						glTexCoord2i(1,0);glVertex2i(mr.x+((itemWide/2)*((float)itemMap[items[a+numSlot].id]->width/(float)itemMap[items[a+numSlot].id]->height)),	mr.y+(itemWide/2));
@@ -334,7 +349,7 @@ void Inventory::draw(void){
 			a++;
 		}a=0;
 
-		for(auto &cr : curRay){
+		for(auto &cr : curRay) {
 			curCurCoord[a].x -= float((curdfp[a]) * cos(-1));
 			curCurCoord[a].y += float((curdfp[a]) * sin(0));
 			cr.end = curCurCoord[a];
@@ -349,7 +364,7 @@ void Inventory::draw(void){
 			a++;
 		}a=0;
 
-		for(auto &r : iray){
+		for(auto &r : iray) {
 			angle = 180 - (angleB * a) - angleB / 2.0f;
 			curCoord[a].x += float((dfp[a]) * cos(angle*PI/180));
 			curCoord[a].y += float((dfp[a]) * sin(angle*PI/180));
@@ -363,12 +378,12 @@ void Inventory::draw(void){
 				glVertex2i(r.end.x-(itemWide/2),		 r.end.y-(itemWide/2)+itemWide);
 			glEnd();
 
-			if(!items.empty() && a < items.size() && items[a].count){
+			if (!items.empty() && a < numSlot && items[a].count) {
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, itemtex[items[a].id]);
 				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)(range?range:1))*0.8f);
 				glBegin(GL_QUADS);
-					if(itemMap[items[a].id]->height > itemMap[items[a].id]->width){
+					if (itemMap[items[a].id]->height > itemMap[items[a].id]->width) {
 						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
 						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
 						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y+(itemWide/2));
@@ -387,15 +402,15 @@ void Inventory::draw(void){
 				ui::setFontColor(255,255,255,255);
 			}
 
-			if(sel == a){
+			if (sel == a) {
 				static float sc = 1;
 				static bool up;
 				up ? sc += .0005*deltaTime : sc -= .0005*deltaTime;
-				if(sc > 1.2){
+				if (sc > 1.2) {
 					up = false;
 					sc = 1.2;
 				}
-				if(sc < 1.0){
+				if (sc < 1.0) {
 					up = true;
 					sc = 1.0;
 				}
@@ -425,13 +440,13 @@ void Inventory::draw(void){
 			a++;
 		}
 		C("Done drawing standard inv");
-	}else if(invHover){
+	}else if (invHover) {
 		static unsigned int highlight = 0;
 		static unsigned int thing = 0;
 
 		std::cout<<"Inventory2???"<<std::endl;
 
-		if(!mouseSel){
+		if (!mouseSel) {
 			mouseStart.x = ui::mouse.x - offset.x;
 			std::cout << "Setting highlight" << std::endl;
 			highlight = sel;
@@ -442,26 +457,26 @@ void Inventory::draw(void){
 			std::cout << "Done" << std::endl;
 		}else{
 			std::cout << "Is mousex greater than the start" << std::endl;
-			if((ui::mouse.x - offset.x) >= mouseStart.x){
+			if ((ui::mouse.x - offset.x) >= mouseStart.x) {
 				std::cout << "Thing" << std::endl;
 				thing = (ui::mouse.x - offset.x - mouseStart.x)/80;
 				std::cout << "Highlight" << std::endl;
 				highlight=sel+thing;
 				std::cout << "Highlight Check" << std::endl;
-				if(highlight>numSlot-1)highlight=numSlot-1;
+				if (highlight>numSlot-1)highlight=numSlot-1;
 				std::cout << "Left Click" << std::endl;
-				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+				if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 					sel = highlight;
 					mouseSel=false;
 					invHover=false;
 					selected = true;
 				}
 			}
-			if((ui::mouse.x - offset.x) < mouseStart.x){
+			if ((ui::mouse.x - offset.x) < mouseStart.x) {
 				thing = (mouseStart.x - (ui::mouse.x - offset.x))/80;
-				if((int)sel-(int)thing<0)highlight=0;
+				if ((int)sel-(int)thing<0)highlight=0;
 				else highlight=sel-thing;
-				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+				if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 					sel = highlight;
 					mouseSel=false;
 					invHover=false;
@@ -470,7 +485,7 @@ void Inventory::draw(void){
 			}
 		}
 		std::cout << "Rays" << std::endl;
-		for(auto &r : iray){
+		for(auto &r : iray) {
 			std::cout << "Setting angle" << std::endl;
 			angle=180-(angleB*a) - angleB/2.0f;
 			std::cout << "Currcourd" << std::endl;
@@ -488,21 +503,18 @@ void Inventory::draw(void){
 				glVertex2i(r.end.x-(itemWide/2),	r.end.y+(itemWide/2));
 			glEnd();
 
-			std::cout << "Draw items" << std::endl;
-			if(!items.empty() && a < items.size() && items[a].count){
-				std::cout << "Jamie" << std::endl;
+			std::cout << "Draw items," << a << std::endl;
+			if (!items.empty() && a < numSlot && items[a].count) {
+				std::cout << "drawing" << std::endl;
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, itemtex[items[a].id]);
-				glColor4f(1.0f, 1.0f, 1.0f, a == highlight ? 0.8f : 0.2f);
-				std::cout << "Done Binding" << std::endl;
+				glColor4f(1.0f, 1.0f, 1.0f, 1.0fa);
 				glBegin(GL_QUADS);
-				std::cout << "jdjdjd" << std::endl;
-					if(itemMap[items[a].id]->height > itemMap[items[a].id]->width){
-						std::cout << "map" << std::endl;
-						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y-(itemWide/2));
-						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y-(itemWide/2));
-						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y+(itemWide/2));
-						glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y+(itemWide/2));
+					if (itemMap[items[a].id]->height > itemMap[items[a].id]->width) {
+						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
+						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
+						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y+(itemWide/2));
+						glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y+(itemWide/2));
 					}else{
 						glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),r.end.y-(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
 						glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),r.end.y-(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
@@ -511,34 +523,37 @@ void Inventory::draw(void){
 					}
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
-				std::cout << "Adding a" << std::endl;
-				a++;
-			}
-		}
-		ui::putStringCentered(player->loc.x+player->width/2, player->loc.y + range*.75,itemMap[items[highlight].id]->name.c_str());
-	}
 
-	if(!items.empty() && items.size() > sel && items[sel].count)
+				if (highlight == a) {
+					std::cout << "Shitting" << std::endl;
+					std::cout << itemMap[items[a].id]->name << std::endl;
+					ui::putStringCentered(player->loc.x+player->width/2, player->loc.y + range*.75,itemMap[items[a].id]->name);
+				}
+			}
+			a++;
+		}
+	}
+	if (!items.empty() && items.size() > sel && items[sel].count)
 		itemDraw(player,items[sel].id);
 }
 
-void itemDraw(Player *p,uint id){
+void itemDraw(Player *p,uint id) {
 	static unsigned char inc = 0;
 
 	itemLoc.y = p->loc.y+(p->height/3);
 	itemLoc.x = p->left?p->loc.x:p->loc.x+p->width;
 	glPushMatrix();
 
-	if(!id)return;
+	if (!id)return;
 
-	if(itemMap[id]->type == "Sword"){
-		if(p->left){
-			if(hangle < 15){
+	if (itemMap[id]->type == "Sword") {
+		if (p->left) {
+			if (hangle < 15) {
 				hangle=15.0f;
 				p->inv->usingi = false;
 			}
 		}else{
-			if(hangle > -15){
+			if (hangle > -15) {
 				hangle=-15.0f;
 				p->inv->usingi = false;
 			}
@@ -600,7 +615,7 @@ int Inventory::useItem(void)
 				swing = true;
 				Mix_PlayChannel(2, swordSwing, 0);
 			}
-		}else if(itemMap[items[sel].id]->type == "Cooked Food"){
+		}else if (itemMap[items[sel].id]->type == "Cooked Food") {
 			player->health += itemMap[items[sel].id]->attribValue;
 			usingi = false;
 		}
@@ -608,22 +623,22 @@ int Inventory::useItem(void)
 	return 0;
 }
 
-bool Inventory::detectCollision(vec2 one, vec2 two){
+bool Inventory::detectCollision(vec2 one, vec2 two) {
 	(void)one;
 	(void)two;
 	float xc, yc;
 	float i = 0.0f;
 
-	if(items.empty() || !items[sel].count)
+	if (items.empty() || !items[sel].count)
 		return false;
-	if(itemMap[items[sel].id]->type == "Sword"){
-		while(i<itemMap[items[sel].id]->height){
+	if (itemMap[items[sel].id]->type == "Sword") {
+		while(i<itemMap[items[sel].id]->height) {
 			xc = itemLoc.x; yc = itemLoc.y;
 			xc += float(i) * cos((hangle+90)*PI/180);
 			yc += float(i) * sin((hangle+90)*PI/180);
 
-			if(xc >= one.x && xc <= two.x){
-				if(yc >= one.y && yc <= two.y){
+			if (xc >= one.x && xc <= two.x) {
+				if (yc >= one.y && yc <= two.y) {
 					return true;
 				}
 			}

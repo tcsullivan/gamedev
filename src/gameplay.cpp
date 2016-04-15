@@ -9,7 +9,6 @@ using namespace tinyxml2;
 extern Player	*player;						// main.cpp
 extern World	*currentWorld;					// main.cpp
 
-extern Menu  *currentMenu;
 extern Menu   pauseMenu;
 extern Menu   optionsMenu;
 
@@ -28,7 +27,7 @@ inline void segFault() {
 	(*((int *)NULL))++;
 }
 
-int commonAIFunc(NPC *speaker){
+int commonAIFunc(NPC *speaker) {
 	XMLDocument xml;
 	XMLElement *exml,*oxml;
 
@@ -59,21 +58,21 @@ int commonAIFunc(NPC *speaker){
 	 */
 
 	do{
-		if(!strcmp(exml->Name(),"text")){
-			if(exml->UnsignedAttribute("id") == (unsigned)speaker->dialogIndex){
+		if (!strcmp(exml->Name(),"text")) {
+			if (exml->UnsignedAttribute("id") == (unsigned)speaker->dialogIndex) {
 
 				/*
 				 * Handle any quest tags
 				 */
 
-				if((oxml = exml->FirstChildElement("quest"))){
+				if ((oxml = exml->FirstChildElement("quest"))) {
 					std::string qname;
 
 					while (oxml) {
 						if (!(qname = oxml->StrAttribute("assign")).empty())
 							player->qh.assign(qname,"None",(std::string)oxml->GetText());
-						else if(!(qname = oxml->StrAttribute("check")).empty()){
-							if(player->qh.hasQuest(qname) && player->qh.finish(qname)){
+						else if (!(qname = oxml->StrAttribute("check")).empty()) {
+							if (player->qh.hasQuest(qname) && player->qh.finish(qname)) {
 								goto CONT;
 							}else{
 								oldidx = speaker->dialogIndex;
@@ -92,8 +91,8 @@ CONT:
 				 * Handle any 'give' requests.
 				 */
 
-				if((oxml = exml->FirstChildElement("give"))){
-					while(oxml){
+				if ((oxml = exml->FirstChildElement("give"))) {
+					while(oxml) {
 						player->inv->addItem(oxml->Attribute("id"),oxml->UnsignedAttribute("count"));
 						oxml = oxml->NextSiblingElement();
 					}
@@ -103,8 +102,8 @@ CONT:
 				 * Handle any 'take' requests.
 				 */
 
-				if((oxml = exml->FirstChildElement("take"))){
-					while(oxml){
+				if ((oxml = exml->FirstChildElement("take"))) {
+					while(oxml) {
 						player->inv->takeItem(oxml->Attribute("id"),oxml->UnsignedAttribute("count"));
 						oxml = oxml->NextSiblingElement();
 					}
@@ -121,7 +120,7 @@ CONT:
 				 * Handle dialog options.
 				 */
 
-				if((oxml = exml->FirstChildElement("option"))){
+				if ((oxml = exml->FirstChildElement("option"))) {
 
 					/*
 					 * Convert the list of options into a single colon-separated string.
@@ -129,7 +128,7 @@ CONT:
 
 					std::string optstr;
 
-					while(oxml){
+					while(oxml) {
 
 						/*
 						 * Create a buffer big enough for the next option.
@@ -153,7 +152,7 @@ CONT:
 					ui::dialogBox(speaker->name,optstr.c_str(),false,exml->GetText()+1);
 					ui::waitForDialog();
 
-					if(ui::dialogOptChosen)
+					if (ui::dialogOptChosen)
 						exml = dopt[ui::dialogOptChosen-1];
 
 					while(!dopt.empty())
@@ -172,10 +171,10 @@ CONT:
 				 * Give another NPC dialog if requested.
 				 */
 
-				if((name = exml->Attribute("call"))){
-					for(auto &n : currentWorld->npc){
-						if(!strcmp(n->name,name)){
-							if(exml->QueryUnsignedAttribute("callid",&idx) == XML_NO_ERROR)
+				if ((name = exml->Attribute("call"))) {
+					for(auto &n : currentWorld->npc) {
+						if (!strcmp(n->name,name)) {
+							if (exml->QueryUnsignedAttribute("callid",&idx) == XML_NO_ERROR)
 								n->dialogIndex = idx;
 							n->addAIFunc(commonAIFunc,false);
 							break;
@@ -187,18 +186,18 @@ CONT:
 				 * Handle the next dialog block if this one leads to another.
 				 */
 
-				if(exml->QueryUnsignedAttribute("nextid",&idx) == XML_NO_ERROR){
+				if (exml->QueryUnsignedAttribute("nextid",&idx) == XML_NO_ERROR) {
 					speaker->dialogIndex = idx;
 
-					if(exml->QueryBoolAttribute("stop",&stop) == XML_NO_ERROR && stop){
+					if (exml->QueryBoolAttribute("stop",&stop) == XML_NO_ERROR && stop) {
 						speaker->dialogIndex = 9999;
 						return 0;
-					}else if(exml->QueryBoolAttribute("pause",&stop) == XML_NO_ERROR && stop){
+					}else if (exml->QueryBoolAttribute("pause",&stop) == XML_NO_ERROR && stop) {
 						//speaker->dialogIndex = 9999;
 						return 1;
 					}else return commonAIFunc(speaker);
 				}else{
-					if(oldidx != 9999){
+					if (oldidx != 9999) {
 						speaker->dialogIndex = oldidx;
 						oldidx = 9999;
 						return 1;
@@ -218,19 +217,19 @@ CONT:
 	return 0;
 }
 
-void commonPageFunc(Mob *callee){
+void commonPageFunc(Mob *callee) {
 	ui::drawPage(callee->heyid);
 	ui::waitForDialog();
 	callee->health = 0;
 }
 
-void commonTriggerFunc(Mob *callee){
+void commonTriggerFunc(Mob *callee) {
 	static bool lock = false;
 	XMLDocument xml;
 	XMLElement *exml;
 
 	char *text,*pch;
-	if(!lock){
+	if (!lock) {
 		lock = true;
 
 		xml.LoadFile(currentXML.c_str());
@@ -248,7 +247,7 @@ void commonTriggerFunc(Mob *callee){
 		strcpy(text,exml->GetText());
 		pch = strtok(text,"\n");
 
-		while(pch){
+		while(pch) {
 			ui::importantText(pch);
 			ui::waitForDialog();
 
@@ -264,7 +263,7 @@ void commonTriggerFunc(Mob *callee){
 	}
 }
 
-void initEverything(void){
+void initEverything(void) {
 	std::vector<std::string> xmlFiles;
 	XMLDocument xml;
 
@@ -285,8 +284,8 @@ void initEverything(void){
 	 * Load the first file found as currentWorld.
 	 */
 
-	for(unsigned int i=0;i<xmlFiles.size();i++){
-		if(xmlFiles[i] != "." && xmlFiles[i] != ".." && strcmp(xmlFiles[i].c_str()+xmlFiles[i].size()-3,"dat")){
+	for(unsigned int i=0;i<xmlFiles.size();i++) {
+		if (xmlFiles[i] != "." && xmlFiles[i] != ".." && strcmp(xmlFiles[i].c_str()+xmlFiles[i].size()-3,"dat")) {
 
 			/*
 			 * Read in the XML file.
@@ -304,15 +303,12 @@ void initEverything(void){
 	pauseMenu.items.push_back(ui::menu::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
 	pauseMenu.items.push_back(ui::menu::createButton({-256/2,-300},{256,75},{0.0f,0.0f,0.0f}, "Segfault", segFault));
 	pauseMenu.child = &optionsMenu;
-	pauseMenu.parent = NULL;
 
 
 	optionsMenu.items.push_back(ui::menu::createSlider({0-(float)SCREEN_WIDTH/4,0-(512/2)}, {50,512}, {0.0f, 0.0f, 0.0f}, 0, 100, "Master", &VOLUME_MASTER));
 	optionsMenu.items.push_back(ui::menu::createSlider({-200,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "Music", &VOLUME_MUSIC));
 	optionsMenu.items.push_back(ui::menu::createSlider({-200,000}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "SFX", &VOLUME_SFX));
-	optionsMenu.child = NULL;
 	optionsMenu.parent = &pauseMenu;
-	// optionsMenu.push_back(ui::menu::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, (const char*)("Save and Quit"),);
 
 	/*
 	 * Spawn the player and begin the game.
@@ -325,7 +321,7 @@ void initEverything(void){
 	atexit(destroyEverything);
 }
 
-void destroyEverything(void){
+void destroyEverything(void) {
 	currentWorld->save();
 	//delete currentWorld;
 	//delete[] currentXML;

@@ -10,7 +10,7 @@
 
 class Item{
 public:
-	std::string name,type;
+	std::string name, type;
 
 	float width;
 	float height;
@@ -20,7 +20,26 @@ public:
 	std::string texloc;
 	Texturec *tex;
 
-	GLuint rtex(){
+	GLuint rtex()
+	{
+		return tex->image[0];
+	}
+};
+
+class Currency{
+public:
+	std::string name;
+
+	float width;
+	float height;
+
+	std::string texloc;
+	Texturec *tex;
+
+	float value;
+
+	GLuint rtex()
+	{
 		return tex->image[0];
 	}
 };
@@ -32,17 +51,18 @@ struct item_t{
 
 class Inventory {
 private:
-	unsigned int size;
+	unsigned int size; //how many slots our inventory has
+	unsigned int sel; //what item is currently selected
 	int os = 0;
 public:
 	std::vector<item_t> items;
-	unsigned int sel;
-	bool invOpen = false;
-	bool invOpening = false;
-	bool invHover = false;
-	bool selected = false;
-	bool mouseSel = false;
-	bool usingi = false;
+
+	bool invOpen = false; //is the inventory open
+	bool invOpening = false; //is the opening animation playing
+	bool invHover = false; //are we using the fancy hover inventory
+	bool selected = false; //used in hover inventory to show which item has been selected
+	bool mouseSel = false; //the location of the temperary selection for the hover inv
+	bool usingi = false; //bool used to tell if inventory owner is using selected item
 
 	Inventory(unsigned int s);	// Creates an inventory of size 's'
 	~Inventory(void);			// Free's allocated memory
