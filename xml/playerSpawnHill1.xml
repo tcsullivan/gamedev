@@ -7,7 +7,7 @@
 
 	<hill peakx="0" peaky="1000" width="50" />
 
-	<mob x="300" type="1" aggressive="false" health="1000" />
+	<mob x="300" type="1" aggressive="false" health="100" />
 
 	<!--<trigger x="-300" id="Test" />-->
 

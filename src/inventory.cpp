@@ -425,31 +425,21 @@ void Inventory::draw(void){
 			a++;
 		}
 		C("Done drawing standard inv");
-	}else if(invHover){
+	} else if (invHover) {
 		static unsigned int highlight = 0;
 		static unsigned int thing = 0;
 
-		std::cout<<"Inventory2???"<<std::endl;
-
-		if(!mouseSel){
+		if (!mouseSel) {
+			// setup?
 			mouseStart.x = ui::mouse.x - offset.x;
-			std::cout << "Setting highlight" << std::endl;
 			highlight = sel;
-			std::cout << "Setting thing" << std::endl;
 			thing = sel;
-			std::cout << "Setting mouseSel" << std::endl;
-			mouseSel=true;
-			std::cout << "Done" << std::endl;
-		}else{
-			std::cout << "Is mousex greater than the start" << std::endl;
+			mouseSel = true;
+		} else {
 			if((ui::mouse.x - offset.x) >= mouseStart.x){
-				std::cout << "Thing" << std::endl;
 				thing = (ui::mouse.x - offset.x - mouseStart.x)/80;
-				std::cout << "Highlight" << std::endl;
 				highlight=sel+thing;
-				std::cout << "Highlight Check" << std::endl;
 				if(highlight>numSlot-1)highlight=numSlot-1;
-				std::cout << "Left Click" << std::endl;
 				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 					sel = highlight;
 					mouseSel=false;
@@ -459,8 +449,10 @@ void Inventory::draw(void){
 			}
 			if((ui::mouse.x - offset.x) < mouseStart.x){
 				thing = (mouseStart.x - (ui::mouse.x - offset.x))/80;
-				if((int)sel-(int)thing<0)highlight=0;
-				else highlight=sel-thing;
+				if ((int)sel - (int)thing < 0)
+					highlight = 0;
+				else
+					highlight = sel - thing;
 				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 					sel = highlight;
 					mouseSel=false;
@@ -469,17 +461,16 @@ void Inventory::draw(void){
 				}
 			}
 		}
-		std::cout << "Rays" << std::endl;
-		for(auto &r : iray){
-			std::cout << "Setting angle" << std::endl;
-			angle=180-(angleB*a) - angleB/2.0f;
-			std::cout << "Currcourd" << std::endl;
+
+		a = 0;
+		for (auto &r : iray) {
+			angle = 180 - (angleB * a) - angleB / 2.0f;
+
 			curCoord[a].x += float(range) * cos(angle*PI/180);
 			curCoord[a].y += float(range) * sin(angle*PI/180);
-			std::cout << "Ray.end" << std::endl;
 			r.end = curCoord[a];
 
-			std::cout << "Draw" << std::endl;
+			// square drawing
 			glColor4f(0.0f, 0.0f, 0.0f, a == highlight ? 0.5f : 0.1f);
  			glBegin(GL_QUADS);
 				glVertex2i(r.end.x-(itemWide/2),	r.end.y-(itemWide/2));
@@ -488,17 +479,12 @@ void Inventory::draw(void){
 				glVertex2i(r.end.x-(itemWide/2),	r.end.y+(itemWide/2));
 			glEnd();
 
-			std::cout << "Draw items" << std::endl;
-			if(!items.empty() && a < items.size() && items[a].count){
-				std::cout << "Jamie" << std::endl;
+			if (a < items.size() && items[a].count) {
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, itemtex[items[a].id]);
 				glColor4f(1.0f, 1.0f, 1.0f, a == highlight ? 0.8f : 0.2f);
-				std::cout << "Done Binding" << std::endl;
 				glBegin(GL_QUADS);
-				std::cout << "jdjdjd" << std::endl;
 					if(itemMap[items[a].id]->height > itemMap[items[a].id]->width){
-						std::cout << "map" << std::endl;
 						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y-(itemWide/2));
 						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y-(itemWide/2));
 						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),r.end.y+(itemWide/2));
@@ -511,11 +497,16 @@ void Inventory::draw(void){
 					}
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
-				std::cout << "Adding a" << std::endl;
-				a++;
 			}
+			a++;
 		}
-		ui::putStringCentered(player->loc.x+player->width/2, player->loc.y + range*.75,itemMap[items[highlight].id]->name.c_str());
+
+		if (highlight < items.size()) {
+			ui::putStringCentered(player->loc.x + player->width / 2,
+			                      player->loc.y + range * 0.75f,
+							      itemMap[items[highlight].id]->name.c_str()
+						         );
+		}
 	}
 
 	if(!items.empty() && items.size() > sel && items[sel].count)

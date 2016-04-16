@@ -134,7 +134,6 @@ public:
 	vec2 start;
 	vec2 end;
 	bool in;
-	std::vector<Structures *> build;
 
 	Village(const char *meme, World *w);
 	~Village(void){}
@@ -251,16 +250,19 @@ protected:
 
 	std::vector<std::string> sTexLoc;
 
-	std::vector<Light>     light;
-	std::vector<Village>   village;
-	std::vector<Particles> particles;
-	std::vector<Object>	   object;
-	std::vector<Mob>       mob;
+	std::vector<Light>        light;
+	std::vector<Village>      village;
+	std::vector<Particles>    particles;
+	std::vector<Object>	      object;
+	std::vector<Mob *>        mob;
+	std::vector<Structures *> build;
 
 public:
 
 	Light *getLastLight(void);
 	Mob   *getLastMob(void);
+	Entity *getNearInteractable(Entity e);
+	vec2 getStructurePos(int index);
 
 	std::string getSTextureLocation(unsigned int index) const;
 
@@ -280,20 +282,9 @@ public:
 	 * world.
 	 */
 
-	std::vector<Entity		*>	entity;
-
-	/**
-	 * A vector of all NPCs in this world.
-	 */
-
-	std::vector<NPC			*>	npc;
-	std::vector<Merchant    *>  merchant;
-
-	/**
-	 * A vector of all Structures in this world.
-	 */
-
-	std::vector<Structures	*>	build;
+	std::vector<Entity *> entity;
+	std::vector<NPC	*> npc;
+	std::vector<Merchant *> merchant;
 
 	/**
 	 * NULLifies pointers and allocates necessary memory. This should be
@@ -309,62 +300,16 @@ public:
 
 	virtual ~World(void);
 
-	/**
-	 * Adds a structure to the world, with the specified subtype and
-	 * coordinates. `inside` is a file name for the IndoorWorld XML file that
-	 * this structure will lead to; if NULL the player won't be able to enter
-	 * the structure.
-	 */
-
-	void addStructure(BUILD_SUB subtype,float x,float y, std::string tex, std::string inside);
+	void     addLight(vec2 xy, Color color);
+	void     addMerchant(float x, float y, bool housed);
+	void     addMob(int type,float x,float y);
+	void     addMob(int t,float x,float y,void (*hey)(Mob *));
+	void     addNPC(float x,float y);
+	void     addObject(std::string in, std::string pickupDialog, float x, float y);
+	void     addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d);
+	void     addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d, unsigned char flags);
+	void     addStructure(BUILD_SUB subtype,float x,float y, std::string tex, std::string inside);
 	Village *addVillage(std::string name, World *world);
-
-	/**
-	 * Adds a Mob to the world with the specified type and coordinates.
-	 */
-
-	void addMob(int type,float x,float y);
-
-	/**
-	 * Adds a Mob to the world with a handler function that can be called by
-	 * certain mobs to trigger events.
-	 */
-
-	void addMob(int t,float x,float y,void (*hey)(Mob *));
-
-	/**
-	 * Adds an NPC to the world with the specified coordinates.
-	 */
-
-	void addNPC(float x,float y);
-
-	/**
-	 * Adds a Merchant to the world at the specified coordinates.
-	 */
-
-	void addMerchant(float x, float y);
-
-	/**
-	 * Adds an object to the world with the specified item id and coordinates.
-	 * If `pickupDialog` is not NULL, that string will display in a dialog box
-	 * upon object interaction.
-	 */
-
-	void addObject(std::string in, std::string pickupDialog, float x, float y);
-
-	/**
-	 * Adds a particle to the world with the specified coordinates, dimensions,
-	 * velocity, color and duration (time to live).
-	 */
-
-	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d);
-	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d, unsigned char flags);
-
-	/**
-	 * Adds a light to the world with the specified coordinates and color.
-	 */
-
-	void addLight(vec2 xy, Color color);
 
 	/**
 	 * Updates the coordinates of everything in the world that has coordinates

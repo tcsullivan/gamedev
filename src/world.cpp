@@ -168,7 +168,10 @@ void World::
 deleteEntities(void)
 {
     // free mobs
-	mob.clear();
+    while(!mob.empty()){
+		delete mob.back();
+		mob.pop_back();
+	}
 
 	merchant.clear();
 	while(!npc.empty()){
@@ -696,7 +699,7 @@ void World::draw(Player *p){
     }
 
 	for (auto &m : mob)
-		m.draw();
+		m->draw();
 
 	for (auto &o : object)
 		o.draw();
@@ -969,18 +972,18 @@ addVillage(std::string name, World *world)
 }
 
 void World::addMob(int t,float x,float y){
-	mob.emplace_back(t);
-	mob.back().spawn(x,y);
+	mob.push_back(new Mob(t));
+	mob.back()->spawn(x,y);
 
-	entity.push_back(&mob.back());
+	entity.push_back(mob.back());
 }
 
 void World::addMob(int t,float x,float y,void (*hey)(Mob *)){
-	mob.emplace_back(t);
-	mob.back().spawn(x,y);
-	mob.back().hey = hey;
+	mob.push_back(new Mob(t));
+	mob.back()->spawn(x,y);
+	mob.back()->hey = hey;
 
-	entity.push_back(&mob.back());
+	entity.push_back(mob.back());
 }
 
 void World::addNPC(float x,float y){
@@ -990,9 +993,12 @@ void World::addNPC(float x,float y){
 	entity.push_back(npc.back());
 }
 
-void World::addMerchant(float x, float y){
+void World::addMerchant(float x, float y, bool housed){
 	merchant.push_back(new Merchant());
 	merchant.back()->spawn(x,y);
+
+    if (housed)
+        merchant.back()->inside = build.back();
 
 	npc.push_back(merchant.back());
 	entity.push_back(npc.back());
@@ -1037,7 +1043,20 @@ getLastLight(void)
 Mob *World::
 getLastMob(void)
 {
-    return &mob.back();
+    return mob.back();
+}
+
+Entity *World::
+getNearInteractable(Entity e)
+{
+    for (auto &n : entity) {
+        if (n->type == MOBT || n->type == NPCT || n->type == MERCHT) {
+            if (e.isNear(*n) && (e.left ? n->loc.x < e.loc.x : n->loc.x > e.loc.x))
+                return n;
+        }
+    }
+
+    return nullptr;
 }
 
 std::string World::
@@ -1047,6 +1066,17 @@ getSTextureLocation(unsigned int index) const
         return "";
 
     return sTexLoc[ index ];
+}
+
+vec2 World::
+getStructurePos(int index)
+{
+    if (index < 0)
+        return build.back()->loc;
+    else if ((unsigned)index >= build.size())
+        return vec2{0, 0};
+
+    return build[index]->loc;
 }
 
 std::string World::
@@ -1193,7 +1223,9 @@ addHole(unsigned int start, unsigned int end)
 void World::
 addHill(const ivec2 peak, const unsigned int width)
 {
-	int start = peak.x - width / 2, end = start + width, offset = 0;
+	int start  = peak.x - width / 2,
+        end    = start + width,
+        offset = 0;
 	const float thing = peak.y - worldData[start].groundHeight;
     const float period = PI / width;
 
@@ -1238,9 +1270,9 @@ void World::save(void){
 	}
 
 	for(auto &m : mob){
-		data.append(std::to_string((int)m.loc.x) + "\n");
-		data.append(std::to_string((int)m.loc.y) + "\n");
-		data.append(std::to_string((int)m.alive) + "\n");
+		data.append(std::to_string((int)m->loc.x) + "\n");
+		data.append(std::to_string((int)m->loc.y) + "\n");
+		data.append(std::to_string((int)m->alive) + "\n");
 	}
 
 	data.append("dOnE\0");
@@ -1284,13 +1316,13 @@ void World::load(void){
 	for(auto &m : mob){
 		std::getline(iss,line);
 		if(line == "dOnE")return;
-		m.loc.x = std::stoi(line);
+		m->loc.x = std::stoi(line);
 		std::getline(iss,line);
 		if(line == "dOnE")return;
-		m.loc.y = std::stoi(line);
+		m->loc.y = std::stoi(line);
 		std::getline(iss,line);
 		if(line == "dOnE")return;
-		m.alive = std::stoi(line);
+		m->alive = std::stoi(line);
 	}
 
 	while(std::getline(iss,line)){
@@ -1530,8 +1562,8 @@ Arena::Arena(World *leave,Player *p,Mob *m){
 	mmob = m;
 	mmob->aggressive = false;
 
-	mob.push_back(*m);
-	entity.push_back(&mob.back());
+	mob.push_back(m);
+	entity.push_back(mob.back());
 
 	battleNest.push_back(leave);
 	battleNestLoc.push_back(p->loc);
@@ -1544,8 +1576,8 @@ Arena::~Arena(void){
 World *Arena::exitArena(Player *p){
 	World *tmp;
 	if (!mmob->alive &&
-         p->loc.x + p->width / 2 > mob[0].loc.x &&
-	     p->loc.x + p->width / 2 < mob[0].loc.x + HLINE * 12) {
+         p->loc.x + p->width / 2 > mob[0]->loc.x &&
+	     p->loc.x + p->width / 2 < mob[0]->loc.x + HLINE * 12) {
 		tmp = battleNest.front();
 		battleNest.erase(battleNest.begin());
 
@@ -1843,9 +1875,7 @@ loadWorldFromXMLNoSave(std::string path) {
 							       vil->StrAttribute("texture"),
 							       vil->StrAttribute("inside")
                    );
-				tmp->addMerchant(0, 100);
-
-                tmp->merchant.back()->inside = tmp->build.back();
+				tmp->addMerchant(0, 100, true);
             }
 
             // handle traders
@@ -1880,15 +1910,13 @@ loadWorldFromXMLNoSave(std::string path) {
 			}
 		}
 
-		vptr->build.push_back(tmp->build.back());
+        float buildx = tmp->getStructurePos(-1).x;
 
-		if(vptr->build.back()->loc.x < vptr->start.x){
-			vptr->start.x = vptr->build.back()->loc.x;
-		}
+		if (buildx < vptr->start.x)
+			vptr->start.x = buildx;
 
-		if(vptr->build.back()->loc.x + vptr->build.back()->width > vptr->end.x){
-			vptr->end.x = vptr->build.back()->loc.x + vptr->build.back()->width;
-		}
+		if (buildx > vptr->end.x)
+			vptr->end.x = buildx;
 
 		//go to the next element in the village block
 		vil = vil->NextSiblingElement();

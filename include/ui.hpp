@@ -11,7 +11,9 @@
 
 #include <config.hpp>
 #include <world.hpp>
+
 #include <ui_menu.hpp>
+#include <ui_action.hpp>
 
 #include <ft2build.h>
 #include <SDL2/SDL_opengl.h>
@@ -109,6 +111,7 @@ namespace ui {
 	 *	limited until a right click is given, closing the box.
 	*/
 
+	void drawBox(vec2 c1, vec2 c2);
 	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...);
 	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...);
 	void merchantBox();

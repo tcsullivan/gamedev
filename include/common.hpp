@@ -160,6 +160,8 @@ extern std::mutex mtx;
  *
  */
 
+#define HLINES(n) (HLINE * n)
+
 extern unsigned int HLINE;
 
 extern float VOLUME_MASTER;

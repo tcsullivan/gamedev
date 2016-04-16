@@ -615,10 +615,29 @@ namespace ui {
 		pageTexReady = true;
 	}
 
+	void drawBox(vec2 c1, vec2 c2) {
+		// draw black body
+		glColor3ub(0, 0, 0);
+		glRectf(c1.x, c1.y, c2.x, c2.y);
+
+		// draw white border
+		glColor3ub(255, 255, 255);
+		glBegin(GL_LINE_STRIP);
+			glVertex2i(c1.x    , c1.y);
+			glVertex2i(c2.x + 1, c1.y);
+			glVertex2i(c2.x + 1, c2.y);
+			glVertex2i(c1.x - 1, c2.y);
+			glVertex2i(c1.x    , c1.y);
+		glEnd();
+	}
+
 	void draw(void){
 		unsigned char i;
 		float x,y,tmp;
 		std::string rtext;
+
+		// will return if not toggled
+		action::draw(vec2 {player->loc.x + player->width / 2, player->loc.y + player->height + HLINE});
 
 		if (pageTexReady) {
 			glEnable(GL_TEXTURE_2D);
@@ -654,38 +673,24 @@ namespace ui {
 				x=offset.x-SCREEN_WIDTH/6;
 				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
 
-				// draw the box border
-				glColor3ub(255,255,255);
-				glBegin(GL_LINE_STRIP);
-					glVertex2f(x-1 				   ,y+1);
-					glVertex2f(x+1+(SCREEN_WIDTH/3),y+1);
-					glVertex2f(x+1+(SCREEN_WIDTH/3),y-1-SCREEN_HEIGHT*.6);
-					glVertex2f(x-1,y-1-SCREEN_HEIGHT*.6);
-					glVertex2f(x - 1,y+1);
-				glEnd();
-
-				// draw the box
-				glColor3ub(0,0,0);
-				glRectf(x,y,x+SCREEN_WIDTH/3,y-SCREEN_HEIGHT*.6);
+				drawBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH / 3, y - SCREEN_HEIGHT * 0.6f});
 
 				// draw typeOut'd text
 				putString(x + HLINE, y - fontSize - HLINE, (rtext = typeOut(dialogBoxText)));
 
-				std::string itemString1 = std::to_string(merchTrade.quantity[0]);
-				itemString1 += "x";
+				std::string itemString1 = std::to_string(merchTrade.quantity[0]) + "x",
+				            itemString2 = std::to_string(merchTrade.quantity[1]) + "x";
 
-				std::string itemString2 = std::to_string(merchTrade.quantity[1]);
-				itemString2 += "x";
+				vec2 merchBase = {offset.x, offset.y + SCREEN_HEIGHT / 5};
 
-				putStringCentered(offset.x - (SCREEN_WIDTH / 10) + 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + (fontSize*2), itemString1.c_str());
-				putStringCentered(offset.x - (SCREEN_WIDTH / 10) + 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + fontSize, merchTrade.item[0].c_str());
-
-				putStringCentered(offset.x + (SCREEN_WIDTH / 10) - 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + (fontSize*2), itemString2.c_str());
-				putStringCentered(offset.x + (SCREEN_WIDTH / 10) - 20, offset.y + (SCREEN_HEIGHT / 5) + 40 + fontSize, merchTrade.item[1].c_str());
-
-				putStringCentered(offset.x,offset.y + (SCREEN_HEIGHT / 5) + 60, "for");
+				putStringCentered(merchBase.x + SCREEN_WIDTH / 10 - 20, merchBase.y + 40 + fontSize * 2, itemString1.c_str());
+				putStringCentered(merchBase.x + SCREEN_WIDTH / 10 - 20, merchBase.y + 40 + fontSize    , merchTrade.item[0].c_str());
+				putStringCentered(merchBase.x - SCREEN_WIDTH / 10     , merchBase.y + 40 + fontSize * 2, itemString2.c_str());
+				putStringCentered(merchBase.x - SCREEN_WIDTH / 10     , merchBase.y + 40 + fontSize    , merchTrade.item[1].c_str());
+				putStringCentered(offset.x, merchBase.y + 60, "for");
 
 				glEnable(GL_TEXTURE_2D);
+
 				glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[0]));
 				glBegin(GL_QUADS);
 					glTexCoord2d(0,1);glVertex2f(offset.x - (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5));
@@ -701,6 +706,7 @@ namespace ui {
 					glTexCoord2d(1,0);glVertex2f(offset.x + (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5) + 40);
 					glTexCoord2d(0,0);glVertex2f(offset.x + (SCREEN_WIDTH / 10) - 40,offset.y + (SCREEN_HEIGHT/5) + 40);
 				glEnd();
+
 				glDisable(GL_TEXTURE_2D);
 
 				merchArrowLoc[0].x = offset.x - (SCREEN_WIDTH / 8.5) - 16;
@@ -748,24 +754,12 @@ namespace ui {
 				}
 
 				setFontColor(255, 255, 255);
-			}else{ //normal dialog box
+			} else { //normal dialog box
 
-				x=offset.x-SCREEN_WIDTH/2+HLINE*8;
-				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
+				x = offset.x - SCREEN_WIDTH / 2  + HLINE * 8;
+				y = offset.y + SCREEN_HEIGHT / 2 - HLINE * 8;
 
-				// draw white border
-				glColor3ub(255, 255, 255);
-
-				glBegin(GL_LINE_STRIP);
-					glVertex2i(x-1						,y+1);
-					glVertex2i(x+1+SCREEN_WIDTH-HLINE*16,y+1);
-					glVertex2i(x+1+SCREEN_WIDTH-HLINE*16,y-1-SCREEN_HEIGHT/4);
-					glVertex2i(x-1						,y-1-SCREEN_HEIGHT/4);
-					glVertex2i(x-1						,y+1);
-				glEnd();
-
-				glColor3ub(0,0,0);
-				glRectf(x,y,x+SCREEN_WIDTH-HLINE*16,y-SCREEN_HEIGHT/4);
+				drawBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH - HLINE * 16, y - SCREEN_HEIGHT / 4});
 
 				rtext = typeOut(dialogBoxText);
 
@@ -956,16 +950,22 @@ EXIT:
 			// mouse clicks
 			case SDL_MOUSEBUTTONDOWN:
 
-				// right click advances dialog
-				if ((e.button.button & SDL_BUTTON_RIGHT) && (dialogBoxExists | pageTexReady))
-					dialogAdvance();
+				// run actions?
+				if ((action::make = e.button.button & SDL_BUTTON_RIGHT))
+					/*player->inv->invHover =*/ edown = false;
 
-				// left click uses item
-				if ((e.button.button & SDL_BUTTON_LEFT) && !dialogBoxExists)
-					player->inv->usingi = true;
+				if (dialogBoxExists || pageTexReady) {
+					// right click advances dialog
+					if ((e.button.button & SDL_BUTTON_RIGHT))
+						dialogAdvance();
+				} else {
+					// left click uses item
+					if (e.button.button & SDL_BUTTON_LEFT)
+						player->inv->usingi = true;
+				}
 
 				if(mouse.x > player->loc.x && mouse.x < player->loc.x + player->width &&
-					mouse.y > player->loc.y && mouse.y < player->loc.y + player->height) {
+				   mouse.y > player->loc.y && mouse.y < player->loc.y + player->height) {
 					player->vel.y = .05;
 					fr = mouse;
 					ig = player;
@@ -1054,8 +1054,6 @@ EXIT:
 							}
 						}
 						break;
-					case SDLK_s:
-						break;
 					case SDLK_w:
 						if (inBattle) {
 							tmp = currentWorld;
@@ -1066,32 +1064,43 @@ EXIT:
 							currentWorld = tmp;
 						break;
 					case SDLK_LSHIFT:
-						if(debug){
-							Mix_PlayChannel(1,sanic,-1);
+						if (debug) {
+							Mix_PlayChannel(1, sanic, -1);
 							player->speed = 4.0f;
-						}else
+						} else
 							player->speed = 2.0f;
 						break;
 					case SDLK_LCTRL:
 						player->speed = .5;
 						break;
 					case SDLK_e:
-						edown=true;
-						if(!heyOhLetsGo){
+						edown = true;
+
+						// start hover counter?
+						if (!heyOhLetsGo) {
 							heyOhLetsGo = loops;
 							player->inv->mouseSel = false;
 						}
-						if(loops - heyOhLetsGo >= 2 && !(player->inv->invOpen) && !(player->inv->selected))
-							player->inv->invHover=true;
+
+						// run hover thing
+						if (loops - heyOhLetsGo >= 2 && !(player->inv->invOpen) && !(player->inv->selected)) {
+							player->inv->invHover = true;
+
+							// enable action ui
+							action::enable();
+						}
+
 						break;
 					default:
 						break;
 					}
-					if(tmp != currentWorld){
-						std::swap(tmp,currentWorld);
+
+					// handle world switches?
+					if (tmp != currentWorld) {
+						std::swap(tmp, currentWorld);
 						toggleBlackFast();
 						waitForCover();
-						std::swap(tmp,currentWorld);
+						std::swap(tmp, currentWorld);
 						toggleBlackFast();
 					}
 				}
@@ -1149,6 +1158,10 @@ EXIT:
 						else player->inv->selected = false;
 						player->inv->mouseSel = false;
 					}
+
+					// disable action ui
+					action::disable();
+
 					heyOhLetsGo = 0;
 					break;
 				case SDLK_l:
@@ -1165,7 +1178,7 @@ EXIT:
 					else {
 						currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
 						currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
-						currentWorld->getLastLight()->follow(currentWorld->build.back());
+						//currentWorld->getLastLight()->follow(currentWorld->build.back());
 						currentWorld->getLastLight()->makeFlame();
 					}
 					break;
