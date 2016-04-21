@@ -1,5 +1,8 @@
 #include <ui_action.hpp>
 
+#define ACTION_PROLOUGE { actioning = true; }
+#define ACTION_EPILOUGE { actioning = false; actionHover = 0; }
+
 extern World *currentWorld;
 extern Player *player;
 extern bool inBattle;
@@ -19,7 +22,7 @@ static std::vector<void (*)(void)> actionFunc = {
     nullptr,
 };
 
-static bool actionToggle = false;
+static bool actionToggle = false, actioning = false;
 static unsigned int actionHover = 0;
 static Entity *nearEntity = nullptr, *lastEntity = nullptr;
 
@@ -42,7 +45,6 @@ namespace ui {
 
         // draws the action ui
         void draw(vec2 loc) {
-            static bool second = false;
             unsigned int i = 1;
             float y = loc.y;
 
@@ -60,19 +62,14 @@ namespace ui {
             } else if (nearEntity != lastEntity) {
                 if (lastEntity != nullptr)
                     lastEntity->canMove = true;
-                lastEntity = nearEntity;;
+                lastEntity = nearEntity;
             }
 
             if (make) {
+                while(actioning);
+
                 if (!actionHover) {
                     make = false;
-                    return;
-                }
-
-                if (!second)
-                    second = true;
-                else {
-                    second = false;
                     return;
                 }
 
@@ -80,8 +77,6 @@ namespace ui {
                     std::thread(actionFunc[actionHover - 1]).detach();
 
                 actionHover = 0;
-                make = false;
-                return;
             } else {
                 nearEntity->canMove = false;
                 ui::drawBox(vec2 {loc.x - HLINES(11), loc.y}, vec2 {loc.x + HLINES(12), loc.y + actionText.size() * HLINES(8)});
@@ -106,12 +101,15 @@ namespace ui {
                 actionHover = 0;
 
             ui::setFontColor(255, 255, 255, 255);
+            make = false;
         }
     }
 }
 
 void actionAttack(void)
 {
+    ACTION_PROLOUGE;
+
     auto m = currentWorld->getNearInteractable(*player);
 
     if (m->type == MOBT) {
@@ -129,14 +127,20 @@ void actionAttack(void)
     } else {
         ui::dialogBox(player->name, "", false, "%s doesn't appear to be in the mood for fighting...", m->name);
     }
+
+    ACTION_EPILOUGE;
 }
 
 void actionAction(void)
 {
+    ACTION_PROLOUGE;
+
     auto e = currentWorld->getNearInteractable(*player);
 
     if (e->type == NPCT) {
         if (!NPCp(e)->aiFunc.empty())
             e->interact();
     }
+
+    ACTION_EPILOUGE;
 }

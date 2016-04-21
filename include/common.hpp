@@ -86,10 +86,15 @@ typedef struct {
 	int y;
 } ivec2;
 
-typedef struct {
+struct _vec2 {
 	float x;
 	float y;
-} vec2;
+
+	bool operator==(const _vec2 &v) {
+		return (x == v.x) && (y == v.y);
+	}
+};
+typedef struct _vec2 vec2;
 
 typedef struct {
 	float x;

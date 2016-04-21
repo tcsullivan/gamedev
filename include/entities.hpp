@@ -13,7 +13,6 @@
 #define NPCp(n)			((NPC *)n)
 #define Structurep(n)	((Structures *)n)
 #define Mobp(n)			((Mob *)n)
-#define Objectp(n)		((Object *)n)
 
 #define PLAYER_INV_SIZE	43	// The size of the player's inventory
 #define NPC_INV_SIZE	3	// Size of an NPC's inventory
@@ -275,7 +274,54 @@ public:
 	void reloadTexture(void);
 
 	void interact(void);
+
+	bool operator==(const Object &o) {
+		return !strcmp(name, o.name) && (loc == o.loc);
+	}
 };
+
+/**
+ * The light structure, used to store light coordinates and color.
+ */
+
+class Light{
+public:
+	vec2 loc;		/**< Light location */
+	Color color;	/**< Light color */
+	float radius;   /**< Light radius */
+
+	bool belongsTo;
+	Entity *following;
+
+	bool flame;
+	float fireFlicker;
+	vec2 fireLoc;
+
+	Light(vec2 l, Color c, float r){
+		loc = l;
+		color = c;
+		radius = r;
+
+		belongsTo = false;
+		following = nullptr;
+
+		flame = false;
+	}
+
+	void makeFlame(void){
+		flame = true;
+	}
+
+	void follow(Entity *f){
+		following=f;
+		belongsTo = true;
+	}
+};
+
+constexpr Object *Objectp(Entity *e) {
+	return (Object *)e;
+}
+
 #endif // ENTITIES_H
 
 /**

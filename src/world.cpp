@@ -1,54 +1,74 @@
+#include <world.hpp>
+
+/* ----------------------------------------------------------------------------
+** Includes section
+** --------------------------------------------------------------------------*/
+
+// standard library headers
 #include <algorithm>
 #include <sstream>
 
-#include <world.hpp>
+// local game headers
 #include <ui.hpp>
 
+// local library headers
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
-/**
- * Defines how many HLINEs tall a blade of grass can be.
- */
+/* ----------------------------------------------------------------------------
+** Macros section
+** --------------------------------------------------------------------------*/
 
-#define GRASS_HEIGHT            4
+// defines grass height in HLINEs
+#define GRASS_HEIGHT 4
 
-/**
- * Defines the height of the floor in an IndoorWorld.
- */
-
+// indoor world constants
 #define INDOOR_FLOOR_THICKNESS      50
 #define INDOOR_FLOOR_HEIGHTT        400
 
-extern Player *player;						// main.cpp?
-extern World  *currentWorld;				// main.cpp
-extern World  *currentWorldToLeft;			// main.cpp
-extern World  *currentWorldToRight;			// main.cpp
-extern int     commonAIFunc(NPC *);			// entities.cpp
-extern void    commonTriggerFunc(Mob *);	// gameplay.cpp
-extern void    commonPageFunc(Mob *);		// gameplay.cpp
-extern bool    inBattle;
+/* ----------------------------------------------------------------------------
+** Variables section
+** --------------------------------------------------------------------------*/
 
+// external variables
+extern Player      *player;					// main.cpp?
+extern World       *currentWorld;			// main.cpp
+extern World       *currentWorldToLeft;		// main.cpp
+extern World       *currentWorldToRight;	// main.cpp
+extern bool         inBattle;               // ui.cpp?
 extern unsigned int tickCount;				// main.cpp
+extern std::string  xmlFolder;
 
-extern std::string xmlFolder;
 
+// externally referenced in main.cpp
+const unsigned int DAY_CYCLE = 12000;
 int worldShade = 0;
 
+// externally referenced in entities.cpp
+const float PLAYER_SPEED_CONSTANT = 0.150f;
+const float GRAVITY_CONSTANT      = 0.001f;
+
+// ground-generating constants
+static const float GROUND_HEIGHT_INITIAL =  80.0f;
+static const float GROUND_HEIGHT_MINIMUM =  60.0f;
+static const float GROUND_HEIGHT_MAXIMUM = 110.0f;
+static const float GROUND_HILLINESS      =  10.0f;
+
+// the path of the currently loaded XML file, externally referenced in places
 std::string currentXML;
 
-std::vector<std::string> inside;		// tracks indoor worlds
-
-std::vector<World *>     battleNest;	// tracks arenas
-std::vector<vec2>        battleNestLoc;	// keeps arena locations
-
-/**
- * Contains the current weather, used in many other places/files.
- */
-
+// contains the current world's weather, extern'd in ui.cpp, main.cpp, ..?
 WorldWeather weather = WorldWeather::Sunny;
 
-const std::string bgPaths[2][9]={
+// keeps track of pathnames of XML file'd worlds the player has left to enter structures
+std::vector<std::string> inside;
+
+// keeps track of information of worlds the player has left to enter arenas
+static std::vector<World *> battleNest;
+static std::vector<vec2>    battleNestLoc;
+
+// pathnames of images for world themes
+static const std::string bgPaths[][9] = {
     {"bg.png",					// Daytime background
      "bgn.png",					// Nighttime background
      "bgFarMountain.png",		// Furthest layer
@@ -68,7 +88,8 @@ const std::string bgPaths[2][9]={
      "bgWoodTile.png"}
 };
 
-const std::string buildPaths[] = {
+// pathnames of structure textures
+static const std::string buildPaths[] = {
     "townhall.png",
 	"house1.png",
     "house2.png",
@@ -79,102 +100,66 @@ const std::string buildPaths[] = {
 	"brazzier.png"
 };
 
-/**
- * Constants used for layer drawing in World::draw(), releated to transparency.
- */
-
-const float bgDraw[4][3]={
+// alpha-related values used for world drawing? nobody knows...
+static const float bgDraw[4][3]={
 	{ 100, 240, 0.6  },
 	{ 150, 250, 0.4  },
 	{ 200, 255, 0.25 },
 	{ 255, 255, 0.1  }
 };
 
-/**
- * Sets the desired theme for the world's background.
- *
- * The images chosen for the background layers are selected depending on the
- * world's background type.
- */
+/* ----------------------------------------------------------------------------
+** Functions section
+** --------------------------------------------------------------------------*/
 
-void World::
-setBackground(WorldBGType bgt)
-{
-    // load textures with a limit check
-	switch ((bgType = bgt)) {
-	case WorldBGType::Forest:
-		bgTex = new Texturec(bgFiles);
-		break;
-
-	case WorldBGType::WoodHouse:
-		bgTex = new Texturec(bgFilesIndoors);
-		break;
-
-    default:
-        UserError("Invalid world background type");
-        break;
-	}
-}
-
-/**
- * Sets the world's style.
- *
- * The world's style will determine what sprites are used for things like\
- * generic structures.
- */
-
-void World::
-setStyle(std::string pre)
-{
-    unsigned int i;
-
-    // get folder prefix
-	std::string prefix = pre.empty() ? "assets/style/classic/" : pre;
-
-	for (i = 0; i < arrAmt(buildPaths); i++)
-		sTexLoc.push_back(prefix + buildPaths[i]);
-
-	prefix += "bg/";
-
-	for (i = 0; i < arrAmt(bgPaths[0]); i++)
-		bgFiles.push_back(prefix + bgPaths[0][i]);
-
-	for (i = 0; i < arrAmt(bgPaths[1]); i++)
-		bgFilesIndoors.push_back(prefix + bgPaths[1][i]);
-}
+// externs
+extern int  commonAIFunc(NPC *);		// gameplay.cpp
+extern void commonTriggerFunc(Mob *);	// gameplay.cpp
+extern void commonPageFunc(Mob *);		// gameplay.cpp
 
 /**
  * Creates a world object.
- *
- * Note that all this does is nullify pointers, to prevent as much disaster as
- * possible. Functions like setBGM(), setStyle() and generate() should be called
- * before the World is actually put into use.
+ * Note that all this does is nullify a pointer...
  */
-
 World::
 World(void)
 {
-    bgmObj = NULL;
+    bgmObj = nullptr;
+}
+
+/**
+ * The world destructor.
+ * This will free objects used by the world itself, then free the vectors of
+ * entity-related objects.
+ */
+World::
+~World(void)
+{
+    // SDL2_mixer's object
+	if (bgmObj != nullptr)
+		Mix_FreeMusic(bgmObj);
+
+	delete bgTex;
+	deleteEntities();
 }
 
 /**
  * The entity vector destroyer.
- *
  * This function will free all memory used by all entities, and then empty the
  * vectors they were stored in.
  */
-
 void World::
 deleteEntities(void)
 {
     // free mobs
-    while(!mob.empty()){
+    while (!mob.empty()) {
 		delete mob.back();
 		mob.pop_back();
 	}
 
-	merchant.clear();
-	while(!npc.empty()){
+    // free npcs
+	merchant.clear(); // TODO
+	while (!npc.empty()) {
 		delete npc.back();
 		npc.pop_back();
 	}
@@ -187,52 +172,28 @@ deleteEntities(void)
 
     // free objects
 	object.clear();
-
-    // clear entity array
-	entity.clear();
-
     // free particles
 	particles.clear();
-
     // clear light array
 	light.clear();
-
     // free villages
 	village.clear();
-}
-
-/**
- * The world destructor.
- *
- * This will free objects used by the world itself, then free the vectors of
- * entity-related objects.
- */
-
-World::
-~World(void)
-{
-    // sdl2_mixer's object
-	if(bgmObj)
-		Mix_FreeMusic(bgmObj);
-
-	delete bgTex;
-	deleteEntities();
+    // clear entity array
+	entity.clear();
 }
 
 /**
  * Generates a world of the specified width.
- *
- * This will mainly populate the WorldData array, mostly preparing the World
+ * This will mainly populate the WorldData array, preparing most of the world
  * object for usage.
  */
-
 void World::
 generate(unsigned int width)
 {
     // iterator for `for` loops
 	std::vector<WorldData>::iterator wditer;
 
-    // see below for description
+    // see below for description/usage
     float geninc = 0;
 
     // check for valid width
@@ -240,7 +201,7 @@ generate(unsigned int width)
         UserError("Invalid world dimensions");
 
     // allocate space for world
-    worldData = std::vector<WorldData> (width + GROUND_HILLINESS, WorldData { false, {0,0}, 0, 0 });
+    worldData = std::vector<WorldData> (width + GROUND_HILLINESS, WorldData { false, {0, 0}, 0, 0 });
     lineCount = worldData.size();
 
     // prepare for generation
@@ -248,7 +209,7 @@ generate(unsigned int width)
     wditer = worldData.begin();
 
     // give every GROUND_HILLINESSth entry a groundHeight value
-    for(unsigned int i = GROUND_HILLINESS; i < worldData.size(); i += GROUND_HILLINESS, wditer += GROUND_HILLINESS)
+    for (unsigned i = GROUND_HILLINESS; i < worldData.size(); i += GROUND_HILLINESS, wditer += GROUND_HILLINESS)
         worldData[i].groundHeight = (*wditer).groundHeight + (randGet() % 8 - 4);
 
     // create slopes from the points that were just defined, populate the rest of the WorldData structure
@@ -257,23 +218,22 @@ generate(unsigned int width)
         if ((*wditer).groundHeight && wditer + GROUND_HILLINESS < worldData.end())
 			// wditer + GROUND_HILLINESS can go out of bounds (invalid read)
             geninc = ((*(wditer + GROUND_HILLINESS)).groundHeight - (*wditer).groundHeight) / (float)GROUND_HILLINESS;
-        else
+        else {
             (*wditer).groundHeight = (*(wditer - 1)).groundHeight + geninc;
+
+            if ((*wditer).groundHeight < GROUND_HEIGHT_MINIMUM)
+                (*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
+            else if ((*wditer).groundHeight > GROUND_HEIGHT_MAXIMUM)
+                (*wditer).groundHeight = GROUND_HEIGHT_MAXIMUM;
+        }
 
         (*wditer).groundColor    = randGet() % 32 / 8;
         (*wditer).grassUnpressed = true;
         (*wditer).grassHeight[0] = (randGet() % 16) / 3 + 2;
         (*wditer).grassHeight[1] = (randGet() % 16) / 3 + 2;
 
-        // bound checks
-        if ((*wditer).groundHeight < GROUND_HEIGHT_MINIMUM)
-            (*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
-        else if ((*wditer).groundHeight > GROUND_HEIGHT_MAXIMUM)
-			(*wditer).groundHeight = GROUND_HEIGHT_MAXIMUM;
-
 		if((*wditer).groundHeight <= 0)
 			(*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
-
     }
 
     // define x-coordinate of world's leftmost 'line'
@@ -288,107 +248,17 @@ generate(unsigned int width)
 }
 
 /**
- * Updates all entity and player coordinates with their velocities.
- *
- * Also handles music fading, although that could probably be placed elsewhere.
- */
-
-void World::
-update(Player *p, unsigned int delta)
-{
-    // update player coords
-	p->loc.y += p->vel.y			 * delta;
-	p->loc.x +=(p->vel.x * p->speed) * delta;
-
-	if (p->loc.y > 5000)
-        UserError("Too high for me m8.");
-
-	// update entity coords
-	for (auto &e : entity) {
-
-        // dont let structures move?
-		if (e->type != STRUCTURET && e->canMove) {
-			e->loc.x += e->vel.x * delta;
-            e->loc.y += e->vel.y * delta;
-
-            // update boolean directions
-			if (e->vel.x < 0)
-                e->left = true;
-	   		else if (e->vel.x > 0)
-                e->left = false;
-		} else if (e->vel.y < 0)
-            e->loc.y += e->vel.y * delta;
-	}
-    // iterate through particles
-    particles.erase(std::remove_if(particles.begin(), particles.end(), [&delta](Particles &part){return part.kill(delta);}), particles.end());
-    for (auto part = particles.begin(); part != particles.end(); part++) {
-		if ((*part).canMove) {
-			(*part).loc.y += (*part).vel.y * delta;
-			(*part).loc.x += (*part).vel.x * delta;
-
-			for (auto &b : build) {
-				if (b->bsubtype == FOUNTAIN) {
-					if ((*part).loc.x >= b->loc.x && (*part).loc.x <= b->loc.x + b->width) {
-						if ((*part).loc.y <= b->loc.y + b->height * .25)
-							particles.erase(part);
-
-					}
-				}
-			}
-		}
-	}
-
-    // handle music fades
-	if (ui::dialogImportant) {
-		//Mix_FadeOutMusic(2000);
-	} else if(!Mix_PlayingMusic())
-		Mix_FadeInMusic(bgmObj,-1,2000);
-}
-
-/**
- * Set the world's BGM.
- *
- * This will load a sound file to be played while the player is in this world.
- * If no file is found, no music should play.
- */
-
-void World::
-setBGM(std::string path)
-{
-	if(!path.empty())
-		bgmObj = Mix_LoadMUS((bgm = path).c_str());
-}
-
-/**
- * Toggle play/stop of the background music.
- *
- * If new music is to be played a crossfade will occur, otherwise... uhm.
- */
-
-void World::
-bgmPlay(World *prev) const
-{
-	if (prev) {
-		if (bgm != prev->bgm) {
-            // new world, new music
-			Mix_FadeOutMusic(800);
-			Mix_PlayMusic(bgmObj, -1);
-		}
-	} else {
-        // first call
-		Mix_FadeOutMusic(800);
-		Mix_PlayMusic(bgmObj, -1);
-	}
-}
-
-/**
  * The world draw function.
- *
  * This function will draw the background layers, entities, and player to the
  * screen.
  */
+void World::
+draw(Player *p)
+{
+    const ivec2 backgroundOffset = ivec2 {
+        (int)(SCREEN_WIDTH / 2), (int)(SCREEN_HEIGHT / 2)
+    };
 
-void World::draw(Player *p){
     // iterators
     int i, iStart, iEnd;
 
@@ -401,134 +271,105 @@ void World::draw(Player *p){
     // world width in pixels
 	int width = worldData.size() * HLINE;
 
+    // used for alpha values of background textures
+    int alpha;
+
 	// shade value for GLSL
-	float shadeAmbient = -worldShade / 50.0f + 0.5f; // -0.5f to 1.5f
-	if (shadeAmbient < 0)
-		shadeAmbient = 0;
-	else if (shadeAmbient > 0.9f)
-		shadeAmbient = 1;
+	float shadeAmbient = fmax(0, -worldShade / 50.0f + 0.5f); // 0 to 1.5f
 
-	/*
-     * Draw background images.
-     */
+	if (shadeAmbient > 0.9f)
+		shadeAmbient = 1.0f;
 
+	// draw background images.
 	glEnable(GL_TEXTURE_2D);
 
 	// the sunny wallpaper is faded with the night depending on tickCount
-
 	bgTex->bind(0);
-    int alpha;
-    switch(weather) {
-    case WorldWeather::Snowy:
-        alpha = 150;
-        break;
-    case WorldWeather::Rain:
-        alpha = 0;
-        break;
+    switch (weather) {
+    case WorldWeather::Snowy : alpha = 150; break;
+    case WorldWeather::Rain  : alpha = 0;   break;
     default:
         alpha = 255 - worldShade * 4;
         break;
     }
-	safeSetColorA(255, 255, 255, alpha);
 
+	safeSetColorA(255, 255, 255, alpha);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0, 0); glVertex2i(offset.x - SCREEN_WIDTH/2-5, offset.y + SCREEN_HEIGHT/2);
-		glTexCoord2i(1, 0); glVertex2i(offset.x + SCREEN_WIDTH/2+5, offset.y + SCREEN_HEIGHT/2);
-		glTexCoord2i(1, 1); glVertex2i(offset.x + SCREEN_WIDTH/2+5, offset.y - SCREEN_HEIGHT/2);
-		glTexCoord2i(0, 1); glVertex2i(offset.x - SCREEN_WIDTH/2-5, offset.y - SCREEN_HEIGHT/2);
+		glTexCoord2i(0, 0); glVertex2i(offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y);
+		glTexCoord2i(1, 0); glVertex2i(offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y);
+		glTexCoord2i(1, 1); glVertex2i(offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y);
+		glTexCoord2i(0, 1); glVertex2i(offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y);
 	glEnd();
 
 	bgTex->bindNext();
 	safeSetColorA(255, 255, 255, !alpha ? 255 : worldShade * 4);
-
 	glBegin(GL_QUADS);
-        glTexCoord2i(0, 0); glVertex2i(offset.x - SCREEN_WIDTH/2-5, offset.y + SCREEN_HEIGHT/2);
-        glTexCoord2i(1, 0); glVertex2i(offset.x + SCREEN_WIDTH/2+5, offset.y + SCREEN_HEIGHT/2);
-        glTexCoord2i(1, 1); glVertex2i(offset.x + SCREEN_WIDTH/2+5, offset.y - SCREEN_HEIGHT/2);
-        glTexCoord2i(0, 1); glVertex2i(offset.x - SCREEN_WIDTH/2-5, offset.y - SCREEN_HEIGHT/2);
+        glTexCoord2i(0, 0); glVertex2i(offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y);
+        glTexCoord2i(1, 0); glVertex2i(offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y);
+        glTexCoord2i(1, 1); glVertex2i(offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y);
+        glTexCoord2i(0, 1); glVertex2i(offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y);
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);
 
 	// draw the stars if the time deems it appropriate
-
-	//if ((((weather == WorldWeather::Dark) & (tickCount % DAY_CYCLE)) < DAY_CYCLE / 2)   ||
-	//    (((weather == WorldWeather::Sunny) & (tickCount % DAY_CYCLE)) > DAY_CYCLE * .75)){
 	if (worldShade > 0) {
-
 		safeSetColorA(255, 255, 255, 255 - (getRand() % 30 - 15));
 
-		for (i = 0; i < 100; i++) {
-			glRectf(star[i].x + offset.x * .9,
-					star[i].y,
-					star[i].x + offset.x * .9 + HLINE,
-					star[i].y + HLINE
-					);
-		}
+        auto xcoord = offset.x * 0.9f;
+		for (auto &s : star)
+			glRectf(s.x + xcoord, s.y, s.x + xcoord + HLINE, s.y + HLINE);
 	}
 
 	// draw remaining background items
-
 	glEnable(GL_TEXTURE_2D);
 
 	bgTex->bindNext();
 	safeSetColorA(150 + shadeBackground * 2, 150 + shadeBackground * 2, 150 + shadeBackground * 2, 255);
-
-	glBegin(GL_QUADS);
+	glBegin(GL_QUADS); {
+        auto xcoord = width / 2 * -1 + offset.x * 0.85f;
 		for (i = 0; i <= (int)(worldData.size() * HLINE / 1920); i++) {
-			glTexCoord2i(0, 1); glVertex2i(width / 2 * -1 + (1920 * i) + offset.x * .85, GROUND_HEIGHT_MINIMUM);
-			glTexCoord2i(1, 1); glVertex2i(width / 2 * -1 + (1920 * (i + 1)) + offset.x * .85, GROUND_HEIGHT_MINIMUM);
-			glTexCoord2i(1, 0); glVertex2i(width / 2 * -1 + (1920 * (i + 1)) + offset.x * .85, GROUND_HEIGHT_MINIMUM + 1080);
-			glTexCoord2i(0, 0); glVertex2i(width / 2 * -1 + (1920 * i) + offset.x * .85, GROUND_HEIGHT_MINIMUM + 1080);
+			glTexCoord2i(0, 1); glVertex2i(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM);
+            glTexCoord2i(1, 1); glVertex2i(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM);
+			glTexCoord2i(1, 0); glVertex2i(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + 1080);
+			glTexCoord2i(0, 0); glVertex2i(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM + 1080);
 		}
-	glEnd();
+	} glEnd();
 
 	for (i = 0; i < 4; i++) {
 		bgTex->bindNext();
-		safeSetColorA(bgDraw[i][0] + shadeBackground * 2, bgDraw[i][0] + shadeBackground * 2, bgDraw[i][0] + shadeBackground * 2, bgDraw[i][1]);
-
-		glBegin(GL_QUADS);
-			for(int j = worldStart; j <= -worldStart; j += 600){
-				glTexCoord2i(0, 1); glVertex2i(j        + offset.x * bgDraw[i][2], GROUND_HEIGHT_MINIMUM);
-				glTexCoord2i(1, 1); glVertex2i((j + 600) + offset.x * bgDraw[i][2], GROUND_HEIGHT_MINIMUM);
-				glTexCoord2i(1, 0); glVertex2i((j + 600) + offset.x * bgDraw[i][2], GROUND_HEIGHT_MINIMUM + 400);
-				glTexCoord2i(0, 0); glVertex2i(j        + offset.x * bgDraw[i][2], GROUND_HEIGHT_MINIMUM + 400);
+		safeSetColorA(bgDraw[i][0] + shadeBackground * 2,
+                      bgDraw[i][0] + shadeBackground * 2,
+                      bgDraw[i][0] + shadeBackground * 2,
+                      bgDraw[i][1]
+                      );
+		glBegin(GL_QUADS); {
+            auto xcoord = offset.x * bgDraw[i][2];
+			for (int j = worldStart; j <= -worldStart; j += 600) {
+                glTexCoord2i(0, 1); glVertex2i(j       + xcoord, GROUND_HEIGHT_MINIMUM);
+				glTexCoord2i(1, 1); glVertex2i(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM);
+				glTexCoord2i(1, 0); glVertex2i(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM + 400);
+				glTexCoord2i(0, 0); glVertex2i(j       + xcoord, GROUND_HEIGHT_MINIMUM + 400);
 			}
-		glEnd();
+		} glEnd();
 	}
 
 	glDisable(GL_TEXTURE_2D);
 
-	// draw black under backgrounds
-
+	// draw black under backgrounds (y-coordinate)
 	glColor3ub(0, 0, 0);
 	glRectf(worldStart, GROUND_HEIGHT_MINIMUM, -worldStart, 0);
 
-	pOffset = (offset.x + p->width / 2 - worldStart) / HLINE;
-
-    /*
-     * Prepare for world ground drawing.
-     */
-
-	// only draw world within player vision
-
-	if ((iStart = pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS) < 0)
-		iStart = 0;
-
-	if ((iEnd = pOffset + (SCREEN_WIDTH / 2 / HLINE) + GROUND_HILLINESS + HLINE) > (int)worldData.size())
-		iEnd = worldData.size();
-	else if (iEnd < GROUND_HILLINESS)
-		iEnd = GROUND_HILLINESS;
-
 	// draw particles and buildings
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colorIndex);
-
     glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
     glUseProgram(shaderProgram);
 
-    std::for_each(particles.begin(), particles.end(), [](Particles part) { if (part.behind) part.draw(); });
+    std::for_each(std::begin(particles), std::end(particles), [](Particles &p) {
+        if (p.behind)
+            p.draw();
+    });
 
     glUseProgram(0);
 
@@ -544,26 +385,25 @@ void World::draw(Player *p){
         b->draw();
     }
 
-	// draw light elements?
-
-	glEnable(GL_TEXTURE_2D);
-
-	glActiveTexture(GL_TEXTURE0);
-	bgTex->bindNext();
-
-    for(auto &l : light){
-        if(l.belongsTo){
+    for (auto &l : light) {
+        if (l.belongsTo) {
             l.loc.x = l.following->loc.x + SCREEN_WIDTH/2;
             l.loc.y = l.following->loc.y;
         }
-        if(l.flame){
+
+        if (l.flame) {
             l.fireFlicker = .9+((rand()%2)/10.0f);
             l.fireLoc.x = l.loc.x + (rand()%2-1)*3;
             l.fireLoc.y = l.loc.y + (rand()%2-1)*3;
-        }else{
+        } else {
             l.fireFlicker = 1.0f;
         }
     }
+
+    // draw light elements
+    glEnable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
+    bgTex->bindNext();
 
     std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
 	auto pointArray = pointArrayBuf.get();
@@ -598,101 +438,90 @@ void World::draw(Player *p){
         glUniform1fv(glGetUniformLocation(shaderProgram,"fireFlicker"), light.size(),flameArray);
 	}
 
-    /*
-     * Draw the dirt.
-     */
+    // get the line that the player is currently standing on
+    pOffset = (offset.x + p->width / 2 - worldStart) / HLINE;
 
+    // only draw world within player vision
+    iStart = (int)fmax(pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS, 0);
+    iEnd   = (int)fmin(pOffset + (SCREEN_WIDTH / 2 / HLINE) + GROUND_HILLINESS + HLINE, worldData.size());
+    iEnd = (int)fmax(iEnd, GROUND_HILLINESS);
+
+    // draw the dirt
 	glBegin(GL_QUADS);
-
-        // faulty
-        /*glTexCoord2i(0 ,0);glVertex2i(pOffset - (SCREEN_WIDTH / 1.5),0);
-        glTexCoord2i(64,0);glVertex2i(pOffset + (SCREEN_WIDTH / 1.5),0);
-        glTexCoord2i(64,1);glVertex2i(pOffset + (SCREEN_WIDTH / 1.5),GROUND_HEIGHT_MINIMUM);
-        glTexCoord2i(0 ,1);glVertex2i(pOffset - (SCREEN_WIDTH / 1.5),GROUND_HEIGHT_MINIMUM);*/
-
+        //std::for_each(std::begin(worldData) + iStart, std::begin(worldData) + iEnd, [&](WorldData wd) {
         for (i = iStart; i < iEnd; i++) {
-            if (worldData[i].groundHeight <= 0) {
-                worldData[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
+            auto wd = worldData[i];
+            if (wd.groundHeight <= 0) {
+                wd.groundHeight = GROUND_HEIGHT_MINIMUM - 1;
                 glColor4ub(0, 0, 0, 255);
-            } else
+            } else {
                 safeSetColorA(150, 150, 150, 255);
+            }
 
-            glTexCoord2i(0, 0); glVertex2i(worldStart + i * HLINE         , worldData[i].groundHeight - GRASS_HEIGHT);
-            glTexCoord2i(1, 0); glVertex2i(worldStart + i * HLINE + HLINE , worldData[i].groundHeight - GRASS_HEIGHT);
+            int ty = wd.groundHeight / 64 + wd.groundColor;
+            glTexCoord2i(0, 0);  glVertex2i(worldStart + i * HLINE         , wd.groundHeight - GRASS_HEIGHT);
+            glTexCoord2i(1, 0);  glVertex2i(worldStart + i * HLINE + HLINE , wd.groundHeight - GRASS_HEIGHT);
+            glTexCoord2i(1, ty); glVertex2i(worldStart + i * HLINE + HLINE, 0);
+            glTexCoord2i(0, ty); glVertex2i(worldStart + i * HLINE	      , 0);
 
-            glTexCoord2i(1, (int)(worldData[i].groundHeight / 64) + worldData[i].groundColor); glVertex2i(worldStart + i * HLINE + HLINE, 0);
-            glTexCoord2i(0, (int)(worldData[i].groundHeight / 64) + worldData[i].groundColor); glVertex2i(worldStart + i * HLINE	      , 0);
-
-            if (worldData[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1)
-                worldData[i].groundHeight = 0;
-        }
-
+            if (wd.groundHeight == GROUND_HEIGHT_MINIMUM - 1)
+                wd.groundHeight = 0;
+        }//);
 	glEnd();
 
 	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
 
-	/*
-	 *	Draw the grass/the top of the ground.
-	 */
-
+	// draw the grass
 	glEnable(GL_TEXTURE_2D);
-
 	glActiveTexture(GL_TEXTURE0);
 	bgTex->bindNext();
-
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
+    safeSetColorA(255, 255, 255, 255);
 
-	float cgh[2];
-	for (i = iStart; i < iEnd - GROUND_HILLINESS; i++) {
-
-		// load the current line's grass values
-		if (worldData[i].groundHeight)
-			memcpy(cgh, worldData[i].grassHeight, 2 * sizeof(float));
-		else
-			memset(cgh, 0 , 2 * sizeof(float));
+	for (i = iStart; i < iEnd; i++) {
+        auto wd = worldData[i];
+        auto gh = wd.grassHeight;
 
 		// flatten the grass if the player is standing on it.
-		if(!worldData[i].grassUnpressed){
-			cgh[0] /= 4;
-			cgh[1] /= 4;
+		if (!worldData[i].grassUnpressed) {
+			gh[0] /= 4;
+			gh[1] /= 4;
 		}
 
 		// actually draw the grass.
-
-		safeSetColorA(255, 255, 255, 255);
-
-		glBegin(GL_QUADS);
-			glTexCoord2i(0, 0); glVertex2i(worldStart + i * HLINE            , worldData[i].groundHeight + cgh[0]);
-			glTexCoord2i(1, 0); glVertex2i(worldStart + i * HLINE + HLINE / 2, worldData[i].groundHeight + cgh[0]);
-			glTexCoord2i(1, 1); glVertex2i(worldStart + i * HLINE + HLINE / 2, worldData[i].groundHeight - GRASS_HEIGHT);
-			glTexCoord2i(0, 1); glVertex2i(worldStart + i * HLINE		    , worldData[i].groundHeight - GRASS_HEIGHT);
-			glTexCoord2i(0, 0); glVertex2i(worldStart + i * HLINE + HLINE / 2, worldData[i].groundHeight + cgh[1]);
-			glTexCoord2i(1, 0); glVertex2i(worldStart + i * HLINE + HLINE    , worldData[i].groundHeight + cgh[1]);
-			glTexCoord2i(1, 1); glVertex2i(worldStart + i * HLINE + HLINE    , worldData[i].groundHeight - GRASS_HEIGHT);
-			glTexCoord2i(0, 1); glVertex2i(worldStart + i * HLINE + HLINE / 2, worldData[i].groundHeight - GRASS_HEIGHT);
-		glEnd();
+        if (wd.groundHeight) {
+    		glBegin(GL_QUADS);
+    			glTexCoord2i(0, 0); glVertex2i(worldStart + i * HLINE            , wd.groundHeight + gh[0]);
+    			glTexCoord2i(1, 0); glVertex2i(worldStart + i * HLINE + HLINE / 2, wd.groundHeight + gh[0]);
+    			glTexCoord2i(1, 1); glVertex2i(worldStart + i * HLINE + HLINE / 2, wd.groundHeight - GRASS_HEIGHT);
+    			glTexCoord2i(0, 1); glVertex2i(worldStart + i * HLINE		     , wd.groundHeight - GRASS_HEIGHT);
+    			glTexCoord2i(0, 0); glVertex2i(worldStart + i * HLINE + HLINE / 2, wd.groundHeight + gh[1]);
+    			glTexCoord2i(1, 0); glVertex2i(worldStart + i * HLINE + HLINE    , wd.groundHeight + gh[1]);
+    			glTexCoord2i(1, 1); glVertex2i(worldStart + i * HLINE + HLINE    , wd.groundHeight - GRASS_HEIGHT);
+    			glTexCoord2i(0, 1); glVertex2i(worldStart + i * HLINE + HLINE / 2, wd.groundHeight - GRASS_HEIGHT);
+    		glEnd();
+        }
 	}
 
 	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
 
-	/*
-     * Draw remaining entities.
-     */
-
-
+	// draw particles
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colorIndex);
-
     glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
     glUseProgram(shaderProgram);
 
-	std::for_each(particles.begin(), particles.end(), [](Particles part) { if (!part.behind) part.draw(); });
+	for (auto &p : particles) {
+        if (!p.behind)
+            p.draw();
+    }
 
     glUseProgram(0);
 
+    // draw remaining entities
 	for (auto &n : npc) {
 		if (n->type != MERCHT)
             n->draw();
@@ -704,108 +533,76 @@ void World::draw(Player *p){
 	for (auto &o : object)
 		o.draw();
 
-    /*
-     * Handle grass-squishing.
-     */
-
-	// calculate the line that the player is on
-	int ph = (p->loc.x + p->width / 2 - worldStart) / HLINE;
-
 	// flatten grass under the player if the player is on the ground
 	if (p->ground) {
-		for (i = 0; i < (int)(worldData.size() - GROUND_HILLINESS); i++)
-			worldData[i].grassUnpressed = !(i < ph + 6 && i > ph - 6);
+		for (i = 0; i < (int)worldData.size(); i++)
+			worldData[i].grassUnpressed = !(i < pOffset + 6 && i > pOffset - 6);
 	} else {
-		for (i = 0; i < (int)(worldData.size() - GROUND_HILLINESS); i++)
+		for (i = 0; i < (int)worldData.size(); i++)
 			worldData[i].grassUnpressed = true;
 	}
 
-	/*
-     * Draw the player.
-     */
-
+    // draw the player
 	p->draw();
 }
 
 /**
  * Handles physics and such for a single entity.
- *
  * This function is kept private, as World::detect() should be used instead to
  * handle stuffs for all entities at once.
  */
-
 void World::
 singleDetect(Entity *e)
 {
 	std::string killed;
-	unsigned int i,j;
+	unsigned int i;
 	int l;
 
-	/*
-	 *	Kill any dead entities.
-	*/
-
+	// kill dead entities
 	if (e->alive && e->health <= 0) {
+        // die
         e->alive = false;
         e->health = 0;
+
+        // delete the entity
 		for (i = 0; i < entity.size(); i++) {
 			if (entity[i] == e){
 				switch (e->type) {
 				case STRUCTURET:
 					killed = "structure";
-					for(j=0;j<build.size();j++){
-						if(build[j]==e){
-							delete build[j];
-							build.erase(build.begin()+j);
-							break;
-						}
-					}
-					break;
-				case NPCT:
+                    build.erase(std::find(std::begin(build), std::end(build), e));
+                    break;
+                case NPCT:
 					killed = "NPC";
-					for(j=0;j<npc.size();j++){
-						if(npc[j]==e){
-							delete npc[j];
-							npc.erase(npc.begin()+j);
-							break;
-						}
-					}
+					npc.erase(std::find(std::begin(npc), std::end(npc), e));
 					break;
 				case MOBT:
 					killed = "mob";
-					/*for(j=0;j<mob.size();j++){
-						if(mob[j]==e){
-							delete mob[j];
-							mob.erase(mob.begin()+j);
-							break;
-						}
-					}*/
+                    // TODO
 					break;
 				case OBJECTT:
 					killed = "object";
-                    for (auto o = std::begin(object); o != std::end(object); o++) {
-                        if (&(*o) == e) {
-                            object.erase(o);
-                            break;
-                        }
-                    }
+                    object.erase(std::find(std::begin(object), std::end(object), *Objectp(e)));
 					break;
 				default:
 					break;
 				}
+
 				std::cout << "Killed a " << killed << "..." << std::endl;
-				entity.erase(entity.begin()+i);
+				entity.erase(entity.begin() + i);
 				return;
 			}
 		}
+
+        // exit on player death
 		std::cout << "RIP " << e->name << "." << std::endl;
 		exit(0);
 	}
 
-	// handle only living entities
+	// collision / gravity: handle only living entities
 	if (e->alive) {
 
-        // forced movement gravity
+        // forced movement gravity (sword hits)
         if (e->forcedMove) {
             if (e->vel.x > .0005 || e->vel.x < -.0005)
                 e->vel.x *= .6;
@@ -813,25 +610,21 @@ singleDetect(Entity *e)
                 e->forcedMove = false;
         }
 
-		if (e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER)
+		if (e->subtype == MS_TRIGGER)
 			return;
 
 		// calculate the line that this entity is currently standing on
-		l = (e->loc.x + e->width / 2 - worldStart) / HLINE;
-		if (l < 0)
-            l = 0;
-		i = l;
-		if (i > lineCount - 1)
-            i = lineCount - 1;
+		l = (int)fmax((e->loc.x + e->width / 2 - worldStart) / HLINE, 0);
+		l = (int)fmin(l, lineCount - 1);
 
 		// if the entity is under the world/line, pop it back to the surface
-		if (e->loc.y < worldData[i].groundHeight) {
+		if (e->loc.y < worldData[l].groundHeight) {
             int dir = e->vel.x < 0 ? -1 : 1;
-            if (i + (dir * 2) < worldData.size() && worldData[i + (dir * 2)].groundHeight - 30 > worldData[i + dir].groundHeight) {
-                e->loc.x -= (PLAYER_SPEED_CONSTANT + 2.7) * e->speed * 2 * dir;
+            if (l + (dir * 2) < (int)worldData.size() && worldData[l + (dir * 2)].groundHeight - 30 > worldData[l + dir].groundHeight) {
+                e->loc.x -= (PLAYER_SPEED_CONSTANT + 2.7f) * e->speed * 2 * dir;
                 e->vel.x = 0;
             } else {
-                e->loc.y = worldData[i].groundHeight - .001 * deltaTime;
+                e->loc.y = worldData[l].groundHeight - 0.001f * deltaTime;
 		        e->ground = true;
 		        e->vel.y = 0;
             }
@@ -840,26 +633,23 @@ singleDetect(Entity *e)
 
         // handle gravity if the entity is above the line
         else {
-
 			if (e->type == STRUCTURET) {
-				e->loc.y = worldData[i].groundHeight;
+				e->loc.y = worldData[l].groundHeight;
 				e->vel.y = 0;
 				e->ground = true;
 				return;
-			} else if (e->vel.y > -2)
+			} else if (e->vel.y > -2) {
                 e->vel.y -= GRAVITY_CONSTANT * deltaTime;
+            }
 		}
 
-		/*
-		 *	Insure that the entity doesn't fall off either edge of the world.
-		*/
-
-		if(e->loc.x < worldStart){												// Left bound
-			e->vel.x=0;
-			e->loc.x=(float)worldStart + HLINE / 2;
-		}else if(e->loc.x + e->width + HLINE > worldStart + worldStart * -2){	// Right bound
-			e->vel.x=0;
-			e->loc.x=worldStart + worldStart * -2 - e->width - HLINE;
+		// insure that the entity doesn't fall off either edge of the world.
+		if (e->loc.x < worldStart) {
+			e->vel.x = 0;
+			e->loc.x = worldStart + HLINE / 2;
+		} else if (e->loc.x + e->width + HLINE > worldStart + worldStart * -2) {
+			e->vel.x = 0;
+			e->loc.x = worldStart + worldStart * -2 - e->width - HLINE;
 		}
 	}
 }
@@ -871,7 +661,6 @@ singleDetect(Entity *e)
  * currently in a vector of this world. Particles and village entrance/exiting
  * are also handled here.
  */
-
 void World::
 detect(Player *p)
 {
@@ -886,16 +675,9 @@ detect(Player *p)
 
     // handle particles
 	for (auto &part : particles) {
-
 		// get particle's current world line
-		l = (part.loc.x + part.width / 2 - worldStart) / HLINE;
-
-		if (l < 0)
-			l = 0;
-
-		if (l > (int)(lineCount - 1))
-			l = lineCount - 1;
-
+		l = (int)fmax((part.loc.x + part.width / 2 - worldStart) / HLINE, 0);
+        l = (int)fmin(lineCount - 1, l);
 		part.update(GRAVITY_CONSTANT, worldData[l].groundHeight);
 	}
 
@@ -913,11 +695,9 @@ detect(Player *p)
 							{ 0, 0, 255 },										// RGB color
 							2500												// duration (ms)
 							);
-
 				particles.back().fountain = true;
 			}
 			break;
-
 		case FIRE_PIT:
 			for(unsigned int r = (randGet() % 20) + 11; r--;) {
 				addParticle(randGet() % (int)(b->width / 2) + b->loc.x + b->width / 4,	// x
@@ -929,12 +709,10 @@ detect(Player *p)
 							{ 255, 0, 0 },												// RGB color
 							400															// duration (ms)
 							);
-
 				particles.back().gravity = false;
 				particles.back().behind  = true;
 			}
 			break;
-
 		default:
 			break;
 		}
@@ -942,14 +720,454 @@ detect(Player *p)
 
 	// draws the village welcome message if the player enters the village bounds
 	for (auto &v : village) {
-		if (p->loc.x > v.start.x && p->loc.x < v.end.x) {
-			if (!v.in) {
-				ui::passiveImportantText(5000, "Welcome to %s", v.name.c_str());
-				v.in = true;
-			}
-		} else
+		if (p->loc.x > v.start.x && p->loc.x < v.end.x && !v.in) {
+			ui::passiveImportantText(5000, "Welcome to %s", v.name.c_str());
+			v.in = true;
+		} else {
 			v.in = false;
+        }
 	}
+}
+
+/**
+ * Updates all entity and player coordinates with their velocities.
+ * Also handles music fading, although that could probably be placed elsewhere.
+ */
+void World::
+update(Player *p, unsigned int delta)
+{
+    // update player coords
+	p->loc.y += p->vel.y			 * delta;
+	p->loc.x +=(p->vel.x * p->speed) * delta;
+
+    // handle high-ness
+	if (p->loc.y > 5000)
+        UserError("Too high for me m8.");
+
+	// update entity coords
+	for (auto &e : entity) {
+        // dont let structures move?
+		if (e->type != STRUCTURET && e->canMove) {
+			e->loc.x += e->vel.x * delta;
+            e->loc.y += e->vel.y * delta;
+
+            // update boolean directions
+            e->left = e->vel.x ? (e->vel.x < 0) : e->left;
+		} else if (e->vel.y < 0) {
+            e->loc.y += e->vel.y * delta;
+        }
+	}
+    // iterate through particles
+    particles.erase(std::remove_if(particles.begin(), particles.end(), [&delta](Particles &part){
+                        return part.kill(delta);
+                    }),
+                    particles.end());
+
+    for (auto part = particles.begin(); part != particles.end(); part++) {
+        auto pa = *part;
+
+		if (pa.canMove) {
+			(*part).loc.y += pa.vel.y * delta;
+			(*part).loc.x += pa.vel.x * delta;
+
+            if (std::any_of(std::begin(build), std::end(build), [pa](Structures *s) {
+                    return (s->bsubtype == FOUNTAIN) &&
+                           (pa.loc.x >= s->loc.x) && (pa.loc.x <= s->loc.x + s->width) &&
+                           (pa.loc.y <= s->loc.y + s->height * 0.25f);
+                })) {
+                particles.erase(part);
+            }
+		}
+	}
+
+    // handle music fades
+	if (!Mix_PlayingMusic())
+		Mix_FadeInMusic(bgmObj, -1, 2000);
+}
+
+/**
+ * Get's the world's width in pixels.
+ */
+int World::
+getTheWidth(void) const
+{
+	return (worldStart * -2);
+}
+
+/**
+ * Get a pointer to the most recently created light.
+ * Meant to be non-constant.
+ */
+Light *World::
+getLastLight(void)
+{
+    return &light.back();
+}
+
+/**
+ * Get a pointer to the most recently created mob.
+ * Meant to be non-constant.
+ */
+Mob *World::
+getLastMob(void)
+{
+    return mob.back();
+}
+
+/**
+ * Get the interactable entity that is closest to the entity provided.
+ */
+Entity *World::
+getNearInteractable(Entity &e)
+{
+    auto n = std::find_if(std::begin(entity), std::end(entity), [&](Entity *&a) {
+        return ((a->type == MOBT) || (a->type == NPCT) || a->type == MERCHT) &&
+               e.isNear(*a) && (e.left ? (a->loc.x < e.loc.x) : (a->loc.x > e.loc.x));
+    });
+
+    return n == std::end(entity) ? nullptr : *n;
+}
+
+/**
+ * Get the file path for the `index`th building.
+ */
+std::string World::
+getSTextureLocation(unsigned int index) const
+{
+    return index < sTexLoc.size() ? sTexLoc[ index ] : "";
+}
+
+/**
+ * Get the coordinates of the `index`th building, with -1 meaning the last building.
+ */
+vec2 World::
+getStructurePos(int index)
+{
+    if (index < 0)
+        return build.back()->loc;
+    else if ((unsigned)index >= build.size())
+        return vec2 {0, 0};
+
+    return build[index]->loc;
+}
+
+/**
+ * Saves world data to a file.
+ */
+void World::save(void){
+	std::string data;
+	std::string save = currentXML + ".dat";
+	std::ofstream out (save, std::ios::out | std::ios::binary);
+
+	std::cout << "Saving to " << save << " ..." << '\n';
+
+    // save npcs
+	for (auto &n : npc) {
+		data.append(std::to_string(n->dialogIndex) + "\n");
+		data.append(std::to_string((int)n->loc.x) + "\n");
+		data.append(std::to_string((int)n->loc.y) + "\n");
+	}
+
+    // save structures
+	for (auto &b : build) {
+		data.append(std::to_string((int)b->loc.x) + "\n");
+		data.append(std::to_string((int)b->loc.y) + "\n");
+	}
+
+    // save mobs
+	for (auto &m : mob) {
+		data.append(std::to_string((int)m->loc.x) + "\n");
+		data.append(std::to_string((int)m->loc.y) + "\n");
+		data.append(std::to_string((int)m->alive) + "\n");
+	}
+
+    // wrap up
+	data.append("dOnE\0");
+	out.write(data.data(), data.size());
+	out.close();
+}
+
+void World::load(void){
+	std::string save, data, line;
+	const char *filedata;
+
+	save = currentXML + ".dat";
+	filedata = readFile(save.c_str());
+	data = filedata;
+	std::istringstream iss (data);
+
+	for(auto &n : npc){
+		std::getline(iss,line);
+		if(line == "dOnE")return;
+		if((n->dialogIndex = std::stoi(line)) != 9999)
+			n->addAIFunc(commonAIFunc,false);
+		else n->clearAIFunc();
+
+		std::getline(iss,line);
+		if(line == "dOnE")return;
+		n->loc.x = std::stoi(line);
+		std::getline(iss,line);
+		if(line == "dOnE")return;
+		n->loc.y = std::stoi(line);
+	}
+
+	for(auto &b : build){
+		std::getline(iss,line);
+		if(line == "dOnE")return;
+		b->loc.x = std::stoi(line);
+		std::getline(iss,line);
+		if(line == "dOnE")return;
+		b->loc.y = std::stoi(line);
+	}
+
+	for(auto &m : mob){
+		std::getline(iss,line);
+		if(line == "dOnE")return;
+		m->loc.x = std::stoi(line);
+		std::getline(iss,line);
+		if(line == "dOnE")return;
+		m->loc.y = std::stoi(line);
+		std::getline(iss,line);
+		if(line == "dOnE")return;
+		m->alive = std::stoi(line);
+	}
+
+	while(std::getline(iss,line)){
+		if(line == "dOnE")
+			break;
+	}
+
+	delete[] filedata;
+}
+
+/**
+ * Toggle play/stop of the background music.
+ * If new music is to be played a crossfade will occur, otherwise... uhm.
+ */
+void World::
+bgmPlay(World *prev) const
+{
+	if (prev) {
+        if (bgm != prev->bgm) {
+		    // new world, new music
+		    Mix_FadeOutMusic(800);
+		    Mix_PlayMusic(bgmObj, -1);
+        }
+        // sucks to be here
+	} else {
+        // first call
+		Mix_FadeOutMusic(800);
+		Mix_PlayMusic(bgmObj, -1);
+	}
+}
+
+/**
+ * Set the world's BGM.
+ * This will load a sound file to be played while the player is in this world.
+ * If no file is found, no music should play.
+ */
+void World::
+setBGM(std::string path)
+{
+	if (!path.empty())
+		bgmObj = Mix_LoadMUS((bgm = path).c_str());
+}
+
+/**
+ * Sets the desired theme for the world's background.
+ * The images chosen for the background layers are selected depending on the
+ * world's background type.
+ */
+void World::
+setBackground(WorldBGType bgt)
+{
+    // load textures with a limit check
+	switch ((bgType = bgt)) {
+	case WorldBGType::Forest:
+		bgTex = new Texturec(bgFiles);
+		break;
+	case WorldBGType::WoodHouse:
+		bgTex = new Texturec(bgFilesIndoors);
+		break;
+    default:
+        UserError("Invalid world background type");
+        break;
+	}
+}
+
+/**
+ * Sets the world's style.
+ * The world's style will determine what sprites are used for things like\
+ * generic structures.
+ */
+void World::
+setStyle(std::string pre)
+{
+    // get folder prefix
+	std::string prefix = pre.empty() ? "assets/style/classic/" : pre;
+
+    for_each(std::begin(buildPaths), std::end(buildPaths), [this, prefix](std::string s){
+        sTexLoc.push_back(prefix + s);
+    });
+
+    prefix += "bg/";
+
+    for_each(std::begin(bgPaths[0]), std::end(bgPaths[0]), [this, prefix](std::string s){
+        bgFiles.push_back(prefix + s);
+    });
+    for_each(std::begin(bgPaths[1]), std::end(bgPaths[1]), [this, prefix](std::string s){
+        bgFilesIndoors.push_back(prefix + s);
+    });
+}
+
+/**
+ * Pretty self-explanatory.
+ */
+std::string World::
+setToLeft(std::string file)
+{
+    return (toLeft = file);
+}
+
+/**
+ * Pretty self-explanatory.
+ */
+std::string World::
+setToRight(std::string file)
+{
+	return (toRight = file);
+}
+
+/**
+ * Pretty self-explanatory.
+ */
+std::string World::
+getToLeft(void) const
+{
+    return toLeft;
+}
+
+/**
+ * Pretty self-explanatory.
+ */
+std::string World::
+getToRight(void) const
+{
+    return toRight;
+}
+
+/**
+ * Attempts to go to the left world, returning either that world or itself.
+ */
+World *World::
+goWorldLeft(Player *p)
+{
+	World *tmp;
+
+    // check if player is at world edge
+	if (!toLeft.empty() && p->loc.x < worldStart + HLINE * 15.0f) {
+        // load world (`toLeft` conditional confirms existance)
+	    tmp = loadWorldFromPtr(currentWorldToLeft);
+
+        // adjust player location
+		p->loc.x = tmp->worldStart + HLINE * 20;
+		p->loc.y = tmp->worldData[tmp->lineCount - 1].groundHeight;
+
+		return tmp;
+	}
+
+	return this;
+}
+
+/**
+ * Attempts to go to the right world, returning either that world or itself.
+ */
+World *World::
+goWorldRight(Player *p)
+{
+	World *tmp;
+
+	if(!toRight.empty() && p->loc.x + p->width > -worldStart - HLINE * 15) {
+		tmp = loadWorldFromPtr(currentWorldToRight);
+
+		p->loc.x = tmp->worldStart - HLINE * -15.0f;
+		p->loc.y = GROUND_HEIGHT_MINIMUM;
+
+		return tmp;
+	}
+
+	return this;
+}
+
+/**
+ * Acts like goWorldLeft(), but takes an NPC; returning true on success.
+ */
+bool World::
+goWorldLeft(NPC *e)
+{
+	// check if entity is at world edge
+	if(!toLeft.empty() && e->loc.x < worldStart + HLINE * 15.0f) {
+        currentWorldToLeft->addNPC(e->loc.x,e->loc.y);
+        e->alive = false;
+
+		currentWorldToLeft->npc.back()->loc.x = 0;
+		currentWorldToLeft->npc.back()->loc.y = GROUND_HEIGHT_MAXIMUM;
+
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Attempts to enter a building that the player is standing in front of.
+ */
+World *World::
+goInsideStructure(Player *p)
+{
+	World *tmp;
+	std::string current;
+
+	if (inside.empty()) {
+		for (auto &b : build) {
+			if (p->loc.x > b->loc.x && p->loc.x + p->width < b->loc.x + b->width) {
+                if (b->inside.empty())
+                    return this;
+
+                // +size cuts folder prefix
+				inside.push_back(currentXML.c_str() + xmlFolder.size());
+				tmp = loadWorldFromXML(b->inside);
+
+                // make the fade, as we let it fade back the worlds should be switched
+				ui::toggleBlackFast();
+				ui::waitForCover();
+				ui::toggleBlackFast();
+
+                glClearColor(0, 0, 0, 1);
+
+				return tmp;
+			}
+		}
+	} else {
+        current = currentXML.c_str() + xmlFolder.size();
+		tmp = loadWorldFromXML(inside.back());
+		for (auto &b : tmp->build) {
+			if (current == b->inside) {
+				inside.pop_back();
+
+				ui::toggleBlackFast();
+				ui::waitForCover();
+				p->loc.x = b->loc.x + (b->width / 2);
+				ui::toggleBlackFast();
+
+                glClearColor(1, 1, 1, 1);
+
+				return tmp;
+			}
+		}
+	}
+
+	return this;
 }
 
 void World::addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::string inside){
@@ -1034,182 +1252,6 @@ addLight(vec2 loc, Color color)
         light.push_back(Light(loc, color, 1));
 }
 
-Light *World::
-getLastLight(void)
-{
-    return &light.back();
-}
-
-Mob *World::
-getLastMob(void)
-{
-    return mob.back();
-}
-
-Entity *World::
-getNearInteractable(Entity e)
-{
-    for (auto &n : entity) {
-        if (n->type == MOBT || n->type == NPCT || n->type == MERCHT) {
-            if (e.isNear(*n) && (e.left ? n->loc.x < e.loc.x : n->loc.x > e.loc.x))
-                return n;
-        }
-    }
-
-    return nullptr;
-}
-
-std::string World::
-getSTextureLocation(unsigned int index) const
-{
-    if (index > sTexLoc.size())
-        return "";
-
-    return sTexLoc[ index ];
-}
-
-vec2 World::
-getStructurePos(int index)
-{
-    if (index < 0)
-        return build.back()->loc;
-    else if ((unsigned)index >= build.size())
-        return vec2{0, 0};
-
-    return build[index]->loc;
-}
-
-std::string World::
-setToLeft(std::string file)
-{
-    return (toLeft = file);
-}
-
-std::string World::
-setToRight(std::string file)
-{
-	return (toRight = file);
-}
-
-std::string World::
-getToLeft(void) const
-{
-    return toLeft;
-}
-
-std::string World::
-getToRight(void) const
-{
-    return toRight;
-}
-
-World *World::
-goWorldLeft(Player *p)
-{
-	World *tmp;
-
-    // check if player is at world edge
-	if(!toLeft.empty() && p->loc.x < worldStart + HLINE * 15.0f) {
-
-        // load world (`toLeft` conditional confirms existance)
-	    tmp = loadWorldFromPtr(currentWorldToLeft);
-
-        // adjust player location
-		p->loc.x = tmp->worldStart + HLINE * 20;
-		p->loc.y = tmp->worldData[tmp->lineCount - 1].groundHeight;
-
-		return tmp;
-	}
-
-	return this;
-}
-
-bool World::
-goWorldLeft(NPC *e)
-{
-	// check if entity is at world edge
-	if(!toLeft.empty() && e->loc.x < worldStart + HLINE * 15.0f) {
-
-        currentWorldToLeft->addNPC(e->loc.x,e->loc.y);
-        e->alive = false;
-
-		currentWorldToLeft->npc.back()->loc.x = 0;
-		currentWorldToLeft->npc.back()->loc.y = GROUND_HEIGHT_MAXIMUM;
-
-		return true;
-	}
-
-	return false;
-}
-
-World *World::
-goWorldRight(Player *p)
-{
-	World *tmp;
-
-	if(!toRight.empty() && p->loc.x + p->width > -worldStart - HLINE * 15) {
-		tmp = loadWorldFromPtr(currentWorldToRight);
-
-		p->loc.x = tmp->worldStart - HLINE * -15.0f;
-		p->loc.y = GROUND_HEIGHT_MINIMUM;
-
-		return tmp;
-	}
-
-	return this;
-}
-
-World *World::
-goInsideStructure(Player *p)
-{
-	World *tmp;
-	std::string current;
-
-	if (inside.empty()) {
-		for (auto &b : build) {
-			if (p->loc.x            > b->loc.x            &&
-			     p->loc.x + p->width < b->loc.x + b->width) {
-
-                if (b->inside.empty())
-                    return this;
-
-				inside.push_back(currentXML.c_str() + xmlFolder.size());
-
-				tmp = loadWorldFromXML(b->inside);
-
-				ui::toggleBlackFast();
-				ui::waitForCover();
-				ui::toggleBlackFast();
-
-                glClearColor(0,0,0,1);
-
-				return tmp;
-			}
-		}
-	} else {
-        current = currentXML.c_str() + xmlFolder.size();
-		tmp = loadWorldFromXML(inside.back());
-		for (auto &b : tmp->build) {
-			if (current == b->inside) {
-				inside.pop_back();
-
-				ui::toggleBlackFast();
-				ui::waitForCover();
-
-				p->loc.x = b->loc.x + (b->width / 2);
-
-				ui::toggleBlackFast();
-
-                glClearColor(1,1,1,1);
-
-				return tmp;
-			}
-		}
-	}
-
-	return this;
-}
-
 void World::
 addHole(unsigned int start, unsigned int end)
 {
@@ -1242,95 +1284,6 @@ addHill(const ivec2 peak, const unsigned int width)
 		if (worldData[i].groundHeight > peak.y)
 			worldData[i].groundHeight = peak.y;
 	}
-}
-
-int World::
-getTheWidth(void) const
-{
-	return worldStart * -2;
-}
-
-void World::save(void){
-	std::string data;
-
-	std::string save = (std::string)currentXML + ".dat";
-	std::ofstream out (save,std::ios::out | std::ios::binary);
-
-	std::cout<<"Saving to "<<save<<" ..."<<std::endl;
-
-	for(auto &n : npc){
-		data.append(std::to_string(n->dialogIndex) + "\n");
-		data.append(std::to_string((int)n->loc.x) + "\n");
-		data.append(std::to_string((int)n->loc.y) + "\n");
-	}
-
-	for(auto &b : build){
-		data.append(std::to_string((int)b->loc.x) + "\n");
-		data.append(std::to_string((int)b->loc.y) + "\n");
-	}
-
-	for(auto &m : mob){
-		data.append(std::to_string((int)m->loc.x) + "\n");
-		data.append(std::to_string((int)m->loc.y) + "\n");
-		data.append(std::to_string((int)m->alive) + "\n");
-	}
-
-	data.append("dOnE\0");
-	out.write(data.c_str(),data.size());
-	out.close();
-}
-
-void World::load(void){
-	std::string save,data,line;
-	const char *filedata;
-
-	save = std::string(currentXML + ".dat");
-	filedata = readFile(save.c_str());
-	data = filedata;
-	std::istringstream iss (data);
-
-	for(auto &n : npc){
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		if((n->dialogIndex = std::stoi(line)) != 9999)
-			n->addAIFunc(commonAIFunc,false);
-		else n->clearAIFunc();
-
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		n->loc.x = std::stoi(line);
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		n->loc.y = std::stoi(line);
-	}
-
-	for(auto &b : build){
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		b->loc.x = std::stoi(line);
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		b->loc.y = std::stoi(line);
-	}
-
-	for(auto &m : mob){
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		m->loc.x = std::stoi(line);
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		m->loc.y = std::stoi(line);
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		m->alive = std::stoi(line);
-	}
-
-	while(std::getline(iss,line)){
-		if(line == "dOnE")
-			break;
-	}
-
-	delete[] filedata;
 }
 
 float getIndoorWorldFloorHeight(void)
