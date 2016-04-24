@@ -150,8 +150,9 @@ void destroyInventory(void) {
 	Mix_FreeChunk(swordSwing);
 }
 
-const char *getItemTexturePath(std::string name) {
-	for(auto &i : itemMap) {
+
+const char *getItemTexturePath(std::string name){
+	for (auto &i : itemMap) {
 		if (i->name == name)
 			return i->texloc.c_str();
 	}
@@ -397,7 +398,7 @@ void Inventory::draw(void) {
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
 				ui::setFontColor(255,255,255,((float)dfp[a]/(float)(range?range:1))*255);
-				ui::putStringCentered(r.end.x,r.end.y-(itemWide*.9),itemMap[items[a].id]->name.c_str());
+				ui::putStringCentered(r.end.x,r.end.y-(itemWide*.9),itemMap[items[a].id]->name);
 				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",items[a].count);
 				ui::setFontColor(255,255,255,255);
 			}
@@ -518,8 +519,8 @@ void Inventory::draw(void) {
 		if (highlight < items.size()) {
 			ui::putStringCentered(player->loc.x + player->width / 2,
 			                      player->loc.y + range * 0.75f,
-							      itemMap[items[highlight].id]->name.c_str()
-						         );
+							      itemMap[items[highlight].id]->name
+						          );
 		}
 	}
 	if (!items.empty() && items.size() > sel && items[sel].count)

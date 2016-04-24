@@ -20,9 +20,7 @@ extern WorldWeather weather;
  *	In the case of dialog, some NPC quests can be preloaded so that they aren't assigned until
  *	the dialog box closes. Reference variables for that here.
 */
-
-extern std::vector<int (*)(NPC *)> AIpreload;
-extern std::vector<NPC *> AIpreaddr;
+extern std::vector<NPC *> aipreload;
 
 /*
  *	Pressing ESC or closing the window will set this to false.
@@ -463,20 +461,19 @@ namespace ui {
 		return putString(x, y, buf.get());
 	}
 
-	void dialogBox(const char *name, const char *opt, bool passive, const char *text, ...) {
+	void dialogBox(std::string name, std::string opt, bool passive, std::string text, ...) {
 		va_list dialogArgs;
 		std::unique_ptr<char[]> printfbuf (new char[512]);
 
 		textWrapLimit = 110;
 		dialogPassive = passive;
 
-		// reset & add speaker prefix
-		dialogBoxText.clear();
-		dialogBoxText = (std::string)name + ": ";
+		// add speaker prefix
+		dialogBoxText = name + ": ";
 
 		// handle the formatted string
-		va_start(dialogArgs,text);
-		vsnprintf(printfbuf.get(),512,text,dialogArgs);
+		va_start(dialogArgs, text);
+		vsnprintf(printfbuf.get(), 512, text.c_str(), dialogArgs);
 		va_end(dialogArgs);
 		dialogBoxText += printfbuf.get();
 
@@ -485,12 +482,11 @@ namespace ui {
 
 		dialogOptChosen = 0;
 
-		if (opt) {
-			std::string soptbuf = opt;
-			char *sopt = strtok(&soptbuf[0], ":");
+		if (!opt.empty()) {
+			char *sopt = strtok(&opt[0], ":");
 
 			// cycle through options
-			while(sopt) {
+			while (sopt) {
 				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}));
 				sopt = strtok(NULL,":");
 			}
@@ -558,11 +554,11 @@ namespace ui {
 	 * Wait for a dialog box to be dismissed.
 	 */
 
-	void waitForDialog (void) {
+	void waitForDialog(void) {
 		while (dialogBoxExists);
 	}
 
-	void waitForCover (void) {
+	void waitForCover(void) {
 		while (fadeIntensity < 255)
 			mainLoop();
 		fadeIntensity = 255;
@@ -666,7 +662,7 @@ namespace ui {
 				}
 				if (fadeIntensity == 255 || dialogPassive) {
 					setFontSize(24);
-					putStringCentered(offset.x,offset.y,rtext.c_str());
+					putStringCentered(offset.x,offset.y,rtext);
 					setFontSize(16);
 				}
 			}else if (dialogMerchant) {
@@ -683,10 +679,10 @@ namespace ui {
 
 				vec2 merchBase = {offset.x, offset.y + SCREEN_HEIGHT / 5};
 
-				putStringCentered(merchBase.x + SCREEN_WIDTH / 10 - 20, merchBase.y + 40 + fontSize * 2, itemString1.c_str());
-				putStringCentered(merchBase.x + SCREEN_WIDTH / 10 - 20, merchBase.y + 40 + fontSize    , merchTrade.item[0].c_str());
-				putStringCentered(merchBase.x - SCREEN_WIDTH / 10     , merchBase.y + 40 + fontSize * 2, itemString2.c_str());
-				putStringCentered(merchBase.x - SCREEN_WIDTH / 10     , merchBase.y + 40 + fontSize    , merchTrade.item[1].c_str());
+				putStringCentered(merchBase.x + SCREEN_WIDTH / 10 - 20, merchBase.y + 40 + fontSize * 2, itemString1);
+				putStringCentered(merchBase.x + SCREEN_WIDTH / 10 - 20, merchBase.y + 40 + fontSize    , merchTrade.item[0]);
+				putStringCentered(merchBase.x - SCREEN_WIDTH / 10     , merchBase.y + 40 + fontSize * 2, itemString2);
+				putStringCentered(merchBase.x - SCREEN_WIDTH / 10     , merchBase.y + 40 + fontSize    , merchTrade.item[1]);
 				putStringCentered(offset.x, merchBase.y + 60, "for");
 
 				glEnable(GL_TEXTURE_2D);
@@ -797,7 +793,7 @@ namespace ui {
 			putText(hub.x,hub.y,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
 												(unsigned)player->maxHealth
 												);
-			if (player->alive) {
+			if (player->isAlive()) {
 				glColor3ub(150,0,0);
 				hub.y-=fontSize*1.15;
 				glRectf(hub.x,
@@ -824,7 +820,7 @@ namespace ui {
 
 				for(auto &c : player->qh.current) {
 					hub.y -= fontSize * 1.15;
-					putStringCentered(hub.x,hub.y,c.title.c_str());
+					putStringCentered(hub.x,hub.y,c.title);
 				}
 
 				hub.y = offset.y + 40*1.2;
@@ -899,6 +895,7 @@ EXIT:
 		//if (!dialogMerchant)closeBox();
 		dialogBoxExists = false;
 		dialogMerchant = false;
+		dialogPassive = false;
 
 		//DONE:
 
@@ -1211,11 +1208,10 @@ EXIT:
 		}
 
 		// Flush preloaded AI functions if necessary
-		if (!dialogBoxExists && AIpreaddr.size()) {
-			while (!AIpreaddr.empty()) {
-				AIpreaddr.front()->addAIFunc(AIpreload.front(), false);
-				AIpreaddr.erase(AIpreaddr.begin());
-				AIpreload.erase(AIpreload.begin());
+		if (!dialogBoxExists) {
+			while (!aipreload.empty()) {
+				aipreload.front()->addAIFunc(false);
+				aipreload.erase(std::begin(aipreload));
 			}
 		}
 	}

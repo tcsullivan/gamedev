@@ -287,10 +287,7 @@ int main(int argc, char *argv[]){
 
 	SDL_ShowCursor(SDL_DISABLE);
 
-	//glEnable(GL_CULL_FACE);
-
 	Texture::initColorIndex();
-	initEntity();
 
 	/*
 	 * Initializes our shaders so that the game has shadows.
@@ -682,73 +679,57 @@ void logic(){
 
 	if (player->inv->usingi) {
 		for (auto &e : currentWorld->entity) {
-			e->hit = false;
-
-			if (player->inv->usingi && !e->hit &&
-				 player->inv->detectCollision({ e->loc.x, e->loc.y }, { e->loc.x + e->width, e->loc.y + e->height})) {
-				e->health -= 25;
-				e->hit = true;
-				e->forcedMove = true;
-				e->hitCooldown = 10;
-				e->vel.x = 0.5f * (player->left ? -1 : 1);
-				e->vel.y = 0.2f;
+			if (player->inv->usingi && !e->isHit() &&
+				player->inv->detectCollision(vec2 { e->loc.x, e->loc.y }, vec2 { e->loc.x + e->width, e->loc.y + e->height})) {
+				e->takeHit(25, 10);
 				break;
-				//for(int r = 0; r < (rand()%5);r++)
-				//	currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%4)*.001-.002), {(rand()%75+10)/100.0f,0,0}, 10000);
-				//if (e->health <= 0) {
-				//for(int r = 0; r < (rand()%30)+15;r++)
-				//	currentWorld->addParticle(rand()%HLINE*3 + n->loc.x - .05f,n->loc.y + n->height*.5, HLINE,HLINE, -(rand()%10)*.01,((rand()%10)*.01-.05), {(rand()%75)+10/100.0f,0,0}, 10000);
 			}
 		}
 		player->inv->usingi = false;
 	}
 
 	for (auto &e : currentWorld->entity) {
-		if (e->alive) {
-			if (e->type == NPCT || e->type == MERCHT || e->type == OBJECTT) {
-
-				if (e->type == OBJECTT && ObjectSelected) {
+		if (e->isAlive() && ((e->type == NPCT) || (e->type == MERCHT) || (e->type == OBJECTT))) {
+			if (e->type == OBJECTT && ObjectSelected) {
+				e->near = false;
+				continue;
+			} else if (e->canMove) {
+				e->wander((rand() % 120 + 30));
+				if (NPCSelected) {
 					e->near = false;
 					continue;
-				} else { // has to be NPC
-					if (e->canMove) {
-						e->wander((rand() % 120 + 30));
-						if (NPCSelected) {
-							e->near = false;
-							continue;
-						}
-					}
 				}
+			}
 
-				if(e->isInside(ui::mouse) && player->isNear(*e)) {
-					if (e->type == OBJECTT)
-						ObjectSelected = true;
-					else
-						NPCSelected = true;
-					e->near = true;
+			if(e->isInside(ui::mouse) && player->isNear(*e)) {
+				e->near = true;
+				if (e->type == OBJECTT)
+					ObjectSelected = true;
+				else
+					NPCSelected = true;
 
-					if ((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) && !ui::dialogBoxExists)
-						e->interact();
-				} else
-					e->near = false;
-			} else if (e->type == MOBT) {
-				e->near = player->isNear(*e);
+				if ((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) && !ui::dialogBoxExists)
+					e->interact();
+			} else {
+				e->near = false;
+			}
+		} else if (e->type == MOBT) {
+			e->near = player->isNear(*e);
 
-				switch (e->subtype) {
-				case MS_RABBIT:
-				case MS_BIRD:
-					e->wander((rand()%240 + 15));
-					break;
-				case MS_TRIGGER:
-				case MS_PAGE:
-					e->wander(0);
-					break;
-				case MS_DOOR:
-					break;
-				default:
-					std::cout<<"Unhandled mob of subtype "<<e->subtype<<"."<<std::endl;
-					break;
-				}
+			switch (e->subtype) {
+			case MS_RABBIT:
+			case MS_BIRD:
+				e->wander((rand()%240 + 15));
+				break;
+			case MS_TRIGGER:
+			case MS_PAGE:
+				e->wander(0);
+				break;
+			case MS_DOOR:
+				break;
+			default:
+				std::cout<<"Unhandled mob of subtype "<<e->subtype<<"."<<std::endl;
+				break;
 			}
 		}
 	}

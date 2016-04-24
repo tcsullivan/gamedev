@@ -14,10 +14,9 @@ extern Menu   optionsMenu;
 
 extern std::string xmlFolder;
 
-extern void mainLoop(void);						// main.cpp
+extern std::vector<NPC *> aipreload;
 
-extern std::vector<NPC *> AIpreaddr;			// entities.cpp
-extern std::vector<int (*)(NPC *)> AIpreload;	// entities.cpp
+extern void mainLoop(void);						// main.cpp
 
 std::vector<XMLElement *> dopt;
 
@@ -27,197 +26,154 @@ inline void segFault() {
 	(*((int *)NULL))++;
 }
 
-int commonAIFunc(NPC *speaker) {
+int commonAIFunc(NPC *speaker)
+{
 	XMLDocument xml;
 	XMLElement *exml,*oxml;
 
 	static unsigned int oldidx = 9999;
 
-	const char *name;
+	std::string name;
 	unsigned int idx = 0;
 	bool stop = false;
 
-	/*
-	 * Load the current world's XML file into memory for reading.
-	 */
-
+	// load the XML file and find the dialog tags
 	xml.LoadFile(currentXML.c_str());
 	exml = xml.FirstChildElement("Dialog");
 
-	/*
-	 * Search for the correct dialog block.
-	 */
-
-	while(strcmp(exml->Attribute("name"),speaker->name))
+	// search for the dialog block associated with this npc
+	while (exml->StrAttribute("name") != speaker->name)
 		exml = exml->NextSiblingElement();
 
+	// search for the desired text block
 	exml = exml->FirstChildElement();
+	std::cout << speaker->dialogIndex << '\n';
+	do {
+		if (std::string("text") == exml->Name() && exml->UnsignedAttribute("id") == (unsigned)speaker->dialogIndex)
+			break;
+	} while ((exml = exml->NextSiblingElement()));
 
-	/*
-	 * Search for which text block should be used.
-	 */
+	// handle quest tags
+	if ((oxml = exml->FirstChildElement("quest"))) {
+		std::string qname;
 
-	do{
-		if (!strcmp(exml->Name(),"text")) {
-			if (exml->UnsignedAttribute("id") == (unsigned)speaker->dialogIndex) {
+		// iterate through all quest tags
+		do {
+			// assign quest
+			if (!(qname = oxml->StrAttribute("assign")).empty())
+				player->qh.assign(qname, "None", std::string(oxml->GetText())); // TODO add descriptions
 
-				/*
-				 * Handle any quest tags
-				 */
-
-				if ((oxml = exml->FirstChildElement("quest"))) {
-					std::string qname;
-
-					while (oxml) {
-						if (!(qname = oxml->StrAttribute("assign")).empty())
-							player->qh.assign(qname,"None",(std::string)oxml->GetText());
-						else if (!(qname = oxml->StrAttribute("check")).empty()) {
-							if (player->qh.hasQuest(qname) && player->qh.finish(qname)) {
-								goto CONT;
-							}else{
-								oldidx = speaker->dialogIndex;
-								speaker->dialogIndex = oxml->UnsignedAttribute("fail");
-								return commonAIFunc(speaker);
-							}
-						}
-
-						oxml = oxml->NextSiblingElement();
-					}
+			// check / finish quest
+			else if (!(qname = oxml->StrAttribute("check")).empty()) {
+				if (player->qh.hasQuest(qname) && player->qh.finish(qname)) {
+					// QuestHandler::finish() did all the work..
+					break;
+				} else {
+					// run error dialog
+					oldidx = speaker->dialogIndex;
+					speaker->dialogIndex = oxml->UnsignedAttribute("fail");
+					return commonAIFunc(speaker);
 				}
-
-CONT:
-
-				/*
-				 * Handle any 'give' requests.
-				 */
-
-				if ((oxml = exml->FirstChildElement("give"))) {
-					while(oxml) {
-						player->inv->addItem(oxml->Attribute("id"),oxml->UnsignedAttribute("count"));
-						oxml = oxml->NextSiblingElement();
-					}
-				}
-
-				/*
-				 * Handle any 'take' requests.
-				 */
-
-				if ((oxml = exml->FirstChildElement("take"))) {
-					while(oxml) {
-						player->inv->takeItem(oxml->Attribute("id"),oxml->UnsignedAttribute("count"));
-						oxml = oxml->NextSiblingElement();
-					}
-				}
-
-				/*
-				 * Handle 'go to' thingy
-				 */
-
-				if ((oxml = exml->FirstChildElement("gotox")))
-					speaker->targetx = atoi(oxml->GetText());
-
-				/*
-				 * Handle dialog options.
-				 */
-
-				if ((oxml = exml->FirstChildElement("option"))) {
-
-					/*
-					 * Convert the list of options into a single colon-separated string.
-					 */
-
-					std::string optstr;
-
-					while(oxml) {
-
-						/*
-						 * Create a buffer big enough for the next option.
-						 */
-
-						optstr.append((std::string)":" + oxml->Attribute("text"));
-
-						/*
-						 * Append the next option.
-						 */
-
-						dopt.push_back(oxml);
-
-						oxml = oxml->NextSiblingElement();
-					}
-
-					/*
-					 * Get the player's choice, then set the XMLElement to the option's block.
-					 */
-
-					ui::dialogBox(speaker->name,optstr.c_str(),false,exml->GetText()+1);
-					ui::waitForDialog();
-
-					if (ui::dialogOptChosen)
-						exml = dopt[ui::dialogOptChosen-1];
-
-					while(!dopt.empty())
-						dopt.pop_back();
-				}else{
-
-					/*
-					 * No options - simply print the text.
-					 */
-
-					ui::dialogBox(speaker->name,NULL,false,exml->GetText());
-					ui::waitForDialog();
-				}
-
-				/*
-				 * Give another NPC dialog if requested.
-				 */
-
-				if ((name = exml->Attribute("call"))) {
-					for(auto &n : currentWorld->npc) {
-						if (!strcmp(n->name,name)) {
-							if (exml->QueryUnsignedAttribute("callid",&idx) == XML_NO_ERROR)
-								n->dialogIndex = idx;
-							n->addAIFunc(commonAIFunc,false);
-							break;
-						}
-					}
-				}
-
-				/*
-				 * Handle the next dialog block if this one leads to another.
-				 */
-
-				if (exml->QueryUnsignedAttribute("nextid",&idx) == XML_NO_ERROR) {
-					speaker->dialogIndex = idx;
-
-					if (exml->QueryBoolAttribute("stop",&stop) == XML_NO_ERROR && stop) {
-						speaker->dialogIndex = 9999;
-						return 0;
-					}else if (exml->QueryBoolAttribute("pause",&stop) == XML_NO_ERROR && stop) {
-						//speaker->dialogIndex = 9999;
-						return 1;
-					}else return commonAIFunc(speaker);
-				}else{
-					if (oldidx != 9999) {
-						speaker->dialogIndex = oldidx;
-						oldidx = 9999;
-						return 1;
-					}else{
-						speaker->dialogIndex = 9999;
-						return 0;
-					}
-				}
-				//return 1;
 			}
+		} while((oxml = oxml->NextSiblingElement()));
+	}
+
+	// handle give tags
+	if ((oxml = exml->FirstChildElement("give"))) {
+		do player->inv->addItem(oxml->Attribute("id"), oxml->UnsignedAttribute("count"));
+		while ((oxml = oxml->NextSiblingElement()));
+	}
+
+	// handle take tags
+	if ((oxml = exml->FirstChildElement("take"))) {
+		do player->inv->takeItem(oxml->Attribute("id"), oxml->UnsignedAttribute("count"));
+		while ((oxml = oxml->NextSiblingElement()));
+	}
+
+	// handle movement directs
+	if ((oxml = exml->FirstChildElement("gotox")))
+		speaker->moveTo(std::stoi(oxml->GetText()));
+
+	// handle dialog options
+	if ((oxml = exml->FirstChildElement("option"))) {
+		std::string optstr;
+
+		// convert option strings to a colon-separated format
+		do {
+			// append the next option
+			optstr.append(std::string(":") + oxml->Attribute("text"));
+
+			// save the associated XMLElement
+			dopt.push_back(oxml);
+		} while ((oxml = oxml->NextSiblingElement()));
+
+		// run the dialog stuff
+		ui::dialogBox(speaker->name, optstr, false, exml->GetText() + 1);
+		ui::waitForDialog();
+
+		if (ui::dialogOptChosen)
+			exml = dopt[ui::dialogOptChosen - 1];
+
+		dopt.clear();
+	}
+
+	// optionless dialog
+	else {
+		ui::dialogBox(speaker->name, "", false, exml->GetText());
+		ui::waitForDialog();
+	}
+
+	// trigger other npcs if desired
+	if (!(name = exml->StrAttribute("call")).empty()) {
+		NPC *n = *std::find_if(std::begin(currentWorld->npc), std::end(currentWorld->npc), [name](NPC *npc) {
+			return (npc->name == name);
+		});
+
+		if (exml->QueryUnsignedAttribute("callid", &idx) == XML_NO_ERROR) {
+			n->dialogIndex = idx;
+			n->addAIFunc(false);
+		}
+	}
+
+	// handle potential following dialogs
+	if ((idx = exml->UnsignedAttribute("nextid"))) {
+		speaker->dialogIndex = idx;
+
+		// stop talking
+		if (exml->QueryBoolAttribute("stop", &stop) == XML_NO_ERROR && stop) {
+			speaker->dialogIndex = 9999;
+			return 0;
 		}
 
-		exml = exml->NextSiblingElement();
+		// pause, allow player to click npc to continue
+		else if (exml->QueryBoolAttribute("pause", &stop) == XML_NO_ERROR && stop) {
+			return 1;
+		}
 
-	}while(exml);
+		// instantly continue
+		else {
+			return commonAIFunc(speaker);
+		}
+	}
+
+	// stop talking
+	else {
+		// error text?
+		if (oldidx != 9999) {
+			speaker->dialogIndex = oldidx;
+			oldidx = 9999;
+			return 1;
+		} else {
+			speaker->dialogIndex = 9999;
+			return 0;
+		}
+	}
 
 	return 0;
 }
 
-void commonPageFunc(Mob *callee) {
+void commonPageFunc(Mob *callee)
+{
 	ui::drawPage(callee->heyid);
 	ui::waitForDialog();
 	callee->health = 0;
@@ -235,7 +191,7 @@ void commonTriggerFunc(Mob *callee) {
 		xml.LoadFile(currentXML.c_str());
 		exml = xml.FirstChildElement("Trigger");
 
-		while(strcmp(exml->Attribute("id"),callee->heyid.c_str()))
+		while(exml->StrAttribute("id") != callee->heyid)
 			exml = exml->NextSiblingElement();
 
 		player->vel.x = 0;
@@ -284,16 +240,11 @@ void initEverything(void) {
 	 * Load the first file found as currentWorld.
 	 */
 
-	for(unsigned int i=0;i<xmlFiles.size();i++) {
-		if (xmlFiles[i] != "." && xmlFiles[i] != ".." && strcmp(xmlFiles[i].c_str()+xmlFiles[i].size()-3,"dat")) {
-
-			/*
-			 * Read in the XML file.
-			 */
-			C("Setting current XML file");
-			std::cout << "File to load: " << xmlFiles[i] << std::endl;
-			currentWorld = loadWorldFromXML(xmlFiles[i]);
-			C("Done setting current XML file");
+	for (xf : xmlFiles) { //unsigned int i=0;i<xmlFiles.size();i++){
+		if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
+			// read the xml file
+			std::cout << "File to load: " << xf << std::endl;
+			currentWorld = loadWorldFromXML(xf);
 			break;
 		}
 	}
@@ -326,8 +277,5 @@ void destroyEverything(void) {
 	//delete currentWorld;
 	//delete[] currentXML;
 
-	while(!AIpreload.empty())
-		AIpreload.pop_back();
-	while(!AIpreaddr.empty())
-		AIpreaddr.pop_back();
+	aipreload.clear();
 }

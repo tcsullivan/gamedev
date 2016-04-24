@@ -137,10 +137,8 @@ void actionAction(void)
 
     auto e = currentWorld->getNearInteractable(*player);
 
-    if (e->type == NPCT) {
-        if (!NPCp(e)->aiFunc.empty())
-            e->interact();
-    }
+    if (e->type == NPCT)
+        e->interact();
 
     ACTION_EPILOUGE;
 }

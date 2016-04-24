@@ -98,6 +98,11 @@ struct _vec2 {
 	bool operator==(const _vec2 &v) {
 		return (x == v.x) && (y == v.y);
 	}
+	template<typename T>
+	const _vec2 operator=(const T &n) {
+		x = y = n;
+		return *this;
+	}
 };
 typedef struct _vec2 vec2;
 

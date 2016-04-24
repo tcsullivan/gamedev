@@ -11,7 +11,7 @@
 ** Includes section
 ** --------------------------------------------------------------------------*/
 
-// 'local' game includes
+// local game includes
 #include <common.hpp>
 #include <entities.hpp>
 
@@ -85,8 +85,8 @@ public:
 	vec2 start, end;
 	bool in;
 
-	Village(const char *meme, World *w);
-	~Village(void) {}
+	Village(std::string meme, World *w);
+	~Village(void){}
 };
 
 /**
@@ -248,30 +248,46 @@ public:
 	Village *addVillage(std::string name, World *world);
 };
 
-/*
- *	IndoorWorld - Indoor settings stored in a World class
+/**
+ * IndoorWorld - Indoor settings stored in a World class
  */
-
 class IndoorWorld : public World {
 private:
 
+	// like lines, but split into floors
 	std::vector<std::vector<float>> floor;
+
+	// the x coordinate to start each floor at
 	std::vector<float> fstart;
 
+	// handles physics for a single entity
 	void singleDetect(Entity *e);
 
 public:
+
+	// creates an IndoorWorld object
 	IndoorWorld(void);
+
+	// frees memory used by this object
 	~IndoorWorld(void);
 
+	// adds a floor of the desired width
 	void addFloor(unsigned int width);
+
+	// adds a floor at the desired x coordinate with the given width
 	void addFloor(unsigned int width, unsigned int start);
+
+	// attempts to move the entity provided to the given floor
 	bool moveToFloor(Entity *e, unsigned int _floor);
 
+	// checks for a floor above the given entity
 	bool isFloorAbove(Entity *e);
+
+	// checks for a floor below the given entity
 	bool isFloorBelow(Entity *e);
 
-	void draw(Player *p);				// Draws the world (ignores layers)
+	// draws the world about the player
+	void draw(Player *p);
 };
 
 /**

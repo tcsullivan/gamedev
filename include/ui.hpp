@@ -108,7 +108,7 @@ namespace ui {
 	*/
 
 	void drawBox(vec2 c1, vec2 c2);
-	void dialogBox(const char *name,const char *opt,bool passive,const char *text,...);
+	void dialogBox(std::string name, std::string opt, bool passive, std::string text, ...);
 	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...);
 	void merchantBox();
 	void closeBox();

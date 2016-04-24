@@ -190,9 +190,6 @@ deleteEntities(void)
 void World::
 generate(unsigned int width)
 {
-    // iterator for `for` loops
-	std::vector<WorldData>::iterator wditer;
-
     // see below for description/usage
     float geninc = 0;
 
@@ -206,34 +203,24 @@ generate(unsigned int width)
 
     // prepare for generation
     worldData.front().groundHeight = GROUND_HEIGHT_INITIAL;
-    wditer = worldData.begin();
+    auto wditer = std::begin(worldData) + GROUND_HILLINESS;
 
     // give every GROUND_HILLINESSth entry a groundHeight value
-    for (unsigned i = GROUND_HILLINESS; i < worldData.size(); i += GROUND_HILLINESS, wditer += GROUND_HILLINESS)
-        worldData[i].groundHeight = (*wditer).groundHeight + (randGet() % 8 - 4);
+    for (; wditer < std::end(worldData); wditer += GROUND_HILLINESS)
+        (*(wditer - GROUND_HILLINESS)).groundHeight = (*wditer).groundHeight + (randGet() % 8 - 4);
 
     // create slopes from the points that were just defined, populate the rest of the WorldData structure
+    for (wditer = std::begin(worldData) + 1; wditer < std::end(worldData); wditer++){
+        auto w = &*(wditer);
 
-    for(wditer = worldData.begin() + 1; wditer != worldData.end(); wditer++) {
-        if ((*wditer).groundHeight && wditer + GROUND_HILLINESS < worldData.end())
-			// wditer + GROUND_HILLINESS can go out of bounds (invalid read)
-            geninc = ((*(wditer + GROUND_HILLINESS)).groundHeight - (*wditer).groundHeight) / (float)GROUND_HILLINESS;
-        else {
-            (*wditer).groundHeight = (*(wditer - 1)).groundHeight + geninc;
+        if (w->groundHeight)
+            geninc = ((w + (int)GROUND_HILLINESS)->groundHeight - w->groundHeight) / GROUND_HILLINESS;
 
-            if ((*wditer).groundHeight < GROUND_HEIGHT_MINIMUM)
-                (*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
-            else if ((*wditer).groundHeight > GROUND_HEIGHT_MAXIMUM)
-                (*wditer).groundHeight = GROUND_HEIGHT_MAXIMUM;
-        }
-
-        (*wditer).groundColor    = randGet() % 32 / 8;
-        (*wditer).grassUnpressed = true;
-        (*wditer).grassHeight[0] = (randGet() % 16) / 3 + 2;
-        (*wditer).grassHeight[1] = (randGet() % 16) / 3 + 2;
-
-		if((*wditer).groundHeight <= 0)
-			(*wditer).groundHeight = GROUND_HEIGHT_MINIMUM;
+        w->groundHeight   = fmin(fmax((w - 1)->groundHeight + geninc, GROUND_HEIGHT_MINIMUM), GROUND_HEIGHT_MAXIMUM);
+        w->groundColor    = randGet() % 32 / 8;
+        w->grassUnpressed = true;
+        w->grassHeight[0] = (randGet() % 16) / 3 + 2;
+        w->grassHeight[1] = (randGet() % 16) / 3 + 2;
     }
 
     // define x-coordinate of world's leftmost 'line'
@@ -449,22 +436,21 @@ draw(Player *p)
 	glBegin(GL_QUADS);
         //std::for_each(std::begin(worldData) + iStart, std::begin(worldData) + iEnd, [&](WorldData wd) {
         for (i = iStart; i < iEnd; i++) {
-            auto wd = worldData[i];
-            if (wd.groundHeight <= 0) {
-                wd.groundHeight = GROUND_HEIGHT_MINIMUM - 1;
+            if (worldData[i].groundHeight <= 0) {
+                worldData[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
                 glColor4ub(0, 0, 0, 255);
             } else {
                 safeSetColorA(150, 150, 150, 255);
             }
 
-            int ty = wd.groundHeight / 64 + wd.groundColor;
-            glTexCoord2i(0, 0);  glVertex2i(worldStart + i * HLINE         , wd.groundHeight - GRASS_HEIGHT);
-            glTexCoord2i(1, 0);  glVertex2i(worldStart + i * HLINE + HLINE , wd.groundHeight - GRASS_HEIGHT);
+            int ty = worldData[i].groundHeight / 64 + worldData[i].groundColor;
+            glTexCoord2i(0, 0);  glVertex2i(worldStart + i * HLINE         , worldData[i].groundHeight - GRASS_HEIGHT);
+            glTexCoord2i(1, 0);  glVertex2i(worldStart + i * HLINE + HLINE , worldData[i].groundHeight - GRASS_HEIGHT);
             glTexCoord2i(1, ty); glVertex2i(worldStart + i * HLINE + HLINE, 0);
             glTexCoord2i(0, ty); glVertex2i(worldStart + i * HLINE	      , 0);
 
-            if (wd.groundHeight == GROUND_HEIGHT_MINIMUM - 1)
-                wd.groundHeight = 0;
+            if (worldData[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1)
+                worldData[i].groundHeight = 0;
         }//);
 	glEnd();
 
@@ -558,10 +544,11 @@ singleDetect(Entity *e)
 	int l;
 
 	// kill dead entities
-	if (e->alive && e->health <= 0) {
+	if (!e->isAlive()) {
+        return;
+    } else if (e->health <= 0) {
         // die
-        e->alive = false;
-        e->health = 0;
+        e->die();
 
         // delete the entity
 		for (i = 0; i < entity.size(); i++) {
@@ -599,15 +586,10 @@ singleDetect(Entity *e)
 	}
 
 	// collision / gravity: handle only living entities
-	if (e->alive) {
+	else {
 
         // forced movement gravity (sword hits)
-        if (e->forcedMove) {
-            if (e->vel.x > .0005 || e->vel.x < -.0005)
-                e->vel.x *= .6;
-            else
-                e->forcedMove = false;
-        }
+        e->handleHits();
 
 		if (e->subtype == MS_TRIGGER)
 			return;
@@ -877,7 +859,7 @@ void World::save(void){
 	for (auto &m : mob) {
 		data.append(std::to_string((int)m->loc.x) + "\n");
 		data.append(std::to_string((int)m->loc.y) + "\n");
-		data.append(std::to_string((int)m->alive) + "\n");
+		data.append(std::to_string((int)m->isAlive()) + "\n");
 	}
 
     // wrap up
@@ -898,9 +880,8 @@ void World::load(void){
 	for(auto &n : npc){
 		std::getline(iss,line);
 		if(line == "dOnE")return;
-		if((n->dialogIndex = std::stoi(line)) != 9999)
-			n->addAIFunc(commonAIFunc,false);
-		else n->clearAIFunc();
+		if ((n->dialogIndex = std::stoi(line)) != 9999)
+			n->addAIFunc(false);
 
 		std::getline(iss,line);
 		if(line == "dOnE")return;
@@ -928,7 +909,8 @@ void World::load(void){
 		m->loc.y = std::stoi(line);
 		std::getline(iss,line);
 		if(line == "dOnE")return;
-		m->alive = std::stoi(line);
+        if (!std::stoi(line))
+            m->die();
 	}
 
 	while(std::getline(iss,line)){
@@ -1005,18 +987,15 @@ setStyle(std::string pre)
     // get folder prefix
 	std::string prefix = pre.empty() ? "assets/style/classic/" : pre;
 
-    for_each(std::begin(buildPaths), std::end(buildPaths), [this, prefix](std::string s){
+    for (s : buildPaths)
         sTexLoc.push_back(prefix + s);
-    });
 
     prefix += "bg/";
 
-    for_each(std::begin(bgPaths[0]), std::end(bgPaths[0]), [this, prefix](std::string s){
+    for (s : bgPaths[0])
         bgFiles.push_back(prefix + s);
-    });
-    for_each(std::begin(bgPaths[1]), std::end(bgPaths[1]), [this, prefix](std::string s){
+    for (s : bgPaths[1])
         bgFilesIndoors.push_back(prefix + s);
-    });
 }
 
 /**
@@ -1107,7 +1086,7 @@ goWorldLeft(NPC *e)
 	// check if entity is at world edge
 	if(!toLeft.empty() && e->loc.x < worldStart + HLINE * 15.0f) {
         currentWorldToLeft->addNPC(e->loc.x,e->loc.y);
-        e->alive = false;
+        e->die();
 
 		currentWorldToLeft->npc.back()->loc.x = 0;
 		currentWorldToLeft->npc.back()->loc.y = GROUND_HEIGHT_MAXIMUM;
@@ -1125,45 +1104,50 @@ World *World::
 goInsideStructure(Player *p)
 {
 	World *tmp;
-	std::string current;
 
 	if (inside.empty()) {
-		for (auto &b : build) {
-			if (p->loc.x > b->loc.x && p->loc.x + p->width < b->loc.x + b->width) {
-                if (b->inside.empty())
-                    return this;
+        auto d = std::find_if(std::begin(build), std::end(build), [p](const Structures *s) {
+            return ((p->loc.x > s->loc.x) && (p->loc.x + p->width < s->loc.x + s->width));
+        });
+        auto b = *d;
 
-                // +size cuts folder prefix
-				inside.push_back(currentXML.c_str() + xmlFolder.size());
-				tmp = loadWorldFromXML(b->inside);
+        if ((d == std::end(build)) || b->inside.empty())
+            return this;
 
-                // make the fade, as we let it fade back the worlds should be switched
-				ui::toggleBlackFast();
-				ui::waitForCover();
-				ui::toggleBlackFast();
+        // +size cuts folder prefix
+		inside.push_back(&currentXML[xmlFolder.size()]);
+		tmp = loadWorldFromXML(b->inside);
 
-                glClearColor(0, 0, 0, 1);
+        // make the fade, as we let it fade back the worlds should be switched
+		ui::toggleBlackFast();
+		ui::waitForCover();
+		ui::toggleBlackFast();
+        glClearColor(0, 0, 0, 1);
 
-				return tmp;
-			}
-		}
+		return tmp;
 	} else {
-        current = currentXML.c_str() + xmlFolder.size();
+        std::string current = &currentXML[xmlFolder.size()];
 		tmp = loadWorldFromXML(inside.back());
-		for (auto &b : tmp->build) {
-			if (current == b->inside) {
-				inside.pop_back();
+        inside.clear();
 
-				ui::toggleBlackFast();
-				ui::waitForCover();
-				p->loc.x = b->loc.x + (b->width / 2);
-				ui::toggleBlackFast();
+        Structures *b;
+        for (auto &s : build) {
+            if (s->inside == current) {
+                b = s;
+                break;
+            }
+        }
+        //auto b = *std::find_if(std::begin(build), std::end(build), [&](const Structures *s) {
+        //    return (s->inside == current);
+        //});
 
-                glClearColor(1, 1, 1, 1);
+		ui::toggleBlackFast();
+		ui::waitForCover();
+		p->loc.x = b->loc.x + (b->width / 2);
+		ui::toggleBlackFast();
+        glClearColor(1, 1, 1, 1);
 
-				return tmp;
-			}
-		}
+		return tmp;
 	}
 
 	return this;
@@ -1173,18 +1157,15 @@ void World::addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::s
 	build.push_back(new Structures());
 	build.back()->inWorld = this;
 	build.back()->textureLoc = tex;
-
 	build.back()->spawn(sub,x,y);
-
 	build.back()->inside = inside;
-
 	entity.push_back(build.back());
 }
 
 Village *World::
 addVillage(std::string name, World *world)
 {
-    village.emplace_back(name.c_str(), world);
+    village.emplace_back(name, world);
     return &village.back();
 }
 
@@ -1358,9 +1339,9 @@ singleDetect(Entity *e)
     unsigned int floornum = 0;
     float start, end;
 
-    if (!e->alive)
+    if (!e->isAlive())
         return;
-    if (e->type == MOBT && Mobp(e)->subtype == MS_TRIGGER)
+    if (e->type == MOBT && e->subtype == MS_TRIGGER)
         return;
 
     for (; floornum < floor.size(); floornum++) {
@@ -1527,10 +1508,10 @@ Arena::~Arena(void) {
 
 World *Arena::exitArena(Player *p) {
 	World *tmp;
-	if (!mmob->alive &&
-         p->loc.x + p->width / 2 > mob[0]->loc.x &&
-	     p->loc.x + p->width / 2 < mob[0]->loc.x + HLINE * 12) {
-		tmp = battleNest.front();
+	if (!mmob->isAlive() &&
+        p->loc.x + p->width / 2 > mob[0]->loc.x &&
+	    p->loc.x + p->width / 2 < mob[0]->loc.x + HLINE * 12) {
+	    tmp = battleNest.front();
 		battleNest.erase(battleNest.begin());
 
 		inBattle = !battleNest.empty();
@@ -1541,7 +1522,7 @@ World *Arena::exitArena(Player *p) {
 		battleNestLoc.pop_back();
 
 		mob.clear();
-		mmob->alive = false;
+		mmob->die();
 
 		return tmp;
 	}else{
@@ -1749,9 +1730,9 @@ loadWorldFromXMLNoSave(std::string path) {
 
             // dialog enabling
 			dialog = false;
-			if (wxml->QueryBoolAttribute("hasDialog", &dialog) == XML_NO_ERROR && dialog)
-				tmp->npc.back()->addAIFunc(commonAIFunc, false);
-			else
+			if (wxml->QueryBoolAttribute("hasDialog", &dialog) == XML_NO_ERROR && dialog) {
+				tmp->npc.back()->addAIFunc(false);
+			} else
                 tmp->npc.back()->dialogIndex = 9999;
 
             if (Indoor && wxml->QueryUnsignedAttribute("floor", &flooor) == XML_NO_ERROR)
@@ -1855,8 +1836,6 @@ loadWorldFromXMLNoSave(std::string path) {
 																sxml->IntAttribute("quantity1"),
 																sxml->StrAttribute("item1")));
 				} else if (tag == "text") { //this is what the merchant says
-                    std::cout << "text" << std::endl;
-
                     XMLElement *txml = sxml->FirstChildElement();
                     std::string textOption;
 
@@ -1894,7 +1873,7 @@ loadWorldFromXMLNoSave(std::string path) {
 		vil = vil->NextSiblingElement();
 	}
 
-	std::ifstream dat (((std::string)currentXML + ".dat").c_str());
+	std::ifstream dat (((std::string)currentXML + ".dat").data());
 	if (dat.good()) {
 		dat.close();
 		tmp->load();
@@ -1903,7 +1882,8 @@ loadWorldFromXMLNoSave(std::string path) {
 	return tmp;
 }
 
-Village::Village(const char *meme, World *w) {
+Village::Village(std::string meme, World *w)
+{
 	name = meme;
 	start.x = w->getTheWidth() / 2.0f;
 	end.x = -start.x;

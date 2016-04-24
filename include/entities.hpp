@@ -1,197 +1,339 @@
+/* ----------------------------------------------------------------------------
+** The entity stuffs.
+**
+** Entities.
+** --------------------------------------------------------------------------*/
 #ifndef ENTITIES_H
 #define ENTITIES_H
+#define DEBUG
 
+/* ----------------------------------------------------------------------------
+** Includes section
+** --------------------------------------------------------------------------*/
+
+// local game includes
 #include <common.hpp>
 #include <quest.hpp>
 #include <inventory.hpp>
 #include <texture.hpp>
 
-#include <sstream>
+/* ----------------------------------------------------------------------------
+** Structures section
+** --------------------------------------------------------------------------*/
 
-#define DEBUG
-
-#define NPCp(n)			((NPC *)n)
-#define Structurep(n)	((Structures *)n)
-#define Mobp(n)			((Mob *)n)
-
-#define PLAYER_INV_SIZE	43	// The size of the player's inventory
-#define NPC_INV_SIZE	3	// Size of an NPC's inventory
-
+/**
+ * An entity type enumerator for identifying entities.
+ */
 enum _TYPE {
-	OBJECTT = -2,
-	STRUCTURET,
-	PLAYERT,
-	NPCT,
-	MERCHT,
-	MOBT
+	OBJECTT = -2,	/**< an object (Object) */
+	STRUCTURET,		/**< a structure (Structures *) */
+	PLAYERT,		/**< the player (Player *) */
+	NPCT,			/**< an NPC (NPC *) */
+	MERCHT,			/**< a merchant (Merchant *) */
+	MOBT			/**< A mob (Mob *) */
 };
 
+/**
+ * An enumerator for entity gender.
+ */
 enum GENDER{
-	MALE,
-	FEMALE
+	MALE,	/**< male */
+	FEMALE  /**< female */
 };
 
+/**
+ * An enumerator for mob types.. 'species'.
+ * The subtype of a Mob will affect what texture is used to draw it as well as
+ * how the Mob will behave.
+ */
 enum MOB_SUB {
-	MS_RABBIT = 1,
-	MS_BIRD,
-	MS_TRIGGER,
-	MS_DOOR,
-	MS_PAGE
+	MS_RABBIT = 1,	/**< rabbits */
+	MS_BIRD,		/**< birds */
+	MS_TRIGGER,		/**< triggers, used to cue cutscenes */
+	MS_DOOR,		/**< doors, for exiting arenas */
+	MS_PAGE			/**< pages, cues page overlay */
 };
 
+/**
+ * An enumerator for strcture types.
+ * The subtype of a structure will affect how it is drawn and how it functions.
+ */
 enum BUILD_SUB{
-	TOWN_HALL = 0,
-	HOUSE = 1,
-	HOUSE2 = 2,
-	HOUSE3 = 3,
-	HOUSE4 = 4,
-	FOUNTAIN = 5,
-	LAMP_POST = 6,
-	FIRE_PIT = 7,
-	STALL_MARKET = 70,
-	STALL_TRADER = 71
+	TOWN_HALL = 0,		/**< a town hall */
+	HOUSE,				/**< a generic house */
+	HOUSE2,				/**< a generic house of a different style */
+	HOUSE3,				/**< a generic house of a different style */
+	HOUSE4,				/**< a generic house of a different style */
+	FOUNTAIN,			/**< a fountain, creates water particles */
+	LAMP_POST,			/**< a lamppost, creates light */
+	FIRE_PIT,			/**< a firepit, creates fire particles / light */
+	STALL_MARKET = 70,	/**< a stall for a merchant */
+	STALL_TRADER		/**< TODO */
 };
 
-class Trade{
-public:
+/**
+ * A structure for tracking potential trades between the player and a merchant.
+ */
+struct Trade {
+	// the names of the items up for trade
 	std::string item[2];
+	// how much of each item to trade
 	int quantity[2];
-	Trade(int qo, std::string o, int qt, std::string t);
-	Trade() {}
-};
 
+	// constructs a trade with the given values
+	Trade(int qo, std::string o, int qt, std::string t) {
+		item[0] = o;
+		item[1] = t;
+		quantity[0] = qo;
+		quantity[1] = qt;
+	}
+
+	// creates an empty trade item
+	Trade(void) {
+		item[0] = "";
+		item[1] = "";
+		quantity[0] = 0;
+		quantity[1] = 0;
+	}
+};
+typedef struct Trade Trade;
+
+/* ----------------------------------------------------------------------------
+** Variables section
+** --------------------------------------------------------------------------*/
+
+// the size of the player's inventory
+extern const unsigned int PLAYER_INV_SIZE;
+// the size of an NPC's inventory
+extern const unsigned int NPC_INV_SIZE;
+
+/* ----------------------------------------------------------------------------
+** Classes / function prototypes section
+** --------------------------------------------------------------------------*/
+
+// a prototype of the world class, necessary for some function prototypes
 class World;
 
+/**
+ * The particle class, handles a single particle.
+ */
 class Particles{
 public:
+	// the location of the particle
 	vec2 loc;
+
+	// the width of the particle, in pixels
 	float width;
+
+	// the height of the particle, in pixels
 	float height;
+
+	// the velocity of the particle, in pixels
 	vec2 vel;
+
+	// the color of the particle
 	Color color;
+
+	// TODO
 	vec2 index;
+
+	// the amount of milliseconds left for the particle to live
 	float duration;
+
+	// when true, the particle will move
 	bool canMove;
+
+	// TODO
 	bool fountain;
+
+	// when true, the particle will be affected by gravity
 	bool gravity;
+
+	// when true, draws the particle behind structures
 	bool behind;
+
+	// when true, the particle will bounce on impact with ground
 	bool bounce;
-	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d) {
-		loc.x = x;
-		loc.y = y;
-		vel.x = vx;
-		vel.y = vy;
+
+	// creates a particle with the desired characteristics
+	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d){
+		loc = vec2 {x, y};
+		vel = vec2 {vx, vy};
 		width = w;
 		height = h;
 		color = c;
 		duration = d;
-		fountain = false;
 		gravity = true;
+		fountain = false;
 		behind = false;
 		bounce = false;
 		index = Texture::getIndex(c);
 	}
-	~Particles() {
-	}
-	void draw() {
-		glColor3ub(255,255,255);
+
+	// allows the particle to be destroyed
+	~Particles(void){}
+
+	// draws the particle
+	void draw(void) const {
+		glColor3ub(255, 255, 255);
 		glBegin(GL_QUADS);
-			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y);
-			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x + width, loc.y);
-			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x + width, loc.y + height);
-			glTexCoord2f(.25*index.x, .125*index.y);	glVertex2i(loc.x, loc.y + width);
+			vec2 tc = vec2 {0.25f * index.x, 0.125f * index.y};
+			glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x        , loc.y);
+			glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x + width, loc.y);
+			glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x + width, loc.y + height);
+			glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x        , loc.y + height);
 		glEnd();
 	}
+
+	// updates a particle
 	void update(float _gravity, float ground_y) {
 		// handle ground collision
 		if (loc.y < ground_y) {
 			loc.y = ground_y;
+
+			// handle bounce
 			if (bounce) {
 				vel.y *= -0.2f;
-				vel.x /= 4;
+				vel.x /= 4.0f;
 			} else {
-				vel.x = vel.y = 0;
+				vel = 0.0f;
 				canMove = false;
 			}
-		} else if (gravity && vel.y > -1)
+		}
+
+		// handle gravity
+		else if (gravity && vel.y > -1.0f) {
 			vel.y -= _gravity * deltaTime;
+		}
 	}
+
+	// returns true if the particle should be killed
 	bool kill(float delta) {
 		return (duration -= delta) <= 0;
 	}
 };
 
-void initEntity();
-
+/**
+ * The entity class.
+ * This class contains common functions and variables for all types of
+ * entities, i.e. a common structure.
+ */
 class Entity{
-public:
-	Entity *followee;
-	Inventory *inv;
-
-	/*
-	 *	Movement variables
-	*/
-
-	vec2 loc;
-	vec2 vel;
-
-	float width;
-	float height;
-
-	float speed;	// A speed factor for X movement
-
+protected:
+	// an incrementer for invincibility after a hit
 	unsigned int hitCooldown;
 
-	/*
-	 *	Movement flags
-	*/
+	// an incrementer for triggering change of movement with wander()
+	int ticksToUse;
 
-	bool near;				// Causes name to display
-	bool canMove;			// Enables movement
-	bool right,left;		// Direction faced by Entity
-	bool alive;
-	bool hit;
+	// entity handles an applied hit (sword) if set true
 	bool forcedMove;
-	unsigned char ground;	// Shows how the Entity is grounded (if it is)
 
-	/*
-	 *	Health variables
-	*/
+	// if set false, entity will be destroyed
+	bool alive;
 
-	float health;
-	float maxHealth;
+	// if not null, the entity will move towards this one
+	Entity *followee;
 
-	/*
-	 *	Identification variables
-	*/
-
-	_TYPE type;
-	int	  subtype;
-
-	char   *name;
-	GENDER  gender;
-
-	Texturec *tex;
-	Texturec *ntex;
-
+	// TODO
 	float targetx;
 
-	unsigned int randDialog;
+public:
+	// contains the entity's coordinates, in pixels
+	vec2 loc;
 
+	// contains the entity's velocity, in pixels
+	vec2 vel;
+
+	// the entity's width, in pixels
+	float width;
+
+	// the entity's height, in pixels
+	float height;
+
+	// a speed multiplier, applied to velocity
+	float speed;
+
+	// when true player may interact, and the entity's name will be drawn
+	bool near;
+
+	// when true, the entity can move
+	bool canMove;
+
+	// tells direction entity is facing
+	bool right, left;
+
+	// set to 1 if entity is on the ground, 0 if in the air
+	unsigned char ground;
+
+	// the entity's inventory
+	Inventory *inv;
+
+	// the entity's health
+	float health;
+
+	// the most health the entity can have
+	float maxHealth;
+
+	// the type of the entity
+	_TYPE type;
+
+	// the entity's subtype, if applicable
+	int	subtype;
+
+	// the entity's name, randomly generated on spawn
+	char *name;
+
+	// the entity's gender
+	GENDER  gender;
+
+	// a texture handler for the entity
+	Texturec *tex;
+
+	// TODO
+	Texturec *ntex;
+
+	// draws the entity to the screen
 	void draw(void);
+
+	// spawns the entity at the given coordinates
 	void spawn(float, float);
 
-	int ticksToUse;				// Used by wander()
+	// allows the entity to wander, according to what class is deriving this.
+	virtual void wander(int){}
 
-	virtual void wander(int) {}
-	virtual void interact() {}
+	// allows the entity to interact with the player
+	virtual void interact(void){}
 
+	// causes the entity to move to the given x coordinate
+	void moveTo(float dest_x);
+
+	// causes the entity to follow the one provided
 	void follow(Entity *e);
 
+	// causes the entity to take a player-inflicted hit
+	void takeHit(unsigned int _health, unsigned int cooldown);
+
+	// handles hits if they've been taken
+	void handleHits(void);
+
+	// insures that the entity is dead
+	void die(void);
+
+	// checks if the entity is alive
+	bool isAlive(void) const;
+
+	// checks if the entity is hit in some way
+	bool isHit(void) const;
+
+	// returns true if this entity is near the one provided
 	bool isNear(Entity e);
+
+	// returns true if the coordinate is within the entity
 	bool isInside(vec2 coord) const;
 
-	virtual ~Entity() {}
+	// frees memory taken by the entity
+	virtual ~Entity(){}
 };
 
 class Player : public Entity{
@@ -219,16 +361,22 @@ public:
 
 
 class NPC : public Entity {
+private:
+	// the number of the random dialog to use
+	unsigned int randDialog;
+
+	unsigned int dialogCount;
+
 public:
-	std::vector<int (*)(NPC *)>aiFunc;
 	int dialogIndex;
 
 	NPC();
-	NPC(NPC *n);
 	~NPC();
 
-	void addAIFunc(int (*func)(NPC *),bool preload);
-	void clearAIFunc(void);
+	void drawThingy(void) const;
+
+	void addAIFunc(bool preload);
+
 	virtual void interact();
 	virtual void wander(int);
 };
@@ -327,6 +475,18 @@ public:
 
 constexpr Object *Objectp(Entity *e) {
 	return (Object *)e;
+}
+
+constexpr NPC *NPCp(Entity *e) {
+	return (NPC *)e;
+}
+
+constexpr Structures *Structurep(Entity *e) {
+	return (Structures *)e;
+}
+
+constexpr Mob *Mobp(Entity *e) {
+	return (Mob *)e;
 }
 
 #endif // ENTITIES_H

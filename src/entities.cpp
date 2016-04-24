@@ -1,6 +1,8 @@
-#include <istream>
-
 #include <entities.hpp>
+
+#include <istream>
+#include <sstream>
+
 #include <ui.hpp>
 
 extern std::istream *names;
@@ -12,13 +14,15 @@ extern unsigned int tickCount;	// main.cpp
 
 extern std::string xmlFolder;
 
-GLuint waterTex;
+// a dynamic array of pointers to the NPC's that are being assigned the preloads
+std::vector<NPC *> aipreload;
 
-std::vector<int (*)(NPC *)> AIpreload;	// A dynamic array of AI functions that are being preloaded
-std::vector<NPC *> AIpreaddr;			// A dynamic array of pointers to the NPC's that are being assigned the preloads
+// the size of the player's inventory
+const unsigned int PLAYER_INV_SIZE = 43;
+// the size of an NPC's inventory
+const unsigned int NPC_INV_SIZE = 3;
 
-#define RAND_DIALOG_COUNT 14
-
+static const unsigned int RAND_DIALOG_COUNT = 14;
 const char *randomDialog[RAND_DIALOG_COUNT] = {
 	"What a beautiful day it is.",
 	"Have you ever went fast? I have.",
@@ -36,11 +40,8 @@ const char *randomDialog[RAND_DIALOG_COUNT] = {
 	"What's a bagel? I don't know because I'm mormon"
 };
 
-void initEntity() {
-	waterTex = Texture::loadTexture("assets/waterTex.png");
-}
-
-void getRandomName(Entity *e) {
+void getRandomName(Entity *e)
+{
 	unsigned int tempNum,max=0;
 	char *bufs;
 
@@ -76,17 +77,9 @@ void getRandomName(Entity *e) {
 	delete[] bufs;
 }
 
-Trade::Trade(int qo, std::string o, int qt, std::string t) {
-	item[0] = o;
-	item[1] = t;
-
-	quantity[0] = qo;
-	quantity[1] = qt;
-
-	std::cout << "Trading: " << quantity[0] << " " << item[0] << " for " << quantity[1] << " " << item[1] << std::endl;
-}
-
-void Entity::spawn(float x, float y) {	//spawns the entity you pass to it based off of coords and global entity settings
+// spawns the entity you pass to it based off of coords and global entity settings
+void Entity::spawn(float x, float y)
+{
 	loc.x = x;
 	loc.y = y;
 	vel.x = 0;
@@ -99,7 +92,6 @@ void Entity::spawn(float x, float y) {	//spawns the entity you pass to it based 
 	near	= false;
 	//canMove	= true;
 	ground	= false;
-	hit 	= false;
 	forcedMove = false;
 
 	ticksToUse = 0;
@@ -122,7 +114,52 @@ void Entity::spawn(float x, float y) {	//spawns the entity you pass to it based 
 	followee = NULL;
 }
 
-Player::Player() { //sets all of the player specific traits on object creation
+void Entity::takeHit(unsigned int _health, unsigned int cooldown)
+{
+	// modify variables
+	health = fmax(health - _health, 0);
+	forcedMove = true;
+	hitCooldown = cooldown;
+
+	// pushback
+	vel.x = player->left ? -0.5f : 0.5f;
+	vel.y = 0.2f;
+}
+
+void Entity::handleHits(void)
+{
+	if (!forcedMove)
+		return;
+
+	// reduce knockback
+	if ((vel.x > 0.0005f) || (vel.x < -0.0005f))
+		vel.x *= 0.6f;
+	else
+		forcedMove = false;
+}
+
+void Entity::die(void)
+{
+	alive = false;
+	health = 0;
+}
+
+bool Entity::isAlive(void) const
+{
+	return alive;
+}
+
+bool Entity::isHit(void) const
+{
+	return forcedMove;
+}
+
+void Entity::moveTo(float dest_x)
+{
+	targetx = dest_x;
+}
+
+Player::Player(){ //sets all of the player specific traits on object creation
 	width = HLINE * 10;
 	height = HLINE * 16;
 
@@ -168,11 +205,8 @@ NPC::NPC() {	//sets all of the NPC specific traits on object creation
 	dialogIndex = 0;
 }
 
-NPC::~NPC() {
-	while(!aiFunc.empty()) {
-		aiFunc.pop_back();
-	}
-
+NPC::~NPC()
+{
 	delete inv;
 	delete tex;
 	delete[] name;
@@ -268,6 +302,7 @@ Mob::Mob(int sub) {
 
 	inv = new Inventory(NPC_INV_SIZE);
 }
+
 Mob::~Mob() {
 	delete inv;
 	delete tex;
@@ -322,23 +357,30 @@ bool Entity::isNear(Entity e) {
 	return pow(e.loc.x - loc.x, 2) + pow(e.loc.y - loc.y, 2) <= pow(40 * HLINE, 2);
 }
 
-void Entity::draw(void) {		//draws the entities
+void NPC::drawThingy(void) const
+{
+	if (dialogCount) {
+		auto w = width / 3;
+		glColor3ub(255, 255, 0);
+		glRectf(loc.x + w, loc.y + height, loc.x + w * 2, loc.y + height + w);
+	}
+}
+
+void Entity::draw(void)
+{
 	glPushMatrix();
 	glColor3ub(255,255,255);
 
 	if (!alive)
 		return;
 
-	if (type==NPCT) {
-		if (NPCp(this)->aiFunc.size()) {
-			glColor3ub(255,255,0);
-			glRectf(loc.x+width/3,loc.y+height,loc.x+width*2/3,loc.y+height+width/3);
-		}
-		if (gender == MALE) {
-			glColor3ub(255,255,255);
-		}else if (gender == FEMALE) {
-			glColor3ub(255,105,180);
-		}
+	if (type == NPCT) {
+		NPCp(this)->drawThingy();
+
+		if (gender == MALE)
+			glColor3ub(255, 255, 255);
+		else if (gender == FEMALE)
+			glColor3ub(255, 105, 180);
 	}
 	if (left) {
 		glScalef(-1.0f,1.0f,1.0f);
@@ -467,37 +509,31 @@ wander(int timeRun)
 	ticksToUse--;
 }
 
-void NPC::addAIFunc(int (*func)(NPC *),bool preload) {
-	if (preload) {										// Preload AI functions so that they're given after
-														// the current dialog box is closed
-		AIpreload.push_back(func);
-		AIpreaddr.push_back(this);
-	}
-	else aiFunc.push_back(func);
+void NPC::addAIFunc(bool preload)
+{
+	if (preload)
+		aipreload.push_back(this);
+	else
+		++dialogCount;
 }
 
-void NPC::clearAIFunc(void) {
-	aiFunc.clear();
-}
+extern int commonAIFunc(NPC *speaker);
 
 void NPC::interact() { //have the npc's interact back to the player
 	std::thread([this]{
-		int (*func)(NPC *);
 		loc.y += 5;
 
 		canMove=false;
 		left = (player->loc.x < loc.x);
 		right = !left;
 
-		if (aiFunc.size()) {
-			func=aiFunc.front();
-
-			if (!func(this)) {
-				if (aiFunc.size())aiFunc.erase(aiFunc.begin());
-			}
-		}else{
-			ui::dialogBox(name,NULL,false,randomDialog[randDialog]);
+		if (dialogCount && dialogIndex != 9999) {
+			if (!commonAIFunc(this))
+				dialogCount--;
+		} else {
+			ui::dialogBox(name, "", false, randomDialog[randDialog]);
 		}
+
 		ui::waitForDialog();
 		canMove=true;
 	}).detach();
@@ -588,8 +624,8 @@ void Merchant::interact() {
 
 void Object::interact(void) {
 	std::thread([this]{
-		if (questObject && alive) {
-			ui::dialogBox(player->name, ":Yes:No", false, pickupDialog.c_str());
+		if(questObject && alive){
+			ui::dialogBox(player->name, ":Yes:No", false, pickupDialog);
 			ui::waitForDialog();
 			if (ui::dialogOptChosen == 1) {
 				player->inv->addItem(iname, 1);
@@ -763,10 +799,10 @@ void Player::save(void) {
 	for(auto &i : inv->items)
 		data.append(std::to_string((int)i.count) + "\n" + std::to_string((int)i.id) + "\n");
 
-	data.append((std::string)(currentXML.c_str() + 4) + "\n");
+	data.append(std::string(currentXML.data() + 4) + "\n");
 
 	data.append("dOnE\0");
-	out.write(data.c_str(),data.size());
+	out.write(data.data(),data.size());
 	out.close();
 }
 
@@ -810,7 +846,7 @@ void Player::sspawn(float x,float y) {
 		}
 
 		std::getline(data,ddata);
-		currentWorld = loadWorldFromXMLNoSave(ddata.c_str());
+		currentWorld = loadWorldFromXMLNoSave(ddata);
 
 		in.close();
 	}
