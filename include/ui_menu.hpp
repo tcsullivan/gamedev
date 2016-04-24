@@ -3,6 +3,7 @@
 
 #include <common.hpp>
 #include <config.hpp>
+#include <ui.hpp>
 
 typedef void (*menuFunc)(void);
 

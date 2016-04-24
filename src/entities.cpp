@@ -114,7 +114,10 @@ void Entity::spawn(float x, float y) {	//spawns the entity you pass to it based 
 	}
 
 	name = new char[32];
-	getRandomName(this);
+	if (type == MOBT)
+		name[0] = '\0';
+	else
+		getRandomName(this);
 
 	followee = NULL;
 }
@@ -382,14 +385,7 @@ void Entity::draw(void) {		//draws the entities
 		}
 		break;
 	case STRUCTURET:
-		for(auto &strt : currentWorld->build) {
-			if (this == strt) {
-				glActiveTexture(GL_TEXTURE0);
-				tex->bind(0);
-				break;
-			}
-		}
-		break;
+		/* fall through */
 	default:
 		glActiveTexture(GL_TEXTURE0);
 		tex->bind(0);
@@ -414,7 +410,7 @@ NOPE:
 	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	if (near)
+	if (near && type != MOBT)
 		ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
 	if (health != maxHealth) {
 		glColor3ub(150,0,0); glRectf(loc.x, loc.y + height, loc.x + width, loc.y + height + HLINE * 2);

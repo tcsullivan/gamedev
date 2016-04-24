@@ -3,14 +3,6 @@
  *	The  main game loop contains all of the global variables the game uses, and it runs the main game loop, the render loop, and the logic loop that control all of the entities.
  */
 
-/*
- * Standard library includes
- */
-
-#include <fstream>
-#include <istream>
-#include <thread>
-
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
@@ -18,52 +10,24 @@ using namespace tinyxml2;
  * Game includes
  */
 
-#include <config.hpp>
 #include <common.hpp>
+#include <config.hpp>
+#include <entities.hpp>
 #include <world.hpp>
 #include <ui.hpp>
-#include <entities.hpp>
 
-/**
- * The window object returned by SDL when we create the main window.
- */
-
+// SDL's window object
 SDL_Window *window = NULL;
 
-/**
- * Determines when the game should exit. This variable is set to true right
- * before the main loop is entered, once set to false the game will exit/
- * free resources.
- */
-
+// main loop runs based on this variable's value
 bool gameRunning;
 
-/**
- * TODO
- */
-
-GLuint invUI;
-
-/**
- * Contains an angle based off of the player's location and the mouse's
- * location.
- */
-
-float handAngle;
-
-/**
- * Contains a pointer to the world that the player is currently in. All render/
- * logic operations have to go access members of this object in order to work.
- */
-
+// world objects for the current world and the two that are adjacent
 World *currentWorld        = NULL,
 	  *currentWorldToLeft  = NULL,
 	  *currentWorldToRight = NULL;
 
-/**
- * The player object.
- */
-
+// the player object
 Player *player;
 
 /**
@@ -392,7 +356,6 @@ int main(int argc, char *argv[]){
 	 * Load sprites used in the inventory menu. See src/inventory.cpp
 	 */
 
-	invUI = Texture::loadTexture("assets/invUI.png"	);
 	mouseTex = Texture::loadTexture("assets/mouse.png");
 
 	initInventorySprites();
@@ -611,22 +574,6 @@ void render() {
 	currentWorld->draw(player);
 
 	/*
-	 * Calculate the player's hand angle.
-	 */
-
-	handAngle = atan((ui::mouse.y - (player->loc.y + player->height/2)) / (ui::mouse.x - player->loc.x + player->width/2))*180/PI;
-	if(ui::mouse.x < player->loc.x){
-		if(handAngle <= 0)
-			handAngle+=180;
-		if(ui::mouse.y < player->loc.y + player->height/2){
-			handAngle+=180;
-		}
-	}
-
-	if(ui::mouse.x > player->loc.x && ui::mouse.y < player->loc.y+player->height/2 && handAngle <= 0)
-		handAngle = 360 + handAngle;
-
-	/*
 	 * Draw the player's inventory.
 	 */
 
@@ -663,7 +610,7 @@ void render() {
 
 		ui::putText(offset.x-SCREEN_WIDTH/2,
 					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-					"FPS: %d\nG:%d\nRes: %ux%u\nE: %d\nPOS: (x)%+.2f\n     (y)%+.2f\nTc: %u\nHA: %+.2f\nVol: %f\nWea: %s",
+					"fps: %d\ngrounded:%d\nresolution: %ux%u\nentity cnt: %d\nloc: (%+.2f, %+.2f)\nticks: %u\nvolume: %f\nweather: %s",
 					fps,
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
@@ -672,7 +619,6 @@ void render() {
 					player->loc.x,				// The player's x coordinate
 					debugY,						// The player's y coordinate
 					tickCount,
-					handAngle,
 					VOLUME_MASTER,
 					getWorldWeatherStr(weather).c_str()
 					);
@@ -786,6 +732,8 @@ void logic(){
 				} else
 					e->near = false;
 			} else if (e->type == MOBT) {
+				e->near = player->isNear(*e);
+
 				switch (e->subtype) {
 				case MS_RABBIT:
 				case MS_BIRD:
