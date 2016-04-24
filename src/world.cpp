@@ -10,6 +10,7 @@
 
 // local game headers
 #include <ui.hpp>
+#include <gametime.hpp>
 
 // local library headers
 #include <tinyxml2.h>
@@ -36,7 +37,6 @@ extern World       *currentWorld;			// main.cpp
 extern World       *currentWorldToLeft;		// main.cpp
 extern World       *currentWorldToRight;	// main.cpp
 extern bool         inBattle;               // ui.cpp?
-extern unsigned int tickCount;				// main.cpp
 extern std::string  xmlFolder;
 
 
@@ -542,6 +542,8 @@ singleDetect(Entity *e)
 	std::string killed;
 	unsigned int i;
 	int l;
+
+    auto deltaTime = gtime::getDeltaTime();
 
 	// kill dead entities
 	if (!e->isAlive()) {
@@ -1356,7 +1358,7 @@ singleDetect(Entity *e)
     }
 
     if (e->vel.y > -2)
-        e->vel.y -= GRAVITY_CONSTANT * deltaTime;
+        e->vel.y -= GRAVITY_CONSTANT * gtime::getDeltaTime();
 
     if (e->ground) {
         e->loc.y = ceil(e->loc.y);
@@ -1761,7 +1763,7 @@ loadWorldFromXMLNoSave(std::string path) {
 		} else if (name == "hill") {
 			tmp->addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
 		} else if (name == "time") {
-            tickCount = std::stoi(wxml->GetText());
+            gtime::setTickCount(std::stoi(wxml->GetText()));
         } else if (Indoor && name == "floor") {
             if (wxml->QueryFloatAttribute("start",&spawnx) == XML_NO_ERROR)
                 Indoorp(tmp)->addFloor(wxml->UnsignedAttribute("width"), spawnx);

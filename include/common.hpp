@@ -224,22 +224,10 @@ extern float VOLUME_SFX;
 #define PI 3.1415926535
 
 
-/**
- * References the variable in main.cpp, used for smoother drawing.
- */
-
-extern unsigned int deltaTime;
-
-/**
- * References the variable in main.cpp, used for drawing with the player.
- */
-
+// references the variable in main.cpp, used for drawing with the player
 extern vec2 offset;
 
-/**
- * Counts the number of times logic() (see main.cpp) has been called, for animating
- * sprites.
- */
+// counts the number of times logic() (see main.cpp) has been called, for animating sprites
 extern unsigned int loops;
 
 extern GLuint shaderProgram;

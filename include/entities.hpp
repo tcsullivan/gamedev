@@ -156,61 +156,19 @@ public:
 	bool bounce;
 
 	// creates a particle with the desired characteristics
-	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d){
-		loc = vec2 {x, y};
-		vel = vec2 {vx, vy};
-		width = w;
-		height = h;
-		color = c;
-		duration = d;
-		gravity = true;
-		fountain = false;
-		behind = false;
-		bounce = false;
-		index = Texture::getIndex(c);
-	}
+	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d);
 
 	// allows the particle to be destroyed
 	~Particles(void){}
 
 	// draws the particle
-	void draw(void) const {
-		glColor3ub(255, 255, 255);
-		glBegin(GL_QUADS);
-			vec2 tc = vec2 {0.25f * index.x, 0.125f * index.y};
-			glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x        , loc.y);
-			glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x + width, loc.y);
-			glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x + width, loc.y + height);
-			glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x        , loc.y + height);
-		glEnd();
-	}
+	void draw(void) const;
 
 	// updates a particle
-	void update(float _gravity, float ground_y) {
-		// handle ground collision
-		if (loc.y < ground_y) {
-			loc.y = ground_y;
-
-			// handle bounce
-			if (bounce) {
-				vel.y *= -0.2f;
-				vel.x /= 4.0f;
-			} else {
-				vel = 0.0f;
-				canMove = false;
-			}
-		}
-
-		// handle gravity
-		else if (gravity && vel.y > -1.0f) {
-			vel.y -= _gravity * deltaTime;
-		}
-	}
+	void update(float _gravity, float ground_y);
 
 	// returns true if the particle should be killed
-	bool kill(float delta) {
-		return (duration -= delta) <= 0;
-	}
+	bool kill(float delta);
 };
 
 /**

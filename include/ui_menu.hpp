@@ -67,6 +67,8 @@ namespace ui {
         menuItem createParentButton(vec2 l, dim2 d, Color c, const char* t);
         menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v);
 
+		void init(void);
+		void toggle(void);
         void draw(void);
     }
 }

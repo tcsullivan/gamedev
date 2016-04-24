@@ -4,13 +4,13 @@
 #include <sstream>
 
 #include <ui.hpp>
+#include <gametime.hpp>
 
 extern std::istream *names;
 
 extern Player *player;			// main.cpp
 extern World *currentWorld;		// main.cpp
 extern unsigned int loops;		// main.cpp
-extern unsigned int tickCount;	// main.cpp
 
 extern std::string xmlFolder;
 
@@ -711,6 +711,8 @@ void Mob::wander(int timeRun) {
 	static unsigned int heya=0,hi=0;
 	static bool YAYA = false;
 
+	auto deltaTime = gtime::getDeltaTime();
+
 	if (forcedMove)
 		return;
 
@@ -763,7 +765,7 @@ void Mob::wander(int timeRun) {
 		break;
 	case MS_BIRD:
 		if (loc.y<=init_y-.2)vel.y=.02*deltaTime;	// TODO handle direction
-		vel.x=.02*deltaTime;
+		vel.x = 0.02f * deltaTime;
 		if (++heya==200) {heya=0;hi^=1;}
 		if (hi)vel.x*=-1;
 		break;
@@ -785,6 +787,60 @@ void Mob::wander(int timeRun) {
 	}
 }
 
+Particles::Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d)
+{
+	loc = vec2 {x, y};
+	vel = vec2 {vx, vy};
+	width = w;
+	height = h;
+	color = c;
+	duration = d;
+	gravity = true;
+	fountain = false;
+	behind = false;
+	bounce = false;
+	index = Texture::getIndex(c);
+}
+
+void Particles::draw(void) const
+{
+	glColor3ub(255, 255, 255);
+	glBegin(GL_QUADS);
+		vec2 tc = vec2 {0.25f * index.x, 0.125f * index.y};
+		glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x        , loc.y);
+		glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x + width, loc.y);
+		glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x + width, loc.y + height);
+		glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x        , loc.y + height);
+	glEnd();
+}
+
+void Particles::update(float _gravity, float ground_y)
+{
+	// handle ground collision
+	if (loc.y < ground_y) {
+		loc.y = ground_y;
+
+		// handle bounce
+		if (bounce) {
+			vel.y *= -0.2f;
+			vel.x /= 4.0f;
+		} else {
+			vel = 0.0f;
+			canMove = false;
+		}
+	}
+
+	// handle gravity
+	else if (gravity && vel.y > -1.0f) {
+		vel.y -= _gravity * gtime::getDeltaTime();
+	}
+}
+
+bool Particles::kill(float delta)
+{
+	return (duration -= delta) <= 0;
+}
+
 void Player::save(void) {
 	std::string data;
 	std::ofstream out ("xml/main.dat",std::ios::out | std::ios::binary);
@@ -793,7 +849,7 @@ void Player::save(void) {
 	data.append(std::to_string((int)loc.y) + "\n");
 	data.append(std::to_string((int)health) + "\n");
 	data.append(std::to_string((int)maxHealth) + "\n");
-	data.append(std::to_string((int)tickCount) + "\n");
+	data.append(std::to_string((int)gtime::getTickCount()) + "\n");
 
 	data.append(std::to_string((int)inv->items.size()) + "\n");
 	for(auto &i : inv->items)
@@ -835,7 +891,7 @@ void Player::sspawn(float x,float y) {
 		std::getline(data,ddata);
 		maxHealth = std::stoi(ddata);
 		std::getline(data,ddata);
-		tickCount = std::stoi(ddata);
+		gtime::tick(std::stoi(ddata));
 
 		std::getline(data,ddata);
 		for(i = std::stoi(ddata);i;i--) {

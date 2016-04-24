@@ -1,67 +1,88 @@
-/** @file ui.h
- * @brief Contains functions for handling the user interface.
- */
-
+/* ----------------------------------------------------------------------------
+** The user interface system.
+**
+** This file contains everything user-interface related.
+** --------------------------------------------------------------------------*/
 #ifndef UI_H
 #define UI_H
 
-#include <common.hpp>
-#include <inventory.hpp>
+#define DEBUG
+#define SDL_KEY e.key.keysym.sym
+
+/* ----------------------------------------------------------------------------
+** Includes section
+** --------------------------------------------------------------------------*/
+
+// standard library headers
 #include <cstdarg>
+#include <cstdint>
+#include <thread>
 
+// local game headers
+#include <common.hpp>
 #include <config.hpp>
-#include <world.hpp>
-
+#include <inventory.hpp>
 #include <ui_menu.hpp>
 #include <ui_action.hpp>
+#include <world.hpp>
+
+// local library headers
+#include <SDL2/SDL_opengl.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <SDL2/SDL_opengl.h>
-#include <thread>
+/* ----------------------------------------------------------------------------
+** Structures section
+** --------------------------------------------------------------------------*/
 
-#define SDL_KEY e.key.keysym.sym
+/**
+ * Defines the layout of a bitmap (.bmp) file's header.
+ */
+typedef struct {
+	uint16_t bfType;
+	uint32_t bfSize;
+	uint16_t bfReserved1;
+	uint16_t bfReserved2;
+	uint32_t bfOffBits;
+} __attribute__((packed)) BITMAPFILEHEADER;
 
-#define DEBUG
+/**
+ * Defines the layout of a bitmap's info header.
+ */
+typedef struct {
+	uint32_t biSize;
+	 int32_t biWidth;
+	 int32_t biHeight;
+	uint16_t biPlanes;
+	uint16_t biBitCount;
+	uint32_t biCompression;
+	uint32_t biSizeImage;
+	 int32_t biXPelsPerMeter;
+	 int32_t biYPelsPerMeter;
+	uint32_t biClrUsed;
+	uint32_t biClrImportant;
+} __attribute__((packed)) BITMAPINFOHEADER;
 
-typedef struct{
-	uint16_t 	bfType;
-	uint32_t 	bfSize;
-	uint16_t 	bfReserved1, bfReserved2;
-	uint32_t 	bfOffBits; //how many bytes before the image data
-} __attribute__ ((packed)) BITMAPFILEHEADER;
-
-typedef struct{
-	uint32_t 	biSize; //size of header in bytes
-	 int32_t 	biWidth;
-	 int32_t 	biHeight;
-	uint16_t 	biPlanes;
-	uint16_t 	biBitCount; //how many bits are in a pixel
-	uint32_t 	biCompression;
-	uint32_t 	biSizeImage; //size of image in bytes
-	 int32_t 	biXPelsPerMeter;
-	 int32_t 	biYPelsPerMeter;
-	uint32_t 	biClrUsed; //how many colors there are
-	uint32_t 	biClrImportant; //important colors
-} __attribute__ ((packed)) BITMAPINFOHEADER;
+/* ----------------------------------------------------------------------------
+** The UI namespace
+** --------------------------------------------------------------------------*/
 
 namespace ui {
 
-	/**
-	 *	Contains the coordinates of the mouse inside the window.
-	 */
-
+	// the pixel-coordinates of the mouse
 	extern vec2 mouse;
+
+	// raw mouse values from SDL
     extern vec2 premouse;
 
-	/*
-	 *	These flags are used elsewhere.
-	*/
-
+	// the currently used font size for text rendering
 	extern unsigned int fontSize;
 
+	// shows the debug overlay when set to true
 	extern bool debug;
+
+	// shows tracers when set to true (alongside `debug`)
 	extern bool posFlag;
 
 	extern unsigned char dialogOptChosen;
@@ -130,6 +151,8 @@ namespace ui {
 	*/
 
 	void draw(void);
+	void drawFade(void);
+	void fadeUpdate(void);
 
 	void quitGame();
 

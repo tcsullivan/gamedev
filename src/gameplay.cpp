@@ -22,10 +22,6 @@ std::vector<XMLElement *> dopt;
 
 void destroyEverything(void);
 
-inline void segFault() {
-	(*((int *)NULL))++;
-}
-
 int commonAIFunc(NPC *speaker)
 {
 	XMLDocument xml;
@@ -249,24 +245,14 @@ void initEverything(void) {
 		}
 	}
 
-	pauseMenu.items.push_back(ui::menu::createParentButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
-	pauseMenu.items.push_back(ui::menu::createChildButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, "Options"));
-	pauseMenu.items.push_back(ui::menu::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
-	pauseMenu.items.push_back(ui::menu::createButton({-256/2,-300},{256,75},{0.0f,0.0f,0.0f}, "Segfault", segFault));
-	pauseMenu.child = &optionsMenu;
-
-
-	optionsMenu.items.push_back(ui::menu::createSlider({0-(float)SCREEN_WIDTH/4,0-(512/2)}, {50,512}, {0.0f, 0.0f, 0.0f}, 0, 100, "Master", &VOLUME_MASTER));
-	optionsMenu.items.push_back(ui::menu::createSlider({-200,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "Music", &VOLUME_MUSIC));
-	optionsMenu.items.push_back(ui::menu::createSlider({-200,000}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "SFX", &VOLUME_SFX));
-	optionsMenu.parent = &pauseMenu;
-
 	/*
 	 * Spawn the player and begin the game.
 	 */
 
 	player = new Player();
 	player->sspawn(0,100);
+
+	ui::menu::init();
 
 	currentWorld->bgmPlay(NULL);
 	atexit(destroyEverything);

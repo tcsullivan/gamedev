@@ -15,6 +15,7 @@ using namespace tinyxml2;
 #include <entities.hpp>
 #include <world.hpp>
 #include <ui.hpp>
+#include <gametime.hpp>
 
 // SDL's window object
 SDL_Window *window = NULL;
@@ -27,20 +28,10 @@ World *currentWorld        = NULL,
 	  *currentWorldToLeft  = NULL,
 	  *currentWorldToRight = NULL;
 
+Menu *currentMenu;
+
 // the player object
 Player *player;
-
-/**
- * The current number of ticks, used for logic operations and day/night cycles.
- */
-
-unsigned int tickCount = 0;
-
-/**
- * TODO
- */
-
-unsigned int deltaTime = 0;
 
 /**
  * TODO
@@ -95,19 +86,9 @@ unsigned int loops = 0;
 
 vec2 offset;
 
-//std::shared_ptr<Menu>currentMenu;
-Menu *currentMenu;
-Menu optionsMenu;
-Menu pauseMenu;
-
 std::string xmlFolder;
 
 extern WorldWeather weather;
-
-extern int  fadeIntensity;	// ui.cpp
-extern bool fadeEnable;		// ui.cpp
-extern bool fadeWhite;		// ui.cpp
-extern bool fadeFast;		// ui.cpp
 
 unsigned int SCREEN_WIDTH;
 unsigned int SCREEN_HEIGHT;
@@ -335,8 +316,6 @@ int main(int argc, char *argv[]){
 	 * src/gameplay.cpp
 	 */
 
-	fadeIntensity = 250;
-
 	initEverything();
 
 	if(!currentWorld){
@@ -363,8 +342,8 @@ int main(int argc, char *argv[]){
 
 	std::cout << "Num threads: " << std::thread::hardware_concurrency() << std::endl;
 
-	//currentWorld->mob.back()->followee = player;
 	glClearColor(1,1,1,1);
+	//ui::toggleBlackFast();
 
 	gameRunning = true;
 	while (gameRunning)
@@ -402,67 +381,32 @@ static float debugY=0;
 
 void mainLoop(void){
 	static unsigned int debugDiv=0;			// A divisor used to update the debug menu if it's open
-
-	static unsigned int prevTime    = 0,	// Used for timing operations
-						currentTime = 0,	//
-						prevPrevTime= 0;	//
 	World *prev;
 
-	if(!currentTime)						// Initialize currentTime if it hasn't been
-		currentTime=millis();
-	if(!prevTime){
-		prevTime=currentTime;
-	}
-	/*
-	 * Update timing values. This is crucial to calling logic and updating the window (basically
-	 * the entire game).
-	 */
-
-	currentTime = millis();
-	deltaTime	= currentTime - prevTime;
-	prevTime	= currentTime;
+	gtime::mainLoopHandler();
 
 	if (currentMenu)
 		goto MENU;
 
-	/*
-	 * Run the logic handler if MSEC_PER_TICK milliseconds have passed.
-	 */
-
+	// handle keypresses - currentWorld could change here
 	prev = currentWorld;
-
-	//pool.Enqueue(ui::handleEvents);
 	ui::handleEvents();
 
 	if(prev != currentWorld){
 		currentWorld->bgmPlay(prev);
 		ui::dialogBoxExists = false;
 	}
-	if(prevPrevTime + MSEC_PER_TICK <= currentTime){
-		//pool.Enqueue(logic);
+
+	if (gtime::tickHasPassed())
 		logic();
-		prevPrevTime = currentTime;
-	}
 
-	/*
-	 * Update player and entity coordinates.
-	 */
-
-	/*pool.Enqueue([](){
-		currentWorld->update(player,deltaTime);
-	});*/
-	currentWorld->update(player, deltaTime);
+	currentWorld->update(player, gtime::getDeltaTime());
 	currentWorld->detect(player);
-
-	/*
-	 * Update debug variables if necessary
-	 */
 
 	if (++debugDiv == 20) {
 		debugDiv=0;
 
-		if (deltaTime)
-			fps = 1000 / deltaTime;
+		fps = 1000 / gtime::getDeltaTime();
 		if (!(debugDiv % 10))
 			debugY = player->loc.y;
 	}
@@ -580,18 +524,7 @@ void render() {
 	 * Here we draw a black overlay if it's been requested.
 	 */
 
-	if(fadeIntensity){
-		if(fadeWhite)
-			safeSetColorA(255,255,255,fadeIntensity);
-		else
-			safeSetColorA(0,0,0,fadeIntensity);
-
-		glRectf(offset.x-SCREEN_WIDTH /2,
-				offset.y-SCREEN_HEIGHT/2,
-				offset.x+SCREEN_WIDTH /2,
-				offset.y+SCREEN_HEIGHT/2);
-	}else if(ui::fontSize != 16)
-		ui::setFontSize(16);
+	ui::drawFade();
 
 	/*
 	 * Draw UI elements. This includes the player's health bar and the dialog box.
@@ -615,7 +548,7 @@ void render() {
 					currentWorld->entity.size(),// Size of entity array
 					player->loc.x,				// The player's x coordinate
 					debugY,						// The player's y coordinate
-					tickCount,
+					gtime::getTickCount(),
 					VOLUME_MASTER,
 					getWorldWeatherStr(weather).c_str()
 					);
@@ -738,7 +671,7 @@ void logic(){
 	 *	Switch between day and night (SUNNY and DARK) if necessary.
 	 */
 
-	if(!(tickCount%DAY_CYCLE)||!tickCount){
+	if (!(gtime::getTickCount() % DAY_CYCLE) || !gtime::getTickCount()){
 		if (weather == WorldWeather::Sunny)
 			weather = WorldWeather::Dark;
 		else {
@@ -751,21 +684,13 @@ void logic(){
 	 *	Calculate an in-game shading value (as opposed to GLSL shading).
 	*/
 
-	worldShade=50*sin((tickCount+(DAY_CYCLE/2))/(DAY_CYCLE/PI));
+	worldShade = 50 * sin((gtime::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 
 	/*
 	 *	Transition to and from black if necessary.
 	*/
 
-	if(fadeEnable){
-			 if(fadeIntensity < 150)fadeIntensity+=fadeFast?40:10;
-		else if(fadeIntensity < 255)fadeIntensity+=fadeFast?20:5;
-		else fadeIntensity = 255;
-	}else{
-			 if(fadeIntensity > 150)fadeIntensity-=fadeFast?20:5;
-		else if(fadeIntensity > 0)	fadeIntensity-=fadeFast?40:10;
-		else fadeIntensity = 0;
-	}
+	ui::fadeUpdate();
 
 	/*
 	 * Rain?
@@ -804,6 +729,6 @@ void logic(){
 	*/
 
 	loops++;
-	tickCount++;		// Used for day/night cycles
+	gtime::tick();
 	NPCSelected=false;	// See above
 }

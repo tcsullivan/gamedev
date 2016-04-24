@@ -3,7 +3,9 @@
 extern bool gameRunning;
 
 extern Menu *currentMenu;
-extern Menu pauseMenu;
+
+static Menu pauseMenu;
+static Menu optionsMenu;
 
 void Menu::gotoParent(void)
 {
@@ -20,10 +22,13 @@ void Menu::gotoChild(void)
 	currentMenu = child;
 }
 
+inline void segFault() {
+	(*((int *)NULL))++;
+}
+
 namespace ui {
     namespace menu {
-        menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f)
-		{
+        menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f) {
             menuItem temp;
 
             temp.member = 0;
@@ -36,8 +41,7 @@ namespace ui {
             return temp;
         }
 
-        menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t)
-		{
+        menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t) {
             menuItem temp;
 
             temp.member = -1;
@@ -50,8 +54,7 @@ namespace ui {
             return temp;
         }
 
-        menuItem createParentButton(vec2 l, dim2 d, Color c, const char* t)
-		{
+        menuItem createParentButton(vec2 l, dim2 d, Color c, const char* t) {
             menuItem temp;
 
             temp.member = -2;
@@ -64,8 +67,7 @@ namespace ui {
             return temp;
         }
 
-        menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v)
-		{
+        menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v) {
             menuItem temp;
 
             temp.member = 1;
@@ -81,8 +83,24 @@ namespace ui {
             return temp;
         }
 
-        void draw(void)
-		{
+		void init(void) {
+			pauseMenu.items.push_back(ui::menu::createParentButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
+			pauseMenu.items.push_back(ui::menu::createChildButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, "Options"));
+			pauseMenu.items.push_back(ui::menu::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
+			pauseMenu.items.push_back(ui::menu::createButton({-256/2,-300},{256,75},{0.0f,0.0f,0.0f}, "Segfault", segFault));
+			pauseMenu.child = &optionsMenu;
+
+			optionsMenu.items.push_back(ui::menu::createSlider({0-(float)SCREEN_WIDTH/4,0-(512/2)}, {50,512}, {0.0f, 0.0f, 0.0f}, 0, 100, "Master", &VOLUME_MASTER));
+			optionsMenu.items.push_back(ui::menu::createSlider({-200,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "Music", &VOLUME_MUSIC));
+			optionsMenu.items.push_back(ui::menu::createSlider({-200,000}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "SFX", &VOLUME_SFX));
+			optionsMenu.parent = &pauseMenu;
+		}
+
+		void toggle(void) {
+			currentMenu = &pauseMenu;
+		}
+
+        void draw(void) {
             SDL_Event e;
 
             setFontSize(24);
