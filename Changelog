@@ -918,3 +918,10 @@
 	- adopted indent style: linuxxxx kernel
 	- began converting pointers to better things
 	- parentheses
+
+4/15/2016:
+==========
+
+	- fixed segfaults in inventory
+	- Andy learned how to use GDB
+	- fixed 

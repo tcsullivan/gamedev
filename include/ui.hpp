@@ -14,9 +14,10 @@
 #include <ui_menu.hpp>
 
 #include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include <SDL2/SDL_opengl.h>
 #include <thread>
-#include FT_FREETYPE_H
 
 #define SDL_KEY e.key.keysym.sym
 

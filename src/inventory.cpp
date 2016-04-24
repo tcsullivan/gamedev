@@ -508,7 +508,7 @@ void Inventory::draw(void) {
 				std::cout << "drawing" << std::endl;
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, itemtex[items[a].id]);
-				glColor4f(1.0f, 1.0f, 1.0f, 1.0fa);
+				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 				glBegin(GL_QUADS);
 					if (itemMap[items[a].id]->height > itemMap[items[a].id]->width) {
 						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
