@@ -68,7 +68,6 @@ enum BUILD_SUB{
 	LAMP_POST,			/**< a lamppost, creates light */
 	FIRE_PIT,			/**< a firepit, creates fire particles / light */
 	STALL_MARKET = 70,	/**< a stall for a merchant */
-	STALL_TRADER		/**< TODO */
 };
 
 /**
@@ -468,7 +467,7 @@ public:
 	}
 
 	void follow(Entity *f){
-		following=f;
+		following = f;
 		belongsTo = true;
 	}
 };
