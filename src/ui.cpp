@@ -1059,8 +1059,20 @@ EXIT:
 							currentWorld = ((Arena *)currentWorld)->exitArena(player);
 							if (tmp != currentWorld)
 								toggleBlackFast();
-						} else if ((tmp = currentWorld->goInsideStructure(player)) != currentWorld)
-							currentWorld = tmp;
+						} else {
+							auto tmpp = currentWorld->goInsideStructure(player);
+
+							if (tmpp.first != currentWorld) {
+								ui::toggleBlackFast();
+								ui::waitForCover();
+
+								currentWorld = tmpp.first;
+								if (tmpp.second)
+									player->loc.x = tmpp.second;
+
+								ui::toggleBlackFast();
+							}
+						}
 						break;
 					case SDLK_LSHIFT:
 						if (debug) {

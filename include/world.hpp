@@ -220,7 +220,7 @@ public:
 	bool goWorldLeft(NPC *e);
 
 	// attempts to enter a structure that the player would be standing in front of
-	World *goInsideStructure(Player *p);
+	std::pair<World *, float> goInsideStructure(Player *p);
 
 	// adds a hole at the specified start and end x-coordinates
 	void addHole(unsigned int start,unsigned int end);

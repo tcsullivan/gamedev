@@ -103,6 +103,10 @@ struct _vec2 {
 		x = y = n;
 		return *this;
 	}
+	template<typename T>
+	const _vec2 operator+(const T &n) {
+		return _vec2 {x + n, y + n};
+	}
 };
 typedef struct _vec2 vec2;
 

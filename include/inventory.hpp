@@ -11,19 +11,15 @@
 class Item{
 public:
 	std::string name, type;
+	std::string texloc;
+
+	Texturec *tex;
 
 	float width;
 	float height;
 	int   maxStackSize;
 	float attribValue;
 
-	std::string texloc;
-	Texturec *tex;
-
-	GLuint rtex()
-	{
-		return tex->image[0];
-	}
 };
 
 class Currency{
@@ -44,7 +40,7 @@ public:
 	}
 };
 
-struct item_t{
+struct item_t {
 	uint count;
 	uint id;
 } __attribute__((packed));

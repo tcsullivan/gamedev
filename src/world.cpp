@@ -1102,7 +1102,7 @@ goWorldLeft(NPC *e)
 /**
  * Attempts to enter a building that the player is standing in front of.
  */
-World *World::
+std::pair<World *, float> World::
 goInsideStructure(Player *p)
 {
 	World *tmp;
@@ -1114,52 +1114,42 @@ goInsideStructure(Player *p)
         auto b = *d;
 
         if ((d == std::end(build)) || b->inside.empty())
-            return this;
+            return std::make_pair(this, 0);
 
         // +size cuts folder prefix
 		inside.push_back(&currentXML[xmlFolder.size()]);
 		tmp = loadWorldFromXML(b->inside);
 
-        // make the fade, as we let it fade back the worlds should be switched
-		ui::toggleBlackFast();
-		ui::waitForCover();
-		ui::toggleBlackFast();
-        glClearColor(0, 0, 0, 1);
-
-		return tmp;
+		return std::make_pair(tmp, 0);
 	} else {
         std::string current = &currentXML[xmlFolder.size()];
 		tmp = loadWorldFromXML(inside.back());
         inside.clear();
 
-        Structures *b;
-        for (auto &s : build) {
+        Structures *b = nullptr;
+        for (auto &s : tmp->build) {
             if (s->inside == current) {
                 b = s;
                 break;
             }
         }
-        //auto b = *std::find_if(std::begin(build), std::end(build), [&](const Structures *s) {
-        //    return (s->inside == current);
-        //});
 
-		ui::toggleBlackFast();
-		ui::waitForCover();
-		p->loc.x = b->loc.x + (b->width / 2);
-		ui::toggleBlackFast();
-        glClearColor(1, 1, 1, 1);
+        if (b == nullptr)
+            return std::make_pair(this, 0);
 
-		return tmp;
+        return std::make_pair(tmp, b->loc.x + (b->width / 2));
 	}
 
-	return this;
+	return std::make_pair(this, 0);
 }
 
-void World::addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::string inside){
+void World::
+addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::string inside)
+{
 	build.push_back(new Structures());
 	build.back()->inWorld = this;
 	build.back()->textureLoc = tex;
-	build.back()->spawn(sub,x,y);
+	build.back()->spawn(sub, x, y);
 	build.back()->inside = inside;
 	entity.push_back(build.back());
 }
@@ -1171,31 +1161,39 @@ addVillage(std::string name, World *world)
     return &village.back();
 }
 
-void World::addMob(int t,float x,float y){
+void World::
+addMob(int t, float x, float y)
+{
 	mob.push_back(new Mob(t));
-	mob.back()->spawn(x,y);
+	mob.back()->spawn(x, y);
 
 	entity.push_back(mob.back());
 }
 
-void World::addMob(int t,float x,float y,void (*hey)(Mob *)){
+void World::
+addMob(int t, float x, float y, void (*hey)(Mob *))
+{
 	mob.push_back(new Mob(t));
-	mob.back()->spawn(x,y);
+	mob.back()->spawn(x, y);
 	mob.back()->hey = hey;
 
 	entity.push_back(mob.back());
 }
 
-void World::addNPC(float x,float y){
+void World::
+addNPC(float x, float y)
+{
 	npc.push_back(new NPC());
-	npc.back()->spawn(x,y);
+	npc.back()->spawn(x, y);
 
 	entity.push_back(npc.back());
 }
 
-void World::addMerchant(float x, float y, bool housed){
+void World::
+addMerchant(float x, float y, bool housed)
+{
 	merchant.push_back(new Merchant());
-	merchant.back()->spawn(x,y);
+	merchant.back()->spawn(x, y);
 
     if (housed)
         merchant.back()->inside = build.back();
@@ -1204,7 +1202,9 @@ void World::addMerchant(float x, float y, bool housed){
 	entity.push_back(npc.back());
 }
 
-void World::addObject(std::string in, std::string p, float x, float y){
+void World::
+addObject(std::string in, std::string p, float x, float y)
+{
 	object.emplace_back(in, p);
 	object.back().spawn(x, y);
 
