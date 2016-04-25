@@ -1,6 +1,7 @@
 #include <inventory.hpp>
 #include <entities.hpp>
 #include <ui.hpp>
+#include <gametime.hpp>
 
 #include <tinyxml2.h>
 using namespace tinyxml2;
@@ -229,6 +230,8 @@ void Inventory::draw(void) {
 	unsigned int a = 0;
 	static vec2 mouseStart = {0,0};
 	C("End define");
+
+	auto deltaTime = gtime::getDeltaTime();
 
 	for (auto &r : iray) {
 		r.start.x = player->loc.x + (player->width  / 2);
@@ -594,7 +597,7 @@ int Inventory::useItem(void)
 				}
 
 				if (up)
-					hangle += 0.325f * dir * deltaTime;
+					hangle += 0.325f * dir * gtime::getDeltaTime();
 
 				if (!player->left) {
 					if (hangle <= -90)

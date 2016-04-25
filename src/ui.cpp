@@ -1,8 +1,8 @@
 #include <ui.hpp>
 
-extern std::vector<menuItem> optionsMenu;
+#include <gametime.hpp>
+
 extern Menu* currentMenu;
-extern Menu pauseMenu;
 
 extern SDL_Window *window;
 
@@ -27,7 +27,6 @@ extern std::vector<NPC *> aipreload;
 */
 
 extern bool gameRunning;
-extern unsigned int tickCount;
 
 /*
  *	Freetype variables
@@ -73,10 +72,10 @@ extern void mainLoop(void);
  * Fade effect flags
  */
 
-bool fadeEnable = false;
-bool fadeWhite  = false;
-bool fadeFast   = false;
-unsigned int fadeIntensity = 0;
+static bool fadeEnable = false;
+static bool fadeWhite  = false;
+static bool fadeFast   = false;
+static unsigned int fadeIntensity = 0;
 
 bool inBattle = false;
 Mix_Chunk *battleStart;
@@ -411,6 +410,8 @@ namespace ui {
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
 
+		auto tickCount = gtime::getTickCount();
+
 		// reset values if a new string is being passed.
 		if (!linc || ret.substr(0, linc) != str.substr(0, linc)) {
 			tickk = tickCount + tadv;
@@ -653,7 +654,7 @@ namespace ui {
 			if (dialogImportant) {
 				setFontColor(255,255,255);
 				if (dialogPassive) {
-					dialogPassiveTime -= deltaTime;
+					dialogPassiveTime -= gtime::getDeltaTime();
 					if (dialogPassiveTime < 0) {
 						dialogPassive = false;
 						dialogImportant = false;
@@ -784,7 +785,8 @@ namespace ui {
 					Mix_PlayChannel(1, dialogClick, 0);
 			}
 
-		}if (!fadeIntensity) {
+		}
+		if (!fadeIntensity) {
 			vec2 hub = {
 				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
 				(offset.y+SCREEN_HEIGHT/2)-fontSize
@@ -1009,7 +1011,7 @@ EXIT:
 					tmp = currentWorld;
 					switch(SDL_KEY) {
 					case SDLK_t:
-						tickCount += 50;
+						gtime::tick(50);
 						break;
 					case SDLK_a:
 						if (fadeEnable)break;
@@ -1108,7 +1110,7 @@ EXIT:
 
 			case SDL_KEYUP:
 				if (SDL_KEY == SDLK_ESCAPE) {
-					currentMenu = &pauseMenu;
+					ui::menu::toggle();
 					player->save();
 					return;
 				}
@@ -1213,6 +1215,43 @@ EXIT:
 				aipreload.front()->addAIFunc(false);
 				aipreload.erase(std::begin(aipreload));
 			}
+		}
+	}
+
+	void drawFade(void) {
+		if (!fadeIntensity) {
+			if (fontSize != 16)
+				setFontSize(16);
+			return;
+		}
+
+		if (fadeWhite)
+			safeSetColorA(255, 255, 255, fadeIntensity);
+		else
+			safeSetColorA(0, 0, 0, fadeIntensity);
+
+		glRectf(offset.x - SCREEN_WIDTH  / 2,
+				offset.y - SCREEN_HEIGHT / 2,
+				offset.x + SCREEN_WIDTH  / 2,
+				offset.y + SCREEN_HEIGHT / 2
+			    );
+	}
+
+	void fadeUpdate(void) {
+		if (fadeEnable) {
+			if (fadeIntensity < 150)
+				fadeIntensity += fadeFast ? 40 : 10;
+			else if (fadeIntensity < 255)
+				fadeIntensity += fadeFast ? 20 : 5;
+			else
+				fadeIntensity = 255;
+		} else {
+			if (fadeIntensity > 150)
+				fadeIntensity -= fadeFast ? 20 : 5;
+			else if (fadeIntensity > 0)
+				fadeIntensity -= fadeFast ? 40 : 10;
+			else
+				fadeIntensity = 0;
 		}
 	}
 
