@@ -159,7 +159,7 @@ public:
 	virtual ~World(void);
 
 	// generates a world of the specified width
-	void generate(unsigned int width);
+	void generate(int width);
 
 	// draws everything to the screen
 	virtual void draw(Player *p);
@@ -233,8 +233,9 @@ public:
 
 	void addMerchant(float x, float y, bool housed);
 
-	void addMob(int type, float x, float y);
-	void addMob(int type, float x, float y, void (*hey)(Mob *));
+	//void addMob(int type, float x, float y);
+	//void addMob(int type, float x, float y, void (*hey)(Mob *));
+	void addMob(Mob *m, vec2 coord);
 
 	void addNPC(float x, float y);
 

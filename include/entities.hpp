@@ -42,19 +42,6 @@ enum GENDER{
 };
 
 /**
- * An enumerator for mob types.. 'species'.
- * The subtype of a Mob will affect what texture is used to draw it as well as
- * how the Mob will behave.
- */
-enum MOB_SUB {
-	MS_RABBIT = 1,	/**< rabbits */
-	MS_BIRD,		/**< birds */
-	MS_TRIGGER,		/**< triggers, used to cue cutscenes */
-	MS_DOOR,		/**< doors, for exiting arenas */
-	MS_PAGE			/**< pages, cues page overlay */
-};
-
-/**
  * An enumerator for strcture types.
  * The subtype of a structure will affect how it is drawn and how it functions.
  */
@@ -190,9 +177,6 @@ protected:
 	// if set false, entity will be destroyed
 	bool alive;
 
-	// if not null, the entity will move towards this one
-	Entity *followee;
-
 	// TODO
 	float targetx;
 
@@ -259,6 +243,7 @@ public:
 
 	// allows the entity to wander, according to what class is deriving this.
 	virtual void wander(int){}
+	virtual void wander(void){}
 
 	// allows the entity to interact with the player
 	virtual void interact(void){}
@@ -360,19 +345,6 @@ public:
 	void wander(int);
 };
 
-class Mob : public Entity{
-public:
-	bool aggressive;
-	double init_y;
-	void (*hey)(Mob *callee);
-	std::string heyid;
-
-	Mob(int);
-	~Mob();
-
-	void wander(int);
-};
-
 class Object : public Entity{
 private:
 	std::string iname;
@@ -424,12 +396,9 @@ public:
 	void makeFlame(void){
 		flame = true;
 	}
-
-	void follow(Entity *f){
-		following = f;
-		belongsTo = true;
-	}
 };
+
+#include <mob.hpp>
 
 constexpr Object *Objectp(Entity *e) {
 	return (Object *)e;
@@ -443,8 +412,8 @@ constexpr Structures *Structurep(Entity *e) {
 	return (Structures *)e;
 }
 
-constexpr Mob *Mobp(Entity *e) {
-	return (Mob *)e;
+constexpr Merchant *Merchantp(Entity *e) {
+	return (Merchant *)e;
 }
 
 #endif // ENTITIES_H

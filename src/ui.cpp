@@ -1,5 +1,6 @@
 #include <ui.hpp>
 
+#include <world.hpp>
 #include <gametime.hpp>
 
 extern Menu* currentMenu;
@@ -1177,7 +1178,7 @@ EXIT:
 					break;
 				case SDLK_l:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
-					currentWorld->getLastLight()->follow(player);
+					//currentWorld->getLastLight()->follow(player);
 					currentWorld->getLastLight()->makeFlame();
 					break;
 				case SDLK_f:

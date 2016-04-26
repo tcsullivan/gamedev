@@ -36,13 +36,11 @@ Player *player;
 /**
  * TODO
  */
-
 GLuint fragShader;
 
 /**
  * TODO
  */
-
 GLuint shaderProgram;
 
 /**
@@ -50,33 +48,24 @@ GLuint shaderProgram;
  *  mutex will prevent multiple threads from changing the same data,
  *  and the condition_variable will wait for threads to reach the same point
  */
-
 std::mutex mtx;
 std::condition_variable cv;
 ThreadPool pool(10);
 
-/*
- *	loops is used for texture animation. It is believed to be passed to entity
- *	draw functions, although it may be externally referenced instead.
-*/
-
 /**
  * TODO
  */
-
 GLuint colorIndex;
 
 /**
  * TODO
  */
-
 GLuint mouseTex;
 
 /**
  * Used for texture animation. It is externally referenced by ui.cpp
  * and entities.cpp.
  */
-
 unsigned int loops = 0;
 
 /**
@@ -648,22 +637,7 @@ void logic(){
 			}
 		} else if (e->type == MOBT) {
 			e->near = player->isNear(*e);
-
-			switch (e->subtype) {
-			case MS_RABBIT:
-			case MS_BIRD:
-				e->wander((rand()%240 + 15));
-				break;
-			case MS_TRIGGER:
-			case MS_PAGE:
-				e->wander(0);
-				break;
-			case MS_DOOR:
-				break;
-			default:
-				std::cout<<"Unhandled mob of subtype "<<e->subtype<<"."<<std::endl;
-				break;
-			}
+			e->wander();
 		}
 	}
 

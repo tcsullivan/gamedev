@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include <ui.hpp>
+#include <world.hpp>
 #include <gametime.hpp>
 
 extern std::istream *names;
@@ -97,21 +98,14 @@ void Entity::spawn(float x, float y)
 	ticksToUse = 0;
 	hitCooldown = 0;
 
-	if (!maxHealth)health = maxHealth = 1;
-
-	if (type==MOBT) {
-		if (Mobp(this)->subtype == MS_BIRD) {
-			Mobp(this)->init_y=loc.y;
-		}
-	}
+	if (!maxHealth)
+		health = maxHealth = 1;
 
 	name = new char[32];
 	if (type == MOBT)
 		name[0] = '\0';
 	else
 		getRandomName(this);
-
-	followee = NULL;
 }
 
 void Entity::takeHit(unsigned int _health, unsigned int cooldown)
@@ -265,50 +259,6 @@ Structures::~Structures() {
 		delete[] name;
 }
 
-Mob::Mob(int sub) {
-	type = MOBT;
-	aggressive = false;
-
-	maxHealth = health = 50;
-	canMove = true;
-
-	switch((subtype = sub)) {
-	case MS_RABBIT:
-		width  = HLINE * 10;
-		height = HLINE * 8;
-		tex = new Texturec(2, "assets/rabbit.png", "assets/rabbit1.png");
-		break;
-	case MS_BIRD:
-		width = HLINE * 8;
-		height = HLINE * 8;
-		tex = new Texturec(1, "assets/robin.png");
-		break;
-	case MS_TRIGGER:
-		width = HLINE * 20;
-		height = 2000;
-		tex = new Texturec(0);
-		break;
-	case MS_DOOR:
-		width = HLINE * 12;
-		height = HLINE * 20;
-		tex = new Texturec(1,"assets/door.png");
-		break;
-	case MS_PAGE:
-		width = HLINE * 6;
-		height = HLINE * 4;
-		tex = new Texturec(1,"assets/items/ITEM_PAGE.png");
-		break;
-	}
-
-	inv = new Inventory(NPC_INV_SIZE);
-}
-
-Mob::~Mob() {
-	delete inv;
-	delete tex;
-	delete[] name;
-}
-
 Object::Object() {
 	type = OBJECTT;
 	alive = true;
@@ -409,22 +359,8 @@ void Entity::draw(void)
 		}
 		break;
 	case MOBT:
-		switch(subtype) {
-			case MS_RABBIT:
-				glActiveTexture(GL_TEXTURE0 + 0);
-				tex->bind(!ground);
-				break;
-			case MS_TRIGGER:
-				goto NOPE;
-				break;
-			case MS_BIRD:
-			case MS_DOOR:
-			case MS_PAGE:
-			default:
-				glActiveTexture(GL_TEXTURE0);
-				tex->bind(0);
-				break;
-		}
+		if (!Mobp(this)->bindTex())
+			goto NOPE;
 		break;
 	case STRUCTURET:
 		/* fall through */
@@ -475,16 +411,7 @@ wander(int timeRun)
 	if (hitCooldown)
 		hitCooldown--;
 
-	if (followee) {
-		if (loc.x < followee->loc.x - 40)
-			direction = 1;
-		else if (loc.x > followee->loc.x + 40)
-			direction = -1;
-		else
-			direction = 0;
-
-		vel.x = .018 * HLINE * direction;
-	} else if (targetx != 0.9112001f) {
+	if (targetx != 0.9112001f) {
 		if (loc.x > targetx + HLINE * 5)
 			vel.x = -0.018 * HLINE;
 		else if (loc.x < targetx - HLINE * 5)
@@ -645,10 +572,6 @@ bool Entity::isInside(vec2 coord) const {
 	       coord.y <= loc.y + height;
 }
 
-void Entity::follow(Entity *e) {
-	followee = e;
-}
-
 /*
  *	This spawns the structures
  *
@@ -698,93 +621,6 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y) {
 	}
 
 	return 0;
-}
-
-/*
- * 	Mob::wander this is the function that makes the mobs wander around
- *
- *	See NPC::wander for the explaination of the argument's variable
-*/
-
-void Mob::wander(int timeRun) {
-	static int direction;	//variable to decide what direction the entity moves
-	static unsigned int heya=0,hi=0;
-	static bool YAYA = false;
-
-	auto deltaTime = gtime::getDeltaTime();
-
-	if (forcedMove)
-		return;
-
-	if (followee) {
-		if (loc.x < followee->loc.x - 40)
-			direction = 1;
-		else if (loc.x > followee->loc.x + 40)
-			direction = -1;
-		else
-			direction = 0;
-
-		vel.x = .018 * HLINE * direction;
-		return;
-	}
-
-	if (aggressive && !YAYA &&
-	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
-	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height) {
-		if (!ui::dialogBoxExists) {
-			Arena *a = new Arena(currentWorld,player,this);
-			a->setStyle("");
-			a->setBackground(WorldBGType::Forest);
-			a->setBGM("assets/music/embark.wav");
-
-			ui::toggleWhiteFast();
-			YAYA = true;
-			ui::waitForCover();
-			YAYA = false;
-			currentWorld = a;
-			ui::toggleWhiteFast();
-		}
-	}
-
-	switch(subtype) {
-	case MS_RABBIT:
-		if (!ticksToUse) {
-			ticksToUse = timeRun;
-			direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
-												//this lets the entity move left, right, or stay still
-			if (direction==0)ticksToUse/=2;
-			vel.x *= direction;	//changes the velocity based off of the direction
-		}
-		if (ground && direction) {
-			vel.y=.15;
-			loc.y+=HLINE*.25;
-			ground=false;
-			vel.x = (.07*HLINE)*direction;	//sets the inital velocity of the entity
-		}
-		ticksToUse--; //removes one off of the entities timer
-		break;
-	case MS_BIRD:
-		if (loc.y<=init_y-.2)vel.y=.02*deltaTime;	// TODO handle direction
-		vel.x = 0.02f * deltaTime;
-		if (++heya==200) {heya=0;hi^=1;}
-		if (hi)vel.x*=-1;
-		break;
-	case MS_TRIGGER:
-		if (player->loc.x + player->width / 2 > loc.x		 &&
-		   player->loc.x + player->width / 2 < loc.x + width)
-			std::thread([this]{hey(this);}).detach();
-			//hey(this);
-		break;
-	case MS_PAGE:
-		if (player->loc.x > loc.x - 100 && player->loc.x < loc.x + 100           && // within player ranger
-		   ui::mouse.x > loc.x && ui::mouse.x < loc.x + width                   && // mouse x
-		   ui::mouse.y > loc.y - width / 2 && ui::mouse.y < loc.y + width * 1.5 && // mouse y
-		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))           // right click
-			hey(this);
-		break;
-	default:
-		break;
-	}
 }
 
 Particles::Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d)

@@ -21,10 +21,10 @@
 // local game headers
 #include <common.hpp>
 #include <config.hpp>
+#include <entities.hpp>
 #include <inventory.hpp>
 #include <ui_menu.hpp>
 #include <ui_action.hpp>
-#include <world.hpp>
 
 // local library headers
 #include <SDL2/SDL_opengl.h>

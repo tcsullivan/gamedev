@@ -168,53 +168,6 @@ int commonAIFunc(NPC *speaker)
 	return 0;
 }
 
-void commonPageFunc(Mob *callee)
-{
-	ui::drawPage(callee->heyid);
-	ui::waitForDialog();
-	callee->health = 0;
-}
-
-void commonTriggerFunc(Mob *callee) {
-	static bool lock = false;
-	XMLDocument xml;
-	XMLElement *exml;
-
-	char *text,*pch;
-	if (!lock) {
-		lock = true;
-
-		xml.LoadFile(currentXML.c_str());
-		exml = xml.FirstChildElement("Trigger");
-
-		while(exml->StrAttribute("id") != callee->heyid)
-			exml = exml->NextSiblingElement();
-
-		player->vel.x = 0;
-
-		ui::toggleBlackFast();
-		ui::waitForCover();
-
-		text = new char[256];
-		strcpy(text,exml->GetText());
-		pch = strtok(text,"\n");
-
-		while(pch) {
-			ui::importantText(pch);
-			ui::waitForDialog();
-
-			pch = strtok(NULL,"\n");
-		}
-
-		delete[] text;
-
-		ui::toggleBlackFast();
-
-		callee->health = 0;
-		lock = false;
-	}
-}
-
 void initEverything(void) {
 	std::vector<std::string> xmlFiles;
 	XMLDocument xml;
