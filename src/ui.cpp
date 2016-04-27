@@ -411,7 +411,7 @@ namespace ui {
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
 
-		auto tickCount = gtime::getTickCount();
+		auto tickCount = game::time::getTickCount();
 
 		// reset values if a new string is being passed.
 		if (!linc || ret.substr(0, linc) != str.substr(0, linc)) {
@@ -561,8 +561,7 @@ namespace ui {
 	}
 
 	void waitForCover(void) {
-		while (fadeIntensity < 255)
-			mainLoop();
+		while (fadeIntensity < 255);
 		fadeIntensity = 255;
 	}
 
@@ -573,33 +572,31 @@ namespace ui {
 
 	void importantText(const char *text,...) {
 		va_list textArgs;
-		char *printfbuf;
+		std::unique_ptr<char[]> printfbuf (new char[512]);
 
 		dialogBoxText.clear();
 
-		printfbuf = new char[ 512 ];
 		va_start(textArgs,text);
-		vsnprintf(printfbuf,512,text,textArgs);
+		vsnprintf(printfbuf.get(),512,text,textArgs);
 		va_end(textArgs);
-		dialogBoxText = printfbuf;
-		delete[] printfbuf;
+		dialogBoxText = printfbuf.get();
 
 		dialogBoxExists = true;
 		dialogImportant = true;
+		dialogPassive = false;
+		dialogPassiveTime = 0;
 	}
 
 	void passiveImportantText(int duration, const char *text, ...) {
 		va_list textArgs;
-		char *printfbuf;
+		std::unique_ptr<char[]> printfbuf (new char[512]);
 
 		dialogBoxText.clear();
 
-		printfbuf = new char[ 512 ];
 		va_start(textArgs,text);
-		vsnprintf(printfbuf,512,text,textArgs);
+		vsnprintf(printfbuf.get(),512,text,textArgs);
 		va_end(textArgs);
-		dialogBoxText = printfbuf;
-		delete[] printfbuf;
+		dialogBoxText = printfbuf.get();
 
 		dialogBoxExists = true;
 		dialogImportant = true;
@@ -634,8 +631,11 @@ namespace ui {
 		float x,y,tmp;
 		std::string rtext;
 
+		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+
 		// will return if not toggled
-		action::draw(vec2 {player->loc.x + player->width / 2, player->loc.y + player->height + HLINE});
+		action::draw(vec2 {player->loc.x + player->width / 2, player->loc.y + player->height + game::HLINE});
 
 		if (pageTexReady) {
 			glEnable(GL_TEXTURE_2D);
@@ -649,32 +649,32 @@ namespace ui {
 			glDisable(GL_TEXTURE_2D);
 
 		} else if (dialogBoxExists) {
-
-			rtext=typeOut(dialogBoxText);
+			rtext = typeOut(dialogBoxText);
 
 			if (dialogImportant) {
 				setFontColor(255,255,255);
 				if (dialogPassive) {
-					dialogPassiveTime -= gtime::getDeltaTime();
+					dialogPassiveTime -= game::time::getDeltaTime();
 					if (dialogPassiveTime < 0) {
 						dialogPassive = false;
 						dialogImportant = false;
 						dialogBoxExists = false;
 					}
 				}
+
 				if (fadeIntensity == 255 || dialogPassive) {
 					setFontSize(24);
 					putStringCentered(offset.x,offset.y,rtext);
 					setFontSize(16);
 				}
 			}else if (dialogMerchant) {
-				x=offset.x-SCREEN_WIDTH/6;
-				y=(offset.y+SCREEN_HEIGHT/2)-HLINE*8;
+				x = offset.x - SCREEN_WIDTH / 6;
+				y = (offset.y + SCREEN_HEIGHT / 2) - HLINES(8);
 
 				drawBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH / 3, y - SCREEN_HEIGHT * 0.6f});
 
 				// draw typeOut'd text
-				putString(x + HLINE, y - fontSize - HLINE, (rtext = typeOut(dialogBoxText)));
+				putString(x + game::HLINE, y - fontSize - game::HLINE, (rtext = typeOut(dialogBoxText)));
 
 				std::string itemString1 = std::to_string(merchTrade.quantity[0]) + "x",
 				            itemString2 = std::to_string(merchTrade.quantity[1]) + "x";
@@ -736,7 +736,7 @@ namespace ui {
 					setFontColor(255, 255, 255);
 
 					// draw option
-					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 2 - (fontSize + HLINE) * (i + 1);
+					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 2 - (fontSize + game::HLINE) * (i + 1);
 					tmp = putStringCentered(offset.x, dialogOptText[i].second.y, dialogOptText[i].first);
 
 					// get coordinate information on option
@@ -754,21 +754,20 @@ namespace ui {
 				setFontColor(255, 255, 255);
 			} else { //normal dialog box
 
-				x = offset.x - SCREEN_WIDTH / 2  + HLINE * 8;
-				y = offset.y + SCREEN_HEIGHT / 2 - HLINE * 8;
+				x = offset.x - SCREEN_WIDTH / 2  + HLINES(8);
+				y = offset.y + SCREEN_HEIGHT / 2 - HLINES(8);
 
-				drawBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH - HLINE * 16, y - SCREEN_HEIGHT / 4});
+				drawBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH - HLINES(16), y - SCREEN_HEIGHT / 4});
 
 				rtext = typeOut(dialogBoxText);
-
-				putString(x+HLINE,y-fontSize-HLINE,rtext);
+				putString(x + game::HLINE, y - fontSize - game::HLINE, rtext);
 
 				for(i=0;i<dialogOptText.size();i++) {
 					setFontColor(255,255,255);
 					tmp = putStringCentered(offset.x,dialogOptText[i].second.y,dialogOptText[i].first);
 					dialogOptText[i].second.z = offset.x + tmp;
 					dialogOptText[i].second.x = offset.x - tmp;
-					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 4 + (fontSize + HLINE) * (i + 1);
+					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 4 + (fontSize + game::HLINE) * (i + 1);
 					if (mouse.x > dialogOptText[i].second.x &&
 					   mouse.x < dialogOptText[i].second.z &&
 					   mouse.y > dialogOptText[i].second.y &&
@@ -844,8 +843,8 @@ namespace ui {
 		dialogBoxExists = false;
 		currentMenu = NULL;
 		gameRunning = false;
-		config::update();
-		config::save();
+		game::config::update();
+		game::config::save();
 	}
 
 	void closeBox() {
@@ -855,6 +854,9 @@ namespace ui {
 
 	void dialogAdvance(void) {
 		unsigned char i;
+
+		dialogPassive = false;
+		dialogPassiveTime = 0;
 
 		if (pageTex) {
 			glDeleteTextures(1, &pageTex);
@@ -898,9 +900,6 @@ EXIT:
 		//if (!dialogMerchant)closeBox();
 		dialogBoxExists = false;
 		dialogMerchant = false;
-		dialogPassive = false;
-
-		//DONE:
 
 		// handle important text
 		if (dialogImportant) {
@@ -913,6 +912,10 @@ EXIT:
 		static bool left=true,right=false;
 		static int heyOhLetsGo = 0;
 		static int mouseWheelUpCount = 0, mouseWheelDownCount = 0;
+
+		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+
 		World *tmp;
 		vec2 oldpos,tmppos;
 		SDL_Event e;
@@ -1001,7 +1004,7 @@ EXIT:
 				// space - make player jump
 				if (SDL_KEY == SDLK_SPACE) {
 					if (player->ground) {
-						player->loc.y += HLINE * 2;
+						player->loc.y += HLINES(2);
 						player->vel.y = .4;
 						player->ground = false;
 					}
@@ -1012,7 +1015,7 @@ EXIT:
 					tmp = currentWorld;
 					switch(SDL_KEY) {
 					case SDLK_t:
-						gtime::tick(50);
+						game::time::tick(50);
 						break;
 					case SDLK_a:
 						if (fadeEnable)break;
@@ -1090,12 +1093,12 @@ EXIT:
 
 						// start hover counter?
 						if (!heyOhLetsGo) {
-							heyOhLetsGo = loops;
+							heyOhLetsGo = game::time::getTickCount();
 							player->inv->mouseSel = false;
 						}
 
 						// run hover thing
-						if (loops - heyOhLetsGo >= 2 && !(player->inv->invOpen) && !(player->inv->selected)) {
+						if (game::time::getTickCount() - heyOhLetsGo >= 2 && !(player->inv->invOpen) && !(player->inv->selected)) {
 							player->inv->invHover = true;
 
 							// enable action ui
@@ -1232,6 +1235,9 @@ EXIT:
 	}
 
 	void drawFade(void) {
+		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+
 		if (!fadeIntensity) {
 			if (fontSize != 16)
 				setFontSize(16);
@@ -1292,6 +1298,9 @@ EXIT:
 	}
 
     void takeScreenshot(GLubyte* pixels) {
+		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+
 		std::vector<GLubyte> bgr (SCREEN_WIDTH * SCREEN_HEIGHT * 3, 0);
 
 		for(uint x = 0; x < SCREEN_WIDTH*SCREEN_HEIGHT*3; x+=3) {

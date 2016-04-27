@@ -43,8 +43,8 @@ void initInventorySprites(void) {
 		itemMap.back()->name = exml->StrAttribute("name");
 		itemMap.back()->type = exml->StrAttribute("type");
 		itemMap.back()->texloc = exml->StrAttribute("sprite");
-		itemMap.back()->width  = exml->FloatAttribute("width") * HLINE;
-		itemMap.back()->height = exml->FloatAttribute("height") * HLINE;
+		itemMap.back()->width  = HLINES(exml->FloatAttribute("width"));
+		itemMap.back()->height = HLINES(exml->FloatAttribute("height"));
 		itemMap.back()->maxStackSize = exml->UnsignedAttribute("maxstack");
 		itemMap.back()->attribValue = exml->FloatAttribute("value");
 		itemMap.back()->tex = new Texturec({ itemMap.back()->texloc });
@@ -219,7 +219,7 @@ void Inventory::draw(void) {
 	static vec2 mouseStart = {0,0};
 	C("End define");
 
-	auto deltaTime = gtime::getDeltaTime();
+	auto deltaTime = game::time::getDeltaTime();
 
 	for (auto &r : iray) {
 		r.start.x = player->loc.x + (player->width  / 2);
@@ -228,15 +228,15 @@ void Inventory::draw(void) {
 	} a = 0;
 
 	for (auto &cr : curRay) {
-		cr.start.x = (offset.x + SCREEN_WIDTH / 2);
+		cr.start.x = (offset.x + game::SCREEN_WIDTH / 2);
 		cr.start.y =  offset.y - (a * itemWide * 1.5f);
 		curCurCoord[a++] = cr.start;
 	} a = 0;
 
 	for (int r = 0; r < 4; r++) {
 		for (int c = 0; c < 8; c++) {
-			massRay[a].x = ((offset.x - SCREEN_WIDTH  / 2) + itemWide) + c * itemWide * 1.5f;
-			massRay[a].y = ((offset.y + SCREEN_HEIGHT / 2) - itemWide * 1.5f) - r * itemWide * 1.5f;
+			massRay[a].x = ((offset.x - game::SCREEN_WIDTH  / 2) + itemWide) + c * itemWide * 1.5f;
+			massRay[a].y = ((offset.y + game::SCREEN_HEIGHT / 2) - itemWide * 1.5f) - r * itemWide * 1.5f;
 			a++;
 		}
 	} a = 0;
@@ -594,7 +594,7 @@ int Inventory::useItem(void)
 				}
 
 				if (up)
-					hangle += 0.325f * dir * gtime::getDeltaTime();
+					hangle += 0.325f * dir * game::time::getDeltaTime();
 
 				if (!player->left) {
 					if (hangle <= -90)
@@ -633,7 +633,7 @@ bool Inventory::detectCollision(vec2 one, vec2 two) {
 				}
 			}
 
-			i+=HLINE;
+			i += game::HLINE;
 		}
 	}
 	return false;

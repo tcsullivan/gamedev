@@ -16,10 +16,11 @@ void Page::act(void)
 {
     if (player->loc.x > loc.x - 100 && player->loc.x < loc.x + 100 && isInside(ui::mouse) &&
         (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))) {
-        std::cout << "Hey\n";
-        ui::drawPage(pageTexPath);
-        ui::waitForDialog();
-        die();
+        std::thread([this](void){
+            ui::drawPage(pageTexPath);
+            ui::waitForDialog();
+            die();
+        }).detach();
     }
 }
 
@@ -132,7 +133,7 @@ Bird::Bird(void)
 void Bird::act(void)
 {
     static bool direction = false;
-    auto deltaTime = gtime::getDeltaTime();
+    auto deltaTime = game::time::getDeltaTime();
     if (!--actCounter) {
         actCounter = actCounterInitial;
         direction ^= 1;
@@ -172,13 +173,20 @@ Trigger::Trigger(void)
     width = HLINES(20);
     height = 2000;
     tex = new Texturec(0);
+    triggered = false;
 }
 
 void Trigger::act(void)
 {
     auto c = player->loc.x + player->width / 2;
-    if (c > loc.x && c < loc.x + width) {
+    static bool running = false;
+
+    if (triggered) {
+        die();
+    } else if (!running && c > loc.x && c < loc.x + width) {
         std::thread([&]{
+            running = true;
+
             XMLDocument xml;
             XMLElement *exml;
 
@@ -203,7 +211,9 @@ void Trigger::act(void)
             }
 
             ui::toggleBlackFast();
-            die();
+
+            triggered = true;
+            running = false;
         }).detach();
     }
 }

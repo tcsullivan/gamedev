@@ -1,18 +1,25 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <iostream>
+#include <string>
 
-#include <SDL2/SDL_mixer.h>
+namespace game {
+	extern unsigned int HLINE;
+	extern unsigned int SCREEN_WIDTH;
+	extern unsigned int SCREEN_HEIGHT;
+	extern bool         FULLSCREEN;
 
-#include <tinyxml2.h>
-#include <ui.hpp>
+	namespace config {
+		extern float VOLUME_MASTER;
+		extern float VOLUME_MUSIC;
+		extern float VOLUME_SFX;
 
-
-namespace config {
-    void read(void);
-    void update(void);
-    void save(void);
+		extern std::string xmlFolder;
+		
+		void read(void);
+		void update(void);
+		void save(void);
+	}
 }
 
 #endif //CONFIG_H

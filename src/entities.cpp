@@ -154,8 +154,8 @@ void Entity::moveTo(float dest_x)
 }
 
 Player::Player(){ //sets all of the player specific traits on object creation
-	width = HLINE * 10;
-	height = HLINE * 16;
+	width = HLINES(10);
+	height = HLINES(16);
 
 	type = PLAYERT; //set type to player
 	subtype = 0;
@@ -181,8 +181,8 @@ Player::~Player() {
 }
 
 NPC::NPC() {	//sets all of the NPC specific traits on object creation
-	width = HLINE * 10;
-	height = HLINE * 16;
+	width = HLINES(10);
+	height = HLINES(16);
 
 	type	= NPCT; //sets type to npc
 	subtype = 0;
@@ -207,8 +207,8 @@ NPC::~NPC()
 }
 
 Merchant::Merchant() {	//sets all of the Merchant specific traits on object creation
-	width = HLINE * 10;
-	height = HLINE * 16;
+	width = HLINES(10);
+	height = HLINES(16);
 
 	type	= MERCHT; //sets type to merchant
 	subtype = 0;
@@ -304,7 +304,7 @@ void Object::reloadTexture(void) {
 }
 
 bool Entity::isNear(Entity e) {
-	return pow(e.loc.x - loc.x, 2) + pow(e.loc.y - loc.y, 2) <= pow(40 * HLINE, 2);
+	return pow(e.loc.x - loc.x, 2) + pow(e.loc.y - loc.y, 2) <= pow(HLINES(40), 2);
 }
 
 void NPC::drawThingy(void) const
@@ -342,7 +342,7 @@ void Entity::draw(void)
 	switch(type) {
 	case PLAYERT:
 		static int texState = 0;
-		if (speed && !(loops % ((2.0f/speed) < 1 ? 1 : (int)((float)2.0f/(float)speed)))) {
+		if (speed && !(game::time::getTickCount() % ((2.0f/speed) < 1 ? 1 : (int)((float)2.0f/(float)speed)))) {
 			if (++texState==9)texState=1;
 			glActiveTexture(GL_TEXTURE0);
 			tex->bind(texState);
@@ -389,10 +389,10 @@ NOPE:
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 	if (near && type != MOBT)
-		ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
+		ui::putStringCentered(loc.x + width / 2, loc.y - ui::fontSize - game::HLINE / 2, name);
 	if (health != maxHealth) {
-		glColor3ub(150,0,0); glRectf(loc.x, loc.y + height, loc.x + width, loc.y + height + HLINE * 2);
-		glColor3ub(255,0,0); glRectf(loc.x, loc.y + height, loc.x + width * (health / maxHealth), loc.y + height + HLINE * 2);
+		glColor3ub(150,0,0); glRectf(loc.x, loc.y + height, loc.x + width, loc.y + height + HLINES(2));
+		glColor3ub(255,0,0); glRectf(loc.x, loc.y + height, loc.x + width * (health / maxHealth), loc.y + height + HLINES(2));
 	}
 }
 
@@ -412,16 +412,16 @@ wander(int timeRun)
 		hitCooldown--;
 
 	if (targetx != 0.9112001f) {
-		if (loc.x > targetx + HLINE * 5)
-			vel.x = -0.018 * HLINE;
-		else if (loc.x < targetx - HLINE * 5)
-			vel.x = 0.018 * HLINE;
+		if (loc.x > targetx + HLINES(5))
+			vel.x = HLINES(-0.018);
+		else if (loc.x < targetx - HLINES(5))
+			vel.x = HLINES(0.018);
 		else
 			targetx = 0.9112001f;
 	} else if (ticksToUse == 0) {
 		ticksToUse = timeRun;
 
-		vel.x = .008 * HLINE;
+		vel.x = HLINES(0.008);
 		direction = (getRand() % 3 - 1);
 
 		if (direction == 0)
@@ -448,6 +448,15 @@ extern int commonAIFunc(NPC *speaker);
 
 void NPC::interact() { //have the npc's interact back to the player
 	std::thread([this]{
+		std::vector<XMLElement *> dopt;
+		XMLDocument xml;
+		XMLElement *exml,*oxml;
+
+		static unsigned int oldidx = 9999;
+		std::string nname;
+		unsigned int idx;
+		bool stop;
+
 		loc.y += 5;
 
 		canMove=false;
@@ -455,14 +464,144 @@ void NPC::interact() { //have the npc's interact back to the player
 		right = !left;
 
 		if (dialogCount && dialogIndex != 9999) {
-			if (!commonAIFunc(this))
-				dialogCount--;
+			// load the XML file and find the dialog tags
+			xml.LoadFile(currentXML.c_str());
+COMMONAIFUNC:
+			idx = 0;
+			stop = false;
+			exml = xml.FirstChildElement("Dialog");
+
+			// search for the dialog block associated with this npc
+			while (exml->StrAttribute("name") != name)
+				exml = exml->NextSiblingElement();
+
+			// search for the desired text block
+			exml = exml->FirstChildElement();
+			do {
+				if (std::string("text") == exml->Name() && exml->UnsignedAttribute("id") == (unsigned)dialogIndex)
+					break;
+			} while ((exml = exml->NextSiblingElement()));
+
+			// handle quest tags
+			if ((oxml = exml->FirstChildElement("quest"))) {
+				std::string qname;
+
+				// iterate through all quest tags
+				do {
+					// assign quest
+					if (!(qname = oxml->StrAttribute("assign")).empty())
+						player->qh.assign(qname, "None", std::string(oxml->GetText())); // TODO add descriptions
+
+					// check / finish quest
+					else if (!(qname = oxml->StrAttribute("check")).empty()) {
+						if (player->qh.hasQuest(qname) && player->qh.finish(qname)) {
+							// QuestHandler::finish() did all the work..
+							break;
+						} else {
+							// run error dialog
+							oldidx = dialogIndex;
+							dialogIndex = oxml->UnsignedAttribute("fail");
+							goto COMMONAIFUNC;
+						}
+					}
+				} while((oxml = oxml->NextSiblingElement()));
+			}
+
+			// handle give tags
+			if ((oxml = exml->FirstChildElement("give"))) {
+				do player->inv->addItem(oxml->Attribute("id"), oxml->UnsignedAttribute("count"));
+				while ((oxml = oxml->NextSiblingElement()));
+			}
+
+			// handle take tags
+			if ((oxml = exml->FirstChildElement("take"))) {
+				do player->inv->takeItem(oxml->Attribute("id"), oxml->UnsignedAttribute("count"));
+				while ((oxml = oxml->NextSiblingElement()));
+			}
+
+			// handle movement directs
+			if ((oxml = exml->FirstChildElement("gotox")))
+				moveTo(std::stoi(oxml->GetText()));
+
+			// handle dialog options
+			if ((oxml = exml->FirstChildElement("option"))) {
+				std::string optstr;
+
+				// convert option strings to a colon-separated format
+				do {
+					// append the next option
+					optstr.append(std::string(":") + oxml->Attribute("text"));
+
+					// save the associated XMLElement
+					dopt.push_back(oxml);
+				} while ((oxml = oxml->NextSiblingElement()));
+
+				// run the dialog stuff
+				ui::dialogBox(name, optstr, false, exml->GetText() + 1);
+				ui::waitForDialog();
+
+				if (ui::dialogOptChosen)
+					exml = dopt[ui::dialogOptChosen - 1];
+
+				dopt.clear();
+			}
+
+			// optionless dialog
+			else {
+				ui::dialogBox(name, "", false, exml->GetText());
+				ui::waitForDialog();
+			}
+
+			// trigger other npcs if desired
+			if (!(nname = exml->StrAttribute("call")).empty()) {
+				NPC *n = *std::find_if(std::begin(currentWorld->npc), std::end(currentWorld->npc), [nname](NPC *npc) {
+					return (npc->name == nname);
+				});
+
+				if (exml->QueryUnsignedAttribute("callid", &idx) == XML_NO_ERROR) {
+					n->dialogIndex = idx;
+					n->addAIFunc(false);
+				}
+			}
+
+			// handle potential following dialogs
+			if ((idx = exml->UnsignedAttribute("nextid"))) {
+				dialogIndex = idx;
+
+				// stop talking
+				if (exml->QueryBoolAttribute("stop", &stop) == XML_NO_ERROR && stop) {
+					dialogIndex = 9999;
+					dialogCount--;
+				}
+
+				// pause, allow player to click npc to continue
+				else if (exml->QueryBoolAttribute("pause", &stop) == XML_NO_ERROR && stop) {
+					//return 1;
+				}
+
+				// instantly continue
+				else {
+					goto COMMONAIFUNC;
+				}
+			}
+
+			// stop talking
+			else {
+				// error text?
+				if (oldidx != 9999) {
+					dialogIndex = oldidx;
+					oldidx = 9999;
+				} else {
+					dialogIndex = 9999;
+					dialogCount--;
+				}
+			}
 		} else {
 			ui::dialogBox(name, "", false, randomDialog[randDialog]);
 		}
 
 		ui::waitForDialog();
-		canMove=true;
+		canMove = true;
 	}).detach();
 }
 
@@ -475,7 +614,7 @@ void Merchant::wander(int timeRun) {
 	if (ticksToUse == 0) {
 		ticksToUse = timeRun;
 
-		vel.x = .008 * HLINE;
+		vel.x = HLINES(0.008);
 		direction = (getRand() % 3 - 1);
 
 		if (direction == 0)
@@ -487,12 +626,12 @@ void Merchant::wander(int timeRun) {
 	if (vel.x < 0)
 		currentWorld->goWorldLeft(this);
 	if (inside != nullptr) {
-		loc.y = inside->loc.y + HLINE * 2;
+		loc.y = inside->loc.y + HLINES(2);
 		vel.y = GRAVITY_CONSTANT * 5;
-		if (loc.x <= inside->loc.x + HLINE * 5)
-			loc.x = inside->loc.x + HLINE * 5;
-		else if (loc.x + width >= inside->loc.x + inside->width - HLINE * 5)
-			loc.x = inside->loc.x + inside->width - width - HLINE * 5;
+		if (loc.x <= inside->loc.x + HLINES(5))
+			loc.x = inside->loc.x + HLINES(5);
+		else if (loc.x + width >= inside->loc.x + inside->width - HLINES(5))
+			loc.x = inside->loc.x + inside->width - width - HLINES(5);
 	}
 	ticksToUse--;
 }
@@ -668,7 +807,7 @@ void Particles::update(float _gravity, float ground_y)
 
 	// handle gravity
 	else if (gravity && vel.y > -1.0f) {
-		vel.y -= _gravity * gtime::getDeltaTime();
+		vel.y -= _gravity * game::time::getDeltaTime();
 	}
 }
 
@@ -685,7 +824,7 @@ void Player::save(void) {
 	data.append(std::to_string((int)loc.y) + "\n");
 	data.append(std::to_string((int)health) + "\n");
 	data.append(std::to_string((int)maxHealth) + "\n");
-	data.append(std::to_string((int)gtime::getTickCount()) + "\n");
+	data.append(std::to_string((int)game::time::getTickCount()) + "\n");
 
 	data.append(std::to_string((int)inv->items.size()) + "\n");
 	for(auto &i : inv->items)
@@ -727,7 +866,7 @@ void Player::sspawn(float x,float y) {
 		std::getline(data,ddata);
 		maxHealth = std::stoi(ddata);
 		std::getline(data,ddata);
-		gtime::tick(std::stoi(ddata));
+		game::time::tick(std::stoi(ddata));
 
 		std::getline(data,ddata);
 		for(i = std::stoi(ddata);i;i--) {

@@ -10,7 +10,7 @@
 	<rabbit x="300" aggressive="true" health="100" />
 	<bird />
 
-	<!--<trigger x="-300" id="Test" />-->
+	<trigger x="-300" id="Test" />
 
 	<npc name="Ralph" hasDialog="true" x="300" />
 	<npc name="Johnny" hasDialog="false" x="300" />

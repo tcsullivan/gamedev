@@ -76,6 +76,7 @@ public:
 class Trigger : public Mob {
 private:
     std::string id;
+    bool triggered;
 public:
     Trigger(void);
 

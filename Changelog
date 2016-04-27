@@ -924,4 +924,16 @@
 
 	- fixed segfaults in inventory
 	- Andy learned how to use GDB
-	- fixed 
+
+4/16/2016-
+4/27/2016:
+==========
+
+	- added action menu
+	- freakin rewrote half the code
+		- redid mobs, moved to separate file
+		- library-ized game time stuff
+		- made the game:: namespace
+		- removed threadpool, gameplay
+		- redoing inventory system
+	- added -g flag

@@ -219,13 +219,13 @@ generate(int width)
     }
 
     // define x-coordinate of world's leftmost 'line'
-    worldStart = (width - GROUND_HILLINESS) * HLINE / 2 * -1;
+    worldStart = (width - GROUND_HILLINESS) * game::HLINE / 2 * -1;
 
     // create empty star array, should be filled here as well...
 	star = std::vector<vec2> (100, vec2 { 0, 400 });
 	for (auto &s : star) {
 		s.x = (getRand() % (-worldStart * 2)) + worldStart;
-		s.y = (getRand() % SCREEN_HEIGHT) + 100;
+		s.y = (getRand() % game::SCREEN_HEIGHT) + 100;
 	}
 }
 
@@ -237,6 +237,10 @@ generate(int width)
 void World::
 draw(Player *p)
 {
+    auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+    auto HLINE = game::HLINE;
+
     const ivec2 backgroundOffset = ivec2 {
         static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2
     };
@@ -542,7 +546,7 @@ singleDetect(Entity *e)
 	unsigned int i;
 	int l;
 
-    auto deltaTime = gtime::getDeltaTime();
+    auto deltaTime = game::time::getDeltaTime();
 
 	// kill dead entities
 	if (!e->isAlive()) {
@@ -593,7 +597,7 @@ singleDetect(Entity *e)
         e->handleHits();
 
 		// calculate the line that this entity is currently standing on
-		l = static_cast<int>(fmax((e->loc.x + e->width / 2 - worldStart) / HLINE, 0));
+		l = static_cast<int>(fmax((e->loc.x + e->width / 2 - worldStart) / game::HLINE, 0));
 		l = static_cast<int>(fmin(l, lineCount - 1));
 
 		// if the entity is under the world/line, pop it back to the surface
@@ -626,10 +630,10 @@ singleDetect(Entity *e)
 		// insure that the entity doesn't fall off either edge of the world.
 		if (e->loc.x < worldStart) {
 			e->vel.x = 0;
-			e->loc.x = worldStart + HLINE / 2;
-		} else if (e->loc.x + e->width + HLINE > worldStart + worldStart * -2) {
+			e->loc.x = worldStart + game::HLINE / 2;
+		} else if (e->loc.x + e->width + game::HLINE > worldStart + worldStart * -2) {
 			e->vel.x = 0;
-			e->loc.x = worldStart + worldStart * -2 - e->width - HLINE;
+			e->loc.x = worldStart + worldStart * -2 - e->width - game::HLINE;
 		}
 	}
 }
@@ -656,7 +660,7 @@ detect(Player *p)
     // handle particles
 	for (auto &part : particles) {
 		// get particle's current world line
-		l = (int)fmax((part.loc.x + part.width / 2 - worldStart) / HLINE, 0);
+		l = (int)fmax((part.loc.x + part.width / 2 - worldStart) / game::HLINE, 0);
         l = (int)fmin(lineCount - 1, l);
 		part.update(GRAVITY_CONSTANT, worldData[l].groundHeight);
 	}
@@ -666,10 +670,10 @@ detect(Player *p)
 		switch (b->bsubtype) {
 		case FOUNTAIN:
 			for (unsigned int r = (randGet() % 25) + 11; r--;) {
-				addParticle(randGet() % HLINE * 3 + b->loc.x + b->width / 2,	// x
+				addParticle(randGet() % HLINES(3) + b->loc.x + b->width / 2,	// x
 							b->loc.y + b->height,								// y
-							HLINE * 1.25,										// width
-							HLINE * 1.25,										// height
+							HLINES(1.25),										// width
+							HLINES(1.25),										// height
 							randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
 							(4 + randGet() % 6) * .05,							// vel.y
 							{ 0, 0, 255 },										// RGB color
@@ -681,9 +685,9 @@ detect(Player *p)
 		case FIRE_PIT:
 			for(unsigned int r = (randGet() % 20) + 11; r--;) {
 				addParticle(randGet() % (int)(b->width / 2) + b->loc.x + b->width / 4,	// x
-							b->loc.y + 3 * HLINE,										// y
-							HLINE,														// width
-							HLINE,														// height
+							b->loc.y + HLINES(3),										// y
+							game::HLINE,       											// width
+							game::HLINE,												// height
 							randGet() % 3 * .01 * (randGet() % 2 == 0 ? -1 : 1),		// vel.x
 							(4 + randGet() % 6) * .005,									// vel.y
 							{ 255, 0, 0 },												// RGB color
@@ -700,11 +704,13 @@ detect(Player *p)
 
 	// draws the village welcome message if the player enters the village bounds
 	for (auto &v : village) {
-		if (p->loc.x > v.start.x && p->loc.x < v.end.x && !v.in) {
-			ui::passiveImportantText(5000, "Welcome to %s", v.name.c_str());
-			v.in = true;
-		} else {
-			v.in = false;
+		if (p->loc.x > v.start.x && p->loc.x < v.end.x) {
+            if (!v.in) {
+			    ui::passiveImportantText(5000, "Welcome to %s", v.name.c_str());
+			    v.in = true;
+		    }
+        } else {
+            v.in = false;
         }
 	}
 }
@@ -1042,12 +1048,12 @@ goWorldLeft(Player *p)
 	World *tmp;
 
     // check if player is at world edge
-	if (!toLeft.empty() && p->loc.x < worldStart + HLINE * 15.0f) {
+	if (!toLeft.empty() && p->loc.x < worldStart + HLINES(15)) {
         // load world (`toLeft` conditional confirms existance)
 	    tmp = loadWorldFromPtr(currentWorldToLeft);
 
         // adjust player location
-		p->loc.x = tmp->worldStart + HLINE * 20;
+		p->loc.x = tmp->worldStart + HLINES(20);
 		p->loc.y = tmp->worldData[tmp->lineCount - 1].groundHeight;
 
 		return tmp;
@@ -1064,10 +1070,10 @@ goWorldRight(Player *p)
 {
 	World *tmp;
 
-	if (!toRight.empty() && p->loc.x + p->width > -worldStart - HLINE * 15) {
+	if (!toRight.empty() && p->loc.x + p->width > -worldStart - HLINES(15)) {
 		tmp = loadWorldFromPtr(currentWorldToRight);
 
-		p->loc.x = tmp->worldStart - HLINE * -15.0f;
+		p->loc.x = tmp->worldStart - HLINES(-15.0);
 		p->loc.y = GROUND_HEIGHT_MINIMUM;
 
 		return tmp;
@@ -1083,7 +1089,7 @@ bool World::
 goWorldLeft(NPC *e)
 {
 	// check if entity is at world edge
-	if(!toLeft.empty() && e->loc.x < worldStart + HLINE * 15.0f) {
+	if(!toLeft.empty() && e->loc.x < worldStart + HLINES(15)) {
         currentWorldToLeft->addNPC(e->loc.x,e->loc.y);
         e->die();
 
@@ -1361,22 +1367,22 @@ singleDetect(Entity *e)
     }
 
     if (e->vel.y > -2)
-        e->vel.y -= GRAVITY_CONSTANT * gtime::getDeltaTime();
+        e->vel.y -= GRAVITY_CONSTANT * game::time::getDeltaTime();
 
     if (e->ground) {
         e->loc.y = ceil(e->loc.y);
         e->vel.y = 0;
     }
 
-    start = worldStart + fstart[floornum] * HLINE;
-    end = start + floor[floornum].size() * HLINE;
+    start = worldStart + HLINES(fstart[floornum]);
+    end = start + HLINES(floor[floornum].size());
 
     if (e->loc.x < start) {
         e->vel.x = 0;
-        e->loc.x = start + HLINE / 2;
-    } else if (e->loc.x + e->width + HLINE > end) {
+        e->loc.x = start + game::HLINE / 2;
+    } else if (e->loc.x + e->width + game::HLINE > end) {
         e->vel.x = 0;
-        e->loc.x = end - e->width - HLINE;
+        e->loc.x = end - e->width - game::HLINE;
     }
 
 }
@@ -1386,6 +1392,10 @@ draw(Player *p)
 {
 	unsigned int i,f;
 	int x;
+
+    auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+    auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+    auto HLINE = game::HLINE;
 
     // draw lights
     for (auto &l : light) {
@@ -1459,7 +1469,7 @@ draw(Player *p)
         for (f = 0; f < floor.size(); f++) {
             i = 0;
     		for (h : floor[f]) {
-    			x = worldStart + fstart[f] * HLINE + (i * HLINE);
+    			x = worldStart + fstart[f] * HLINE + HLINES(i);
     			glVertex2i(x        , h            );
     			glVertex2i(x + HLINE, h            );
     			glVertex2i(x + HLINE, h - INDOOR_FLOOR_THICKNESS);
@@ -1515,7 +1525,7 @@ World *Arena::exitArena(Player *p) {
 	World *tmp;
 	if (!mmob->isAlive() &&
         p->loc.x + p->width / 2 > mob[0]->loc.x &&
-	    p->loc.x + p->width / 2 < mob[0]->loc.x + HLINE * 12) {
+	    p->loc.x + p->width / 2 < mob[0]->loc.x + HLINES(12)) {
 	    tmp = battleNest.front();
 		battleNest.erase(battleNest.begin());
 
@@ -1530,9 +1540,9 @@ World *Arena::exitArena(Player *p) {
 		mmob->die();
 
 		return tmp;
-	}else{
-		return this;
 	}
+
+    return this;
 }
 
 std::string getWorldWeatherStr(WorldWeather ww)
@@ -1690,21 +1700,7 @@ loadWorldFromXMLNoSave(std::string path) {
             }
 		}
 
-        /**
-         * MOBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-         * BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-         * BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-
-         else if (name == "trigger") {
-            tmp->addMob(MS_TRIGGER, wxml->FloatAttribute("x"), 0, commonTriggerFunc);
-            tmp->getLastMob()->heyid = wxml->Attribute("id");
-        } else if (name == "page") {
-            tmp->addMob(MS_PAGE, wxml->FloatAttribute("x"), 0, commonPageFunc);
-            tmp->getLastMob()->heyid = wxml->Attribute("id");
-        }
-
-         */
-
+        // mob creation
          else if (name == "rabbit") {
              tmp->addMob(new Rabbit(), vec2 {0, 0});
              tmp->getLastMob()->createFromXML(wxml);
@@ -1721,36 +1717,6 @@ loadWorldFromXMLNoSave(std::string path) {
              tmp->addMob(new Page(), vec2 {0, 0});
              tmp->getLastMob()->createFromXML(wxml);
          }
-
-
-
-
-        /*else if (name == "mob") {
-
-
-
-            // type info
-            if (wxml->QueryUnsignedAttribute("type", &flooor) != XML_NO_ERROR)
-                UserError("XML Error: Invalid type value in <mob> in " + currentXML + "!");
-
-            // spawn at coordinate if desired
-			if (wxml->QueryFloatAttribute("x", &spawnx) == XML_NO_ERROR)
-				tmp->addMob(flooor, spawnx, wxml->FloatAttribute("y"));
-			else
-				tmp->addMob(flooor, 0, 100);
-
-            // aggressive tag
-			if (wxml->QueryBoolAttribute("aggressive", &dialog) == XML_NO_ERROR)
-				tmp->getLastMob()->aggressive = dialog;
-
-            // indoor spawning floor selection
-            if (Indoor && wxml->QueryUnsignedAttribute("floor", &flooor) == XML_NO_ERROR)
-                Indoorp(tmp)->moveToFloor(tmp->npc.back(), flooor);
-
-            // custom health value
-            if (wxml->QueryFloatAttribute("health", &spawnx) == XML_NO_ERROR)
-                tmp->getLastMob()->health = tmp->getLastMob()->maxHealth = spawnx;
-		}*/
 
         // npc creation
         else if (name == "npc") {
@@ -1796,7 +1762,7 @@ loadWorldFromXMLNoSave(std::string path) {
 		} else if (name == "hill") {
 			tmp->addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
 		} else if (name == "time") {
-            gtime::setTickCount(std::stoi(wxml->GetText()));
+            game::time::setTickCount(std::stoi(wxml->GetText()));
         } else if (Indoor && name == "floor") {
             if (wxml->QueryFloatAttribute("start",&spawnx) == XML_NO_ERROR)
                 Indoorp(tmp)->addFloor(wxml->UnsignedAttribute("width"), spawnx);
