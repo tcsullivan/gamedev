@@ -17,17 +17,6 @@
 using namespace tinyxml2;
 
 /* ----------------------------------------------------------------------------
-** Macros section
-** --------------------------------------------------------------------------*/
-
-// defines grass height in HLINEs
-#define GRASS_HEIGHT 4
-
-// indoor world constants
-#define INDOOR_FLOOR_THICKNESS      50
-#define INDOOR_FLOOR_HEIGHTT        400
-
-/* ----------------------------------------------------------------------------
 ** Variables section
 ** --------------------------------------------------------------------------*/
 
@@ -38,7 +27,6 @@ extern World       *currentWorldToLeft;		// main.cpp
 extern World       *currentWorldToRight;	// main.cpp
 extern bool         inBattle;               // ui.cpp?
 extern std::string  xmlFolder;
-
 
 // externally referenced in main.cpp
 const unsigned int DAY_CYCLE = 12000;
@@ -54,6 +42,13 @@ static const float GROUND_HEIGHT_MINIMUM =  60.0f;
 static const float GROUND_HEIGHT_MAXIMUM = 110.0f;
 static const float GROUND_HILLINESS      =  10.0f;
 
+// defines grass height in HLINEs
+static const unsigned int GRASS_HEIGHT = 4;
+
+// indoor world constants
+static const unsigned int INDOOR_FLOOR_THICKNESS = 50;
+static const unsigned int INDOOR_FLOOR_HEIGHTT = 400;
+
 // the path of the currently loaded XML file, externally referenced in places
 std::string currentXML;
 
@@ -61,14 +56,15 @@ std::string currentXML;
 WorldWeather weather = WorldWeather::Sunny;
 
 // keeps track of pathnames of XML file'd worlds the player has left to enter structures
-std::vector<std::string> inside;
+static std::vector<std::string> inside;
 
 // keeps track of information of worlds the player has left to enter arenas
 static std::vector<World *> battleNest;
 static std::vector<vec2>    battleNestLoc;
 
 // pathnames of images for world themes
-static const std::string bgPaths[][9] = {
+static const unsigned int BG_PATHS_ENTRY_SIZE = 9;
+static const std::string bgPaths[][BG_PATHS_ENTRY_SIZE] = {
     {"bg.png",					// Daytime background
      "bgn.png",					// Nighttime background
      "bgFarMountain.png",		// Furthest layer
@@ -188,13 +184,12 @@ deleteEntities(void)
  * object for usage.
  */
 void World::
-generate(unsigned int width)
+generate(int width)
 {
-    // see below for description/usage
     float geninc = 0;
 
     // check for valid width
-    if ((int)width <= 0)
+    if (width <= 0)
         UserError("Invalid world dimensions");
 
     // allocate space for world
@@ -207,30 +202,30 @@ generate(unsigned int width)
 
     // give every GROUND_HILLINESSth entry a groundHeight value
     for (; wditer < std::end(worldData); wditer += GROUND_HILLINESS)
-        (*(wditer - GROUND_HILLINESS)).groundHeight = (*wditer).groundHeight + (randGet() % 8 - 4);
+        (*(wditer - GROUND_HILLINESS)).groundHeight = (*wditer).groundHeight + (getRand() % 8 - 4);
 
     // create slopes from the points that were just defined, populate the rest of the WorldData structure
     for (wditer = std::begin(worldData) + 1; wditer < std::end(worldData); wditer++){
         auto w = &*(wditer);
 
-        if (w->groundHeight)
-            geninc = ((w + (int)GROUND_HILLINESS)->groundHeight - w->groundHeight) / GROUND_HILLINESS;
+        if (w->groundHeight != 0)
+            geninc = ((w + static_cast<int>(GROUND_HILLINESS))->groundHeight - w->groundHeight) / GROUND_HILLINESS;
 
         w->groundHeight   = fmin(fmax((w - 1)->groundHeight + geninc, GROUND_HEIGHT_MINIMUM), GROUND_HEIGHT_MAXIMUM);
-        w->groundColor    = randGet() % 32 / 8;
+        w->groundColor    = getRand() % 32 / 8;
         w->grassUnpressed = true;
-        w->grassHeight[0] = (randGet() % 16) / 3 + 2;
-        w->grassHeight[1] = (randGet() % 16) / 3 + 2;
+        w->grassHeight[0] = (getRand() % 16) / 3 + 2;
+        w->grassHeight[1] = (getRand() % 16) / 3 + 2;
     }
 
     // define x-coordinate of world's leftmost 'line'
-    worldStart = (width - GROUND_HILLINESS) * HLINE / 2 * -1;
+    worldStart = (width - GROUND_HILLINESS) * game::HLINE / 2 * -1;
 
     // create empty star array, should be filled here as well...
 	star = std::vector<vec2> (100, vec2 { 0, 400 });
 	for (auto &s : star) {
 		s.x = (getRand() % (-worldStart * 2)) + worldStart;
-		s.y = (getRand() % SCREEN_HEIGHT) + 100.0f;
+		s.y = (getRand() % game::SCREEN_HEIGHT) + 100;
 	}
 }
 
@@ -242,12 +237,16 @@ generate(unsigned int width)
 void World::
 draw(Player *p)
 {
+    auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+    auto HLINE = game::HLINE;
+
     const ivec2 backgroundOffset = ivec2 {
-        (int)(SCREEN_WIDTH / 2), (int)(SCREEN_HEIGHT / 2)
+        static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2
     };
 
-    // iterators
-    int i, iStart, iEnd;
+    // iterators ranges
+    int iStart, iEnd;
 
     // shade value for draws -- may be unnecessary
 	int shadeBackground = -worldShade;
@@ -262,10 +261,10 @@ draw(Player *p)
     int alpha;
 
 	// shade value for GLSL
-	float shadeAmbient = fmax(0, -worldShade / 50.0f + 0.5f); // 0 to 1.5f
+	float shadeAmbient = std::max(0.0f, static_cast<float>(-worldShade) / 50 + 0.5f); // 0 to 1.5f
 
 	if (shadeAmbient > 0.9f)
-		shadeAmbient = 1.0f;
+		shadeAmbient = 1;
 
 	// draw background images.
 	glEnable(GL_TEXTURE_2D);
@@ -273,8 +272,12 @@ draw(Player *p)
 	// the sunny wallpaper is faded with the night depending on tickCount
 	bgTex->bind(0);
     switch (weather) {
-    case WorldWeather::Snowy : alpha = 150; break;
-    case WorldWeather::Rain  : alpha = 0;   break;
+    case WorldWeather::Snowy:
+        alpha = 150;
+        break;
+    case WorldWeather::Rain:
+        alpha = 0;
+        break;
     default:
         alpha = 255 - worldShade * 4;
         break;
@@ -315,7 +318,7 @@ draw(Player *p)
 	safeSetColorA(150 + shadeBackground * 2, 150 + shadeBackground * 2, 150 + shadeBackground * 2, 255);
 	glBegin(GL_QUADS); {
         auto xcoord = width / 2 * -1 + offset.x * 0.85f;
-		for (i = 0; i <= (int)(worldData.size() * HLINE / 1920); i++) {
+		for (unsigned int i = 0; i <= worldData.size() * HLINE / 1920; i++) {
 			glTexCoord2i(0, 1); glVertex2i(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM);
             glTexCoord2i(1, 1); glVertex2i(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM);
 			glTexCoord2i(1, 0); glVertex2i(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + 1080);
@@ -323,7 +326,7 @@ draw(Player *p)
 		}
 	} glEnd();
 
-	for (i = 0; i < 4; i++) {
+	for (unsigned int i = 0; i < 4; i++) {
 		bgTex->bindNext();
 		safeSetColorA(bgDraw[i][0] + shadeBackground * 2,
                       bgDraw[i][0] + shadeBackground * 2,
@@ -353,17 +356,17 @@ draw(Player *p)
     glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
     glUseProgram(shaderProgram);
 
-    std::for_each(std::begin(particles), std::end(particles), [](Particles &p) {
+    for (auto &p : particles) {
         if (p.behind)
             p.draw();
-    });
+    }
 
     glUseProgram(0);
 
 	for (auto &b : build) {
         if (b->bsubtype == STALL_MARKET) {
             for (auto &n : npc) {
-                if (n->type == MERCHT && ((Merchant *)n)->inside == b) {
+                if (n->type == MERCHT && static_cast<Merchant *>(n)->inside == b) {
                     n->draw();
                     break;
                 }
@@ -374,15 +377,15 @@ draw(Player *p)
 
     for (auto &l : light) {
         if (l.belongsTo) {
-            l.loc.x = l.following->loc.x + SCREEN_WIDTH/2;
+            l.loc.x = l.following->loc.x + SCREEN_WIDTH / 2;
             l.loc.y = l.following->loc.y;
         }
         if (l.flame) {
-            l.fireFlicker = .9+((rand()%2)/10.0f);
-            l.fireLoc.x = l.loc.x + (rand()%2-1)*3;
-            l.fireLoc.y = l.loc.y + (rand()%2-1)*3;
+            l.fireFlicker = 0.9f + ((rand()% 2 ) / 10.0f);
+            l.fireLoc.x = l.loc.x + (rand() % 2 - 1) * 3;
+            l.fireLoc.y = l.loc.y + (rand() % 2 - 1) * 3;
         } else {
-            l.fireFlicker = 1.0f;
+            l.fireFlicker = 1;
         }
     }
 
@@ -395,7 +398,7 @@ draw(Player *p)
 	auto pointArray = pointArrayBuf.get();
     GLfloat flameArray[64];
 
-	for (uint i = 0; i < light.size(); i++) {
+	for (unsigned int i = 0; i < light.size(); i++) {
         if (light[i].flame) {
     		pointArray[2 * i    ] = light[i].fireLoc.x - offset.x;
     		pointArray[2 * i + 1] = light[i].fireLoc.y;
@@ -405,7 +408,7 @@ draw(Player *p)
         }
 	}
 
-    for (uint i = 0; i < light.size(); i++)
+    for (unsigned int i = 0; i < light.size(); i++)
         flameArray[i] = light[i].fireFlicker;
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -415,7 +418,7 @@ draw(Player *p)
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glUniform1f(glGetUniformLocation(shaderProgram, "amb"), shadeAmbient);
 
-	if (light.size() == 0)
+	if (light.empty())
 		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 0);
 	else {
 		glUniform1i (glGetUniformLocation(shaderProgram, "numLight"), light.size());
@@ -428,14 +431,14 @@ draw(Player *p)
     pOffset = (offset.x + p->width / 2 - worldStart) / HLINE;
 
     // only draw world within player vision
-    iStart = (int)fmax(pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS, 0);
-    iEnd   = (int)fmin(pOffset + (SCREEN_WIDTH / 2 / HLINE) + GROUND_HILLINESS + HLINE, worldData.size());
-    iEnd = (int)fmax(iEnd, GROUND_HILLINESS);
+    iStart = static_cast<int>(fmax(pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS, 0));
+    iEnd   = static_cast<int>(fmin(pOffset + (SCREEN_WIDTH / 2 / HLINE) + GROUND_HILLINESS + HLINE, worldData.size()));
+    iEnd = static_cast<int>(fmax(iEnd, GROUND_HILLINESS));
 
     // draw the dirt
 	glBegin(GL_QUADS);
         //std::for_each(std::begin(worldData) + iStart, std::begin(worldData) + iEnd, [&](WorldData wd) {
-        for (i = iStart; i < iEnd; i++) {
+        for (int i = iStart; i < iEnd; i++) {
             if (worldData[i].groundHeight <= 0) {
                 worldData[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
                 glColor4ub(0, 0, 0, 255);
@@ -465,12 +468,12 @@ draw(Player *p)
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
     safeSetColorA(255, 255, 255, 255);
 
-	for (i = iStart; i < iEnd; i++) {
+	for (int i = iStart; i < iEnd; i++) {
         auto wd = worldData[i];
         auto gh = wd.grassHeight;
 
 		// flatten the grass if the player is standing on it.
-		if (!worldData[i].grassUnpressed) {
+		if (!wd.grassUnpressed) {
 			gh[0] /= 4;
 			gh[1] /= 4;
 		}
@@ -520,11 +523,11 @@ draw(Player *p)
 
 	// flatten grass under the player if the player is on the ground
 	if (p->ground) {
-		for (i = 0; i < (int)worldData.size(); i++)
-			worldData[i].grassUnpressed = !(i < pOffset + 6 && i > pOffset - 6);
+		for (unsigned int i = 0; i < worldData.size(); i++)
+			worldData[i].grassUnpressed = !(i < static_cast<unsigned int>(pOffset + 6) && i > static_cast<unsigned int>(pOffset - 6));
 	} else {
-		for (i = 0; i < (int)worldData.size(); i++)
-			worldData[i].grassUnpressed = true;
+		for (auto &wd : worldData)
+			wd.grassUnpressed = true;
 	}
 
     // draw the player
@@ -543,7 +546,7 @@ singleDetect(Entity *e)
 	unsigned int i;
 	int l;
 
-    auto deltaTime = gtime::getDeltaTime();
+    auto deltaTime = game::time::getDeltaTime();
 
 	// kill dead entities
 	if (!e->isAlive()) {
@@ -576,14 +579,14 @@ singleDetect(Entity *e)
 					break;
 				}
 
-				std::cout << "Killed a " << killed << "..." << std::endl;
+				std::cout << "Killed a " << killed << "...\n";
 				entity.erase(entity.begin() + i);
 				return;
 			}
 		}
 
         // exit on player death
-		std::cout << "RIP " << e->name << "." << std::endl;
+		std::cout << "RIP " << e->name << ".\n";
 		exit(0);
 	}
 
@@ -593,17 +596,15 @@ singleDetect(Entity *e)
         // forced movement gravity (sword hits)
         e->handleHits();
 
-		if (e->subtype == MS_TRIGGER)
-			return;
-
 		// calculate the line that this entity is currently standing on
-		l = (int)fmax((e->loc.x + e->width / 2 - worldStart) / HLINE, 0);
-		l = (int)fmin(l, lineCount - 1);
+		l = static_cast<int>(fmax((e->loc.x + e->width / 2 - worldStart) / game::HLINE, 0));
+		l = static_cast<int>(fmin(l, lineCount - 1));
 
 		// if the entity is under the world/line, pop it back to the surface
 		if (e->loc.y < worldData[l].groundHeight) {
             int dir = e->vel.x < 0 ? -1 : 1;
-            if (l + (dir * 2) < (int)worldData.size() && worldData[l + (dir * 2)].groundHeight - 30 > worldData[l + dir].groundHeight) {
+            if (l + (dir * 2) < static_cast<int>(worldData.size()) &&
+                worldData[l + (dir * 2)].groundHeight - 30 > worldData[l + dir].groundHeight) {
                 e->loc.x -= (PLAYER_SPEED_CONSTANT + 2.7f) * e->speed * 2 * dir;
                 e->vel.x = 0;
             } else {
@@ -629,10 +630,10 @@ singleDetect(Entity *e)
 		// insure that the entity doesn't fall off either edge of the world.
 		if (e->loc.x < worldStart) {
 			e->vel.x = 0;
-			e->loc.x = worldStart + HLINE / 2;
-		} else if (e->loc.x + e->width + HLINE > worldStart + worldStart * -2) {
+			e->loc.x = worldStart + game::HLINE / 2;
+		} else if (e->loc.x + e->width + game::HLINE > worldStart + worldStart * -2) {
 			e->vel.x = 0;
-			e->loc.x = worldStart + worldStart * -2 - e->width - HLINE;
+			e->loc.x = worldStart + worldStart * -2 - e->width - game::HLINE;
 		}
 	}
 }
@@ -659,7 +660,7 @@ detect(Player *p)
     // handle particles
 	for (auto &part : particles) {
 		// get particle's current world line
-		l = (int)fmax((part.loc.x + part.width / 2 - worldStart) / HLINE, 0);
+		l = (int)fmax((part.loc.x + part.width / 2 - worldStart) / game::HLINE, 0);
         l = (int)fmin(lineCount - 1, l);
 		part.update(GRAVITY_CONSTANT, worldData[l].groundHeight);
 	}
@@ -669,10 +670,10 @@ detect(Player *p)
 		switch (b->bsubtype) {
 		case FOUNTAIN:
 			for (unsigned int r = (randGet() % 25) + 11; r--;) {
-				addParticle(randGet() % HLINE * 3 + b->loc.x + b->width / 2,	// x
+				addParticle(randGet() % HLINES(3) + b->loc.x + b->width / 2,	// x
 							b->loc.y + b->height,								// y
-							HLINE * 1.25,										// width
-							HLINE * 1.25,										// height
+							HLINES(1.25),										// width
+							HLINES(1.25),										// height
 							randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
 							(4 + randGet() % 6) * .05,							// vel.y
 							{ 0, 0, 255 },										// RGB color
@@ -684,9 +685,9 @@ detect(Player *p)
 		case FIRE_PIT:
 			for(unsigned int r = (randGet() % 20) + 11; r--;) {
 				addParticle(randGet() % (int)(b->width / 2) + b->loc.x + b->width / 4,	// x
-							b->loc.y + 3 * HLINE,										// y
-							HLINE,														// width
-							HLINE,														// height
+							b->loc.y + HLINES(3),										// y
+							game::HLINE,       											// width
+							game::HLINE,												// height
 							randGet() % 3 * .01 * (randGet() % 2 == 0 ? -1 : 1),		// vel.x
 							(4 + randGet() % 6) * .005,									// vel.y
 							{ 255, 0, 0 },												// RGB color
@@ -703,11 +704,13 @@ detect(Player *p)
 
 	// draws the village welcome message if the player enters the village bounds
 	for (auto &v : village) {
-		if (p->loc.x > v.start.x && p->loc.x < v.end.x && !v.in) {
-			ui::passiveImportantText(5000, "Welcome to %s", v.name.c_str());
-			v.in = true;
-		} else {
-			v.in = false;
+		if (p->loc.x > v.start.x && p->loc.x < v.end.x) {
+            if (!v.in) {
+			    ui::passiveImportantText(5000, "Welcome to %s", v.name.c_str());
+			    v.in = true;
+		    }
+        } else {
+            v.in = false;
         }
 	}
 }
@@ -1045,12 +1048,12 @@ goWorldLeft(Player *p)
 	World *tmp;
 
     // check if player is at world edge
-	if (!toLeft.empty() && p->loc.x < worldStart + HLINE * 15.0f) {
+	if (!toLeft.empty() && p->loc.x < worldStart + HLINES(15)) {
         // load world (`toLeft` conditional confirms existance)
 	    tmp = loadWorldFromPtr(currentWorldToLeft);
 
         // adjust player location
-		p->loc.x = tmp->worldStart + HLINE * 20;
+		p->loc.x = tmp->worldStart + HLINES(20);
 		p->loc.y = tmp->worldData[tmp->lineCount - 1].groundHeight;
 
 		return tmp;
@@ -1067,10 +1070,10 @@ goWorldRight(Player *p)
 {
 	World *tmp;
 
-	if (!toRight.empty() && p->loc.x + p->width > -worldStart - HLINE * 15) {
+	if (!toRight.empty() && p->loc.x + p->width > -worldStart - HLINES(15)) {
 		tmp = loadWorldFromPtr(currentWorldToRight);
 
-		p->loc.x = tmp->worldStart - HLINE * -15.0f;
+		p->loc.x = tmp->worldStart - HLINES(-15.0);
 		p->loc.y = GROUND_HEIGHT_MINIMUM;
 
 		return tmp;
@@ -1086,7 +1089,7 @@ bool World::
 goWorldLeft(NPC *e)
 {
 	// check if entity is at world edge
-	if(!toLeft.empty() && e->loc.x < worldStart + HLINE * 15.0f) {
+	if(!toLeft.empty() && e->loc.x < worldStart + HLINES(15)) {
         currentWorldToLeft->addNPC(e->loc.x,e->loc.y);
         e->die();
 
@@ -1102,7 +1105,7 @@ goWorldLeft(NPC *e)
 /**
  * Attempts to enter a building that the player is standing in front of.
  */
-World *World::
+std::pair<World *, float> World::
 goInsideStructure(Player *p)
 {
 	World *tmp;
@@ -1114,52 +1117,42 @@ goInsideStructure(Player *p)
         auto b = *d;
 
         if ((d == std::end(build)) || b->inside.empty())
-            return this;
+            return std::make_pair(this, 0);
 
         // +size cuts folder prefix
 		inside.push_back(&currentXML[xmlFolder.size()]);
 		tmp = loadWorldFromXML(b->inside);
 
-        // make the fade, as we let it fade back the worlds should be switched
-		ui::toggleBlackFast();
-		ui::waitForCover();
-		ui::toggleBlackFast();
-        glClearColor(0, 0, 0, 1);
-
-		return tmp;
+		return std::make_pair(tmp, 0);
 	} else {
         std::string current = &currentXML[xmlFolder.size()];
 		tmp = loadWorldFromXML(inside.back());
         inside.clear();
 
-        Structures *b;
-        for (auto &s : build) {
+        Structures *b = nullptr;
+        for (auto &s : tmp->build) {
             if (s->inside == current) {
                 b = s;
                 break;
             }
         }
-        //auto b = *std::find_if(std::begin(build), std::end(build), [&](const Structures *s) {
-        //    return (s->inside == current);
-        //});
 
-		ui::toggleBlackFast();
-		ui::waitForCover();
-		p->loc.x = b->loc.x + (b->width / 2);
-		ui::toggleBlackFast();
-        glClearColor(1, 1, 1, 1);
+        if (b == nullptr)
+            return std::make_pair(this, 0);
 
-		return tmp;
+        return std::make_pair(tmp, b->loc.x + (b->width / 2));
 	}
 
-	return this;
+	return std::make_pair(this, 0);
 }
 
-void World::addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::string inside){
+void World::
+addStructure(BUILD_SUB sub, float x,float y, std::string tex, std::string inside)
+{
 	build.push_back(new Structures());
 	build.back()->inWorld = this;
 	build.back()->textureLoc = tex;
-	build.back()->spawn(sub,x,y);
+	build.back()->spawn(sub, x, y);
 	build.back()->inside = inside;
 	entity.push_back(build.back());
 }
@@ -1171,31 +1164,47 @@ addVillage(std::string name, World *world)
     return &village.back();
 }
 
-void World::addMob(int t,float x,float y){
-	mob.push_back(new Mob(t));
-	mob.back()->spawn(x,y);
+/*void World::
+addMob(int t, float x, float y)
+{
+	mob.push_back(new new(auto *&t));
+	mob.back()->spawn(x, y);
+
+	entity.push_back(mob.back());
+}*/
+
+void World::addMob(Mob *m, vec2 coord)
+{
+    mob.push_back(m);
+    mob.back()->spawn(coord.x, coord.y);
 
 	entity.push_back(mob.back());
 }
 
-void World::addMob(int t,float x,float y,void (*hey)(Mob *)){
+/*void World::
+addMob(int t, float x, float y, void (*hey)(Mob *))
+{
 	mob.push_back(new Mob(t));
-	mob.back()->spawn(x,y);
+	mob.back()->spawn(x, y);
 	mob.back()->hey = hey;
 
 	entity.push_back(mob.back());
-}
+}*/
 
-void World::addNPC(float x,float y){
+void World::
+addNPC(float x, float y)
+{
 	npc.push_back(new NPC());
-	npc.back()->spawn(x,y);
+	npc.back()->spawn(x, y);
 
 	entity.push_back(npc.back());
 }
 
-void World::addMerchant(float x, float y, bool housed){
+void World::
+addMerchant(float x, float y, bool housed)
+{
 	merchant.push_back(new Merchant());
-	merchant.back()->spawn(x,y);
+	merchant.back()->spawn(x, y);
 
     if (housed)
         merchant.back()->inside = build.back();
@@ -1204,7 +1213,9 @@ void World::addMerchant(float x, float y, bool housed){
 	entity.push_back(npc.back());
 }
 
-void World::addObject(std::string in, std::string p, float x, float y){
+void World::
+addObject(std::string in, std::string p, float x, float y)
+{
 	object.emplace_back(in, p);
 	object.back().spawn(x, y);
 
@@ -1343,8 +1354,6 @@ singleDetect(Entity *e)
 
     if (!e->isAlive())
         return;
-    if (e->type == MOBT && e->subtype == MS_TRIGGER)
-        return;
 
     for (; floornum < floor.size(); floornum++) {
         if (floor[floornum][0] + INDOOR_FLOOR_HEIGHTT - 100 > e->loc.y) {
@@ -1358,22 +1367,22 @@ singleDetect(Entity *e)
     }
 
     if (e->vel.y > -2)
-        e->vel.y -= GRAVITY_CONSTANT * gtime::getDeltaTime();
+        e->vel.y -= GRAVITY_CONSTANT * game::time::getDeltaTime();
 
     if (e->ground) {
         e->loc.y = ceil(e->loc.y);
         e->vel.y = 0;
     }
 
-    start = worldStart + fstart[floornum] * HLINE;
-    end = start + floor[floornum].size() * HLINE;
+    start = worldStart + HLINES(fstart[floornum]);
+    end = start + HLINES(floor[floornum].size());
 
     if (e->loc.x < start) {
         e->vel.x = 0;
-        e->loc.x = start + HLINE / 2;
-    } else if (e->loc.x + e->width + HLINE > end) {
+        e->loc.x = start + game::HLINE / 2;
+    } else if (e->loc.x + e->width + game::HLINE > end) {
         e->vel.x = 0;
-        e->loc.x = end - e->width - HLINE;
+        e->loc.x = end - e->width - game::HLINE;
     }
 
 }
@@ -1383,6 +1392,10 @@ draw(Player *p)
 {
 	unsigned int i,f;
 	int x;
+
+    auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+    auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+    auto HLINE = game::HLINE;
 
     // draw lights
     for (auto &l : light) {
@@ -1456,7 +1469,7 @@ draw(Player *p)
         for (f = 0; f < floor.size(); f++) {
             i = 0;
     		for (h : floor[f]) {
-    			x = worldStart + fstart[f] * HLINE + (i * HLINE);
+    			x = worldStart + fstart[f] * HLINE + HLINES(i);
     			glVertex2i(x        , h            );
     			glVertex2i(x + HLINE, h            );
     			glVertex2i(x + HLINE, h - INDOOR_FLOOR_THICKNESS);
@@ -1491,7 +1504,7 @@ draw(Player *p)
 
 Arena::Arena(World *leave,Player *p,Mob *m) {
 	generate(800);
-	addMob(MS_DOOR,100,100);
+	addMob(new Door(), vec2 {100, 100});
 
 	inBattle = true;
 	mmob = m;
@@ -1512,7 +1525,7 @@ World *Arena::exitArena(Player *p) {
 	World *tmp;
 	if (!mmob->isAlive() &&
         p->loc.x + p->width / 2 > mob[0]->loc.x &&
-	    p->loc.x + p->width / 2 < mob[0]->loc.x + HLINE * 12) {
+	    p->loc.x + p->width / 2 < mob[0]->loc.x + HLINES(12)) {
 	    tmp = battleNest.front();
 		battleNest.erase(battleNest.begin());
 
@@ -1527,9 +1540,9 @@ World *Arena::exitArena(Player *p) {
 		mmob->die();
 
 		return tmp;
-	}else{
-		return this;
 	}
+
+    return this;
 }
 
 std::string getWorldWeatherStr(WorldWeather ww)
@@ -1578,7 +1591,6 @@ World *loadWorldFromPtr(World *ptr)
 /**
  * Loads a world from the given XML file.
  */
-
 World *
 loadWorldFromXMLNoSave(std::string path) {
 	XMLDocument xml;
@@ -1689,29 +1701,22 @@ loadWorldFromXMLNoSave(std::string path) {
 		}
 
         // mob creation
-        else if (name == "mob") {
-            // type info
-            if (wxml->QueryUnsignedAttribute("type", &flooor) != XML_NO_ERROR)
-                UserError("XML Error: Invalid type value in <mob> in " + currentXML + "!");
-
-            // spawn at coordinate if desired
-			if (wxml->QueryFloatAttribute("x", &spawnx) == XML_NO_ERROR)
-				tmp->addMob(flooor, spawnx, wxml->FloatAttribute("y"));
-			else
-				tmp->addMob(flooor, 0, 100);
-
-            // aggressive tag
-			if (wxml->QueryBoolAttribute("aggressive", &dialog) == XML_NO_ERROR)
-				tmp->getLastMob()->aggressive = dialog;
-
-            // indoor spawning floor selection
-            if (Indoor && wxml->QueryUnsignedAttribute("floor", &flooor) == XML_NO_ERROR)
-                Indoorp(tmp)->moveToFloor(tmp->npc.back(), flooor);
-
-            // custom health value
-            if (wxml->QueryFloatAttribute("health", &spawnx) == XML_NO_ERROR)
-                tmp->getLastMob()->health = tmp->getLastMob()->maxHealth = spawnx;
-		}
+         else if (name == "rabbit") {
+             tmp->addMob(new Rabbit(), vec2 {0, 0});
+             tmp->getLastMob()->createFromXML(wxml);
+         } else if (name == "bird") {
+             tmp->addMob(new Bird(), vec2 {0, 0});
+             tmp->getLastMob()->createFromXML(wxml);
+         } else if (name == "trigger") {
+             tmp->addMob(new Trigger(), vec2 {0, 0});
+             tmp->getLastMob()->createFromXML(wxml);
+         } else if (name == "door") {
+             tmp->addMob(new Door(), vec2 {0, 0});
+             tmp->getLastMob()->createFromXML(wxml);
+         } else if (name == "page") {
+             tmp->addMob(new Page(), vec2 {0, 0});
+             tmp->getLastMob()->createFromXML(wxml);
+         }
 
         // npc creation
         else if (name == "npc") {
@@ -1754,16 +1759,10 @@ loadWorldFromXMLNoSave(std::string path) {
 							   wxml->StrAttribute("texture"),
 							   wxml->StrAttribute("inside")
                );
-		} else if (name == "trigger") {
-			tmp->addMob(MS_TRIGGER, wxml->FloatAttribute("x"), 0, commonTriggerFunc);
-			tmp->getLastMob()->heyid = wxml->Attribute("id");
-		} else if (name == "page") {
-			tmp->addMob(MS_PAGE, wxml->FloatAttribute("x"), 0, commonPageFunc);
-			tmp->getLastMob()->heyid = wxml->Attribute("id");
 		} else if (name == "hill") {
 			tmp->addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
 		} else if (name == "time") {
-            gtime::setTickCount(std::stoi(wxml->GetText()));
+            game::time::setTickCount(std::stoi(wxml->GetText()));
         } else if (Indoor && name == "floor") {
             if (wxml->QueryFloatAttribute("start",&spawnx) == XML_NO_ERROR)
                 Indoorp(tmp)->addFloor(wxml->UnsignedAttribute("width"), spawnx);

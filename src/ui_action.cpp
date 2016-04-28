@@ -1,4 +1,5 @@
 #include <ui_action.hpp>
+#include <world.hpp>
 
 #define ACTION_PROLOUGE { actioning = true; }
 #define ACTION_EPILOUGE { actioning = false; actionHover = 0; }

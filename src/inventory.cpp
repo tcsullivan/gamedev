@@ -8,7 +8,6 @@ using namespace tinyxml2;
 
 extern Player *player;
 extern GLuint invUI;
-static float hangle = 0.0f;
 static vec2 itemLoc;
 static const unsigned char numSlot = 7;
 Mix_Chunk* swordSwing;
@@ -101,7 +100,7 @@ void items(void)
 
 int Inventory::addItem(std::string name, uint count)
 {
-	std::cout << "Adding: " << count << name << "s\'" << std::endl;
+	std::cout << "Adding: " << count << name << "\'s" << std::endl;
 	for (uint i = 0; i < ItemMap.size(); i++) {
 		if (strCaseCmp(ItemMap[i]->name, name)) {
 			for (auto &it : Items) {
@@ -229,7 +228,7 @@ Inventory::Inventory(unsigned int s) {
 
 	Items.resize(size);
 	for (auto &i : Items) {
-		i = make_pair(nullptr, 0);
+		i = std::make_pair(nullptr, 0);
 	}
 }
 
@@ -274,7 +273,9 @@ void Inventory::draw(void) {
 	//static vec2 mouseStart = {0,0};
 	C("End define");
 
-	auto deltaTime = gtime::getDeltaTime();
+	auto deltaTime = game::time::getDeltaTime();
+	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
 	for (auto &r : iray) {
 		r.start.x = player->loc.x + (player->width  / 2);
@@ -584,7 +585,7 @@ void itemDraw(Player *p, Item *d) {
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glTranslatef(itemLoc.x,itemLoc.y,0);
-	glRotatef(hangle, 0.0f, 0.0f, 1.0f);
+	glRotatef(d->rotation, 0.0f, 0.0f, 1.0f);
 	glTranslatef(-itemLoc.x,-itemLoc.y,0);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,d->tex->image[0]);

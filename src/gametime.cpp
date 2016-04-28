@@ -9,42 +9,44 @@ static unsigned int deltaTime = 1;
 static unsigned int currentTime = 0;
 static unsigned int prevTime, prevPrevTime;
 
-namespace gtime {
-    void setTickCount(unsigned int t) {
-        tickCount = t;
-    }
+namespace game {
+    namespace time {
+        void setTickCount(unsigned int t) {
+            tickCount = t;
+        }
 
-    unsigned int getTickCount(void) {
-        return tickCount;
-    }
+        unsigned int getTickCount(void) {
+            return tickCount;
+        }
 
-    unsigned int getDeltaTime(void) {
-        return deltaTime;
-    }
+        unsigned int getDeltaTime(void) {
+            return (deltaTime > 0) ? deltaTime : 1;
+        }
 
-    void tick(void) {
-        tickCount++;
-    }
+        void tick(void) {
+            tickCount++;
+        }
 
-    void tick(unsigned int ticks) {
-        tickCount += ticks;
-    }
+        void tick(unsigned int ticks) {
+            tickCount += ticks;
+        }
 
-    void mainLoopHandler(void) {
-    	if (!currentTime)
-    		currentTime = prevTime = millis();
+        void mainLoopHandler(void) {
+        	if (!currentTime)
+        		currentTime = prevTime = millis();
 
-    	currentTime = millis();
-    	deltaTime	= currentTime - prevTime;
-    	prevTime	= currentTime;
-    }
+        	currentTime = millis();
+        	deltaTime	= currentTime - prevTime;
+        	prevTime	= currentTime;
+        }
 
-    bool tickHasPassed(void) {
-        if (prevPrevTime + MSEC_PER_TICK <= currentTime) {
-    		prevPrevTime = currentTime;
-            return true;
-    	}
+        bool tickHasPassed(void) {
+            if (prevPrevTime + MSEC_PER_TICK <= currentTime) {
+        		prevPrevTime = currentTime;
+                return true;
+        	}
 
-        return false;
+            return false;
+        }
     }
 }

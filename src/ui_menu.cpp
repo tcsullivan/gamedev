@@ -11,7 +11,7 @@ void Menu::gotoParent(void)
 {
 	if (!parent) {
 		currentMenu = nullptr;
-		config::update();
+		game::config::update();
 	} else {
 		currentMenu = parent;
 	}
@@ -90,9 +90,9 @@ namespace ui {
 			pauseMenu.items.push_back(ui::menu::createButton({-256/2,-300},{256,75},{0.0f,0.0f,0.0f}, "Segfault", segFault));
 			pauseMenu.child = &optionsMenu;
 
-			optionsMenu.items.push_back(ui::menu::createSlider({0-(float)SCREEN_WIDTH/4,0-(512/2)}, {50,512}, {0.0f, 0.0f, 0.0f}, 0, 100, "Master", &VOLUME_MASTER));
-			optionsMenu.items.push_back(ui::menu::createSlider({-200,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "Music", &VOLUME_MUSIC));
-			optionsMenu.items.push_back(ui::menu::createSlider({-200,000}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "SFX", &VOLUME_SFX));
+			optionsMenu.items.push_back(ui::menu::createSlider({0-static_cast<float>(game::SCREEN_WIDTH)/4,0-(512/2)}, {50,512}, {0.0f, 0.0f, 0.0f}, 0, 100, "Master", &game::config::VOLUME_MASTER));
+			optionsMenu.items.push_back(ui::menu::createSlider({-200,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "Music", &game::config::VOLUME_MUSIC));
+			optionsMenu.items.push_back(ui::menu::createSlider({-200,000}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "SFX", &game::config::VOLUME_SFX));
 			optionsMenu.parent = &pauseMenu;
 		}
 
@@ -101,10 +101,13 @@ namespace ui {
 		}
 
         void draw(void) {
+			auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+			auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+
             SDL_Event e;
 
             setFontSize(24);
-            config::update();
+            game::config::update();
 
             mouse.x = ui::premouse.x+offset.x-(SCREEN_WIDTH/2);
             mouse.y = (offset.y+SCREEN_HEIGHT/2)-ui::premouse.y;

@@ -18,8 +18,7 @@
 #include <thread>
 #include <mutex>
 #include <future>
-#include <math.h>
-#include <threadpool.hpp>
+#include <cmath>
 #include <algorithm>
 
 #define GLEW_STATIC
@@ -103,6 +102,10 @@ struct _vec2 {
 		x = y = n;
 		return *this;
 	}
+	template<typename T>
+	const _vec2 operator+(const T &n) {
+		return _vec2 {x + n, y + n};
+	}
 };
 typedef struct _vec2 vec2;
 
@@ -149,19 +152,6 @@ typedef col Color;
 
 #define GAME_NAME		"Independent Study v0.7 alpha - NOW WITH lights and snow and stuff"
 
-/**
- * The desired width of the game window.
- */
-
-extern unsigned int SCREEN_WIDTH;
-
-/**
- * The desired height of the game window.
- */
-
-extern unsigned int SCREEN_HEIGHT;
-
-extern bool FULLSCREEN;
 extern bool uiLoop;
 extern std::mutex mtx;
 
@@ -175,13 +165,8 @@ extern std::mutex mtx;
  *
  */
 
-#define HLINES(n) (HLINE * n)
+#define HLINES(n) (game::HLINE * n)
 
-extern unsigned int HLINE;
-
-extern float VOLUME_MASTER;
-extern float VOLUME_MUSIC;
-extern float VOLUME_SFX;
 /**
  * A 'wrapper' for libc's srand(), as we hope to eventually have our own random number
  * generator.

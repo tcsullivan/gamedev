@@ -26,6 +26,9 @@ public:
 	// the array of textures for each frame of animation
 	Texturec *tex;
 
+	// how much the item is rotated in the hand
+	float rotation = 0.0f;
+
 	/**
 	 *	The function we use to call the child classes ability
 	 * 	Note: Since this function is abstract, we HAVE to create one for each

@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include <ui.hpp>
+#include <world.hpp>
 #include <gametime.hpp>
 
 extern std::istream *names;
@@ -97,21 +98,14 @@ void Entity::spawn(float x, float y)
 	ticksToUse = 0;
 	hitCooldown = 0;
 
-	if (!maxHealth)health = maxHealth = 1;
-
-	if (type==MOBT) {
-		if (Mobp(this)->subtype == MS_BIRD) {
-			Mobp(this)->init_y=loc.y;
-		}
-	}
+	if (!maxHealth)
+		health = maxHealth = 1;
 
 	name = new char[32];
 	if (type == MOBT)
 		name[0] = '\0';
 	else
 		getRandomName(this);
-
-	followee = NULL;
 }
 
 void Entity::takeHit(unsigned int _health, unsigned int cooldown)
@@ -160,8 +154,8 @@ void Entity::moveTo(float dest_x)
 }
 
 Player::Player(){ //sets all of the player specific traits on object creation
-	width = HLINE * 10;
-	height = HLINE * 16;
+	width = HLINES(10);
+	height = HLINES(16);
 
 	type = PLAYERT; //set type to player
 	subtype = 0;
@@ -188,8 +182,8 @@ Player::~Player() {
 }
 
 NPC::NPC() {	//sets all of the NPC specific traits on object creation
-	width = HLINE * 10;
-	height = HLINE * 16;
+	width = HLINES(10);
+	height = HLINES(16);
 
 	type	= NPCT; //sets type to npc
 	subtype = 0;
@@ -214,8 +208,8 @@ NPC::~NPC()
 }
 
 Merchant::Merchant() {	//sets all of the Merchant specific traits on object creation
-	width = HLINE * 10;
-	height = HLINE * 16;
+	width = HLINES(10);
+	height = HLINES(16);
 
 	type	= MERCHT; //sets type to merchant
 	subtype = 0;
@@ -266,50 +260,6 @@ Structures::~Structures() {
 		delete[] name;
 }
 
-Mob::Mob(int sub) {
-	type = MOBT;
-	aggressive = false;
-
-	maxHealth = health = 50;
-	canMove = true;
-
-	switch((subtype = sub)) {
-	case MS_RABBIT:
-		width  = HLINE * 10;
-		height = HLINE * 8;
-		tex = new Texturec(2, "assets/rabbit.png", "assets/rabbit1.png");
-		break;
-	case MS_BIRD:
-		width = HLINE * 8;
-		height = HLINE * 8;
-		tex = new Texturec(1, "assets/robin.png");
-		break;
-	case MS_TRIGGER:
-		width = HLINE * 20;
-		height = 2000;
-		tex = new Texturec(0);
-		break;
-	case MS_DOOR:
-		width = HLINE * 12;
-		height = HLINE * 20;
-		tex = new Texturec(1,"assets/door.png");
-		break;
-	case MS_PAGE:
-		width = HLINE * 6;
-		height = HLINE * 4;
-		tex = new Texturec(1,"assets/items/ITEM_PAGE.png");
-		break;
-	}
-
-	inv = new Inventory(NPC_INV_SIZE);
-}
-
-Mob::~Mob() {
-	delete inv;
-	delete tex;
-	delete[] name;
-}
-
 Object::Object() {
 	type = OBJECTT;
 	alive = true;
@@ -355,7 +305,7 @@ void Object::reloadTexture(void) {
 }
 
 bool Entity::isNear(Entity e) {
-	return pow(e.loc.x - loc.x, 2) + pow(e.loc.y - loc.y, 2) <= pow(40 * HLINE, 2);
+	return pow(e.loc.x - loc.x, 2) + pow(e.loc.y - loc.y, 2) <= pow(HLINES(40), 2);
 }
 
 void NPC::drawThingy(void) const
@@ -393,7 +343,7 @@ void Entity::draw(void)
 	switch(type) {
 	case PLAYERT:
 		static int texState = 0;
-		if (speed && !(loops % ((2.0f/speed) < 1 ? 1 : (int)((float)2.0f/(float)speed)))) {
+		if (speed && !(game::time::getTickCount() % ((2.0f/speed) < 1 ? 1 : (int)((float)2.0f/(float)speed)))) {
 			if (++texState==9)texState=1;
 			glActiveTexture(GL_TEXTURE0);
 			tex->bind(texState);
@@ -410,22 +360,8 @@ void Entity::draw(void)
 		}
 		break;
 	case MOBT:
-		switch(subtype) {
-			case MS_RABBIT:
-				glActiveTexture(GL_TEXTURE0 + 0);
-				tex->bind(!ground);
-				break;
-			case MS_TRIGGER:
-				goto NOPE;
-				break;
-			case MS_BIRD:
-			case MS_DOOR:
-			case MS_PAGE:
-			default:
-				glActiveTexture(GL_TEXTURE0);
-				tex->bind(0);
-				break;
-		}
+		if (!Mobp(this)->bindTex())
+			goto NOPE;
 		break;
 	case STRUCTURET:
 		/* fall through */
@@ -454,10 +390,10 @@ NOPE:
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 	if (near && type != MOBT)
-		ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-HLINE/2,name);
+		ui::putStringCentered(loc.x + width / 2, loc.y - ui::fontSize - game::HLINE / 2, name);
 	if (health != maxHealth) {
-		glColor3ub(150,0,0); glRectf(loc.x, loc.y + height, loc.x + width, loc.y + height + HLINE * 2);
-		glColor3ub(255,0,0); glRectf(loc.x, loc.y + height, loc.x + width * (health / maxHealth), loc.y + height + HLINE * 2);
+		glColor3ub(150,0,0); glRectf(loc.x, loc.y + height, loc.x + width, loc.y + height + HLINES(2));
+		glColor3ub(255,0,0); glRectf(loc.x, loc.y + height, loc.x + width * (health / maxHealth), loc.y + height + HLINES(2));
 	}
 }
 
@@ -476,26 +412,17 @@ wander(int timeRun)
 	if (hitCooldown)
 		hitCooldown--;
 
-	if (followee) {
-		if (loc.x < followee->loc.x - 40)
-			direction = 1;
-		else if (loc.x > followee->loc.x + 40)
-			direction = -1;
-		else
-			direction = 0;
-
-		vel.x = .018 * HLINE * direction;
-	} else if (targetx != 0.9112001f) {
-		if (loc.x > targetx + HLINE * 5)
-			vel.x = -0.018 * HLINE;
-		else if (loc.x < targetx - HLINE * 5)
-			vel.x = 0.018 * HLINE;
+	if (targetx != 0.9112001f) {
+		if (loc.x > targetx + HLINES(5))
+			vel.x = HLINES(-0.018);
+		else if (loc.x < targetx - HLINES(5))
+			vel.x = HLINES(0.018);
 		else
 			targetx = 0.9112001f;
 	} else if (ticksToUse == 0) {
 		ticksToUse = timeRun;
 
-		vel.x = .008 * HLINE;
+		vel.x = HLINES(0.008);
 		direction = (getRand() % 3 - 1);
 
 		if (direction == 0)
@@ -522,6 +449,15 @@ extern int commonAIFunc(NPC *speaker);
 
 void NPC::interact() { //have the npc's interact back to the player
 	std::thread([this]{
+		std::vector<XMLElement *> dopt;
+		XMLDocument xml;
+		XMLElement *exml,*oxml;
+
+		static unsigned int oldidx = 9999;
+		std::string nname;
+		unsigned int idx;
+		bool stop;
+
 		loc.y += 5;
 
 		canMove=false;
@@ -529,14 +465,144 @@ void NPC::interact() { //have the npc's interact back to the player
 		right = !left;
 
 		if (dialogCount && dialogIndex != 9999) {
-			if (!commonAIFunc(this))
-				dialogCount--;
+			// load the XML file and find the dialog tags
+			xml.LoadFile(currentXML.c_str());
+COMMONAIFUNC:
+			idx = 0;
+			stop = false;
+			exml = xml.FirstChildElement("Dialog");
+
+			// search for the dialog block associated with this npc
+			while (exml->StrAttribute("name") != name)
+				exml = exml->NextSiblingElement();
+
+			// search for the desired text block
+			exml = exml->FirstChildElement();
+			do {
+				if (std::string("text") == exml->Name() && exml->UnsignedAttribute("id") == (unsigned)dialogIndex)
+					break;
+			} while ((exml = exml->NextSiblingElement()));
+
+			// handle quest tags
+			if ((oxml = exml->FirstChildElement("quest"))) {
+				std::string qname;
+
+				// iterate through all quest tags
+				do {
+					// assign quest
+					if (!(qname = oxml->StrAttribute("assign")).empty())
+						player->qh.assign(qname, "None", std::string(oxml->GetText())); // TODO add descriptions
+
+					// check / finish quest
+					else if (!(qname = oxml->StrAttribute("check")).empty()) {
+						if (player->qh.hasQuest(qname) && player->qh.finish(qname)) {
+							// QuestHandler::finish() did all the work..
+							break;
+						} else {
+							// run error dialog
+							oldidx = dialogIndex;
+							dialogIndex = oxml->UnsignedAttribute("fail");
+							goto COMMONAIFUNC;
+						}
+					}
+				} while((oxml = oxml->NextSiblingElement()));
+			}
+
+			// handle give tags
+			if ((oxml = exml->FirstChildElement("give"))) {
+				do player->inv->addItem(oxml->Attribute("id"), oxml->UnsignedAttribute("count"));
+				while ((oxml = oxml->NextSiblingElement()));
+			}
+
+			// handle take tags
+			if ((oxml = exml->FirstChildElement("take"))) {
+				do player->inv->takeItem(oxml->Attribute("id"), oxml->UnsignedAttribute("count"));
+				while ((oxml = oxml->NextSiblingElement()));
+			}
+
+			// handle movement directs
+			if ((oxml = exml->FirstChildElement("gotox")))
+				moveTo(std::stoi(oxml->GetText()));
+
+			// handle dialog options
+			if ((oxml = exml->FirstChildElement("option"))) {
+				std::string optstr;
+
+				// convert option strings to a colon-separated format
+				do {
+					// append the next option
+					optstr.append(std::string(":") + oxml->Attribute("text"));
+
+					// save the associated XMLElement
+					dopt.push_back(oxml);
+				} while ((oxml = oxml->NextSiblingElement()));
+
+				// run the dialog stuff
+				ui::dialogBox(name, optstr, false, exml->GetText() + 1);
+				ui::waitForDialog();
+
+				if (ui::dialogOptChosen)
+					exml = dopt[ui::dialogOptChosen - 1];
+
+				dopt.clear();
+			}
+
+			// optionless dialog
+			else {
+				ui::dialogBox(name, "", false, exml->GetText());
+				ui::waitForDialog();
+			}
+
+			// trigger other npcs if desired
+			if (!(nname = exml->StrAttribute("call")).empty()) {
+				NPC *n = *std::find_if(std::begin(currentWorld->npc), std::end(currentWorld->npc), [nname](NPC *npc) {
+					return (npc->name == nname);
+				});
+
+				if (exml->QueryUnsignedAttribute("callid", &idx) == XML_NO_ERROR) {
+					n->dialogIndex = idx;
+					n->addAIFunc(false);
+				}
+			}
+
+			// handle potential following dialogs
+			if ((idx = exml->UnsignedAttribute("nextid"))) {
+				dialogIndex = idx;
+
+				// stop talking
+				if (exml->QueryBoolAttribute("stop", &stop) == XML_NO_ERROR && stop) {
+					dialogIndex = 9999;
+					dialogCount--;
+				}
+
+				// pause, allow player to click npc to continue
+				else if (exml->QueryBoolAttribute("pause", &stop) == XML_NO_ERROR && stop) {
+					//return 1;
+				}
+
+				// instantly continue
+				else {
+					goto COMMONAIFUNC;
+				}
+			}
+
+			// stop talking
+			else {
+				// error text?
+				if (oldidx != 9999) {
+					dialogIndex = oldidx;
+					oldidx = 9999;
+				} else {
+					dialogIndex = 9999;
+					dialogCount--;
+				}
+			}
 		} else {
 			ui::dialogBox(name, "", false, randomDialog[randDialog]);
 		}
 
 		ui::waitForDialog();
-		canMove=true;
+		canMove = true;
 	}).detach();
 }
 
@@ -549,7 +615,7 @@ void Merchant::wander(int timeRun) {
 	if (ticksToUse == 0) {
 		ticksToUse = timeRun;
 
-		vel.x = .008 * HLINE;
+		vel.x = HLINES(0.008);
 		direction = (getRand() % 3 - 1);
 
 		if (direction == 0)
@@ -561,12 +627,12 @@ void Merchant::wander(int timeRun) {
 	if (vel.x < 0)
 		currentWorld->goWorldLeft(this);
 	if (inside != nullptr) {
-		loc.y = inside->loc.y + HLINE * 2;
+		loc.y = inside->loc.y + HLINES(2);
 		vel.y = GRAVITY_CONSTANT * 5;
-		if (loc.x <= inside->loc.x + HLINE * 5)
-			loc.x = inside->loc.x + HLINE * 5;
-		else if (loc.x + width >= inside->loc.x + inside->width - HLINE * 5)
-			loc.x = inside->loc.x + inside->width - width - HLINE * 5;
+		if (loc.x <= inside->loc.x + HLINES(5))
+			loc.x = inside->loc.x + HLINES(5);
+		else if (loc.x + width >= inside->loc.x + inside->width - HLINES(5))
+			loc.x = inside->loc.x + inside->width - width - HLINES(5);
 	}
 	ticksToUse--;
 }
@@ -646,10 +712,6 @@ bool Entity::isInside(vec2 coord) const {
 	       coord.y <= loc.y + height;
 }
 
-void Entity::follow(Entity *e) {
-	followee = e;
-}
-
 /*
  *	This spawns the structures
  *
@@ -701,93 +763,6 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y) {
 	return 0;
 }
 
-/*
- * 	Mob::wander this is the function that makes the mobs wander around
- *
- *	See NPC::wander for the explaination of the argument's variable
-*/
-
-void Mob::wander(int timeRun) {
-	static int direction;	//variable to decide what direction the entity moves
-	static unsigned int heya=0,hi=0;
-	static bool YAYA = false;
-
-	auto deltaTime = gtime::getDeltaTime();
-
-	if (forcedMove)
-		return;
-
-	if (followee) {
-		if (loc.x < followee->loc.x - 40)
-			direction = 1;
-		else if (loc.x > followee->loc.x + 40)
-			direction = -1;
-		else
-			direction = 0;
-
-		vel.x = .018 * HLINE * direction;
-		return;
-	}
-
-	if (aggressive && !YAYA &&
-	   player->loc.x + (width / 2)  > loc.x && player->loc.x + (width / 2)  < loc.x + width  &&
-	   player->loc.y + (height / 3) > loc.y && player->loc.y + (height / 3) < loc.y + height) {
-		if (!ui::dialogBoxExists) {
-			Arena *a = new Arena(currentWorld,player,this);
-			a->setStyle("");
-			a->setBackground(WorldBGType::Forest);
-			a->setBGM("assets/music/embark.wav");
-
-			ui::toggleWhiteFast();
-			YAYA = true;
-			ui::waitForCover();
-			YAYA = false;
-			currentWorld = a;
-			ui::toggleWhiteFast();
-		}
-	}
-
-	switch(subtype) {
-	case MS_RABBIT:
-		if (!ticksToUse) {
-			ticksToUse = timeRun;
-			direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
-												//this lets the entity move left, right, or stay still
-			if (direction==0)ticksToUse/=2;
-			vel.x *= direction;	//changes the velocity based off of the direction
-		}
-		if (ground && direction) {
-			vel.y=.15;
-			loc.y+=HLINE*.25;
-			ground=false;
-			vel.x = (.07*HLINE)*direction;	//sets the inital velocity of the entity
-		}
-		ticksToUse--; //removes one off of the entities timer
-		break;
-	case MS_BIRD:
-		if (loc.y<=init_y-.2)vel.y=.02*deltaTime;	// TODO handle direction
-		vel.x = 0.02f * deltaTime;
-		if (++heya==200) {heya=0;hi^=1;}
-		if (hi)vel.x*=-1;
-		break;
-	case MS_TRIGGER:
-		if (player->loc.x + player->width / 2 > loc.x		 &&
-		   player->loc.x + player->width / 2 < loc.x + width)
-			std::thread([this]{hey(this);}).detach();
-			//hey(this);
-		break;
-	case MS_PAGE:
-		if (player->loc.x > loc.x - 100 && player->loc.x < loc.x + 100           && // within player ranger
-		   ui::mouse.x > loc.x && ui::mouse.x < loc.x + width                   && // mouse x
-		   ui::mouse.y > loc.y - width / 2 && ui::mouse.y < loc.y + width * 1.5 && // mouse y
-		   SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))           // right click
-			hey(this);
-		break;
-	default:
-		break;
-	}
-}
-
 Particles::Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d)
 {
 	loc = vec2 {x, y};
@@ -833,7 +808,7 @@ void Particles::update(float _gravity, float ground_y)
 
 	// handle gravity
 	else if (gravity && vel.y > -1.0f) {
-		vel.y -= _gravity * gtime::getDeltaTime();
+		vel.y -= _gravity * game::time::getDeltaTime();
 	}
 }
 
@@ -850,7 +825,7 @@ void Player::save(void) {
 	data.append(std::to_string((int)loc.y) + "\n");
 	data.append(std::to_string((int)health) + "\n");
 	data.append(std::to_string((int)maxHealth) + "\n");
-	data.append(std::to_string((int)gtime::getTickCount()) + "\n");
+	data.append(std::to_string((int)game::time::getTickCount()) + "\n");
 
 	data.append("qwer\n");
 	data.append(std::to_string((int)inv->Items.size()) + "\n");
@@ -896,7 +871,7 @@ void Player::sspawn(float x,float y) {
 		std::getline(data,ddata);
 		maxHealth = std::stoi(ddata);
 		std::getline(data,ddata);
-		gtime::tick(std::stoi(ddata));
+		game::time::tick(std::stoi(ddata));
 
 		std::getline(data,ddata);
 		std::getline(data,ddata);

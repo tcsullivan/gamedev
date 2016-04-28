@@ -2,82 +2,74 @@
 
 #include <ui.hpp>
 
+#include <SDL2/SDL_mixer.h>
+
+#include <tinyxml2.h>
 using namespace tinyxml2;
 
-extern unsigned int HLINE;
-extern unsigned int SCREEN_WIDTH;
-extern unsigned int SCREEN_HEIGHT;
-extern bool		 	FULLSCREEN;
+namespace game {
+	unsigned int HLINE;
+	unsigned int SCREEN_WIDTH;
+	unsigned int SCREEN_HEIGHT;
+	bool         FULLSCREEN;
 
-extern float VOLUME_MASTER;
-extern float VOLUME_MUSIC;
-extern float VOLUME_SFX;
+	namespace config {
+		static XMLDocument xml;
+		static XMLElement *vol;
 
-extern std::string xmlFolder;
+		float VOLUME_MASTER;
+		float VOLUME_MUSIC;
+		float VOLUME_SFX;
 
-XMLDocument xml;
-XMLElement *scr;
-XMLElement *vol;
+		std::string xmlFolder;
 
-namespace config {
+		void read(void) {
+			xml.LoadFile("config/settings.xml");
+			auto exml = xml.FirstChildElement("screen");
 
-	void read(void) {
-		unsigned int uval;
-		float fval;
-		bool bval;
+			if (exml->QueryUnsignedAttribute("width", &SCREEN_WIDTH) != XML_NO_ERROR)
+				SCREEN_WIDTH = 1024;
+			if (exml->QueryUnsignedAttribute("height", &SCREEN_HEIGHT) != XML_NO_ERROR)
+				SCREEN_HEIGHT = 768;
+			if (exml->QueryBoolAttribute("fullscreen", &FULLSCREEN) != XML_NO_ERROR)
+				FULLSCREEN = false;
 
-		xml.LoadFile("config/settings.xml");
-		scr = xml.FirstChildElement("screen");
+			if (xml.FirstChildElement("hline")->QueryUnsignedAttribute("size", &HLINE) != XML_NO_ERROR)
+				HLINE = 3;
 
-		if (scr->QueryUnsignedAttribute("width",&uval) == XML_NO_ERROR)
-			SCREEN_WIDTH = uval;
-		else SCREEN_WIDTH = 1280;
-		if (scr->QueryUnsignedAttribute("height",&uval) == XML_NO_ERROR)
-			SCREEN_HEIGHT = uval;
-		else SCREEN_HEIGHT = 800;
-		if (scr->QueryBoolAttribute("fullscreen",&bval) == XML_NO_ERROR)
-			FULLSCREEN = bval;
-		else FULLSCREEN = false;
-		if (xml.FirstChildElement("hline")->QueryUnsignedAttribute("size",&uval) == XML_NO_ERROR)
-			HLINE = uval;
-		else HLINE = 3;
+			vol = exml = xml.FirstChildElement("volume");
+			if (exml->FirstChildElement("master")->QueryFloatAttribute("volume", &VOLUME_MASTER) != XML_NO_ERROR)
+				VOLUME_MASTER = 50;
+			if (exml->FirstChildElement("music")->QueryFloatAttribute("volume", &VOLUME_MUSIC) != XML_NO_ERROR)
+				VOLUME_MUSIC = 50;
+			if (exml->FirstChildElement("sfx")->QueryFloatAttribute("volume", &VOLUME_SFX) != XML_NO_ERROR)
+				VOLUME_SFX = 50;
 
-		vol = xml.FirstChildElement("volume");
+			xmlFolder = xml.FirstChildElement("world")->StrAttribute("start");
+			if (xmlFolder.empty())
+				xmlFolder = "xml/";
 
-		if (vol->FirstChildElement("master")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
-			VOLUME_MASTER = fval;
-		else VOLUME_MASTER = 50;
-		if (vol->FirstChildElement("music")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
-			VOLUME_MUSIC = fval;
-		else VOLUME_MUSIC = 50;
-		if (vol->FirstChildElement("sfx")->QueryFloatAttribute("volume",&fval) == XML_NO_ERROR)
-			VOLUME_SFX = fval;
-		else VOLUME_SFX = 50;
+			ui::initFonts();
+			ui::setFontFace(xml.FirstChildElement("font")->Attribute("path"));
 
-		xmlFolder = xml.FirstChildElement("world")->Attribute("start");
-		if (xmlFolder=="\0")xmlFolder = "xml/";
-		std::cout << "Folder: " << xmlFolder << std::endl;
+			if (xml.FirstChildElement("debug"))
+				ui::debug = ui::posFlag = true;
 
-		ui::initFonts();
-		ui::setFontFace(xml.FirstChildElement("font")->Attribute("path"));
+			config::update();
+		}
 
-		if (xml.FirstChildElement("debug"))
-			ui::debug = ui::posFlag = true;
+		void update(void) {
+			Mix_Volume(0, VOLUME_MASTER);
+			Mix_Volume(1, VOLUME_SFX * (VOLUME_MASTER / 100.0f));
+			Mix_VolumeMusic(VOLUME_MUSIC * (VOLUME_MASTER / 100.0f));
+		}
 
-		config::update();
-	}
+		void save(void) {
+			vol->FirstChildElement("master")->SetAttribute("volume", VOLUME_MASTER);
+			vol->FirstChildElement("music")->SetAttribute("volume", VOLUME_MUSIC);
+			vol->FirstChildElement("sfx")->SetAttribute("volume", VOLUME_SFX);
 
-	void update(void) {
-		Mix_Volume(0,VOLUME_MASTER);
-		Mix_Volume(1,VOLUME_SFX * (VOLUME_MASTER/100.0f));
-		Mix_VolumeMusic(VOLUME_MUSIC * (VOLUME_MASTER/100.0f));
-	}
-
-	void save(void) {
-		vol->FirstChildElement("master")->SetAttribute("volume",VOLUME_MASTER);
-		vol->FirstChildElement("music")->SetAttribute("volume",VOLUME_MUSIC);
-		vol->FirstChildElement("sfx")->SetAttribute("volume", VOLUME_SFX);
-
-		xml.SaveFile("config/settings.xml", false);
+			xml.SaveFile("config/settings.xml", false);
+		}
 	}
 }

@@ -1,4 +1,7 @@
 #include <inventory.hpp>
+#include <entities.hpp>
+
+extern Player *player;
 
 /************************************************************************************
 *                                          GLOBAL                                   *
@@ -16,6 +19,10 @@ int BaseItem::useItem()
 int Sword::useItem()
 {
     std::cout << "Swing!" << std::endl;
+	if (player->left)
+		rotation += 10.0f;
+	else
+		rotation -= 10.0f;
 	return 0;
 }
 

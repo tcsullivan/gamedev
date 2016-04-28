@@ -1,15 +1,16 @@
-/*! @file main.cpp
- *	@brief The file that links everything together for the game to run.
- *	The  main game loop contains all of the global variables the game uses, and it runs the main game loop, the render loop, and the logic loop that control all of the entities.
- */
+/* ----------------------------------------------------------------------------
+** The main file, home of the main loop.
+** --------------------------------------------------------------------------*/
+// ...
+/* ----------------------------------------------------------------------------
+** Includes section
+** --------------------------------------------------------------------------*/
 
+// local library includes
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
-/*
- * Game includes
- */
-
+// local game includes
 #include <common.hpp>
 #include <config.hpp>
 #include <entities.hpp>
@@ -17,118 +18,58 @@ using namespace tinyxml2;
 #include <ui.hpp>
 #include <gametime.hpp>
 
+/* ----------------------------------------------------------------------------
+** Variables section
+** --------------------------------------------------------------------------*/
+
+// the current weather, declared in world.cpp
+extern WorldWeather weather;
+
 // SDL's window object
 SDL_Window *window = NULL;
 
 // main loop runs based on this variable's value
-bool gameRunning;
+bool gameRunning = false;
 
 // world objects for the current world and the two that are adjacent
 World *currentWorld        = NULL,
 	  *currentWorldToLeft  = NULL,
 	  *currentWorldToRight = NULL;
 
+// the currently used folder to grab XML files
+std::string xmlFolder;
+
+// the current menu
 Menu *currentMenu;
 
 // the player object
 Player *player;
 
-/**
- * TODO
- */
-
+// shaders for rendering
 GLuint fragShader;
-
-/**
- * TODO
- */
-
 GLuint shaderProgram;
 
-/**
- *	Threads and various variables to be used when multithreading the game,
- *  mutex will prevent multiple threads from changing the same data,
- *  and the condition_variable will wait for threads to reach the same point
- */
-
-std::mutex mtx;
-std::condition_variable cv;
-ThreadPool pool(10);
-
-/*
- *	loops is used for texture animation. It is believed to be passed to entity
- *	draw functions, although it may be externally referenced instead.
-*/
-
-/**
- * TODO
- */
-
+// keeps a simple palette of colors for single-color draws
 GLuint colorIndex;
 
-/**
- * TODO
- */
-
+// the mouse's texture
 GLuint mouseTex;
 
-/**
- * Used for texture animation. It is externally referenced by ui.cpp
- * and entities.cpp.
- */
-
-unsigned int loops = 0;
-
-/**
- * Gives a coordinate based off of the player's location to allow for drawing to
- * be in a constant 'absolute' place on the window.
- */
-
+// the center of the screen
 vec2 offset;
 
-std::string xmlFolder;
-
-extern WorldWeather weather;
-
-unsigned int SCREEN_WIDTH;
-unsigned int SCREEN_HEIGHT;
-unsigned int HLINE;
-bool FULLSCREEN;
-
-float VOLUME_MASTER;
-float VOLUME_MUSIC;
-float VOLUME_SFX;
-
-/**
- * Defined in gameplay.cpp, should result in `currentWorld` containing a pointer
- * to a valid World.
- */
-
-extern void initEverything(void);
-
-/**
- * The game logic function, should handle all logic-related operations for the
- * game.
- */
-
+// handles all logic operations
 void logic(void);
 
-/**
- * The game render function, should handle all drawing to the window.
- */
-
+// handles all rendering operations
 void render(void);
 
-/**
- * The main loop, calls logic(), render(), and does timing operations in the
- * appropriate order.
- */
-
+// takes care of *everything*
 void mainLoop(void);
 
 /*******************************************************************************
- * MAIN ************************************************************************
- *******************************************************************************/
+** MAIN ************************************************************************
+********************************************************************************/
 
 int main(int argc, char *argv[]){
 	(void)argc;
@@ -136,148 +77,73 @@ int main(int argc, char *argv[]){
 
 	static SDL_GLContext mainGLContext = NULL;
 
-	gameRunning = false;
-
-	/**
-	 * (Attempt to) Initialize SDL libraries so that we can use SDL facilities and eventually
-	 * make openGL calls. Exit if there was an error.
-	 */
-
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
-		std::cout << "SDL was not able to initialize! Error: " << SDL_GetError() << std::endl;
-		return -1;
-	}
+	// attempt to initialize SDL
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+		UserError(std::string("SDL was not able to initialize! Error: ") + SDL_GetError());
+	atexit(SDL_Quit);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
-	// Run SDL_Quit when main returns
-	atexit(SDL_Quit);
-
-	/**
-	 * (Attempt to) Initialize SDL_image libraries with IMG_INIT_PNG so that we can load PNG
-	 * textures for the entities and stuff.
-	 */
-
-	if(!(IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) & (IMG_INIT_PNG | IMG_INIT_JPG))){
-		std::cout << "Could not init image libraries! Error: " << IMG_GetError() << std::endl;
-		return -1;
-	}
-
-	// Run IMG_Quit when main returns
+	// attempt to initialize SDL_image
+	if (!(IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) & (IMG_INIT_PNG | IMG_INIT_JPG)))
+		UserError(std::string("Could not init image libraries! Error: ") + IMG_GetError());
 	atexit(IMG_Quit);
 
-	/**
-	 * (Attempt to) Initialize SDL_mixer libraries for loading and playing music/sound files.
-	 */
-
-	if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
-		std::cout << "SDL_mixer could not initialize! Error: " << Mix_GetError() << std::endl;
-		return -1;
-	}
-
+	// attempt to initialize SDL_mixer
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+		UserError(std::string("SDL_mixer could not initialize! Error: ") + Mix_GetError());
 	Mix_AllocateChannels(8);
-
-	config::update();
-
-	// Run Mix_Quit when main returns
 	atexit(Mix_Quit);
 
-	/**
-	 * Load saved settings into the game (see config/settings.xml)
-	 */
+	// update values by reading the config file (config/settings.xml)
+	game::config::update();
+	game::config::read();
 
-	config::read();
-
-	/*
-	 *	Create a window for SDL to draw to. Most parameters are the default, except for the
-	 *	following which are defined in include/common.h:
-	 *
-	 *	GAME_NAME		the name of the game that is displayed in the window title bar
-	 *	SCREEN_WIDTH	the width of the created window
-	 *	SCREEN_HEIGHT	the height of the created window
-	 *	FULLSCREEN		makes the window fullscreen
-	 *
-	 */
-
-	uint32_t SDL_CreateWindowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | (FULLSCREEN ? SDL_WINDOW_FULLSCREEN : 0);
-
+	// create the SDL window object
 	window = SDL_CreateWindow(GAME_NAME,
 							  SDL_WINDOWPOS_UNDEFINED,	// Spawn the window at random (undefined) x and y coordinates
 							  SDL_WINDOWPOS_UNDEFINED,	//
-							  SCREEN_WIDTH,
-							  SCREEN_HEIGHT,
-							  SDL_CreateWindowFlags
-							 );
+							  game::SCREEN_WIDTH,
+							  game::SCREEN_HEIGHT,
+							  SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | (game::FULLSCREEN ? SDL_WINDOW_FULLSCREEN : 0)
+							  );
 
-    /*
-     * Exit if the window cannot be created
-     */
+    if (window == NULL)
+		UserError(std::string("The window failed to generate! SDL_Error: ") + SDL_GetError());
 
-    if(window==NULL){
-		std::cout << "The window failed to generate! SDL_Error: " << SDL_GetError() << std::endl;
-        return -1;
-    }
+    // create the OpenGL object that SDL provides
+    if ((mainGLContext = SDL_GL_CreateContext(window)) == NULL)
+		UserError(std::string("The OpenGL context failed to initialize! SDL_Error: ") + SDL_GetError());
 
-    /*
-     * Create the SDL OpenGL context. Once created, we are allowed to use OpenGL functions.
-     * Saving this context to mainGLContext does not appear to be necessary as mainGLContext
-     * is never referenced again.
-     */
-
-    if((mainGLContext = SDL_GL_CreateContext(window)) == NULL){
-		std::cout << "The OpenGL context failed to initialize! SDL_Error: " << SDL_GetError() << std::endl;
-        return -1;
-    }
-
-	/*
-	 * Initialize GLEW libraries, and exit if there was an error.
-	 * Not sure what they're for yet.
-	 */
-
-	GLenum err;
+	// initialize GLEW
 #ifndef __WIN32__
 	glewExperimental = GL_TRUE;
 #endif
-	if((err=glewInit()) != GLEW_OK){
-		std::cout << "GLEW was not able to initialize! Error: " << glewGetErrorString(err) << std::endl;
-		return -1;
-	}
 
-	/*
-	 * Initialize the random number generator. At the moment, initRand is a macro pointing to libc's
-	 * srand, and its partner getRand points to rand. This is because having our own random number
-	 * generator may be favorable in the future, but at the moment is not implemented.
-	 */
+	GLenum err;
+	if ((err = glewInit()) != GLEW_OK)
+		UserError(std::string("GLEW was not able to initialize! Error: ") + reinterpret_cast<const char *>(glewGetErrorString(err)));
 
+	// start the random number generator
 	initRand(millis());
 
-	/*
-	 * Do some basic setup for openGL. Enable double buffering, switch to by-pixel coordinates,
-	 * setup the alpha channel for textures/transparency, and finally hide the system's mouse
-	 * cursor so that we may draw our own.
-	 */
-
+	// 'basic' OpenGL setup
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetSwapInterval(0);
-
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
+	SDL_GL_SetSwapInterval(0); // v-sync
+	SDL_ShowCursor(SDL_DISABLE); // hide the mouse
+	glViewport(0, 0, game::SCREEN_WIDTH, game::SCREEN_HEIGHT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glClearColor(1,1,1,1);
 
-	SDL_ShowCursor(SDL_DISABLE);
-
+	// TODO
 	Texture::initColorIndex();
 
-	/*
-	 * Initializes our shaders so that the game has shadows.
-	 */
-
-	std::cout << "Initializing shaders!" << std::endl;
+	// initialize shaders
+	std::cout << "Initializing shaders!\n";
 
 	const GLchar *shaderSource = readFile("frig.frag");
-
 	GLint bufferln = GL_FALSE;
 	int logLength;
 
@@ -316,48 +182,50 @@ int main(int argc, char *argv[]){
 	 */
 
 	initInventorySprites();
+	// load mouse texture, and other inventory textures
+	mouseTex = Texture::loadTexture("assets/mouse.png");
 
-	/*
-	 * Create all the worlds, entities, mobs, and the player. This function is defined in
-	 * src/gameplay.cpp
-	 */
 
-	initEverything();
+	// read in all XML file names in the folder
+	std::vector<std::string> xmlFiles;
+	if (xmlFolder.empty())
+		xmlFolder = "xml/";
+	if (getdir(std::string("./" + xmlFolder).c_str(), xmlFiles))
+		UserError("Error reading XML files!!!");
 
-	if(!currentWorld){
-		std::cout<<"currentWorld == NULL!"<<std::endl;
-#ifndef __WIN32__
-		system("systemctl poweroff");
-#else
-		system("shutdown -s -t 0");
-#endif // __WIN32__
-		abort();
+	// alphabetically sort files
+	strVectorSortAlpha(&xmlFiles);
+
+	// load the first valid XML file for the world
+	for (xf : xmlFiles) {
+		if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
+			// read it in
+			std::cout << "File to load: " << xf << '\n';
+			currentWorld = loadWorldFromXML(xf);
+			break;
+		}
 	}
 
+	// spawn the player
+	player = new Player();
+	player->sspawn(0,100);
+	ui::menu::init();
+	currentWorld->bgmPlay(NULL);
 
-	mouseTex = Texture::loadTexture("assets/mouse.png");
+	// make sure the world was made
+	if (currentWorld == NULL)
+		UserError("Plot twist: The world never existed...?");
 
 	/**************************
 	****     GAMELOOP      ****
 	**************************/
 
-	std::cout << "Num threads: " << std::thread::hardware_concurrency() << std::endl;
-
-	glClearColor(1,1,1,1);
-	//ui::toggleBlackFast();
-
+	// the main loop, in all of its gloriousness..
 	gameRunning = true;
 	while (gameRunning)
 		mainLoop();
 
-	/**************************
-	****   CLOSE PROGRAM   ****
-	**************************/
-
-    /*
-     * Close the window and free resources
-     */
-
+    // free library resources
     Mix_HaltMusic();
     Mix_CloseAudio();
 
@@ -367,6 +235,12 @@ int main(int argc, char *argv[]){
 
     SDL_GL_DeleteContext(mainGLContext);
     SDL_DestroyWindow(window);
+
+	// close up the game stuff
+	currentWorld->save();
+	//delete currentWorld;
+	//delete[] currentXML;
+	//aipreload.clear();
 
     return 0; // Calls everything passed to atexit
 }
@@ -384,7 +258,7 @@ void mainLoop(void){
 	static unsigned int debugDiv=0;			// A divisor used to update the debug menu if it's open
 	World *prev;
 
-	gtime::mainLoopHandler();
+	game::time::mainLoopHandler();
 
 	if (currentMenu)
 		goto MENU;
@@ -398,16 +272,16 @@ void mainLoop(void){
 		ui::dialogBoxExists = false;
 	}
 
-	if (gtime::tickHasPassed())
+	if (game::time::tickHasPassed())
 		logic();
 
-	currentWorld->update(player, gtime::getDeltaTime());
+	currentWorld->update(player, game::time::getDeltaTime());
 	currentWorld->detect(player);
 
 	if (++debugDiv == 20) {
 		debugDiv=0;
 
-		fps = 1000 / (gtime::getDeltaTime() + .000001);
+		fps = 1000 / game::time::getDeltaTime();
 		if (!(debugDiv % 10))
 			debugY = player->loc.y;
 	}
@@ -416,74 +290,33 @@ MENU:
 }
 
 void render() {
+	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-	 /*
-	  *	This offset variable is what we use to move the camera and locked
-	  *	objects on the screen so they always appear to be in the same relative area
-	  */
-
+	// offset should contain the coordinates of the center of the player's view
 	offset.x = player->loc.x + player->width/2;
 	offset.y = SCREEN_HEIGHT/2;
 
-	/*
-	 * If the camera will go off of the left  or right of the screen we want to lock it so we can't
-	 * see past the world render
-	 */
-
-	if(currentWorld->getTheWidth() < (int)SCREEN_WIDTH){
+	// snap the player's view if we're at a world edge
+	if (currentWorld->getTheWidth() < (int)SCREEN_WIDTH) {
 		offset.x = 0;
-	}else{
-		if(player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
+	} else {
+		if (player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
 			offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
-		if(player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
+		if (player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
 			offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2) - player->width / 2;
 	}
 
 	if(player->loc.y > SCREEN_HEIGHT/2)
 		offset.y = player->loc.y + player->height;
 
-	/*
-	 *	These functions run everyloop to update the current stacks presets
-	 *
-	 *	Matrix 	----	A matrix is a blank "canvas" for the renderer to draw on,
-	 *					this canvas can be rotated, scales, skewed, etc..
-	 *
-	 *	Stack 	----	A stack is exactly what it sounds like, it is a stack.. A
-	 *					stack is a "stack" of matrices for the renderer to draw on.
-	 *					Each stack can be made up of varying amounts of matricies.
-	 *
-	 *	glMatrixMode	This changes our current stacks mode so the drawings below
-	 *					it can take on certain traits.
-	 *
-	 *	GL_PROJECTION	This is the matrix mode that sets the cameras position,
-	 *					GL_PROJECTION is made up of a stack with two matrices which
-	 *					means we can make up to 2 seperate changes to the camera.
-	 *
-	 *	GL_MODELVIEW	This matrix mode is set to have the dimensions defined above
-	 *					by GL_PROJECTION so the renderer can draw only what the camera
-	 *					is looking at. GL_MODELVIEW has a total of 32 matrices on it's
-	 *					stack, so this way we can make up to 32 matrix changes like,
-	 *					scaling, rotating, translating, or flipping.
-	 *
-	 *	glOrtho			glOrtho sets our ortho, or our cameras resolution. This can also
-	 *					be used to set the position of the camera on the x and y axis
-	 *					like we have done. The glOrtho must be set while the stack is in
-	 *					GL_PROJECTION mode, as this is the mode that gives the
-	 *					camera properties.
-	 *
-	 *	glPushMatrix	This creates a "new" matrix. What it really does is pull a matrix
-	 *					off the bottom of the stack and puts it on the top so the renderer
-	 *					can draw on it.
-	 *
-	 *	glLoadIdentity	This scales the current matrix back to the origin so the
-	 *					translations are seen normally on a stack.
-	 */
-
+	// "setup"
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	// glOrtho((offset.x-SCREEN_WIDTH/2),(offset.x+SCREEN_WIDTH/2),(offset.y-SCREEN_HEIGHT/2),(offset.y+SCREEN_HEIGHT/2),-1,1);
-	glOrtho(floor(offset.x-SCREEN_WIDTH/2),floor(offset.x+SCREEN_WIDTH/2),floor(offset.y-SCREEN_HEIGHT/2),floor(offset.y+SCREEN_HEIGHT/2),20,-20);
+	glOrtho(floor(offset.x - SCREEN_WIDTH  / 2), floor(offset.x + SCREEN_WIDTH  / 2),
+	        floor(offset.y - SCREEN_HEIGHT / 2), floor(offset.y + SCREEN_HEIGHT / 2),
+			20, -20);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -502,35 +335,17 @@ void render() {
 	glPushAttrib(GL_DEPTH_BUFFER_BIT);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/**************************
-	**** RENDER STUFF HERE ****
-	**************************/
-
-	/*
-	 * Call the world's draw function, drawing the player, the world, the background, and entities. Also
-	 * draw the player's inventory if it exists.
-	 */
-
-	player->near=true;			// Draw the player's name
-
+	// draw the world
+	player->near = true; // allow player's name to be drawn
 	currentWorld->draw(player);
 
-	/*
-	 * Draw the player's inventory.
-	 */
-
+	// draw the player's inventory
 	player->inv->draw();
 
-	/*
-	 * Here we draw a black overlay if it's been requested.
-	 */
-
+	// draw the fade overlay
 	ui::drawFade();
 
-	/*
-	 * Draw UI elements. This includes the player's health bar and the dialog box.
-	 */
-
+	// draw ui elements
 	ui::draw();
 
 	/*
@@ -538,9 +353,7 @@ void render() {
 	 */
 
 	if(ui::debug){
-
-		ui::putText(offset.x-SCREEN_WIDTH/2,
-					(offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
+		ui::putText(offset.x-SCREEN_WIDTH/2, (offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
 					"fps: %d\ngrounded:%d\nresolution: %ux%u\nentity cnt: %d\nloc: (%+.2f, %+.2f)\nticks: %u\nvolume: %f\nweather: %s",
 					fps,
 					player->ground,
@@ -549,35 +362,20 @@ void render() {
 					currentWorld->entity.size(),// Size of entity array
 					player->loc.x,				// The player's x coordinate
 					debugY,						// The player's y coordinate
-					gtime::getTickCount(),
-					VOLUME_MASTER,
+					game::time::getTickCount(),
+					game::config::VOLUME_MASTER,
 					getWorldWeatherStr(weather).c_str()
 					);
 
 		if (ui::posFlag) {
 			glBegin(GL_LINES);
-				/*glColor3ub(255,0,0);
-				glVertex2i(0,0);
-				glVertexdw2i(0,SCREEN_HEIGHT);*/
-
-				/*glColor3ub(255,255,255);
-				glVertex2i(player->loc.x + player->width/2,0);
-				glVertex2i(player->loc.x + player->width/2,SCREEN_HEIGHT);
-				glVertex2i(offset.x - SCREEN_WIDTH / 2, player->loc.y + player->height / 2);
-				glVertex2i(offset.x + SCREEN_WIDTH / 2, player->loc.y + player->height / 2);*/
-
-				/*glVertex2i(-SCREEN_WIDTH / 2 + offset.x, player->loc.y);
-				glVertex2i( SCREEN_WIDTH / 2 + offset.x, player->loc.y);*/
-
 				glColor3ub(100,100,255);
 				for (auto &e : currentWorld->entity) {
 					glVertex2i(player->loc.x + player->width / 2, player->loc.y + player->height / 2);
 					glVertex2i(e->loc.x + e->width / 2, e->loc.y + e->height / 2);
 				}
-
 			glEnd();
 		}
-
 	}
 
 	if (currentMenu)
@@ -589,16 +387,13 @@ void render() {
 	glBindTexture(GL_TEXTURE_2D, mouseTex);
 	glBegin(GL_QUADS);
 		glTexCoord2f(0,0);glVertex2i(ui::mouse.x			,ui::mouse.y			);
-		glTexCoord2f(1,0);glVertex2i(ui::mouse.x+HLINE*5	,ui::mouse.y		 	);
-		glTexCoord2f(1,1);glVertex2i(ui::mouse.x+HLINE*5	,ui::mouse.y-HLINE*5	);
-		glTexCoord2f(0,1);glVertex2i(ui::mouse.x 			,ui::mouse.y-HLINE*5 	);
+		glTexCoord2f(1,0);glVertex2i(ui::mouse.x+HLINES(5)	,ui::mouse.y		 	);
+		glTexCoord2f(1,1);glVertex2i(ui::mouse.x+HLINES(5)	,ui::mouse.y-HLINES(5)	);
+		glTexCoord2f(0,1);glVertex2i(ui::mouse.x 			,ui::mouse.y-HLINES(5) 	);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 
-	/**************************
-	****  END RENDERING   ****
-	**************************/
-
+	// wrap up
 	glPopMatrix();
 	SDL_GL_SwapWindow(window);
 }
@@ -649,60 +444,32 @@ void logic(){
 			}
 		} else if (e->type == MOBT) {
 			e->near = player->isNear(*e);
-
-			switch (e->subtype) {
-			case MS_RABBIT:
-			case MS_BIRD:
-				e->wander((rand()%240 + 15));
-				break;
-			case MS_TRIGGER:
-			case MS_PAGE:
-				e->wander(0);
-				break;
-			case MS_DOOR:
-				break;
-			default:
-				std::cout<<"Unhandled mob of subtype "<<e->subtype<<"."<<std::endl;
-				break;
-			}
+			e->wander();
 		}
 	}
 
-	/*
-	 *	Switch between day and night (SUNNY and DARK) if necessary.
-	 */
-
-	if (!(gtime::getTickCount() % DAY_CYCLE) || !gtime::getTickCount()){
+	// switch from day to night?
+	auto tickCount = game::time::getTickCount();
+	if (!(tickCount % DAY_CYCLE) || !tickCount){
 		if (weather == WorldWeather::Sunny)
 			weather = WorldWeather::Dark;
-		else {
+		else
 			weather = WorldWeather::Sunny;
-			Mix_Pause(2);
-		}
 	}
 
-	/*
-	 *	Calculate an in-game shading value (as opposed to GLSL shading).
-	*/
+	// calculate the world shading value
+	worldShade = 50 * sin((tickCount + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 
-	worldShade = 50 * sin((gtime::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
-
-	/*
-	 *	Transition to and from black if necessary.
-	*/
-
+	// update fades
 	ui::fadeUpdate();
 
-	/*
-	 * Rain?
-	 */
-
+	// create weather particles if necessary
 	 if (weather == WorldWeather::Rain) {
 		 for (unsigned int r = (randGet() % 25) + 11; r--;) {
 			 currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
-									   offset.y + SCREEN_HEIGHT / 2,
-									   HLINE * 1.25,										// width
-									   HLINE * 1.25,										// height
+									   offset.y + game::SCREEN_HEIGHT / 2,
+									   HLINES(1.25),										// width
+									   HLINES(1.25),										// height
 									   randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
 									   (4 + randGet() % 6) * .05,							// vel.y
 									   { 0, 0, 255 },										// RGB color
@@ -713,9 +480,9 @@ void logic(){
 	 } else if (weather == WorldWeather::Snowy) {
 		 for (unsigned int r = (randGet() % 25) + 11; r--;) {
 			 currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
-									   offset.y + SCREEN_HEIGHT / 2,
-									   HLINE * 1.25,										// width
-									   HLINE * 1.25,										// height
+									   offset.y + game::SCREEN_HEIGHT / 2,
+									   HLINES(1.25),										// width
+									   HLINES(1.25),										// height
 							.0001 + randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
 									   (4 + randGet() % 6) * -.03,							// vel.y
 									   { 255, 255, 255 },									// RGB color
@@ -725,11 +492,8 @@ void logic(){
 		 }
 	 }
 
-	/*
-	 *	Increment a loop counter used for animating sprites.
-	*/
-
-	loops++;
-	gtime::tick();
-	NPCSelected=false;	// See above
+	// increment game ticker
+	game::time::tick();
+	NPCSelected = false;
+	ObjectSelected = false;
 }
