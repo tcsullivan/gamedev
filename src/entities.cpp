@@ -178,6 +178,7 @@ Player::Player(){ //sets all of the player specific traits on object creation
 							"assets/player/playerk6.png",
 							"assets/player/playerk7.png",
 							"assets/player/playerk8.png");
+							
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
 Player::~Player() {
@@ -851,9 +852,13 @@ void Player::save(void) {
 	data.append(std::to_string((int)maxHealth) + "\n");
 	data.append(std::to_string((int)gtime::getTickCount()) + "\n");
 
-	data.append(std::to_string((int)inv->items.size()) + "\n");
-	for(auto &i : inv->items)
-		data.append(std::to_string((int)i.count) + "\n" + std::to_string((int)i.id) + "\n");
+	data.append("qwer\n");
+	data.append(std::to_string((int)inv->Items.size()) + "\n");
+	for(auto &i : inv->Items) {
+		if(i.second)
+			data.append(std::to_string(uint(i.second)) + "\n" + i.first->name + "\n");
+	}
+	data.append("qwer\n");
 
 	data.append(std::string(currentXML.data() + 4) + "\n");
 
@@ -864,7 +869,7 @@ void Player::save(void) {
 
 void Player::sspawn(float x,float y) {
 	unsigned int i;
-	uint count;
+	int count;
 	std::ifstream in (std::string(xmlFolder + "main.dat"),std::ios::in | std::ios::binary);
 	spawn(x,y);
 
@@ -894,11 +899,18 @@ void Player::sspawn(float x,float y) {
 		gtime::tick(std::stoi(ddata));
 
 		std::getline(data,ddata);
-		for(i = std::stoi(ddata);i;i--) {
+		std::getline(data,ddata);
+
+		for (i = std::stoi(ddata);i;i--) {
 			std::getline(data,ddata);
+			if (ddata == "qwer")
+				break;
 			count = std::stoi(ddata);
+
 			std::getline(data,ddata);
-			inv->items.push_back(item_t{count,(uint)std::stoi(ddata)});
+			if (ddata == "qwer")
+				break;
+			inv->addItem(ddata, (uint)count);
 		}
 
 		std::getline(data,ddata);

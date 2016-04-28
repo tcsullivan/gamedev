@@ -170,26 +170,31 @@ Texturec::Texturec(uint amt, ...) {
 	va_list fNames;
 	texState = 0;
 	va_start(fNames, amt);
-	for(unsigned int i = 0; i < amt; i++)
-		image.push_back(Texture::loadTexture(va_arg(fNames, char *)));
+	for (unsigned int i = 0; i < amt; i++) {
+		std::string l = va_arg(fNames, char *);
+		image.push_back(Texture::loadTexture(l));
+		texLoc.push_back(l);
+	}
 	va_end(fNames);
 }
 
 Texturec::Texturec(std::initializer_list<std::string> l)
 {
 	texState = 0;
-	std::for_each(l.begin(), l.end(), [&](std::string s) { image.push_back(Texture::loadTexture(s)); });
+	std::for_each(l.begin(), l.end(), [&](std::string s) { image.push_back(Texture::loadTexture(s)); texLoc.push_back(s);});
 }
 
 Texturec::Texturec(std::vector<std::string>v) {
 	texState = 0;
-	std::for_each(v.begin(), v.end(), [&](std::string s) { image.push_back(Texture::loadTexture(s)); });
+	std::for_each(v.begin(), v.end(), [&](std::string s) { image.push_back(Texture::loadTexture(s)); texLoc.push_back(s);});
 }
 
 Texturec::Texturec(uint amt,const char **paths) {
 	texState = 0;
-	for(unsigned int i = 0; i < amt; i++)
+	for (unsigned int i = 0; i < amt; i++) {
 		image.push_back(Texture::loadTexture(paths[i]));
+		texLoc.push_back(paths[i]);
+	}
 }
 
 Texturec::~Texturec() {

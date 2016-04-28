@@ -312,6 +312,12 @@ int main(int argc, char *argv[]){
 	glEnable(GL_MULTISAMPLE);
 
 	/*
+	 * Load sprites used in the inventory menu. See src/inventory.cpp
+	 */
+
+	initInventorySprites();
+
+	/*
 	 * Create all the worlds, entities, mobs, and the player. This function is defined in
 	 * src/gameplay.cpp
 	 */
@@ -328,13 +334,8 @@ int main(int argc, char *argv[]){
 		abort();
 	}
 
-	/*
-	 * Load sprites used in the inventory menu. See src/inventory.cpp
-	 */
 
 	mouseTex = Texture::loadTexture("assets/mouse.png");
-
-	initInventorySprites();
 
 	/**************************
 	****     GAMELOOP      ****
@@ -406,7 +407,7 @@ void mainLoop(void){
 	if (++debugDiv == 20) {
 		debugDiv=0;
 
-		fps = 1000 / gtime::getDeltaTime();
+		fps = 1000 / (gtime::getDeltaTime() + .000001);
 		if (!(debugDiv % 10))
 			debugY = player->loc.y;
 	}

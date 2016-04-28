@@ -22,8 +22,8 @@
 typedef struct {
 	std::string title;
 	std::string desc;
-	struct item_t reward;
-	std::vector<std::pair<std::string,int>> need;
+	std::pair<std::string, uint> reward;
+	std::vector<std::pair<std::string, int>> need;
 } Quest;
 
 /**

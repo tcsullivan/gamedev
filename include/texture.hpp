@@ -61,6 +61,17 @@ public:
 	std::vector<GLuint> image;
 
 	/**
+	 * Contains the dimensions of each texture in the vector
+	 */
+	 //TODO
+	//std::vector<vec2> imageDim;
+
+	/**
+	 * Stores the location of all the images
+	 */
+	std::vector<std::string> texLoc;
+
+	/**
 	 * Populates the image array from a list of strings, with each string as a
 	 * separate argument.
 	 */
