@@ -1,6 +1,4 @@
 #include <inventory.hpp>
-
-#include <common.hpp>
 #include <entities.hpp>
 #include <ui.hpp>
 #include <gametime.hpp>
@@ -10,57 +8,181 @@ using namespace tinyxml2;
 
 extern Player *player;
 extern GLuint invUI;
-static float hangle = 0.0f;
-static bool swing = false;
 static vec2 itemLoc;
 static const unsigned char numSlot = 7;
 Mix_Chunk* swordSwing;
 
-static std::vector<Item *> itemMap;
-static std::vector<Currency *> currencyMap;
-void itemDraw(Player *p,uint id);
+static std::vector<NewCurrency *> currencyMap;
+static std::vector<Item *> ItemMap;
 
-void initInventorySprites(void) {
+
+void itemDraw(Player *p, Item* d);
+
+bool strCaseCmp(std::string one, std::string two)
+{
+	for (auto &s : one) {
+		s = std::tolower(s);
+	}
+	for (auto &t : two) {
+		t = std::tolower(t);
+	}
+
+	if (one == two) return true;
+	return false;
+}
+
+void items(void)
+{
 	XMLDocument xml;
 	xml.LoadFile("config/items.xml");
 	XMLElement *exml = xml.FirstChildElement("item");
 	XMLElement *cxml = xml.FirstChildElement("currency");
 
 	while (cxml) {
-		currencyMap.push_back(new Currency());
 
-		currencyMap.back()->width  = HLINES(7);
-		currencyMap.back()->height = HLINES(7);
-		currencyMap.back()->name = cxml->StrAttribute("name");
-		currencyMap.back()->value = cxml->FloatAttribute("value");
+		// NEWEWEWEWEWEWEWEW
+		// TODO
+
 
 		cxml = cxml->NextSiblingElement();
 	}
-
 	while (exml) {
-		itemMap.push_back(new Item());
 
-		itemMap.back()->name = exml->StrAttribute("name");
-		itemMap.back()->type = exml->StrAttribute("type");
-		itemMap.back()->texloc = exml->StrAttribute("sprite");
-		itemMap.back()->width  = HLINES(exml->FloatAttribute("width"));
-		itemMap.back()->height = HLINES(exml->FloatAttribute("height"));
-		itemMap.back()->maxStackSize = exml->UnsignedAttribute("maxstack");
-		itemMap.back()->attribValue = exml->FloatAttribute("value");
-		itemMap.back()->tex = new Texturec({ itemMap.back()->texloc });
+		std::string name = exml->Attribute("type");
+		// if the type is blank
+		if (strCaseCmp(name, "blank")) {
+
+			ItemMap.push_back(new BaseItem());
+
+		// if the type is a sword
+		} else if (strCaseCmp(name, "sword")) {
+
+			ItemMap.push_back(new Sword());
+
+		// if the type is a bow
+		} else if (strCaseCmp(name, "bow")) {
+
+			ItemMap.push_back(new Bow());
+
+		// uncooked / raw food
+		} else if (strCaseCmp(name, "rawfood")) {
+
+			ItemMap.push_back(new RawFood());
+
+		// cooked food or natural food
+		} else if (strCaseCmp(name, "food") || strCaseCmp(name, "cooked food")) {
+
+			ItemMap.push_back(new Food());
+
+		// if type was not specified make it a base item
+		} else {
+
+			ItemMap.push_back(new BaseItem());
+		}
+
+		// set how much of the item we can stack
+		ItemMap.back()->maxStackSize = exml->UnsignedAttribute("maxStackSize");
+
+		// set all of the texture frames we can use
+		ItemMap.back()->tex = new Texturec(1, exml->Attribute("sprite"));
+
+		// get the width and height of the object based off of its sprite
+		ItemMap.back()->dim = Texture::imageDim(exml->Attribute("sprite"));
+
+		ItemMap.back()->name = exml->Attribute("name");
 
 		exml = exml->NextSiblingElement();
 	}
+	for (auto &i : ItemMap) {
+		std::cout << i->name << ", " << i->maxStackSize << ", " << i->dim.x << ", " << i->dim.y << std::endl;
+	}
+}
 
+int Inventory::addItem(std::string name, uint count)
+{
+	std::cout << "Adding: " << count << name << "\'s" << std::endl;
+	for (uint i = 0; i < ItemMap.size(); i++) {
+		if (strCaseCmp(ItemMap[i]->name, name)) {
+			for (auto &it : Items) {
+				if (it.second && strCaseCmp(it.first->name, name)) {
+					if ((it.second + count) < it.first->maxStackSize) {
+						it.second += count;
+						return 0;
+					}
+				}
+			}
+			Items[os] = std::make_pair(ItemMap[i]->clone(), count);
+			if (!Items[os+1].second) {
+				os++;
+			}
+			return 0;
+		}
+	}
+	return -1;
+}
+
+int Inventory::takeItem(std::string name, uint count)
+{
+
+	// returns
+	// 0 = good
+	// -1 = no such item exists
+	// -2 = if item doesnt exist in inventory
+	// postive items = number returned is how many more the item needs
+
+	std::string iden;
+
+	for (uint i = 0; i < ItemMap.size(); i++) {
+		if (ItemMap[i]->name == name) {
+			iden = name;
+			break;
+		}
+	}
+
+	if (iden.empty()) {
+		return -1;
+	}
+
+	for (auto &i : Items) {
+		if (i.second && i.first->name == iden) {
+			if (count > i.second) {
+				return (count - i.second);
+			} else {
+				i.second -= count;
+
+			}
+			return 0;
+		}
+	}
+
+	return -2;
+}
+
+int Inventory::hasItem(std::string name) {
+
+	for (auto &i : Items) {
+		if (i.first->name == name) {
+			return i.second;
+		}
+	}
+
+	return 0;
+}
+void initInventorySprites(void) {
+
+	items();
+
+	// keep
 	swordSwing = Mix_LoadWAV("assets/sounds/shortSwing.wav");
-	Mix_Volume(2, 100);
+	Mix_Volume(2,100);
 }
 
 void destroyInventory(void) {
 
-	while(!itemMap.empty()) {
-		delete itemMap.front();
-		itemMap.erase(itemMap.begin());
+	// NEWEWEWEWEWEWEWEW
+	while (!ItemMap.empty()) {
+		delete ItemMap.front();
+		ItemMap.erase(std::begin(ItemMap));
 	}
 
 	Mix_FreeChunk(swordSwing);
@@ -68,34 +190,34 @@ void destroyInventory(void) {
 
 
 const char *getItemTexturePath(std::string name){
-	for (auto &i : itemMap) {
+	for (auto &i : ItemMap) {
 		if (i->name == name)
-			return i->texloc.c_str();
+			return i->tex->texLoc[0].c_str();
 	}
 	return NULL;
 }
 
 GLuint getItemTexture(std::string name) {
-	for (auto &i : itemMap) {
-		if (i->name == name)
+	for (auto &i : ItemMap) {
+		if (i->name == name) {
 			return i->tex->image[0];
+		}
 	}
-
 	return 0;
 }
 
 float getItemWidth(std::string name) {
-	for(auto &i : itemMap) {
+	for (auto &i : ItemMap) {
 		if (i->name == name)
-			return i->width;
+			return i->dim.x;
 	}
 	return 0;
 }
 
 float getItemHeight(std::string name) {
-	for(auto &i : itemMap) {
+	for (auto &i : ItemMap) {
 		if (i->name == name)
-			return i->height;
+			return i->dim.y;
 	}
 	return 0;
 }
@@ -103,82 +225,14 @@ float getItemHeight(std::string name) {
 Inventory::Inventory(unsigned int s) {
 	sel=0;
 	size=s;
+
+	Items.resize(size);
+	for (auto &i : Items) {
+		i = std::make_pair(nullptr, 0);
+	}
 }
 
 Inventory::~Inventory(void) {
-}
-
-int Inventory::addItem(std::string name,uint count) {
-	for(unsigned int i=0;i<itemMap.size();i++) {
-		if (itemMap[i]->name == name) {
-			for(auto &in : items) {
-				if (in.id == i) {
-					in.count += count;
-					return 0;
-				}
-			}
-			items.push_back(item_t { count, i });
-			return 0;
-		}
-	}
-	return -1;
-}
-
-int Inventory::takeItem(std::string name,uint count) {
-	unsigned int id = 999999;
-
-	/*
-	 * Name to ID lookup
-	 */
-
-	for(unsigned int i=0;i<itemMap.size();i++) {
-		if (itemMap[i]->name == name) {
-			id = i;
-			break;
-		}
-	}
-
-	if (id == 999999)
-		return -1; //if no such item exists
-
-	/*
-	 * Inventory lookup
-	 */
-
-	for(unsigned int i=0;i<items.size();i++) {
-		if (items[i].id == id) {
-			if (count > items[i].count)
-				return -(items[i].count - count);
-			else{
-				items[i].count -= count;
-				if (!items[i].count)
-					items.erase(items.begin()+i);
-			}
-			return 0;
-		}
-	}
-	return -2;
-}
-
-int Inventory::hasItem(std::string name) {
-	unsigned int id = 999999;
-
-	for(unsigned int i=0;i<itemMap.size();i++) {
-		if (itemMap[i]->name == name) {
-			id = i;
-			break;
-		}
-	}
-
-	if (id == 999999)
-		return 0;
-
-	for(auto &i : items) {
-		if (i.id == id)
-			return i.count;
-	}
-
-	return 0;
 }
 
 void Inventory::setSelection(unsigned int s) {
@@ -216,10 +270,12 @@ void Inventory::draw(void) {
 	float angleB = (float)180/(float)numSlot;
 	float angle = float(angleB/2.0f);
 	unsigned int a = 0;
-	static vec2 mouseStart = {0,0};
+	//static vec2 mouseStart = {0,0};
 	C("End define");
 
 	auto deltaTime = game::time::getDeltaTime();
+	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
 	for (auto &r : iray) {
 		r.start.x = player->loc.x + (player->width  / 2);
@@ -228,16 +284,15 @@ void Inventory::draw(void) {
 	} a = 0;
 
 	for (auto &cr : curRay) {
-		cr.start.x = (offset.x + game::SCREEN_WIDTH / 2);
+		cr.start.x = (offset.x + SCREEN_WIDTH / 2);
 		cr.start.y =  offset.y - (a * itemWide * 1.5f);
 		curCurCoord[a++] = cr.start;
 	} a = 0;
 
 	for (int r = 0; r < 4; r++) {
 		for (int c = 0; c < 8; c++) {
-			massRay[a].x = ((offset.x - game::SCREEN_WIDTH  / 2) + itemWide) + c * itemWide * 1.5f;
-			massRay[a].y = ((offset.y + game::SCREEN_HEIGHT / 2) - itemWide * 1.5f) - r * itemWide * 1.5f;
-			a++;
+			massRay[a  ].x = ((offset.x - SCREEN_WIDTH  / 2) + itemWide) + c * itemWide * 1.5f;
+			massRay[a++].y = ((offset.y + SCREEN_HEIGHT / 2) - itemWide * 1.5f) - r * itemWide * 1.5f;
 		}
 	} a = 0;
 
@@ -317,33 +372,30 @@ void Inventory::draw(void) {
 				glVertex2i(mr.x-(itemWide/2)+itemWide,mr.y-(itemWide/2)+itemWide);
 				glVertex2i(mr.x-(itemWide/2),		 mr.y-(itemWide/2)+itemWide);
 			glEnd();
-			if (!items.empty() && a+numSlot < items.size() && items[a+numSlot].count) {
+			if (!Items.empty() && a+numSlot < Items.size() && Items[a+numSlot].second) {
 				glEnable(GL_TEXTURE_2D);
-				itemMap[items[a + numSlot].id]->tex->bind(0);
+				glBindTexture(GL_TEXTURE_2D, Items[a+numSlot].first->tex->image[0]);//itemtex[items[a+numSlot].id]);
 				glColor4f(1.0f, 1.0f, 1.0f, ((float)massDfp[a]/(float)(massRange?massRange:1))*0.8f);
 				glBegin(GL_QUADS);
-					ivec2 q = {(int)(itemWide / 2 * itemMap[items[a + numSlot].id]->width / itemMap[items[a + numSlot].id]->height), itemWide / 2};
-					if (itemMap[items[a + numSlot].id]->height > itemMap[items[a + numSlot].id]->width) {
-						glTexCoord2i(0, 1);glVertex2i(mr.x - q.x, mr.y - q.y);
-						glTexCoord2i(1, 1);glVertex2i(mr.x + q.x, mr.y - q.y);
-						glTexCoord2i(1, 0);glVertex2i(mr.x + q.x, mr.y + q.y);
-						glTexCoord2i(0, 0);glVertex2i(mr.x - q.x, mr.y + q.y);
-					} else {
-						q.x = itemWide / 2 * itemMap[items[a + numSlot].id]->height / itemMap[items[a+numSlot].id]->width;
-						glTexCoord2i(0, 1);glVertex2i(mr.x - q.y, mr.y - q.x);
-						glTexCoord2i(1, 1);glVertex2i(mr.x + q.y, mr.y - q.x);
-						glTexCoord2i(1, 0);glVertex2i(mr.x + q.y, mr.y + q.x);
-						glTexCoord2i(0, 0);glVertex2i(mr.x - q.y, mr.y + q.x);
+					if (Items[a+numSlot].first->dim.y > Items[a+numSlot].first->dim.x) {
+						glTexCoord2i(0,1);glVertex2i(mr.x-((itemWide/2)*((float)Items[a+numSlot].first->dim.x/(float)Items[a+numSlot].first->dim.y)),	mr.y-(itemWide/2));
+						glTexCoord2i(1,1);glVertex2i(mr.x+((itemWide/2)*((float)Items[a+numSlot].first->dim.x/(float)Items[a+numSlot].first->dim.y)),	mr.y-(itemWide/2));
+						glTexCoord2i(1,0);glVertex2i(mr.x+((itemWide/2)*((float)Items[a+numSlot].first->dim.x/(float)Items[a+numSlot].first->dim.y)),	mr.y+(itemWide/2));
+						glTexCoord2i(0,0);glVertex2i(mr.x-((itemWide/2)*((float)Items[a+numSlot].first->dim.x/(float)Items[a+numSlot].first->dim.y)),	mr.y+(itemWide/2));
+					}else{
+						glTexCoord2i(0,1);glVertex2i(mr.x-(itemWide/2),mr.y-(itemWide/2)*((float)Items[a+numSlot].first->dim.y/(float)Items[a+numSlot].first->dim.x));
+						glTexCoord2i(1,1);glVertex2i(mr.x+(itemWide/2),mr.y-(itemWide/2)*((float)Items[a+numSlot].first->dim.y/(float)Items[a+numSlot].first->dim.x));
+						glTexCoord2i(1,0);glVertex2i(mr.x+(itemWide/2),mr.y+(itemWide/2)*((float)Items[a+numSlot].first->dim.y/(float)Items[a+numSlot].first->dim.x));
+						glTexCoord2i(0,0);glVertex2i(mr.x-(itemWide/2),mr.y+(itemWide/2)*((float)Items[a+numSlot].first->dim.y/(float)Items[a+numSlot].first->dim.x));
 					}
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
-
-				ui::setFontColor(255, 255, 255, (float)massDfp[a] / (float)(massRange ? massRange : 1) * 255);
-				ui::putText(mr.x - itemWide / 2 + itemWide * 0.85f, mr.y - itemWide / 2, "%d", items[a + numSlot].count);
-				ui::setFontColor(255, 255, 255, 255);
+				ui::setFontColor(255,255,255,((float)massDfp[a]/(float)(massRange?massRange:1))*255);
+				ui::putText(mr.x-(itemWide/2)+(itemWide*.85),mr.y-(itemWide/2),"%d",Items[a+numSlot].second);
+				ui::setFontColor(255,255,255,255);
 			}
 			a++;
-		} a = 0;
+		}a=0;
 
 		for(auto &cr : curRay) {
 			curCurCoord[a].x -= float((curdfp[a]) * cos(-1));
@@ -360,7 +412,6 @@ void Inventory::draw(void) {
 			a++;
 		}a=0;
 
-		bool done = false;
 		for(auto &r : iray) {
 			angle = 180 - (angleB * a) - angleB / 2.0f;
 			curCoord[a].x += float((dfp[a]) * cos(angle*PI/180));
@@ -375,30 +426,28 @@ void Inventory::draw(void) {
 				glVertex2i(r.end.x-(itemWide/2),		 r.end.y-(itemWide/2)+itemWide);
 			glEnd();
 
-			if (!done && !items.empty() && a < numSlot && items[a].count) {
+			if (!Items.empty() && a < numSlot && Items[a].second) {
 				glEnable(GL_TEXTURE_2D);
-				itemMap[items[a].id]->tex->bind(0);
+				glBindTexture(GL_TEXTURE_2D, Items[a].first->tex->image[0]);//itemtex[items[a].id]);
 				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)(range?range:1))*0.8f);
 				glBegin(GL_QUADS);
-					if (itemMap[items[a].id]->height > itemMap[items[a].id]->width) {
-						glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
-						glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y-(itemWide/2));
-						glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y+(itemWide/2));
-						glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)itemMap[items[a].id]->width/(float)itemMap[items[a].id]->height)),	r.end.y+(itemWide/2));
-					}else{
-						glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),r.end.y-(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
-						glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),r.end.y-(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
-						glTexCoord2i(1,0);glVertex2i(r.end.x+(itemWide/2),r.end.y+(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
-						glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),r.end.y+(itemWide/2)*((float)itemMap[items[a].id]->height/(float)itemMap[items[a].id]->width));
-					}
+				if (Items[a].first->dim.y > Items[a].first->dim.x) {
+					glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)Items[a].first->dim.x/(float)Items[a].first->dim.y)),	r.end.y-(itemWide/2));
+					glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)Items[a].first->dim.x/(float)Items[a].first->dim.y)),	r.end.y-(itemWide/2));
+					glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)Items[a].first->dim.x/(float)Items[a].first->dim.y)),	r.end.y+(itemWide/2));
+					glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)Items[a].first->dim.x/(float)Items[a].first->dim.y)),	r.end.y+(itemWide/2));
+				}else{
+					glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),r.end.y-(itemWide/2)*((float)Items[a].first->dim.y/(float)Items[a].first->dim.x));
+					glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),r.end.y-(itemWide/2)*((float)Items[a].first->dim.y/(float)Items[a].first->dim.x));
+					glTexCoord2i(1,0);glVertex2i(r.end.x+(itemWide/2),r.end.y+(itemWide/2)*((float)Items[a].first->dim.y/(float)Items[a].first->dim.x));
+					glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),r.end.y+(itemWide/2)*((float)Items[a].first->dim.y/(float)Items[a].first->dim.x));
+				}
 				glEnd();
 				glDisable(GL_TEXTURE_2D);
 				ui::setFontColor(255,255,255,((float)dfp[a]/(float)(range?range:1))*255);
-				ui::putStringCentered(r.end.x,r.end.y-(itemWide*.9),itemMap[items[a].id]->name);
-				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",items[a].count);
+				ui::putStringCentered(r.end.x,r.end.y-(itemWide*.9),Items[a].first->name);//itemMap[items[a].id]->name);
+				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",Items[a].second);
 				ui::setFontColor(255,255,255,255);
-			} else {
-				done = true;
 			}
 
 			if (sel == a) {
@@ -439,7 +488,7 @@ void Inventory::draw(void) {
 			a++;
 		}
 		C("Done drawing standard inv");
-	} else if (invHover) {
+	} /*else if (invHover) {
 		static unsigned int highlight = 0;
 		static unsigned int thing = 0;
 
@@ -494,7 +543,7 @@ void Inventory::draw(void) {
 
 			if (a < items.size() && items[a].count) {
 				glEnable(GL_TEXTURE_2D);
-				itemMap[items[a + numSlot].id]->tex->bind(0);
+				glBindTexture(GL_TEXTURE_2D, itemtex[items[a].id]);
 				glColor4f(1.0f, 1.0f, 1.0f, a == highlight ? 0.8f : 0.2f);
 				glBegin(GL_QUADS);
 					if(itemMap[items[a].id]->height > itemMap[items[a].id]->width){
@@ -520,58 +569,32 @@ void Inventory::draw(void) {
 							      itemMap[items[highlight].id]->name
 						          );
 		}
-	}
-	if (!items.empty() && items.size() > sel && items[sel].count)
-		itemDraw(player,items[sel].id);
+	}*/
+	/*if (!items.empty() && items.size() > sel && items[sel].count)
+		itemDraw(player,items[sel].id);*/
+	if (!Items.empty() && Items.size() > sel && Items[sel].second)
+		itemDraw(player, Items[sel].first);
 }
 
-void itemDraw(Player *p,uint id) {
-	static unsigned char inc = 0;
+void itemDraw(Player *p, Item *d) {
 
 	itemLoc.y = p->loc.y+(p->height/3);
 	itemLoc.x = p->left?p->loc.x:p->loc.x+p->width;
 	glPushMatrix();
 
-	if (!id)return;
-
-	if (itemMap[id]->type == "Sword") {
-		if (p->left) {
-			if (hangle < 15) {
-				hangle=15.0f;
-				p->inv->usingi = false;
-			}
-		}else{
-			if (hangle > -15) {
-				hangle=-15.0f;
-				p->inv->usingi = false;
-			}
-		}
-	} else
-		hangle = 0;
-
-	if (p->inv->usingi)
-		inc = 10;
-
-	if (inc) {
-		inc--;
-		p->inv->useItem();
-	}
-
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	glTranslatef(itemLoc.x,itemLoc.y,0);
-	glRotatef(hangle, 0.0f, 0.0f, 1.0f);
+	glRotatef(d->rotation, 0.0f, 0.0f, 1.0f);
 	glTranslatef(-itemLoc.x,-itemLoc.y,0);
 	glEnable(GL_TEXTURE_2D);
-
-	itemMap[id]->tex->bind(0);
-
+	glBindTexture(GL_TEXTURE_2D,d->tex->image[0]);
 	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
 		glTexCoord2i(0,1);glVertex2f(itemLoc.x,					  itemLoc.y);
-		glTexCoord2i(1,1);glVertex2f(itemLoc.x+itemMap[id]->width,itemLoc.y);
-		glTexCoord2i(1,0);glVertex2f(itemLoc.x+itemMap[id]->width,itemLoc.y+itemMap[id]->height);
-		glTexCoord2i(0,0);glVertex2f(itemLoc.x,					  itemLoc.y+itemMap[id]->height);
+		glTexCoord2i(1,1);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y);
+		glTexCoord2i(1,0);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y+d->dim.y);
+		glTexCoord2i(0,0);glVertex2f(itemLoc.x,			itemLoc.y+d->dim.y);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	glTranslatef(player->loc.x*2,0,0);
@@ -579,62 +602,23 @@ void itemDraw(Player *p,uint id) {
 	glUseProgram(0);
 }
 
+/*
+ *	This function is used to trigger the player's item's ability.
+ */
 int Inventory::useItem(void)
 {
-	static bool up = false;
-
-	if (!invHover) {
-		if (itemMap[items[sel].id]->type == "Sword") {
-			if (swing) {
-				int dir = player->left ? 1 : -1;
-
-				if (hangle == 15 * dir) {
-					up = true;
-					Mix_PlayChannel(2, swordSwing, 0);
-				}
-
-				if (up)
-					hangle += 0.325f * dir * game::time::getDeltaTime();
-
-				if (!player->left) {
-					if (hangle <= -90)
-						hangle = -14;
-				} else if (hangle >= 90)
-						hangle = 14;
-			} else {
-				swing = true;
-				Mix_PlayChannel(2, swordSwing, 0);
-			}
-		}else if (itemMap[items[sel].id]->type == "Cooked Food") {
-			player->health += itemMap[items[sel].id]->attribValue;
-			usingi = false;
-		}
-	}
 	return 0;
+}
+
+int Inventory::useCurrent()
+{
+	if(Items[sel].second)
+		return Items[sel].first->useItem();
+	return -1;
 }
 
 bool Inventory::detectCollision(vec2 one, vec2 two) {
 	(void)one;
 	(void)two;
-	float xc, yc;
-	float i = 0.0f;
-
-	if (items.empty() || !items[sel].count)
-		return false;
-	if (itemMap[items[sel].id]->type == "Sword") {
-		while(i<itemMap[items[sel].id]->height) {
-			xc = itemLoc.x; yc = itemLoc.y;
-			xc += float(i) * cos((hangle+90)*PI/180);
-			yc += float(i) * sin((hangle+90)*PI/180);
-
-			if (xc >= one.x && xc <= two.x) {
-				if (yc >= one.y && yc <= two.y) {
-					return true;
-				}
-			}
-
-			i += game::HLINE;
-		}
-	}
 	return false;
 }

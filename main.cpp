@@ -176,6 +176,15 @@ int main(int argc, char *argv[]){
 
 	glEnable(GL_MULTISAMPLE);
 
+	/*
+	 * Load sprites used in the inventory menu. See src/inventory.cpp
+	 */
+
+	initInventorySprites();
+	// load mouse texture, and other inventory textures
+	mouseTex = Texture::loadTexture("assets/mouse.png");
+
+
 	// read in all XML file names in the folder
 	std::vector<std::string> xmlFiles;
 	if (xmlFolder.empty())
@@ -206,9 +215,9 @@ int main(int argc, char *argv[]){
 	if (currentWorld == NULL)
 		UserError("Plot twist: The world never existed...?");
 
-	// load mouse texture, and other inventory textures
-	mouseTex = Texture::loadTexture("assets/mouse.png");
-	initInventorySprites();
+	/**************************
+	****     GAMELOOP      ****
+	**************************/
 
 	// the main loop, in all of its gloriousness..
 	gameRunning = true;
