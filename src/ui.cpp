@@ -565,7 +565,7 @@ namespace ui {
 		fadeIntensity = 255;
 	}
 
-	void waitForNothing (unsigned int ms) {
+	void waitForNothing(unsigned int ms) {
 		unsigned int target = millis() + ms;
 		while (millis() < target);
 	}
@@ -917,7 +917,7 @@ EXIT:
 		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
 		World *tmp;
-		vec2 oldpos,tmppos;
+		Mob *m; // ;lkjfdsa
 		SDL_Event e;
 
 		// update mouse coords
@@ -1018,43 +1018,45 @@ EXIT:
 						game::time::tick(50);
 						break;
 					case SDLK_a:
-						if (fadeEnable)break;
+						if (fadeEnable)
+							break;
 						player->vel.x = -PLAYER_SPEED_CONSTANT;
 						player->left = left = true;
 						player->right = right = false;
 						if (currentWorldToLeft) {
-							oldpos = player->loc;
-							if ((tmp = currentWorld->goWorldLeft(player)) != currentWorld) {
-								tmppos = player->loc;
-								player->loc = oldpos;
-
-								toggleBlackFast();
-								waitForCover();
-								player->loc = tmppos;
-
-								currentWorld = tmp;
-								toggleBlackFast();
-							}
+							std::thread([&](void){
+								auto thing = currentWorld->goWorldLeft(player);
+								if (thing.first != currentWorld) {
+									player->canMove = false;
+									toggleBlackFast();
+									waitForCover();
+									currentWorld = thing.first;
+									player->loc = thing.second;
+									toggleBlackFast();
+									player->canMove = true;
+								}
+							}).detach();
 						}
 						break;
 					case SDLK_d:
-						if (fadeEnable)break;
+						if (fadeEnable)
+							break;
 						player->vel.x = PLAYER_SPEED_CONSTANT;
 						player->right = right = true;
 						player->left = left = false;
 						if (currentWorldToRight) {
-							oldpos = player->loc;
-							if ((tmp = currentWorld->goWorldRight(player)) != currentWorld) {
-								tmppos = player->loc;
-								player->loc = oldpos;
-
-								toggleBlackFast();
-								waitForCover();
-								player->loc = tmppos;
-
-								currentWorld = tmp;
-								toggleBlackFast();
-							}
+							std::thread([&](void){
+								auto thing = currentWorld->goWorldRight(player);
+								if (thing.first != currentWorld) {
+									player->canMove = false;
+									toggleBlackFast();
+									waitForCover();
+									currentWorld = thing.first;
+									player->loc = thing.second;
+									toggleBlackFast();
+									player->canMove = true;
+								}
+							}).detach();
 						}
 						break;
 					case SDLK_w:
@@ -1135,7 +1137,12 @@ EXIT:
 					debug ^= true;
 					break;
 				case SDLK_z:
-					weather = WorldWeather::Rain;
+					weather = WorldWeather::Snowy;
+					break;
+				case SDLK_x:
+					m = currentWorld->getNearMob(*player);
+					if (m != nullptr)
+						m->ride(player);
 					break;
 				case SDLK_i:
 					if (isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorAbove(player)) {

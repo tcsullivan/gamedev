@@ -281,6 +281,7 @@ public:
 
 class Player : public Entity{
 public:
+	Entity *ride;
 	QuestHandler qh;
 
 	Player();

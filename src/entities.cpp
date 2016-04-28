@@ -331,6 +331,12 @@ void Entity::draw(void)
 			glColor3ub(255, 255, 255);
 		else if (gender == FEMALE)
 			glColor3ub(255, 105, 180);
+	} else if (type == MOBT) {
+		if (Mobp(this)->rider != nullptr) {
+	        Mobp(this)->rider->loc.x = loc.x + width / 2;
+	        Mobp(this)->rider->loc.y = loc.y + height - game::HLINE;
+	        Mobp(this)->rider->vel.y = .12;
+	    }
 	}
 	if (left) {
 		glScalef(-1.0f,1.0f,1.0f);

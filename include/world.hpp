@@ -182,6 +182,8 @@ public:
 	// gets the nearest interactable entity to the given one
 	Entity *getNearInteractable(Entity &e);
 
+	Mob *getNearMob(Entity &e);
+
 	// gets the coordinates of the `index`th structure
 	vec2 getStructurePos(int index);
 
@@ -213,8 +215,8 @@ public:
 	std::string getToRight(void) const;
 
 	// attempts to enter the left/right adjacent world, returning either that world or this
-	World *goWorldLeft(Player *p);
-	World *goWorldRight(Player *p);
+	std::pair<World *, vec2> goWorldLeft(Player *p);
+	std::pair<World *, vec2> goWorldRight(Player *p);
 
 	// attempts to move an NPC to the left adjacent world, returning true on success
 	bool goWorldLeft(NPC *e);
