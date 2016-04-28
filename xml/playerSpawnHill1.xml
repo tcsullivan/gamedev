@@ -9,6 +9,7 @@
 
 	<rabbit x="300" aggressive="true" health="100" />
 	<bird />
+	<cat />
 
 	<trigger x="-300" id="Test" />
 

@@ -1,12 +1,19 @@
 #include <mob.hpp>
 #include <ui.hpp>
 
-Page::Page(void)
+Mob::Mob(void)
 {
     type = MOBT;
+    rider = nullptr;
+    canMove = true;
+}
+
+Page::Page(void) : Mob()
+{
+
+    ridable = false;
     aggressive = false;
     maxHealth = health = 50;
-    canMove = true;
     width = HLINES(6);
     height = HLINES(4);
     tex = new Texturec({"assets/items/ITEM_PAGE.png"});
@@ -39,12 +46,11 @@ void Page::createFromXML(const XMLElement *e)
     pageTexPath = e->StrAttribute("id");
 }
 
-Door::Door(void)
+Door::Door(void) : Mob()
 {
-    type = MOBT;
+    ridable = false;
     aggressive = false;
     maxHealth = health = 50;
-    canMove = true;
     width = HLINES(12);
     height = HLINES(20);
     tex = new Texturec({"assets/door.png"});
@@ -68,10 +74,61 @@ void Door::createFromXML(const XMLElement *e)
         loc.x = Xlocx;
 }
 
-Rabbit::Rabbit(void)
+Cat::Cat(void) : Mob()
 {
-    type = MOBT;
-    canMove = true;
+    ridable = true;
+    aggressive = false;
+    maxHealth = health = 1000;
+    width  = HLINES(19);
+    height = HLINES(15);
+    tex = new Texturec({"assets/cat.png"});
+    actCounterInitial = 0;
+    actCounter = 1;
+}
+
+void Cat::act(void)
+{
+    static float vely = 0;
+    if (rider != nullptr) {
+        if (!rider->ground) {
+            loc.y += HLINES(2);
+            vel.y = .4;
+        }
+        if (rider->speed > 1) {
+            vely = .5;
+        } else if (rider->speed == .5) {
+            vely = -.5;
+        } else {
+            vely = 0;
+        }
+        vel.y = vely;
+        if (!rider->ground) {
+            if ((vel.y -= .015) < -.2)
+                rider->ground = true;
+        }
+        vel.x = .1 * (rider->left ? -1 : 1);
+    } else {
+        vel = 0;
+    }
+}
+
+bool Cat::bindTex(void)
+{
+    glActiveTexture(GL_TEXTURE0);
+    tex->bind(0);
+    return true;
+}
+
+void Cat::createFromXML(const XMLElement *e)
+{
+    float Xlocx;
+    if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
+        loc.x = Xlocx;
+}
+
+Rabbit::Rabbit(void) : Mob()
+{
+    ridable = true;
     aggressive = false;
     maxHealth = health = 50;
     width  = HLINES(10);
@@ -118,12 +175,11 @@ void Rabbit::createFromXML(const XMLElement *e)
         aggressive = false;
 }
 
-Bird::Bird(void)
+Bird::Bird(void) : Mob()
 {
-    type = MOBT;
+    ridable = true;
     aggressive = false;
     maxHealth = health = 50;
-    canMove = true;
     width = HLINES(8);
     height = HLINES(8);
     tex = new Texturec({"assets/robin.png"});
@@ -164,12 +220,11 @@ void Bird::createFromXML(const XMLElement *e)
         aggressive = false;
 }
 
-Trigger::Trigger(void)
+Trigger::Trigger(void) : Mob()
 {
-    type = MOBT;
+    ridable = false;
     aggressive = false;
     maxHealth = health = 50;
-    canMove = true;
     width = HLINES(20);
     height = 2000;
     tex = new Texturec(0);
@@ -231,17 +286,21 @@ void Trigger::createFromXML(const XMLElement *e)
     id = e->StrAttribute("id");
 }
 
-Mob::~Mob() {
+Mob::~Mob()
+{
 	delete inv;
 	delete tex;
 	delete[] name;
 }
 
-void Mob::wander(void) {
+void Mob::wander(void)
+{
 	//static bool YAYA = false;
-	if (forcedMove)
+
+    if (forcedMove)
 		return;
-	/*if (aggressive && !YAYA && isInside(vec2 {player->loc.x + width / 2, player->loc.y + height / 4})) {
+
+    /*if (aggressive && !YAYA && isInside(vec2 {player->loc.x + width / 2, player->loc.y + height / 4})) {
 		if (!ui::dialogBoxExists) {
 			Arena *a = new Arena(currentWorld, player, this);
 			a->setStyle("");
@@ -257,4 +316,15 @@ void Mob::wander(void) {
 		}
 	}*/
     act();
+}
+
+void Mob::ride(Entity *e)
+{
+    if (!ridable)
+        return;
+
+    if (rider == e)
+        rider = nullptr;
+    else
+        rider = e;
 }

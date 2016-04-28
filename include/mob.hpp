@@ -17,13 +17,17 @@ class Mob : public Entity {
 protected:
     unsigned int actCounter;
     unsigned int actCounterInitial;
+    bool ridable;
 public:
+    Entity *rider;
 	bool aggressive;
 	std::string heyid;
 
+    Mob(void);
     ~Mob(void);
 
 	void wander(void);
+    void ride(Entity *e);
     virtual void act(void) =0;
     virtual bool bindTex(void) =0;
     virtual void createFromXML(const XMLElement *e) =0;
@@ -47,6 +51,15 @@ public:
 class Door : public Mob {
 public:
     Door(void);
+
+    void act(void);
+    bool bindTex(void);
+    void createFromXML(const XMLElement *e);
+};
+
+class Cat : public Mob {
+public:
+    Cat(void);
 
     void act(void);
     bool bindTex(void);

@@ -97,7 +97,6 @@ int main(int argc, char *argv[]){
 	atexit(Mix_Quit);
 
 	// update values by reading the config file (config/settings.xml)
-	game::config::update();
 	game::config::read();
 
 	// create the SDL window object

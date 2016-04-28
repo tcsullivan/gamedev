@@ -744,7 +744,7 @@ update(Player *p, unsigned int delta)
         }
 	}
     // iterate through particles
-    particles.erase(std::remove_if(particles.begin(), particles.end(), [&delta](Particles &part){
+    particles.erase(std::remove_if(particles.begin(), particles.end(), [&delta](Particles &part) {
                         return part.kill(delta);
                     }),
                     particles.end());
@@ -813,6 +813,17 @@ getNearInteractable(Entity &e)
 
     return n == std::end(entity) ? nullptr : *n;
 }
+
+Mob *World::
+getNearMob(Entity &e)
+{
+    auto n = std::find_if(std::begin(mob), std::end(mob), [&](Mob *&a) {
+        return e.isNear(*a) && (e.left ? (a->loc.x < e.loc.x + e.width / 2) : (a->loc.x > e.loc.x + e.width / 2));
+    });
+
+    return n == std::end(mob) ? nullptr : *n;
+}
+
 
 /**
  * Get the file path for the `index`th building.
@@ -1042,7 +1053,7 @@ getToRight(void) const
 /**
  * Attempts to go to the left world, returning either that world or itself.
  */
-World *World::
+std::pair<World *, vec2> World::
 goWorldLeft(Player *p)
 {
 	World *tmp;
@@ -1052,34 +1063,28 @@ goWorldLeft(Player *p)
         // load world (`toLeft` conditional confirms existance)
 	    tmp = loadWorldFromPtr(currentWorldToLeft);
 
-        // adjust player location
-		p->loc.x = tmp->worldStart + HLINES(20);
-		p->loc.y = tmp->worldData[tmp->lineCount - 1].groundHeight;
-
-		return tmp;
+        // return pointer and new player coords
+        return std::make_pair(tmp, vec2 {tmp->worldStart + tmp->getTheWidth() - (float)HLINES(15),
+                              tmp->worldData[tmp->lineCount - 1].groundHeight});
 	}
 
-	return this;
+	return std::make_pair(this, vec2 {0, 0});
 }
 
 /**
  * Attempts to go to the right world, returning either that world or itself.
  */
-World *World::
+std::pair<World *, vec2> World::
 goWorldRight(Player *p)
 {
 	World *tmp;
 
 	if (!toRight.empty() && p->loc.x + p->width > -worldStart - HLINES(15)) {
-		tmp = loadWorldFromPtr(currentWorldToRight);
-
-		p->loc.x = tmp->worldStart - HLINES(-15.0);
-		p->loc.y = GROUND_HEIGHT_MINIMUM;
-
-		return tmp;
+        tmp = loadWorldFromPtr(currentWorldToRight);
+        return std::make_pair(tmp, vec2 {tmp->worldStart + (float)HLINES(15.0), GROUND_HEIGHT_MINIMUM} );
 	}
 
-	return this;
+	return std::make_pair(this, vec2 {0, 0});
 }
 
 /**
@@ -1093,7 +1098,7 @@ goWorldLeft(NPC *e)
         currentWorldToLeft->addNPC(e->loc.x,e->loc.y);
         e->die();
 
-		currentWorldToLeft->npc.back()->loc.x = 0;
+        currentWorldToLeft->npc.back()->loc.x = currentWorldToLeft->worldStart + currentWorldToLeft->getTheWidth() - HLINES(15);
 		currentWorldToLeft->npc.back()->loc.y = GROUND_HEIGHT_MAXIMUM;
 
 		return true;
@@ -1715,6 +1720,9 @@ loadWorldFromXMLNoSave(std::string path) {
              tmp->getLastMob()->createFromXML(wxml);
          } else if (name == "page") {
              tmp->addMob(new Page(), vec2 {0, 0});
+             tmp->getLastMob()->createFromXML(wxml);
+         } else if (name == "cat") {
+             tmp->addMob(new Cat(), vec2 {0, 0});
              tmp->getLastMob()->createFromXML(wxml);
          }
 
