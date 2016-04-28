@@ -100,7 +100,7 @@ void items(void)
 
 int Inventory::addItem(std::string name, uint count)
 {
-	std::cout << "Adding: " << count << name << "\'s" << std::endl;
+	std::cout << "Adding: " << count << " " << name << std::endl;
 	for (uint i = 0; i < ItemMap.size(); i++) {
 		if (strCaseCmp(ItemMap[i]->name, name)) {
 			for (auto &it : Items) {

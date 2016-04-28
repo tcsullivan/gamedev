@@ -19,10 +19,21 @@ int BaseItem::useItem()
 int Sword::useItem()
 {
     std::cout << "Swing!" << std::endl;
-	if (player->left)
-		rotation += 10.0f;
-	else
-		rotation -= 10.0f;
+	std::thread([this]{
+		player->inv->usingi = true;
+		bool swing = true;
+		float coef = 0.0f;
+
+		while (swing) {
+			coef += .01f;
+			if (player->left)
+				rotation = coef;
+			else
+				rotation = -coef;
+		}
+		player->inv->usingi = false;
+	}).detach();
+
 	return 0;
 }
 
