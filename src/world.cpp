@@ -48,6 +48,7 @@ static const unsigned int GRASS_HEIGHT = 4;
 // indoor world constants
 static const unsigned int INDOOR_FLOOR_THICKNESS = 50;
 static const unsigned int INDOOR_FLOOR_HEIGHTT = 400;
+const unsigned int INDOOR_FLOOR_HEIGHT = INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS;
 
 // the path of the currently loaded XML file, externally referenced in places
 std::string currentXML;
@@ -59,8 +60,7 @@ WorldWeather weather = WorldWeather::Sunny;
 static std::vector<std::string> inside;
 
 // keeps track of information of worlds the player has left to enter arenas
-static std::vector<World *> battleNest;
-static std::vector<vec2>    battleNestLoc;
+static std::vector<WorldSwitchInfo> arenaNest;
 
 // pathnames of images for world themes
 static const unsigned int BG_PATHS_ENTRY_SIZE = 9;
@@ -1053,7 +1053,7 @@ getToRight(void) const
 /**
  * Attempts to go to the left world, returning either that world or itself.
  */
-std::pair<World *, vec2> World::
+WorldSwitchInfo World::
 goWorldLeft(Player *p)
 {
 	World *tmp;
@@ -1074,7 +1074,7 @@ goWorldLeft(Player *p)
 /**
  * Attempts to go to the right world, returning either that world or itself.
  */
-std::pair<World *, vec2> World::
+WorldSwitchInfo World::
 goWorldRight(Player *p)
 {
 	World *tmp;
@@ -1110,7 +1110,7 @@ goWorldLeft(NPC *e)
 /**
  * Attempts to enter a building that the player is standing in front of.
  */
-std::pair<World *, float> World::
+WorldSwitchInfo World::
 goInsideStructure(Player *p)
 {
 	World *tmp;
@@ -1122,13 +1122,13 @@ goInsideStructure(Player *p)
         auto b = *d;
 
         if ((d == std::end(build)) || b->inside.empty())
-            return std::make_pair(this, 0);
+            return std::make_pair(this, vec2 {0, 0});
 
         // +size cuts folder prefix
 		inside.push_back(&currentXML[xmlFolder.size()]);
 		tmp = loadWorldFromXML(b->inside);
 
-		return std::make_pair(tmp, 0);
+		return std::make_pair(tmp, vec2 {0, 0});
 	} else {
         std::string current = &currentXML[xmlFolder.size()];
 		tmp = loadWorldFromXML(inside.back());
@@ -1143,12 +1143,12 @@ goInsideStructure(Player *p)
         }
 
         if (b == nullptr)
-            return std::make_pair(this, 0);
+            return std::make_pair(this, vec2 {0, 0});
 
-        return std::make_pair(tmp, b->loc.x + (b->width / 2));
+        return std::make_pair(tmp, vec2 {b->loc.x + (b->width / 2), 0});
 	}
 
-	return std::make_pair(this, 0);
+	return std::make_pair(this, vec2 {0, 0});
 }
 
 void World::
@@ -1169,15 +1169,6 @@ addVillage(std::string name, World *world)
     return &village.back();
 }
 
-/*void World::
-addMob(int t, float x, float y)
-{
-	mob.push_back(new new(auto *&t));
-	mob.back()->spawn(x, y);
-
-	entity.push_back(mob.back());
-}*/
-
 void World::addMob(Mob *m, vec2 coord)
 {
     mob.push_back(m);
@@ -1185,16 +1176,6 @@ void World::addMob(Mob *m, vec2 coord)
 
 	entity.push_back(mob.back());
 }
-
-/*void World::
-addMob(int t, float x, float y, void (*hey)(Mob *))
-{
-	mob.push_back(new Mob(t));
-	mob.back()->spawn(x, y);
-	mob.back()->hey = hey;
-
-	entity.push_back(mob.back());
-}*/
 
 void World::
 addNPC(float x, float y)
@@ -1282,15 +1263,6 @@ addHill(const ivec2 peak, const unsigned int width)
 		if (worldData[i].groundHeight > peak.y)
 			worldData[i].groundHeight = peak.y;
 	}
-}
-
-float getIndoorWorldFloorHeight(void)
-{
-    return INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS;
-}
-
-bool isCurrentWorldIndoors(void) {
-    return !inside.empty();
 }
 
 IndoorWorld::IndoorWorld(void) {
@@ -1507,47 +1479,37 @@ draw(Player *p)
 	p->draw();
 }
 
-Arena::Arena(World *leave,Player *p,Mob *m) {
+Arena::Arena(World *leave, Player *p, Mob *m)
+{
 	generate(800);
 	addMob(new Door(), vec2 {100, 100});
 
 	inBattle = true;
-	mmob = m;
+
+	mob.push_back((mmob = m));
+    entity.push_back(mmob);
 	mmob->aggressive = false;
 
-	mob.push_back(m);
-	entity.push_back(mob.back());
-
-	battleNest.push_back(leave);
-	battleNestLoc.push_back(p->loc);
+    arenaNest.emplace_back(leave, p->loc);
 }
 
 Arena::~Arena(void) {
+    mmob->die();
 	deleteEntities();
 }
 
-World *Arena::exitArena(Player *p) {
-	World *tmp;
+WorldSwitchInfo Arena::exitArena(Player *p) {
 	if (!mmob->isAlive() &&
         p->loc.x + p->width / 2 > mob[0]->loc.x &&
 	    p->loc.x + p->width / 2 < mob[0]->loc.x + HLINES(12)) {
-	    tmp = battleNest.front();
-		battleNest.erase(battleNest.begin());
+        auto ret = arenaNest.back();
+        arenaNest.pop_back();
+        inBattle = !(arenaNest.empty());
 
-		inBattle = !battleNest.empty();
-		ui::toggleBlackFast();
-		ui::waitForCover();
+        return ret;
+    }
 
-		p->loc = battleNestLoc.back();
-		battleNestLoc.pop_back();
-
-		mob.clear();
-		mmob->die();
-
-		return tmp;
-	}
-
-    return this;
+    return std::make_pair(this, vec2 {0, 0});
 }
 
 std::string getWorldWeatherStr(WorldWeather ww)

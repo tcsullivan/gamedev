@@ -320,22 +320,13 @@ void render() {
 	glPushMatrix();
 	glLoadIdentity();
 
-	/*
-	 * glPushAttrib		This passes attributes to the renderer so it knows what it can
-	 *					render. In our case, GL_DEPTH_BUFFER_BIT allows the renderer to
-	 *					draw multiple objects on top of one another without blending the
-	 *					objects together; GL_LIGHING_BIT allows the renderer to use shaders
-	 *					and other lighting effects to affect the scene.
-	 *
-	 * glClear 			This clears the new matrices using the type passed. In our case:
-	 *					GL_COLOR_BUFFER_BIT allows the matrices to have color on them
-	 */
-
 	glPushAttrib(GL_DEPTH_BUFFER_BIT);
+
+	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// draw the world
-	player->near = true; // allow player's name to be drawn
+	//player->near = true; // allow player's name to be drawn
 	currentWorld->draw(player);
 
 	// draw the player's inventory

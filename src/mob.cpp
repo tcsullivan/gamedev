@@ -1,5 +1,6 @@
 #include <mob.hpp>
 #include <ui.hpp>
+#include <world.hpp>
 
 Mob::Mob(void)
 {
@@ -138,6 +139,7 @@ Rabbit::Rabbit(void) : Mob()
     actCounter = 1;
 }
 
+extern bool inBattle;
 void Rabbit::act(void)
 {
     static int direction = 0;
@@ -148,6 +150,9 @@ void Rabbit::act(void)
             ticksToUse /= 2;
         vel.x *= direction;
     }
+
+    if (inBattle)
+        die();
 
     if (ground && direction) {
         ground = false;
@@ -293,28 +298,31 @@ Mob::~Mob()
 	delete[] name;
 }
 
+extern World *currentWorld;
 void Mob::wander(void)
 {
-	//static bool YAYA = false;
+	static bool YAYA = false;
 
     if (forcedMove)
 		return;
 
-    /*if (aggressive && !YAYA && isInside(vec2 {player->loc.x + width / 2, player->loc.y + height / 4})) {
+    if (aggressive && !YAYA && isInside(vec2 {player->loc.x + width / 2, player->loc.y + height / 4})) {
 		if (!ui::dialogBoxExists) {
-			Arena *a = new Arena(currentWorld, player, this);
-			a->setStyle("");
-			a->setBackground(WorldBGType::Forest);
-			a->setBGM("assets/music/embark.wav");
+            std::thread([&](void){
+			    auto *a = new Arena(currentWorld, player, this);
+			    a->setStyle("");
+			    a->setBackground(WorldBGType::Forest);
+			    a->setBGM("assets/music/embark.wav");
 
-			ui::toggleWhiteFast();
-			YAYA = true;
-			ui::waitForCover();
-			YAYA = false;
-			currentWorld = a;
-			ui::toggleWhiteFast();
+			    ui::toggleWhiteFast();
+			    YAYA = true;
+			    ui::waitForCover();
+			    YAYA = false;
+			    currentWorld = a;
+			    ui::toggleWhiteFast();
+            }).detach();
 		}
-	}*/
+	}
     act();
 }
 

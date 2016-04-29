@@ -53,6 +53,8 @@ typedef struct {
     unsigned char groundColor;
 } WorldData;
 
+typedef std::pair<World *, vec2> WorldSwitchInfo;
+
 /* ----------------------------------------------------------------------------
 ** Variables section
 ** --------------------------------------------------------------------------*/
@@ -71,6 +73,9 @@ extern const float PLAYER_SPEED_CONSTANT;
 
 // maximum pull of gravity in one game tick
 extern const float GRAVITY_CONSTANT;
+
+// height of the floor in an indoor world
+extern const unsigned int INDOOR_FLOOR_HEIGHT;
 
 /* ----------------------------------------------------------------------------
 ** Classes / function prototypes section
@@ -215,14 +220,14 @@ public:
 	std::string getToRight(void) const;
 
 	// attempts to enter the left/right adjacent world, returning either that world or this
-	std::pair<World *, vec2> goWorldLeft(Player *p);
-	std::pair<World *, vec2> goWorldRight(Player *p);
+	WorldSwitchInfo goWorldLeft(Player *p);
+	WorldSwitchInfo goWorldRight(Player *p);
 
 	// attempts to move an NPC to the left adjacent world, returning true on success
 	bool goWorldLeft(NPC *e);
 
 	// attempts to enter a structure that the player would be standing in front of
-	std::pair<World *, float> goInsideStructure(Player *p);
+	WorldSwitchInfo goInsideStructure(Player *p);
 
 	// adds a hole at the specified start and end x-coordinates
 	void addHole(unsigned int start,unsigned int end);
@@ -235,8 +240,6 @@ public:
 
 	void addMerchant(float x, float y, bool housed);
 
-	//void addMob(int type, float x, float y);
-	//void addMob(int type, float x, float y, void (*hey)(Mob *));
 	void addMob(Mob *m, vec2 coord);
 
 	void addNPC(float x, float y);
@@ -300,41 +303,24 @@ public:
  * transported to a temporary world with the player, and the Mob will be
  * killed upon exiting the arena.
  */
-
 class Arena : public World {
 private:
 
-	/**
-	 * The mob that the player is fighting.
-	 */
-
+	// the mob that the player is fighting
 	Mob *mmob;
 
 public:
 
-	/**
-	 * Creates a world with the player and mob, returning the player to the
-	 * world `leave` upon exit.
-	 */
-
+	// creates the arena with the world being left for it
 	Arena(World *leave, Player *p, Mob *m);
 
-	/**
-	 * Frees resources taken by the arena.
-	 */
-
+	// frees memory
 	~Arena(void);
 
-	/**
-	 * Attempts to exit the world, returning the player to the world they were
-	 * last in.
-	 */
-
-	World *exitArena(Player *p);
+	// attempts to exit the arena, returning what world the player should be in
+	WorldSwitchInfo exitArena(Player *p);
 };
 
-bool  isCurrentWorldIndoors(void);
-float getIndoorWorldFloorHeight(void);
 
 std::string getWorldWeatherStr(WorldWeather ww);
 
