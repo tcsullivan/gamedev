@@ -7,6 +7,7 @@
 // standard library headers
 #include <algorithm>
 #include <sstream>
+#include <fstream>
 
 // local game headers
 #include <ui.hpp>
@@ -29,26 +30,16 @@ extern bool         inBattle;               // ui.cpp?
 extern std::string  xmlFolder;
 
 // externally referenced in main.cpp
-const unsigned int DAY_CYCLE = 12000;
 int worldShade = 0;
 
-// externally referenced in entities.cpp
-const float PLAYER_SPEED_CONSTANT = 0.150f;
-const float GRAVITY_CONSTANT      = 0.001f;
-
 // ground-generating constants
-static const float GROUND_HEIGHT_INITIAL =  80.0f;
-static const float GROUND_HEIGHT_MINIMUM =  60.0f;
-static const float GROUND_HEIGHT_MAXIMUM = 110.0f;
-static const float GROUND_HILLINESS      =  10.0f;
+constexpr const float GROUND_HEIGHT_INITIAL =  80.0f;
+constexpr const float GROUND_HEIGHT_MINIMUM =  60.0f;
+constexpr const float GROUND_HEIGHT_MAXIMUM = 110.0f;
+constexpr const float GROUND_HILLINESS      =  10.0f;
 
 // defines grass height in HLINEs
-static const unsigned int GRASS_HEIGHT = 4;
-
-// indoor world constants
-static const unsigned int INDOOR_FLOOR_THICKNESS = 50;
-static const unsigned int INDOOR_FLOOR_HEIGHTT = 400;
-const unsigned int INDOOR_FLOOR_HEIGHT = INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS;
+constexpr const unsigned int GRASS_HEIGHT = 4;
 
 // the path of the currently loaded XML file, externally referenced in places
 std::string currentXML;
@@ -63,7 +54,7 @@ static std::vector<std::string> inside;
 static std::vector<WorldSwitchInfo> arenaNest;
 
 // pathnames of images for world themes
-static const unsigned int BG_PATHS_ENTRY_SIZE = 9;
+constexpr const unsigned int BG_PATHS_ENTRY_SIZE = 9;
 static const std::string bgPaths[][BG_PATHS_ENTRY_SIZE] = {
     {"bg.png",					// Daytime background
      "bgn.png",					// Nighttime background
@@ -108,11 +99,6 @@ static const float bgDraw[4][3]={
 ** Functions section
 ** --------------------------------------------------------------------------*/
 
-// externs
-extern int  commonAIFunc(NPC *);		// gameplay.cpp
-extern void commonTriggerFunc(Mob *);	// gameplay.cpp
-extern void commonPageFunc(Mob *);		// gameplay.cpp
-
 /**
  * Creates a world object.
  * Note that all this does is nullify a pointer...
@@ -135,7 +121,6 @@ World::
 	if (bgmObj != nullptr)
 		Mix_FreeMusic(bgmObj);
 
-	delete bgTex;
 	deleteEntities();
 }
 
@@ -144,27 +129,27 @@ World::
  * This function will free all memory used by all entities, and then empty the
  * vectors they were stored in.
  */
+template<class T>
+void clearPointerVector(T &vec)
+{
+    while (!vec.empty()) {
+        delete vec.back();
+        vec.pop_back();
+     }
+}
+
 void World::
 deleteEntities(void)
 {
     // free mobs
-    while (!mob.empty()) {
-		delete mob.back();
-		mob.pop_back();
-	}
+    clearPointerVector(mob);
 
     // free npcs
 	merchant.clear(); // TODO
-	while (!npc.empty()) {
-		delete npc.back();
-		npc.pop_back();
-	}
+    clearPointerVector(npc);
 
     // free structures
-	while (!build.empty()) {
-		delete build.back();
-		build.pop_back();
-	}
+    clearPointerVector(build);
 
     // free objects
 	object.clear();
@@ -202,7 +187,7 @@ generate(int width)
 
     // give every GROUND_HILLINESSth entry a groundHeight value
     for (; wditer < std::end(worldData); wditer += GROUND_HILLINESS)
-        (*(wditer - GROUND_HILLINESS)).groundHeight = (*wditer).groundHeight + (getRand() % 8 - 4);
+        (*(wditer - GROUND_HILLINESS)).groundHeight = (*wditer).groundHeight + (randGet() % 8 - 4);
 
     // create slopes from the points that were just defined, populate the rest of the WorldData structure
     for (wditer = std::begin(worldData) + 1; wditer < std::end(worldData); wditer++){
@@ -212,10 +197,10 @@ generate(int width)
             geninc = ((w + static_cast<int>(GROUND_HILLINESS))->groundHeight - w->groundHeight) / GROUND_HILLINESS;
 
         w->groundHeight   = fmin(fmax((w - 1)->groundHeight + geninc, GROUND_HEIGHT_MINIMUM), GROUND_HEIGHT_MAXIMUM);
-        w->groundColor    = getRand() % 32 / 8;
+        w->groundColor    = randGet() % 32 / 8;
         w->grassUnpressed = true;
-        w->grassHeight[0] = (getRand() % 16) / 3 + 2;
-        w->grassHeight[1] = (getRand() % 16) / 3 + 2;
+        w->grassHeight[0] = (randGet() % 16) / 3 + 2;
+        w->grassHeight[1] = (randGet() % 16) / 3 + 2;
     }
 
     // define x-coordinate of world's leftmost 'line'
@@ -224,8 +209,8 @@ generate(int width)
     // create empty star array, should be filled here as well...
 	star = std::vector<vec2> (100, vec2 { 0, 400 });
 	for (auto &s : star) {
-		s.x = (getRand() % (-worldStart * 2)) + worldStart;
-		s.y = (getRand() % game::SCREEN_HEIGHT) + 100;
+		s.x = (randGet() % (-worldStart * 2)) + worldStart;
+		s.y = (randGet() % game::SCREEN_HEIGHT) + 100;
 	}
 }
 
@@ -270,7 +255,7 @@ draw(Player *p)
 	glEnable(GL_TEXTURE_2D);
 
 	// the sunny wallpaper is faded with the night depending on tickCount
-	bgTex->bind(0);
+	bgTex(0);
     switch (weather) {
     case WorldWeather::Snowy:
         alpha = 150;
@@ -291,7 +276,7 @@ draw(Player *p)
 		glTexCoord2i(0, 1); glVertex2i(offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y);
 	glEnd();
 
-	bgTex->bindNext();
+	bgTex++;
 	safeSetColorA(255, 255, 255, !alpha ? 255 : worldShade * 4);
 	glBegin(GL_QUADS);
         glTexCoord2i(0, 0); glVertex2i(offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y);
@@ -304,7 +289,7 @@ draw(Player *p)
 
 	// draw the stars if the time deems it appropriate
 	if (worldShade > 0) {
-		safeSetColorA(255, 255, 255, 255 - (getRand() % 30 - 15));
+		safeSetColorA(255, 255, 255, 255 - (randGet() % 30 - 15));
 
         auto xcoord = offset.x * 0.9f;
 		for (auto &s : star)
@@ -314,7 +299,7 @@ draw(Player *p)
 	// draw remaining background items
 	glEnable(GL_TEXTURE_2D);
 
-	bgTex->bindNext();
+	bgTex++;
 	safeSetColorA(150 + shadeBackground * 2, 150 + shadeBackground * 2, 150 + shadeBackground * 2, 255);
 	glBegin(GL_QUADS); {
         auto xcoord = width / 2 * -1 + offset.x * 0.85f;
@@ -327,7 +312,7 @@ draw(Player *p)
 	} glEnd();
 
 	for (unsigned int i = 0; i < 4; i++) {
-		bgTex->bindNext();
+		bgTex++;
 		safeSetColorA(bgDraw[i][0] + shadeBackground * 2,
                       bgDraw[i][0] + shadeBackground * 2,
                       bgDraw[i][0] + shadeBackground * 2,
@@ -392,7 +377,7 @@ draw(Player *p)
     // draw light elements
     glEnable(GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE0);
-    bgTex->bindNext();
+    bgTex++;
 
     std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
 	auto pointArray = pointArrayBuf.get();
@@ -408,8 +393,9 @@ draw(Player *p)
         }
 	}
 
-    for (unsigned int i = 0; i < light.size(); i++)
+    for (unsigned int i = 0; i < light.size(); i++) {
         flameArray[i] = light[i].fireFlicker;
+    }
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -463,7 +449,7 @@ draw(Player *p)
 	// draw the grass
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
-	bgTex->bindNext();
+	bgTex++;
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
     safeSetColorA(255, 255, 255, 255);
@@ -756,7 +742,7 @@ update(Player *p, unsigned int delta)
 			(*part).loc.y += pa.vel.y * delta;
 			(*part).loc.x += pa.vel.x * delta;
 
-            if (std::any_of(std::begin(build), std::end(build), [pa](Structures *s) {
+            if (std::any_of(std::begin(build), std::end(build), [pa](const Structures *s) {
                     return (s->bsubtype == FOUNTAIN) &&
                            (pa.loc.x >= s->loc.x) && (pa.loc.x <= s->loc.x + s->width) &&
                            (pa.loc.y <= s->loc.y + s->height * 0.25f);
@@ -981,10 +967,10 @@ setBackground(WorldBGType bgt)
     // load textures with a limit check
 	switch ((bgType = bgt)) {
 	case WorldBGType::Forest:
-		bgTex = new Texturec(bgFiles);
+		bgTex = TextureIterator(bgFiles);
 		break;
 	case WorldBGType::WoodHouse:
-		bgTex = new Texturec(bgFilesIndoors);
+		bgTex = TextureIterator(bgFilesIndoors);
 		break;
     default:
         UserError("Invalid world background type");
@@ -1003,14 +989,14 @@ setStyle(std::string pre)
     // get folder prefix
 	std::string prefix = pre.empty() ? "assets/style/classic/" : pre;
 
-    for (s : buildPaths)
+    for (const auto &s : buildPaths)
         sTexLoc.push_back(prefix + s);
 
     prefix += "bg/";
 
-    for (s : bgPaths[0])
+    for (const auto &s : bgPaths[0])
         bgFiles.push_back(prefix + s);
-    for (s : bgPaths[1])
+    for (const auto &s : bgPaths[1])
         bgFilesIndoors.push_back(prefix + s);
 }
 
@@ -1192,8 +1178,9 @@ addMerchant(float x, float y, bool housed)
 	merchant.push_back(new Merchant());
 	merchant.back()->spawn(x, y);
 
-    if (housed)
+    if (housed) {
         merchant.back()->inside = build.back();
+    }
 
 	npc.push_back(merchant.back());
 	entity.push_back(npc.back());
@@ -1228,14 +1215,13 @@ void World::
 addLight(vec2 loc, Color color)
 {
 	if (light.size() < 64)
-        light.push_back(Light(loc, color, 1));
+        light.emplace_back(loc, color, 1);
 }
 
 void World::
 addHole(unsigned int start, unsigned int end)
 {
-    if (end > worldData.size())
-        end = worldData.size();
+    end = fmin(worldData.size(), end);
 
 	for (unsigned int i = start; i < end; i++)
 		worldData[i].groundHeight = 0;
@@ -1255,8 +1241,7 @@ addHill(const ivec2 peak, const unsigned int width)
         start = 0;
     }
 
-	if (end > (signed)worldData.size())
-	  end = worldData.size();
+    end = fmin(worldData.size(), end);
 
 	for (int i = start; i < end; i++) {
 		worldData[i].groundHeight += thing * sin((i - start + offset) * period);
@@ -1269,8 +1254,6 @@ IndoorWorld::IndoorWorld(void) {
 }
 
 IndoorWorld::~IndoorWorld(void) {
-	delete bgTex;
-
 	deleteEntities();
 }
 
@@ -1279,7 +1262,8 @@ addFloor(unsigned int width)
 {
     if (floor.empty())
         generate(width);
-    floor.emplace_back(width, floor.size() * INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS);
+
+    floor.emplace_back(width, floor.size() * INDOOR_FLOOR_HEIGHT);
     fstart.push_back(0);
 }
 
@@ -1289,7 +1273,8 @@ addFloor(unsigned int width, unsigned int start)
 {
     if (floor.empty())
         generate(width);
-    floor.emplace_back(width, floor.size() * INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS);
+
+    floor.emplace_back(width, floor.size() * INDOOR_FLOOR_HEIGHT);
     fstart.push_back(start);
 }
 
@@ -1402,8 +1387,9 @@ draw(Player *p)
         }
 	}
 
-    for(i = 0; i < light.size(); i++)
+    for(i = 0; i < light.size(); i++) {
         flameArray[i] = light[i].fireFlicker;
+    }
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -1421,7 +1407,7 @@ draw(Player *p)
         glUniform1fv(glGetUniformLocation(shaderProgram, "fireFlicker"), light.size(), flameArray);
 	}
 
-	bgTex->bind(0);
+	bgTex(0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
 	glColor4ub(255,255,255,255);
@@ -1445,7 +1431,7 @@ draw(Player *p)
         safeSetColor(150, 100, 50);
         for (f = 0; f < floor.size(); f++) {
             i = 0;
-    		for (h : floor[f]) {
+    		for (const auto &h : floor[f]) {
     			x = worldStart + fstart[f] * HLINE + HLINES(i);
     			glVertex2i(x        , h            );
     			glVertex2i(x + HLINE, h            );
@@ -1724,7 +1710,7 @@ loadWorldFromXMLNoSave(std::string path) {
         else if (name == "structure") {
 			tmp->addStructure((BUILD_SUB) wxml->UnsignedAttribute("type"),
 							   wxml->QueryFloatAttribute("x", &spawnx) != XML_NO_ERROR ?
-							       getRand() % tmp->getTheWidth() / 2.0f : spawnx,
+							       randGet() % tmp->getTheWidth() / 2.0f : spawnx,
 							   100,
 							   wxml->StrAttribute("texture"),
 							   wxml->StrAttribute("inside")

@@ -37,6 +37,49 @@ namespace Texture {
 }
 
 /**
+ * DRAFT texture iterator?
+ */
+class TextureIterator {
+private:
+	std::vector<std::pair<GLuint, std::string>> textures;
+	std::vector<std::pair<GLuint, std::string>>::iterator position;
+public:
+	TextureIterator(void) {
+		position = std::begin(textures);
+	}
+	TextureIterator(const std::vector<std::string> &l) {
+		for (const auto &s : l)
+			textures.emplace_back(Texture::loadTexture(s), s);
+		position = std::begin(textures);
+	}
+	void operator++(int) noexcept {
+		if (++position < std::end(textures))
+			glBindTexture(GL_TEXTURE_2D, (*position).first);
+		else
+			position = std::end(textures) - 1;
+	}
+	void operator--(int) noexcept {
+		if (--position >= std::begin(textures))
+			glBindTexture(GL_TEXTURE_2D, (*position).first);
+		else
+			position = std::begin(textures);
+	}
+	void operator()(const int &index) {
+		if (index < 0 || index > static_cast<int>(textures.size()))
+			throw std::invalid_argument("texture index out of range");
+
+		position = std::begin(textures) + index;
+		glBindTexture(GL_TEXTURE_2D, (*position).first);
+	}
+	const std::string& getTexturePath(const int &index) {
+		if (index < 0 || index > static_cast<int>(textures.size()))
+			throw std::invalid_argument("texture index out of range");
+
+		return textures[index].second;
+	}
+};
+
+/**
  * The Texturec class.
  *
  * This class can handle an array of textures and allows easy binding of those

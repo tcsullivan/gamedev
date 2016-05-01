@@ -17,7 +17,7 @@ Page::Page(void) : Mob()
     maxHealth = health = 50;
     width = HLINES(6);
     height = HLINES(4);
-    tex = new Texturec({"assets/items/ITEM_PAGE.png"});
+    tex = TextureIterator({"assets/items/ITEM_PAGE.png"});
 }
 
 void Page::act(void)
@@ -35,7 +35,7 @@ void Page::act(void)
 bool Page::bindTex(void)
 {
     glActiveTexture(GL_TEXTURE0);
-    tex->bind(0);
+    tex(0);
     return true;
 }
 
@@ -54,7 +54,7 @@ Door::Door(void) : Mob()
     maxHealth = health = 50;
     width = HLINES(12);
     height = HLINES(20);
-    tex = new Texturec({"assets/door.png"});
+    tex = TextureIterator({"assets/door.png"});
 }
 
 void Door::act(void)
@@ -64,7 +64,7 @@ void Door::act(void)
 bool Door::bindTex(void)
 {
     glActiveTexture(GL_TEXTURE0);
-    tex->bind(0);
+    tex(0);
     return true;
 }
 
@@ -82,7 +82,7 @@ Cat::Cat(void) : Mob()
     maxHealth = health = 1000;
     width  = HLINES(19);
     height = HLINES(15);
-    tex = new Texturec({"assets/cat.png"});
+    tex = TextureIterator({"assets/cat.png"});
     actCounterInitial = 0;
     actCounter = 1;
 }
@@ -116,7 +116,7 @@ void Cat::act(void)
 bool Cat::bindTex(void)
 {
     glActiveTexture(GL_TEXTURE0);
-    tex->bind(0);
+    tex(0);
     return true;
 }
 
@@ -134,8 +134,8 @@ Rabbit::Rabbit(void) : Mob()
     maxHealth = health = 50;
     width  = HLINES(10);
     height = HLINES(8);
-    tex = new Texturec({"assets/rabbit.png", "assets/rabbit1.png"});
-    actCounterInitial = getRand() % 240 + 15;
+    tex = TextureIterator({"assets/rabbit.png", "assets/rabbit1.png"});
+    actCounterInitial = randGet() % 240 + 15;
     actCounter = 1;
 }
 
@@ -145,7 +145,7 @@ void Rabbit::act(void)
     static int direction = 0;
     if (!--actCounter) {
         actCounter = actCounterInitial;
-        direction = (getRand() % 3 - 1); 	//sets the direction to either -1, 0, 1
+        direction = (randGet() % 3 - 1); 	//sets the direction to either -1, 0, 1
         if (direction == 0)
             ticksToUse /= 2;
         vel.x *= direction;
@@ -165,7 +165,7 @@ void Rabbit::act(void)
 bool Rabbit::bindTex(void)
 {
     glActiveTexture(GL_TEXTURE0);
-    tex->bind(!ground);
+    tex(!ground);
     return true;
 }
 
@@ -187,7 +187,7 @@ Bird::Bird(void) : Mob()
     maxHealth = health = 50;
     width = HLINES(8);
     height = HLINES(8);
-    tex = new Texturec({"assets/robin.png"});
+    tex = TextureIterator({"assets/robin.png"});
     actCounterInitial = actCounter = 200;
 }
 
@@ -208,7 +208,7 @@ void Bird::act(void)
 bool Bird::bindTex(void)
 {
     glActiveTexture(GL_TEXTURE0);
-    tex->bind(0);
+    tex(0);
     return true;
 }
 
@@ -232,7 +232,7 @@ Trigger::Trigger(void) : Mob()
     maxHealth = health = 50;
     width = HLINES(20);
     height = 2000;
-    tex = new Texturec(0);
+    //tex = TextureIterator();
     triggered = false;
 }
 
@@ -294,7 +294,6 @@ void Trigger::createFromXML(const XMLElement *e)
 Mob::~Mob()
 {
 	delete inv;
-	delete tex;
 	delete[] name;
 }
 

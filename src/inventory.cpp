@@ -1,4 +1,7 @@
 #include <inventory.hpp>
+
+#include <numeric>
+
 #include <entities.hpp>
 #include <ui.hpp>
 #include <gametime.hpp>
@@ -295,6 +298,11 @@ void Inventory::draw(void) {
 			massRay[a++].y = ((offset.y + SCREEN_HEIGHT / 2) - itemWide * 1.5f) - r * itemWide * 1.5f;
 		}
 	} a = 0;
+
+	auto averagef = [](const std::vector<int> &v) {
+		auto sum = std::accumulate(std::begin(v), std::end(v), 0);
+		return sum / v.size();
+	};
 
 	ui::fontTransInv = 255 * (averagef(dfp) / range);
 	if (ui::fontTransInv > 255)

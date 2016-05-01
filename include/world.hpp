@@ -66,16 +66,18 @@ extern int worldShade;
 extern std::string currentXML;
 
 // defines how many game ticks it takes for a day to elapse
-extern const unsigned int DAY_CYCLE;
+constexpr const unsigned int DAY_CYCLE = 12000;
 
 // velocity of player when moved by user
-extern const float PLAYER_SPEED_CONSTANT;
+constexpr const float PLAYER_SPEED_CONSTANT = 0.15f;
 
 // maximum pull of gravity in one game tick
-extern const float GRAVITY_CONSTANT;
+constexpr const float GRAVITY_CONSTANT = 0.001f;
 
 // height of the floor in an indoor world
-extern const unsigned int INDOOR_FLOOR_HEIGHT;
+constexpr const unsigned int INDOOR_FLOOR_THICKNESS = 50;
+constexpr const unsigned int INDOOR_FLOOR_HEIGHTT = 400;
+constexpr const unsigned int INDOOR_FLOOR_HEIGHT = (INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS);
 
 /* ----------------------------------------------------------------------------
 ** Classes / function prototypes section
@@ -110,7 +112,7 @@ protected:
 	int worldStart;
 
 	// holds / handles textures for background elements
-	Texturec *bgTex;
+	TextureIterator bgTex;
 
 	// defines what type of background is being used
 	WorldBGType bgType;

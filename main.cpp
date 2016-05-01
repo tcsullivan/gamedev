@@ -22,6 +22,9 @@ using namespace tinyxml2;
 ** Variables section
 ** --------------------------------------------------------------------------*/
 
+// the game's window title name
+constexpr const char *GAME_NAME = "Independent Study v0.7 alpha - NOW WITH lights and snow and stuff";
+
 // the current weather, declared in world.cpp
 extern WorldWeather weather;
 
@@ -125,7 +128,7 @@ int main(int argc, char *argv[]){
 		UserError(std::string("GLEW was not able to initialize! Error: ") + reinterpret_cast<const char *>(glewGetErrorString(err)));
 
 	// start the random number generator
-	initRand(millis());
+	randInit(millis());
 
 	// 'basic' OpenGL setup
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -196,7 +199,7 @@ int main(int argc, char *argv[]){
 	strVectorSortAlpha(&xmlFiles);
 
 	// load the first valid XML file for the world
-	for (xf : xmlFiles) {
+	for (const auto &xf : xmlFiles) {
 		if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
 			// read it in
 			std::cout << "File to load: " << xf << '\n';
