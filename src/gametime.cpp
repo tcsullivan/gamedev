@@ -3,11 +3,13 @@
 #include <common.hpp>
 
 static unsigned int tickCount = 0;
-static unsigned int deltaTime = 1;
+static float deltaTime = 1;
 
 // millisecond timers
 static unsigned int currentTime = 0;
-static unsigned int prevTime, prevPrevTime;
+static unsigned int prevTime;
+
+static float accum = 0.0f;
 
 namespace game {
     namespace time {
@@ -41,8 +43,9 @@ namespace game {
         }
 
         bool tickHasPassed(void) {
-            if (prevPrevTime + MSEC_PER_TICK <= currentTime) {
-        		prevPrevTime = currentTime;
+            accum += deltaTime;
+            if (accum > MSEC_PER_TICK) {
+        		accum = 0.0f;
                 return true;
         	}
 

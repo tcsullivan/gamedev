@@ -32,10 +32,10 @@ typedef unsigned int uint;
 #endif
 
 // the number of ticks that should occur in one second
-constexpr const unsigned int TICKS_PER_SEC = 20;
+const unsigned int TICKS_PER_SEC = 20;
 
 // the number of milliseconds inbetween each tick
-constexpr const float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
+const float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
 
 // segfault-debugging output
 //#define SEGFAULT

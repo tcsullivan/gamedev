@@ -37,7 +37,7 @@ const char *randomDialog[RAND_DIALOG_COUNT] = {
 	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
 	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
 	"Frig.",
-	"The sine of theta equals the opposite over the hypotenuese.",
+	"The sine of theta equals the opposite over the hdaypotenuese.",
 	"Did you know the developers spelt brazier as brazzier.",
 	"What's a bagel? I don't know because I'm mormon"
 };
@@ -263,7 +263,7 @@ Object::Object() {
 	canMove = false;
 
 	maxHealth = health = 1;
-	
+
 	inv = NULL;
 }
 

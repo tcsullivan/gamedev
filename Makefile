@@ -40,6 +40,7 @@ $(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
 	@echo "  CXX/LD  main"
 	@$(CXX) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/*.o $(LIBS)
 	@rm -rf xml/*.dat
+	@rm -rf storyXML/*.dat
 
 $(CXXOUTDIR)/%.o: $(CXXSRCDIR)/%.cpp
 	@echo "  CXX    " $<

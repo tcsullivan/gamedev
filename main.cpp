@@ -132,7 +132,7 @@ int main(int argc, char *argv[]){
 
 	// 'basic' OpenGL setup
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetSwapInterval(0); // v-sync
+	SDL_GL_SetSwapInterval(1); // v-sync
 	SDL_ShowCursor(SDL_DISABLE); // hide the mouse
 	glViewport(0, 0, game::SCREEN_WIDTH, game::SCREEN_HEIGHT);
 	glEnable(GL_BLEND);
@@ -224,8 +224,12 @@ int main(int argc, char *argv[]){
 
 	// the main loop, in all of its gloriousness..
 	gameRunning = true;
-	while (gameRunning)
+	std::thread([&]{while (gameRunning)
 		mainLoop();
+	}).detach();
+
+	while(gameRunning)
+		render();
 
     // free library resources
     Mix_HaltMusic();
@@ -262,33 +266,32 @@ void mainLoop(void){
 
 	game::time::mainLoopHandler();
 
-	if (currentMenu)
-		goto MENU;
+	if (currentMenu) {
+		return;
+	} else {
+		// handle keypresses - currentWorld could change here
+		prev = currentWorld;
+		ui::handleEvents();
 
-	// handle keypresses - currentWorld could change here
-	prev = currentWorld;
-	ui::handleEvents();
+		if(prev != currentWorld){
+			currentWorld->bgmPlay(prev);
+			ui::dialogBoxExists = false;
+		}
 
-	if(prev != currentWorld){
-		currentWorld->bgmPlay(prev);
-		ui::dialogBoxExists = false;
+		if (game::time::tickHasPassed())
+			logic();
+
+		currentWorld->update(player, game::time::getDeltaTime());
+		currentWorld->detect(player);
+
+		if (++debugDiv == 20) {
+			debugDiv=0;
+
+			fps = 1000 / game::time::getDeltaTime();
+			if (!(debugDiv % 10))
+				debugY = player->loc.y;
+		}
 	}
-
-	if (game::time::tickHasPassed())
-		logic();
-
-	currentWorld->update(player, game::time::getDeltaTime());
-	currentWorld->detect(player);
-
-	if (++debugDiv == 20) {
-		debugDiv=0;
-
-		fps = 1000 / game::time::getDeltaTime();
-		if (!(debugDiv % 10))
-			debugY = player->loc.y;
-	}
-MENU:
-	render();
 }
 
 void render() {
