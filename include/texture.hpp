@@ -13,13 +13,11 @@
  * When defined, DEBUG allows extra messages to be printed to the terminal for
  * debugging purposes.
  */
-
 #define DEBUG
 
 /**
  * Texture functions are given a namespace for better organization.
  */
-
 namespace Texture {
 
 	/**

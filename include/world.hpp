@@ -180,6 +180,9 @@ public:
 	// gets the world's width in TODO
 	int getTheWidth(void) const;
 
+	// gets the starting x coordinate of the world
+	float getWorldStart(void) const;
+
 	// gets a pointer to the most recently added light
 	Light *getLastLight(void);
 
@@ -305,6 +308,7 @@ public:
  * transported to a temporary world with the player, and the Mob will be
  * killed upon exiting the arena.
  */
+
 class Arena : public World {
 private:
 
@@ -323,21 +327,18 @@ public:
 	WorldSwitchInfo exitArena(Player *p);
 };
 
-
 std::string getWorldWeatherStr(WorldWeather ww);
 
 /**
  * Loads the player into the world created by the given XML file. If a world is
  * already loaded it will be saved before the transition is made.
  */
-
 World *loadWorldFromXML(std::string path);
 
 /**
  * Loads the player into the XML-scripted world, but does not save data from the
  * previous world if one was loaded.
  */
-
 World *loadWorldFromXMLNoSave(std::string path);
 
 World *loadWorldFromPtr(World *ptr);

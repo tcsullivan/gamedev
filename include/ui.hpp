@@ -136,7 +136,7 @@ namespace ui {
 	void waitForDialog(void);
 
 	bool pageExists(void);
-	void drawPage(std::string path);
+	void drawPage(const GLuint& tex);
 
 	void dontTypeOut(void);
 	/*

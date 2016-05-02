@@ -187,16 +187,16 @@ generate(int width)
 
     // give every GROUND_HILLINESSth entry a groundHeight value
     for (; wditer < std::end(worldData); wditer += GROUND_HILLINESS)
-        (*(wditer - GROUND_HILLINESS)).groundHeight = (*wditer).groundHeight + (randGet() % 8 - 4);
+        wditer[-static_cast<int>(GROUND_HILLINESS)].groundHeight = wditer[0].groundHeight + (randGet() % 8 - 4);
 
     // create slopes from the points that were just defined, populate the rest of the WorldData structure
     for (wditer = std::begin(worldData) + 1; wditer < std::end(worldData); wditer++){
         auto w = &*(wditer);
 
         if (w->groundHeight != 0)
-            geninc = ((w + static_cast<int>(GROUND_HILLINESS))->groundHeight - w->groundHeight) / GROUND_HILLINESS;
+            geninc = (w[static_cast<int>(GROUND_HILLINESS)].groundHeight - w->groundHeight) / GROUND_HILLINESS;
 
-        w->groundHeight   = fmin(fmax((w - 1)->groundHeight + geninc, GROUND_HEIGHT_MINIMUM), GROUND_HEIGHT_MAXIMUM);
+        w->groundHeight   = std::clamp(w[-1].groundHeight + geninc, GROUND_HEIGHT_MINIMUM, GROUND_HEIGHT_MAXIMUM);
         w->groundColor    = randGet() % 32 / 8;
         w->grassUnpressed = true;
         w->grassHeight[0] = (randGet() % 16) / 3 + 2;
@@ -555,7 +555,7 @@ singleDetect(Entity *e)
 					break;
 				case MOBT:
 					killed = "mob";
-                    // TODO
+					mob.erase(std::find(std::begin(mob), std::end(mob), e));
 					break;
 				case OBJECTT:
 					killed = "object";
@@ -583,8 +583,7 @@ singleDetect(Entity *e)
         e->handleHits();
 
 		// calculate the line that this entity is currently standing on
-		l = static_cast<int>(fmax((e->loc.x + e->width / 2 - worldStart) / game::HLINE, 0));
-		l = static_cast<int>(fmin(l, lineCount - 1));
+        l = std::clamp(static_cast<int>((e->loc.x + e->width / 2 - worldStart) / game::HLINE), 0, static_cast<int>(lineCount - 1));
 
 		// if the entity is under the world/line, pop it back to the surface
 		if (e->loc.y < worldData[l].groundHeight) {
@@ -614,9 +613,9 @@ singleDetect(Entity *e)
 		}
 
 		// insure that the entity doesn't fall off either edge of the world.
-		if (e->loc.x < worldStart) {
+        if (e->loc.x < worldStart) {
 			e->vel.x = 0;
-			e->loc.x = worldStart + game::HLINE / 2;
+			e->loc.x = worldStart + HLINES(0.5f);
 		} else if (e->loc.x + e->width + game::HLINE > worldStart + worldStart * -2) {
 			e->vel.x = 0;
 			e->loc.x = worldStart + worldStart * -2 - e->width - game::HLINE;
@@ -766,6 +765,12 @@ getTheWidth(void) const
 	return (worldStart * -2);
 }
 
+float World::
+getWorldStart(void) const
+{
+    return static_cast<float>(worldStart);
+}
+
 /**
  * Get a pointer to the most recently created light.
  * Meant to be non-constant.
@@ -834,6 +839,12 @@ getStructurePos(int index)
     return build[index]->loc;
 }
 
+template<typename T>
+void appVal(const T &x, std::string &str)
+{
+    str.append(std::to_string(static_cast<int>(x)) + "\n");
+}
+
 /**
  * Saves world data to a file.
  */
@@ -846,28 +857,41 @@ void World::save(void){
 
     // save npcs
 	for (auto &n : npc) {
-		data.append(std::to_string(n->dialogIndex) + "\n");
-		data.append(std::to_string((int)n->loc.x) + "\n");
-		data.append(std::to_string((int)n->loc.y) + "\n");
+        appVal(n->dialogIndex, data);
+        appVal(n->loc.x, data);
+        appVal(n->loc.y, data);
 	}
 
     // save structures
 	for (auto &b : build) {
-		data.append(std::to_string((int)b->loc.x) + "\n");
-		data.append(std::to_string((int)b->loc.y) + "\n");
+        appVal(b->loc.x, data);
+        appVal(b->loc.y, data);
 	}
 
     // save mobs
 	for (auto &m : mob) {
-		data.append(std::to_string((int)m->loc.x) + "\n");
-		data.append(std::to_string((int)m->loc.y) + "\n");
-		data.append(std::to_string((int)m->isAlive()) + "\n");
+        appVal(m->loc.x, data);
+        appVal(m->loc.y, data);
+		appVal(m->isAlive(), data);
 	}
 
     // wrap up
 	data.append("dOnE\0");
 	out.write(data.data(), data.size());
 	out.close();
+}
+
+template<typename T>
+bool getVal(T &x, std::istringstream &iss)
+{
+    std::string str;
+    std::getline(iss, str);
+
+    if (str == "dOnE")
+        return false;
+
+    x = std::stoi(str);
+    return true;
 }
 
 void World::load(void){
@@ -880,42 +904,29 @@ void World::load(void){
 	std::istringstream iss (data);
 
 	for(auto &n : npc){
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		if ((n->dialogIndex = std::stoi(line)) != 9999)
+        if (!getVal(n->dialogIndex, iss)) return;
+		if (n->dialogIndex != 9999)
 			n->addAIFunc(false);
 
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		n->loc.x = std::stoi(line);
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		n->loc.y = std::stoi(line);
+        if (!getVal(n->loc.x, iss)) return;
+        if (!getVal(n->loc.y, iss)) return;
 	}
 
 	for(auto &b : build){
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		b->loc.x = std::stoi(line);
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		b->loc.y = std::stoi(line);
+        if (!getVal(b->loc.x, iss)) return;
+        if (!getVal(b->loc.y, iss)) return;
 	}
 
+    bool alive = true;
 	for(auto &m : mob){
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		m->loc.x = std::stoi(line);
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-		m->loc.y = std::stoi(line);
-		std::getline(iss,line);
-		if(line == "dOnE")return;
-        if (!std::stoi(line))
+        if (!getVal(m->loc.x, iss)) return;
+        if (!getVal(m->loc.y, iss)) return;
+		if (!getVal(alive, iss)) return;
+		if (!alive)
             m->die();
 	}
 
-	while(std::getline(iss,line)){
+	while (std::getline(iss,line)) {
 		if(line == "dOnE")
 			break;
 	}

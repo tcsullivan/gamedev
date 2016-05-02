@@ -288,10 +288,11 @@ void mainLoop(void){
 			debugDiv=0;
 
 			fps = 1000 / game::time::getDeltaTime();
-			if (!(debugDiv % 10))
-				debugY = player->loc.y;
+			debugY = player->loc.y;
 		}
 	}
+
+	SDL_Delay(1);
 }
 
 void render() {

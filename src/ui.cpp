@@ -605,8 +605,8 @@ namespace ui {
 	}
 
 
-	void drawPage(std::string path) {
-		pageTex = Texture::loadTexture(path);
+	void drawPage(const GLuint& tex) {
+		pageTex = tex;
 		pageTexReady = true;
 	}
 

@@ -2,6 +2,8 @@
 #include <ui.hpp>
 #include <world.hpp>
 
+extern World *currentWorld;
+
 Mob::Mob(void)
 {
     type = MOBT;
@@ -18,6 +20,7 @@ Page::Page(void) : Mob()
     width = HLINES(6);
     height = HLINES(4);
     tex = TextureIterator({"assets/items/ITEM_PAGE.png"});
+    pageTexture = 0;
 }
 
 void Page::act(void)
@@ -25,7 +28,7 @@ void Page::act(void)
     if (player->loc.x > loc.x - 100 && player->loc.x < loc.x + 100 && isInside(ui::mouse) &&
         (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT))) {
         std::thread([this](void){
-            ui::drawPage(pageTexPath);
+            ui::drawPage(pageTexture);
             ui::waitForDialog();
             die();
         }).detach();
@@ -45,6 +48,7 @@ void Page::createFromXML(const XMLElement *e)
     if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
         loc.x = Xlocx;
     pageTexPath = e->StrAttribute("id");
+    pageTexture = Texture::loadTexture(pageTexPath);
 }
 
 Door::Door(void) : Mob()
@@ -79,7 +83,7 @@ Cat::Cat(void) : Mob()
 {
     ridable = true;
     aggressive = false;
-    maxHealth = health = 1000;
+    maxHealth = health = 100000;
     width  = HLINES(19);
     height = HLINES(15);
     tex = TextureIterator({"assets/cat.png"});
@@ -143,22 +147,24 @@ extern bool inBattle;
 void Rabbit::act(void)
 {
     static int direction = 0;
-    if (!--actCounter) {
-        actCounter = actCounterInitial;
-        direction = (randGet() % 3 - 1); 	//sets the direction to either -1, 0, 1
-        if (direction == 0)
-            ticksToUse /= 2;
-        vel.x *= direction;
-    }
 
-    if (inBattle)
+    if (inBattle) {
         die();
+    } else {
+        if (!--actCounter) {
+            actCounter = actCounterInitial;
+            direction = (randGet() % 3 - 1); 	//sets the direction to either -1, 0, 1
+            if (direction == 0)
+                ticksToUse /= 2;
+            vel.x *= direction;
+        }
 
-    if (ground && direction) {
-        ground = false;
-        vel.y = .15;
-        loc.y += HLINES(0.25f);
-        vel.x = 0.05f * direction;
+        if (ground && direction) {
+            ground = false;
+            vel.y = .15;
+            loc.y += HLINES(0.25f);
+            vel.x = 0.05f * direction;
+        }
     }
 }
 
@@ -194,15 +200,21 @@ Bird::Bird(void) : Mob()
 void Bird::act(void)
 {
     static bool direction = false;
-    auto deltaTime = game::time::getDeltaTime();
+    static const float wstart = currentWorld->getWorldStart();
+
     if (!--actCounter) {
         actCounter = actCounterInitial;
         direction ^= 1;
     }
 
+    if (loc.x > -wstart - HLINES(10.0f))
+        loc.x = wstart + HLINES(10.0f);
+    else if (loc.x < wstart + HLINES(10.0f))
+        loc.x = -wstart - HLINES(10.0f);
+
     if (loc.y <= initialY)
-        vel.y = 0.02f * deltaTime;
-    vel.x = (direction ? -0.02f : 0.02f) * deltaTime;
+        vel.y = 0.3f;
+    vel.x = direction ? -0.3f : 0.3f;
 }
 
 bool Bird::bindTex(void)

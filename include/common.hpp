@@ -154,7 +154,6 @@ void safeSetColor(int r,int g,int b);
  */
 void safeSetColorA(int r,int g,int b,int a);
 
-
 // use our own millis function if we can, windows doesn't like <chrono> at the moment...
 #ifdef __WIN32__
 #define millis() SDL_GetTicks()
@@ -173,5 +172,15 @@ const char *readFile(const char *path);
 
 // aborts the program, printing the given error
 void UserError(std::string reason);
+
+namespace std {
+	template<class T>
+	constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
+		if (v < hi)
+			return (v > lo) ? v : lo;
+		else
+			return (v < hi) ? v : hi;
+	}
+}
 
 #endif // COMMON_H
