@@ -254,6 +254,12 @@ public:
 	// causes the entity to take a player-inflicted hit
 	void takeHit(unsigned int _health, unsigned int cooldown);
 
+	// returns the amount of cool down before next hit
+	unsigned int coolDown();
+
+	// set the cool down
+	void setCooldown(unsigned int c);
+
 	// handles hits if they've been taken
 	void handleHits(void);
 

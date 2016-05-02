@@ -186,6 +186,8 @@ public:
 	// gets a pointer to the most recently added mob
 	Mob *getLastMob(void);
 
+	std::vector<Entity*> getMobs(void);
+
 	// gets the nearest interactable entity to the given one
 	Entity *getNearInteractable(Entity &e);
 

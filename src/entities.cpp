@@ -111,18 +111,38 @@ void Entity::spawn(float x, float y)
 
 void Entity::takeHit(unsigned int _health, unsigned int cooldown)
 {
-	// modify variables
-	health = fmax(health - _health, 0);
-	forcedMove = true;
-	hitCooldown = cooldown;
+	if (hitCooldown <= 1) {
+		// modify variables
+		health = fmax(health - _health, 0);
+		forcedMove = true;
+		hitCooldown = cooldown;
 
-	// pushback
-	vel.x = player->left ? -0.5f : 0.5f;
-	vel.y = 0.2f;
+		// pushback
+		vel.x = player->left ? -0.5f : 0.5f;
+		vel.y = 0.2f;
+	}
 }
+
+unsigned int Entity::coolDown()
+{
+	return hitCooldown;
+}
+
+void Entity::setCooldown(unsigned int c)
+{
+	hitCooldown = c;
+}
+
+
 
 void Entity::handleHits(void)
 {
+	int c = hitCooldown - game::time::getDeltaTime();
+	if (c >= 0)
+		hitCooldown = c;
+	else
+		hitCooldown = 0;
+
 	if (!forcedMove)
 		return;
 

@@ -291,6 +291,7 @@ void mainLoop(void){
 			if (!(debugDiv % 10))
 				debugY = player->loc.y;
 		}
+		SDL_Delay(1);
 	}
 }
 

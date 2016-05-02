@@ -964,9 +964,11 @@ EXIT:
 						dialogAdvance();
 				} else {
 					// left click uses item
-					if (e.button.button & SDL_BUTTON_LEFT)
-						if(!player->inv->usingi)
-							player->inv->useCurrent();
+					if (e.button.button & SDL_BUTTON_LEFT) {
+						player->inv->currentAddInteract(currentWorld->getMobs());
+						player->inv->useCurrent();
+					}
+
 				}
 
 				if(mouse.x > player->loc.x && mouse.x < player->loc.x + player->width &&

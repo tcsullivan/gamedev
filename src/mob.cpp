@@ -54,7 +54,7 @@ Door::Door(void) : Mob()
     maxHealth = health = 50;
     width = HLINES(12);
     height = HLINES(20);
-    tex = TextureIterator({"assets/door.png"});
+    tex = TextureIterator({"assets/style/classic/door.png"});
 }
 
 void Door::act(void)

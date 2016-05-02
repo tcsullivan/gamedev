@@ -41,6 +41,8 @@ void items(void)
 	XMLElement *exml = xml.FirstChildElement("item");
 	XMLElement *cxml = xml.FirstChildElement("currency");
 
+	Sword *tmpSword = new Sword();
+
 	while (cxml) {
 
 		// NEWEWEWEWEWEWEWEW
@@ -60,7 +62,8 @@ void items(void)
 		// if the type is a sword
 		} else if (strCaseCmp(name, "sword")) {
 
-			ItemMap.push_back(new Sword());
+			tmpSword->setDamage(exml->FloatAttribute("damage"));
+			ItemMap.push_back(tmpSword->clone());
 
 		// if the type is a bow
 		} else if (strCaseCmp(name, "bow")) {
@@ -68,7 +71,7 @@ void items(void)
 			ItemMap.push_back(new Bow());
 
 		// uncooked / raw food
-		} else if (strCaseCmp(name, "rawfood")) {
+		} else if (strCaseCmp(name, "raw food")) {
 
 			ItemMap.push_back(new RawFood());
 
@@ -587,14 +590,20 @@ void Inventory::draw(void) {
 void itemDraw(Player *p, Item *d) {
 
 	itemLoc.y = p->loc.y+(p->height/3);
-	itemLoc.x = p->left?p->loc.x:p->loc.x+p->width;
+	itemLoc.x = p->left?p->loc.x-d->dim.x/2:p->loc.x+p->width-d->dim.x/2;
 	glPushMatrix();
 
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
-	glTranslatef(itemLoc.x,itemLoc.y,0);
-	glRotatef(d->rotation, 0.0f, 0.0f, 1.0f);
-	glTranslatef(-itemLoc.x,-itemLoc.y,0);
+	if (p->left) {
+		glTranslatef(itemLoc.x+d->dim.x/2,itemLoc.y,0);
+		glRotatef(d->rotation, 0.0f, 0.0f, 1.0f);
+		glTranslatef(-itemLoc.x-d->dim.x/2,-itemLoc.y,0);
+	} else {
+		glTranslatef(itemLoc.x+d->dim.x/2,itemLoc.y,0);
+		glRotatef(d->rotation, 0.0f, 0.0f, 1.0f);
+		glTranslatef(-itemLoc.x-d->dim.x/2,-itemLoc.y,0);
+	}
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,d->tex->image[0]);
 	glColor4ub(255,255,255,255);
@@ -620,9 +629,21 @@ int Inventory::useItem(void)
 
 int Inventory::useCurrent()
 {
-	if(Items[sel].second)
+	if (Items[sel].second)
 		return Items[sel].first->useItem();
 	return -1;
+}
+
+void Inventory::currentAddInteract(Entity* e)
+{
+	if (Items[sel].second)
+		Items[sel].first->addInteract(e);
+}
+
+void Inventory::currentAddInteract(std::vector<Entity*> e)
+{
+	if (Items[sel].second)
+		Items[sel].first->addInteract(e);
 }
 
 bool Inventory::detectCollision(vec2 one, vec2 two) {
