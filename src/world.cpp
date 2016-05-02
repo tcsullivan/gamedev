@@ -636,11 +636,13 @@ detect(Player *p)
 	int l;
 
 	// handle the player
-	std::thread(&World::singleDetect, this, p).detach();
+    singleDetect(p);
+	//std::thread(&World::singleDetect, this, p).detach();
 
     // handle other entities
 	for (auto &e : entity)
-		std::thread(&World::singleDetect, this, e).detach();
+    singleDetect(e);
+		//std::thread(&World::singleDetect, this, e).detach();
 
     // handle particles
 	for (auto &part : particles) {
@@ -789,6 +791,16 @@ Mob *World::
 getLastMob(void)
 {
     return mob.back();
+}
+
+std::vector<Entity*> World::
+getMobs(void)
+{
+    std::vector<Entity*> meme;
+    for (auto &m : mob) {
+        meme.push_back(m);
+    }
+    return meme;
 }
 
 /**

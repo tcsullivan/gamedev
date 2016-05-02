@@ -18,11 +18,68 @@ int BaseItem::useItem()
 
 int Sword::useItem()
 {
-    std::cout << "Swing!" << std::endl;
-	if (player->left)
-		rotation += 10.0f;
-	else
-		rotation -= 10.0f;
+    if (inUse())
+		return -1;
+
+	std::thread([this]{
+		setUse(true);
+		volatile bool swing = true;
+		bool back = false;
+		float coef = 0.0f;
+
+		while (swing) {
+
+			// handle swinging
+			if (!back)
+				coef += .8f;
+			else
+				coef -= .4f;
+
+			if (player->left)
+				rotation = coef;
+			else
+				rotation = -coef;
+
+			if (coef > 80 && !back)
+				back = true;
+
+			if (coef <= 0 && back) {
+				swing = false;
+				coef = 0.0f;
+				rotation = 0.0f;
+			}
+
+			if (!back) {
+				// handle collision with interaction
+				hitbox.start.y = player->loc.y+(player->height/3);
+				hitbox.start.x = player->left ? player->loc.x : player->loc.x + player->width;
+
+				for (auto &e : interact) {
+					float dist = 0.0f;
+					while (dist < dim.y) {
+						hitbox.end = hitbox.start;
+						hitbox.end.x += dist * cos(rotation*PI/180);
+						hitbox.end.y += dist * sin(rotation*PI/180);
+
+						if (hitbox.end.x > e->loc.x && hitbox.end.x < e->loc.x + e->width) {
+							if (hitbox.end.y > e->loc.y && hitbox.end.y < e->loc.y + e->height) {
+								e->takeHit(damage, 600);
+							}
+						}
+
+						dist += HLINES(1);
+					}
+				}
+			}
+
+			// add a slight delay
+			SDL_Delay(1);
+		}
+		for (auto &e : interact)
+			e->setCooldown(0);
+		setUse(false);
+	}).detach();
+
 	return 0;
 }
 
@@ -81,9 +138,26 @@ RawFood* RawFood::clone()
 *                      ITEM                       *
 **************************************************/
 
-Item::~Item()
+bool Item::inUse()
 {
-	delete tex;
+	return beingUsed;
+}
+
+void Item::setUse(bool use)
+{
+	beingUsed = use;
+}
+
+void Item::addInteract(Entity* e)
+{
+	interact.push_back(e);
+}
+
+void Item::addInteract(std::vector<Entity*> e)
+{
+	for (auto &v : e) {
+		interact.push_back(v);
+	}
 }
 
 GLuint Item::rtex()
@@ -96,6 +170,11 @@ GLuint Item::rtex(int n)
 	return tex->image[n];
 }
 
+Item::~Item()
+{
+	delete tex;
+}
+
 /**************************************************
 *                      SWORD                      *
 **************************************************/
@@ -103,6 +182,11 @@ GLuint Item::rtex(int n)
 float Sword::getDamage()
 {
 	return damage;
+}
+
+void Sword::setDamage(float d)
+{
+	damage = d;
 }
 
 /**************************************************

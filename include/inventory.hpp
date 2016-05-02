@@ -8,11 +8,17 @@
 
 #define DEBUG
 
+class Entity;
+
 /**
  *	The base item class
  *	This stores the name, width, height, and texture(s)
  */
 class Item {
+private:
+	bool beingUsed;
+
+	std::vector<Entity*> interact;
 public:
 	// what we want to call each item
 	std::string name;
@@ -28,6 +34,16 @@ public:
 
 	// how much the item is rotated in the hand
 	float rotation = 0.0f;
+
+	// return if the item is currently in use
+	virtual bool inUse();
+
+	// set the state of the item
+	virtual void setUse(bool use);
+
+	// add entities to the list of those being interacted
+	virtual void addInteract(Entity* e);
+	virtual void addInteract(std::vector<Entity*> e);
 
 	/**
 	 *	The function we use to call the child classes ability
@@ -73,6 +89,8 @@ private:
 	 */
 	float damage;
 
+	Ray hitbox;
+
 //can touch this
 public:
 	/**
@@ -81,6 +99,9 @@ public:
 	 */
 	//TODO move
 	float getDamage();
+
+	// set the damage of the sword
+	void setDamage(float d);
 
 	/**
 	 *	handles the swinging of the sword
@@ -187,6 +208,8 @@ public:
 	~Inventory(void);			// Free's allocated memory
 
 	int useCurrent();
+	void currentAddInteract(Entity* e);
+	void currentAddInteract(std::vector<Entity*> e);
 
 	int addItem(std::string name,uint count);
 	int takeItem(std::string name,uint count);

@@ -1,12 +1,17 @@
 <?xml version="1.0"?>
 
+<!-- CURRENCY -->
 <currency name="Abe Lincoln" value="1" sprite="assets/items/coin1.png"/>
 <currency name="George Washington" value="25" sprite="assets/items/coin2.png"/>
 <currency name="Barack Hussein Obama" value="100" sprite="assets/items/coin3.png"/>
 
+<!-- OLD ITEMS -->
 <item name="Debug"          type="Tool"         value="10" maxStackSize="1"   width="1"  height="1"  sprite="assets/items/ITEM_TEST.png" />
 <item name="Dank MayMay"    type="Tool"         value="10" maxStackSize="420" width="10" height="10" sprite="assets/items/ITEM_TEST.png" />
 <item name="Your Bag"       type="Equip"        value="32" maxStackSize="1"   width="5"  height="5"  sprite="assets/items/ITEM_TEST.png" />
 <item name="Flashlight"     type="Tool"         value="1"  maxStackSize="1"   width="4"  height="8"  sprite="assets/items/flashlight_off.png" />
-<item name="Wood Sword"     type="Sword"        value="69" maxStackSize="1"   width="4"  height="10" sprite="assets/items/SWORD_WOOD.png" />
-<item name="Fried Chicken"  type="Cooked Food"  value="10" maxStackSize="6"   width="4"  height="6"  sprite="assets/items/FOOD_CHICKEN_FRIED.png" />
+<item name="Fried Chicken"  type="Cooked Food"  value="10" maxStackSize="6" sprite="assets/items/FOOD_CHICKEN_FRIED.png" />
+
+<!-- NEW ITEMS -->
+<item name="Wood Sword"     type="Sword"        damage="69" maxStackSize="1" sprite="assets/items/SWORD_WOOD.png" />
+<item name="Clyne is shit bow" type="Bow"       damage="10" maxStackSize="1" sprite="assets/items/bow.png"/>
