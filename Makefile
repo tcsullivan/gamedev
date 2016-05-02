@@ -12,7 +12,7 @@ ifeq ($(TARGET_OS),win32)
 	       -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
 endif
 
-CXXFLAGS = -g -m$(TARGET_BITS) -std=c++17
+CXXFLAGS = -g -m$(TARGET_BITS) -std=c++1z
 CXXINC   = -Iinclude -Iinclude/freetype
 CXXWARN  = -Wall -Wextra -Werror -pedantic-errors
 
@@ -40,6 +40,7 @@ $(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
 	@echo "  CXX/LD  main"
 	@$(CXX) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/*.o $(LIBS)
 	@rm -rf xml/*.dat
+	@rm -rf storyXML/*.dat
 
 $(CXXOUTDIR)/%.o: $(CXXSRCDIR)/%.cpp
 	@echo "  CXX    " $<

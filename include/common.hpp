@@ -10,14 +10,9 @@
 
 // holy moly
 #include <iostream>
-#include <cstdlib>
 #include <string>
 #include <vector>
-#include <string>
-#include <fstream>
 #include <thread>
-#include <mutex>
-#include <future>
 #include <cmath>
 #include <algorithm>
 
@@ -29,55 +24,30 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 
+#include <config.hpp>
+
 #ifdef __WIN32__
 typedef unsigned int uint;
 #undef near
 #endif
 
-/**
- * Defines how many game ticks should occur in one second, affecting how often
- * game logic is handled.
- */
+// the number of ticks that should occur in one second
+const unsigned int TICKS_PER_SEC = 20;
 
-#define TICKS_PER_SEC 20
+// the number of milliseconds inbetween each tick
+const float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
 
-/**
- * Defines how many milliseconds each game tick will take.
- */
-
-#define MSEC_PER_TICK (1000 / TICKS_PER_SEC)
-
-/**
- * This flag lets the compuler know that we are testing for segfault locations.
- * If this flag is enabled, the function C(x) will print 'x' to terminal
- */
-
+// segfault-debugging output
 //#define SEGFAULT
 
-/**
- * This flag lets the compiler know that we want to use shaders.
- */
+#ifdef SEGFAULT
+#define C(x) std::cout << x << std::endl
+#else
+#define C(x)
+#endif
 
-#define SHADERS
-
-template<typename N>
-N abso(N v) {
-	if (v < 0) {
-		return v * -1;
-	}else
-		return v;
-}
-
-template<class A>
-float averagef(A v) {
-	float avg = 0;
-	for(auto &a : v) {
-		avg += a;
-	}
-	avg /= v.size();
-	return avg;
-}
-
+// printf's a message to the console with file/line info
+#define DEBUG_printf(message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__)
 
 extern GLuint colorIndex;	// Texture.cpp?
 
@@ -89,6 +59,8 @@ typedef struct {
 	int x;
 	int y;
 } ivec2;
+
+typedef ivec2 dim2;
 
 struct _vec2 {
 	float x;
@@ -115,8 +87,6 @@ typedef struct {
 	float z;
 } vec3;
 
-typedef ivec2 dim2;
-
 /**
  * This structure contains two sets of coordinates for ray drawing.
  */
@@ -126,140 +96,82 @@ typedef struct {
 	vec2 end;
 } Ray;
 
-struct col {
+struct _color {
 	float red;
 	float green;
 	float blue;
-	col operator-=(float a) {
+	_color operator-=(float a) {
 		red-=a;
 		green-=a;
 		blue-=a;
 		return{red+a,green+a,blue+a};
 	}
-	col operator+=(float a) {
+	_color operator+=(float a) {
 		return{red+a,green+a,blue+a};
 	}
-	col operator=(float a) {
+	_color operator=(float a) {
 		return{red=a,green=a,blue=a};
 	}
 };
 
-typedef col Color;
+typedef struct _color Color;
 
-/**
- * Define the game's name (displayed in the window title).
- */
+// gets the length of `n` HLINEs
+template<typename T>
+inline T HLINES(const T &n)
+{
+	return (static_cast<T>(game::HLINE) * n);
+}
 
-#define GAME_NAME		"Independent Study v0.7 alpha - NOW WITH lights and snow and stuff"
-
-extern bool uiLoop;
-extern std::mutex mtx;
-
-/**
- * Define the length of a single HLINE.
- * The game has a great amount of elements that need to be drawn or detected, and having each
- * of them use specific hard-coded numbers would be painful to debug. As a solution, this
- * definition was made. Every item being drawn to the screen and most object detection/physic
- * handling is done based off of this number. Increasing it will give the game a zoomed-in
- * feel, while decreasing it will do the opposite.
- *
- */
-
-#define HLINES(n) (static_cast<int>(game::HLINE * n))
-
-/**
- * A 'wrapper' for libc's srand(), as we hope to eventually have our own random number
- * generator.
- */
-
-#define initRand(s) srand(s)
-
-
-
-/**
- * A 'wrapper' for libc's rand(), as we hope to eventually have our own random number
- * generator.
- */
-
-#define getRand() rand()
-
-#define randGet     rand
+// random number generator initializer (TODO decide how to random gen. numbers)
 #define randInit    srand
 
-/**
- * Included in common.h is a prototype for DEBUG_prints, which writes a formatted
- * string to the console containing the callee's file and line number. This macro simplifies
- * it to a simple printf call.
- *
- * DEBUG must be defined for this macro to function.
- */
+// gets random number
+#define randGet     rand
 
-#define DEBUG_printf(message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__)
-
-#ifdef SEGFAULT
-#define C(x) std::cout << x << std::endl
-#else
-#define C(x)
-#endif
-
-/**
- * Defines pi for calculations that need it.
- */
-
-#define PI 3.1415926535
-
+// defines pi for calculations that need it.
+constexpr const float PI = 3.1415926535f;
 
 // references the variable in main.cpp, used for drawing with the player
 extern vec2 offset;
 
-// counts the number of times logic() (see main.cpp) has been called, for animating sprites
-extern unsigned int loops;
-
+// the shader program created in main.cpp
 extern GLuint shaderProgram;
 
 /**
  *	Prints a formatted debug message to the console, along with the callee's file and line
  *	number.
  */
-
 void DEBUG_prints(const char* file, int line, const char *s,...);
 
 /**
  * Sets color using glColor3ub(), but handles potential overflow.
  */
-
 void safeSetColor(int r,int g,int b);
 
 /**
  * Sets color using glColor4ub(), but handles potential overflow.
  */
-
 void safeSetColorA(int r,int g,int b,int a);
 
 
-/**
- * We've encountered many problems when attempting to create delays for triggering
- * the logic function. As a result, we decided on using the timing libraries given
- * by <chrono> in the standard C++ library. This function simply returns the amount
- * of milliseconds that have passed since the epoch.
- */
-
+// use our own millis function if we can, windows doesn't like <chrono> at the moment...
 #ifdef __WIN32__
-#define millis()	SDL_GetTicks()
+#define millis() SDL_GetTicks()
 #else
 unsigned int millis(void);
 #endif // __WIN32__
 
+// reads the names of files in a directory into the given string vector
 int getdir(std::string dir, std::vector<std::string> &files);
+
+// sorts a vector of strings alphabetically
 void strVectorSortAlpha(std::vector<std::string> *v);
 
+// reads the given file into a buffer and returns a pointer to the buffer
 const char *readFile(const char *path);
 
-int strCreateFunc(const char *equ);
-
-template<typename N, size_t s>
-size_t arrAmt(N (&)[s]) {return s;}
-
+// aborts the program, printing the given error
 void UserError(std::string reason);
 
 #endif // COMMON_H

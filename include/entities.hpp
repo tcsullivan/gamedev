@@ -230,10 +230,7 @@ public:
 	GENDER  gender;
 
 	// a texture handler for the entity
-	Texturec *tex;
-
-	// TODO
-	Texturec *ntex;
+	TextureIterator tex;
 
 	// draws the entity to the screen
 	void draw(void);

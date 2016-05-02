@@ -22,6 +22,9 @@ using namespace tinyxml2;
 ** Variables section
 ** --------------------------------------------------------------------------*/
 
+// the game's window title name
+constexpr const char *GAME_NAME = "Independent Study v0.7 alpha - NOW WITH lights and snow and stuff";
+
 // the current weather, declared in world.cpp
 extern WorldWeather weather;
 
@@ -125,11 +128,11 @@ int main(int argc, char *argv[]){
 		UserError(std::string("GLEW was not able to initialize! Error: ") + reinterpret_cast<const char *>(glewGetErrorString(err)));
 
 	// start the random number generator
-	initRand(millis());
+	randInit(millis());
 
 	// 'basic' OpenGL setup
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetSwapInterval(0); // v-sync
+	SDL_GL_SetSwapInterval(1); // v-sync
 	SDL_ShowCursor(SDL_DISABLE); // hide the mouse
 	glViewport(0, 0, game::SCREEN_WIDTH, game::SCREEN_HEIGHT);
 	glEnable(GL_BLEND);
@@ -196,7 +199,7 @@ int main(int argc, char *argv[]){
 	strVectorSortAlpha(&xmlFiles);
 
 	// load the first valid XML file for the world
-	for (xf : xmlFiles) {
+	for (const auto &xf : xmlFiles) {
 		if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
 			// read it in
 			std::cout << "File to load: " << xf << '\n';
@@ -221,8 +224,12 @@ int main(int argc, char *argv[]){
 
 	// the main loop, in all of its gloriousness..
 	gameRunning = true;
-	while (gameRunning)
+	std::thread([&]{while (gameRunning)
 		mainLoop();
+	}).detach();
+
+	while(gameRunning)
+		render();
 
     // free library resources
     Mix_HaltMusic();
@@ -259,33 +266,32 @@ void mainLoop(void){
 
 	game::time::mainLoopHandler();
 
-	if (currentMenu)
-		goto MENU;
+	if (currentMenu) {
+		return;
+	} else {
+		// handle keypresses - currentWorld could change here
+		prev = currentWorld;
+		ui::handleEvents();
 
-	// handle keypresses - currentWorld could change here
-	prev = currentWorld;
-	ui::handleEvents();
+		if(prev != currentWorld){
+			currentWorld->bgmPlay(prev);
+			ui::dialogBoxExists = false;
+		}
 
-	if(prev != currentWorld){
-		currentWorld->bgmPlay(prev);
-		ui::dialogBoxExists = false;
+		if (game::time::tickHasPassed())
+			logic();
+
+		currentWorld->update(player, game::time::getDeltaTime());
+		currentWorld->detect(player);
+
+		if (++debugDiv == 20) {
+			debugDiv=0;
+
+			fps = 1000 / game::time::getDeltaTime();
+			if (!(debugDiv % 10))
+				debugY = player->loc.y;
+		}
 	}
-
-	if (game::time::tickHasPassed())
-		logic();
-
-	currentWorld->update(player, game::time::getDeltaTime());
-	currentWorld->detect(player);
-
-	if (++debugDiv == 20) {
-		debugDiv=0;
-
-		fps = 1000 / game::time::getDeltaTime();
-		if (!(debugDiv % 10))
-			debugY = player->loc.y;
-	}
-MENU:
-	render();
 }
 
 void render() {
@@ -320,22 +326,13 @@ void render() {
 	glPushMatrix();
 	glLoadIdentity();
 
-	/*
-	 * glPushAttrib		This passes attributes to the renderer so it knows what it can
-	 *					render. In our case, GL_DEPTH_BUFFER_BIT allows the renderer to
-	 *					draw multiple objects on top of one another without blending the
-	 *					objects together; GL_LIGHING_BIT allows the renderer to use shaders
-	 *					and other lighting effects to affect the scene.
-	 *
-	 * glClear 			This clears the new matrices using the type passed. In our case:
-	 *					GL_COLOR_BUFFER_BIT allows the matrices to have color on them
-	 */
-
 	glPushAttrib(GL_DEPTH_BUFFER_BIT);
+
+	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// draw the world
-	player->near = true; // allow player's name to be drawn
+	//player->near = true; // allow player's name to be drawn
 	currentWorld->draw(player);
 
 	// draw the player's inventory

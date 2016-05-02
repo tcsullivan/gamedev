@@ -2,6 +2,7 @@
 
 #include <istream>
 #include <sstream>
+#include <fstream>
 
 #include <ui.hpp>
 #include <world.hpp>
@@ -36,12 +37,12 @@ const char *randomDialog[RAND_DIALOG_COUNT] = {
 	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
 	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
 	"Frig.",
-	"The sine of theta equals the opposite over the hypotenuese.",
+	"The sine of theta equals the opposite over the hdaypotenuese.",
 	"Did you know the developers spelt brazier as brazzier.",
 	"What's a bagel? I don't know because I'm mormon"
 };
 
-void getRandomName(Entity *e)
+void randGetomName(Entity *e)
 {
 	unsigned int tempNum,max=0;
 	char *bufs;
@@ -105,7 +106,7 @@ void Entity::spawn(float x, float y)
 	if (type == MOBT)
 		name[0] = '\0';
 	else
-		getRandomName(this);
+		randGetomName(this);
 }
 
 void Entity::takeHit(unsigned int _health, unsigned int cooldown)
@@ -163,21 +164,21 @@ Player::Player(){ //sets all of the player specific traits on object creation
 	speed = 1;
 	canMove = true;
 
-	tex = new Texturec(9, 	"assets/player/playerk.png",
-							"assets/player/playerk1.png",
-							"assets/player/playerk2.png",
-							"assets/player/playerk3.png",
-							"assets/player/playerk4.png",
-							"assets/player/playerk5.png",
-							"assets/player/playerk6.png",
-							"assets/player/playerk7.png",
-							"assets/player/playerk8.png");
-							
+	tex = TextureIterator({"assets/player/playerk.png",
+						   "assets/player/playerk1.png",
+						   "assets/player/playerk2.png",
+						   "assets/player/playerk3.png",
+						   "assets/player/playerk4.png",
+						   "assets/player/playerk5.png",
+						   "assets/player/playerk6.png",
+						   "assets/player/playerk7.png",
+						   "assets/player/playerk8.png"
+					       });
+
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
 Player::~Player() {
 	delete inv;
-	delete tex;
 	delete[] name;
 }
 
@@ -193,7 +194,7 @@ NPC::NPC() {	//sets all of the NPC specific traits on object creation
 	maxHealth = health = 100;
 	canMove = true;
 
-	tex = new Texturec(1,"assets/NPC.png");
+	tex = TextureIterator({"assets/NPC.png"});
 	inv = new Inventory(NPC_INV_SIZE);
 
 	randDialog = rand() % RAND_DIALOG_COUNT - 1;
@@ -203,7 +204,6 @@ NPC::NPC() {	//sets all of the NPC specific traits on object creation
 NPC::~NPC()
 {
 	delete inv;
-	delete tex;
 	delete[] name;
 }
 
@@ -233,12 +233,8 @@ Merchant::Merchant() {	//sets all of the Merchant specific traits on object crea
 }
 
 Merchant::~Merchant() {
-	/*while(!aiFunc.empty()) {
-		aiFunc.pop_back();
-	}*/
 	delete inside;
 	//delete inv;
-	//delete tex;
 	//delete[] name;
 }
 
@@ -254,8 +250,6 @@ Structures::Structures() { //sets the structure type
 	canMove = false;
 }
 Structures::~Structures() {
-	delete tex;
-
 	if (name)
 		delete[] name;
 }
@@ -270,7 +264,6 @@ Object::Object() {
 
 	maxHealth = health = 1;
 
-	tex = NULL;
 	inv = NULL;
 }
 
@@ -287,19 +280,15 @@ Object::Object(std::string in, std::string pd) {
 	height = getItemHeight(in);
 
 	maxHealth = health = 1;
-	tex = new Texturec(1,getItemTexturePath(in));
+	tex = TextureIterator({getItemTexturePath(in)});
 	inv = NULL;
 }
 Object::~Object() {
-	delete tex;
 	delete[] name;
 }
 
 void Object::reloadTexture(void) {
-	if (tex)
-		delete tex;
-
-	tex = new Texturec(1,getItemTexturePath(iname));
+	tex = TextureIterator({getItemTexturePath(iname)});
 	width  = getItemWidth(iname);
 	height = getItemHeight(iname);
 }
@@ -352,17 +341,17 @@ void Entity::draw(void)
 		if (speed && !(game::time::getTickCount() % ((2.0f/speed) < 1 ? 1 : (int)((float)2.0f/(float)speed)))) {
 			if (++texState==9)texState=1;
 			glActiveTexture(GL_TEXTURE0);
-			tex->bind(texState);
+			tex(texState);
 		}
 		if (!ground) {
 			glActiveTexture(GL_TEXTURE0 + 0);
-			tex->bind(0);
+			tex(0);
 		}else if (vel.x) {
 			glActiveTexture(GL_TEXTURE0 + 0);
-			tex->bind(texState);
+			tex(texState);
 		}else{
 			glActiveTexture(GL_TEXTURE0 + 0);
-			tex->bind(0);
+			tex(0);
 		}
 		break;
 	case MOBT:
@@ -373,7 +362,7 @@ void Entity::draw(void)
 		/* fall through */
 	default:
 		glActiveTexture(GL_TEXTURE0);
-		tex->bind(0);
+		tex(0);
 		break;
 	}
 
@@ -429,7 +418,7 @@ wander(int timeRun)
 		ticksToUse = timeRun;
 
 		vel.x = HLINES(0.008);
-		direction = (getRand() % 3 - 1);
+		direction = (randGet() % 3 - 1);
 
 		if (direction == 0)
 			ticksToUse *= 2;
@@ -622,7 +611,7 @@ void Merchant::wander(int timeRun) {
 		ticksToUse = timeRun;
 
 		vel.x = HLINES(0.008);
-		direction = (getRand() % 3 - 1);
+		direction = (randGet() % 3 - 1);
 
 		if (direction == 0)
 			ticksToUse *= 2;
@@ -745,20 +734,20 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y) {
 	 *	will spawn bewteen 2 and 7 villagers for the starting hut.
 	*/
 
-	//unsigned int tempN = (getRand() % 5 + 2);
+	//unsigned int tempN = (randGet() % 5 + 2);
 
 	if (textureLoc.empty())
 		textureLoc = inWorld->getSTextureLocation(sub);
 
 	switch(sub) {
 		case STALL_MARKET:
-			tex = new Texturec({ textureLoc });
+			tex = TextureIterator({ textureLoc });
 			dim = Texture::imageDim(textureLoc);
 			width = dim.x;
 			height = dim.y;
 			break;
 		default:
-			tex = new Texturec({ textureLoc });
+			tex = TextureIterator({ textureLoc });
 			dim = Texture::imageDim(textureLoc);
 			width = dim.x;
 			height = dim.y;

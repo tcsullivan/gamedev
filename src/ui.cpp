@@ -916,8 +916,9 @@ EXIT:
 		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-		World *tmp;
+		auto indoor = dynamic_cast<IndoorWorld *>(currentWorld);
 		Mob *m; // ;lkjfdsa
+
 		SDL_Event e;
 
 		// update mouse coords
@@ -1013,7 +1014,6 @@ EXIT:
 
 				// only let other keys be handled if dialog allows it
 				} else if (!dialogBoxExists || dialogPassive) {
-					tmp = currentWorld;
 					switch(SDL_KEY) {
 					case SDLK_t:
 						game::time::tick(50);
@@ -1062,23 +1062,33 @@ EXIT:
 						break;
 					case SDLK_w:
 						if (inBattle) {
-							tmp = currentWorld;
-							currentWorld = ((Arena *)currentWorld)->exitArena(player);
-							if (tmp != currentWorld)
-								toggleBlackFast();
+							std::thread([&](void){
+								auto thing = dynamic_cast<Arena *>(currentWorld)->exitArena(player);
+								if (thing.first != currentWorld) {
+									player->canMove = false;
+									toggleBlackFast();
+									waitForCover();
+									//delete dynamic_cast<Arena *>(currentWorld);
+									currentWorld = thing.first;
+									player->loc = thing.second;
+									toggleBlackFast();
+									player->canMove = true;
+								}
+							}).detach();
 						} else {
-							auto tmpp = currentWorld->goInsideStructure(player);
-
-							if (tmpp.first != currentWorld) {
-								ui::toggleBlackFast();
-								ui::waitForCover();
-
-								currentWorld = tmpp.first;
-								if (tmpp.second)
-									player->loc.x = tmpp.second;
-
-								ui::toggleBlackFast();
-							}
+							std::thread([&](void){
+								auto thing = currentWorld->goInsideStructure(player);
+								if (thing.first != currentWorld) {
+									player->canMove = false;
+									toggleBlackFast();
+									waitForCover();
+									currentWorld = thing.first;
+									if (thing.second.x)
+										player->loc.x = thing.second.x;
+									toggleBlackFast();
+									player->canMove = true;
+								}
+							}).detach();
 						}
 						break;
 					case SDLK_LSHIFT:
@@ -1112,15 +1122,6 @@ EXIT:
 					default:
 						break;
 					}
-
-					// handle world switches?
-					if (tmp != currentWorld) {
-						std::swap(tmp, currentWorld);
-						toggleBlackFast();
-						waitForCover();
-						std::swap(tmp, currentWorld);
-						toggleBlackFast();
-					}
 				}
 				break;
 			/*
@@ -1146,14 +1147,14 @@ EXIT:
 						m->ride(player);
 					break;
 				case SDLK_i:
-					if (isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorAbove(player)) {
-						player->loc.y += getIndoorWorldFloorHeight();
+					if (indoor && indoor->isFloorAbove(player)) {
+						player->loc.y += INDOOR_FLOOR_HEIGHT;
 						player->ground = false;
 					}
 					break;
 				case SDLK_k:
-					if (isCurrentWorldIndoors() && Indoorp(currentWorld)->isFloorBelow(player)) {
-						player->loc.y -= getIndoorWorldFloorHeight();
+					if (indoor && indoor->isFloorBelow(player)) {
+						player->loc.y -= INDOOR_FLOOR_HEIGHT;
 						player->ground = false;
 					}
 					break;

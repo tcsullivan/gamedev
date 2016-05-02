@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cstdio>
 #include <chrono>
+#include <fstream>
 
 #ifndef __WIN32__
 
