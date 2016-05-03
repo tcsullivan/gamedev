@@ -64,15 +64,8 @@ void randGetomName(Entity *e)
 
 	names.close();
 
-	switch(bufs[0]) {
-	default :
-	case 'm':
-		e->gender = MALE;
-		break;
-	case 'f':
-		e->gender = FEMALE;
-		break;
-	}
+	// gender is a binary construct
+	e->gender = (bufs[0] == 'm') ? MALE : FEMALE;
 
 	strcpy(e->name, bufs + 1);
 
@@ -343,7 +336,7 @@ void Entity::draw(void)
 			glColor3ub(255, 105, 180);
 	} else if (type == MOBT) {
 		if (Mobp(this)->rider != nullptr) {
-	        Mobp(this)->rider->loc.x = loc.x + width / 2;
+			Mobp(this)->rider->loc.x = loc.x + width * 0.25f;
 	        Mobp(this)->rider->loc.y = loc.y + height - game::HLINE;
 	        Mobp(this)->rider->vel.y = .12;
 	    }

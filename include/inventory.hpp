@@ -17,9 +17,10 @@ class Entity;
 class Item {
 private:
 	bool beingUsed;
-
+protected:
 	std::vector<Entity*> interact;
 public:
+
 	// what we want to call each item
 	std::string name;
 

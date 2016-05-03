@@ -1488,26 +1488,31 @@ draw(Player *p)
 	p->draw();
 }
 
-Arena::Arena(World *leave, Player *p, Mob *m)
+Arena::Arena(void)
 {
 	generate(800);
 	addMob(new Door(), vec2 {100, 100});
+}
 
-	inBattle = true;
+Arena::~Arena(void)
+{
+    mmob->die();
+	deleteEntities();
+}
 
-	mob.push_back((mmob = m));
+void Arena::fight(World *leave, const Player *p, Mob *m)
+{
+    inBattle = true;
+
+    mob.push_back((mmob = m));
     entity.push_back(mmob);
 	mmob->aggressive = false;
 
     arenaNest.emplace_back(leave, p->loc);
 }
 
-Arena::~Arena(void) {
-    mmob->die();
-	deleteEntities();
-}
-
-WorldSwitchInfo Arena::exitArena(Player *p) {
+WorldSwitchInfo Arena::exitArena(Player *p)
+{
 	if (!mmob->isAlive() &&
         p->loc.x + p->width / 2 > mob[0]->loc.x &&
 	    p->loc.x + p->width / 2 < mob[0]->loc.x + HLINES(12)) {

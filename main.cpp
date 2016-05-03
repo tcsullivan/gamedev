@@ -39,6 +39,9 @@ World *currentWorld        = NULL,
 	  *currentWorldToLeft  = NULL,
 	  *currentWorldToRight = NULL;
 
+// an arena for fightin'
+Arena *arena = nullptr;
+
 // the currently used folder to grab XML files
 std::string xmlFolder;
 
@@ -79,6 +82,18 @@ int main(int argc, char *argv[]){
 	(void)argv;
 
 	static SDL_GLContext mainGLContext = NULL;
+
+	// handle command line arguments
+	if (argc > 1) {
+		std::vector<std::string> args (argc, "");
+		for (int i = 1; i < argc; i++)
+			args[i] = argv[i];
+
+		for (const auto &s : args) {
+			if (s == "--reset" || s == "-r")
+				system("rm -f xml/*.dat");
+		}
+	}
 
 	// attempt to initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
@@ -218,9 +233,10 @@ int main(int argc, char *argv[]){
 	if (currentWorld == NULL)
 		UserError("Plot twist: The world never existed...?");
 
-	/**************************
-	****     GAMELOOP      ****
-	**************************/
+	arena = new Arena();
+	arena->setStyle("");
+	arena->setBackground(WorldBGType::Forest);
+	arena->setBGM("assets/music/embark.wav");
 
 	// the main loop, in all of its gloriousness..
 	gameRunning = true;
@@ -244,6 +260,7 @@ int main(int argc, char *argv[]){
 
 	// close up the game stuff
 	currentWorld->save();
+	delete arena;
 	//delete currentWorld;
 	//delete[] currentXML;
 	//aipreload.clear();
@@ -290,32 +307,27 @@ void mainLoop(void){
 			fps = 1000 / game::time::getDeltaTime();
 			debugY = player->loc.y;
 		}
-		SDL_Delay(1);
 	}
 
 	SDL_Delay(1);
 }
 
 void render() {
-	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
-	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-	// offset should contain the coordinates of the center of the player's view
-	offset.x = player->loc.x + player->width/2;
-	offset.y = SCREEN_HEIGHT/2;
+	offset.x = player->loc.x + player->width / 2;
 
-	// snap the player's view if we're at a world edge
-	if (currentWorld->getTheWidth() < (int)SCREEN_WIDTH) {
+	// ortho x snapping
+	if (currentWorld->getTheWidth() < (int)SCREEN_WIDTH)
 		offset.x = 0;
-	} else {
-		if (player->loc.x - SCREEN_WIDTH/2 < currentWorld->getTheWidth() * -0.5f)
-			offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2) + player->width / 2;
-		if (player->loc.x + player->width + SCREEN_WIDTH/2 > currentWorld->getTheWidth() *  0.5f)
-			offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2) - player->width / 2;
-	}
+	else if (offset.x - SCREEN_WIDTH / 2 < currentWorld->getTheWidth() * -0.5f)
+		offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2);
+	else if (offset.x + SCREEN_WIDTH / 2 > currentWorld->getTheWidth() *  0.5f)
+		offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2);
 
-	if(player->loc.y > SCREEN_HEIGHT/2)
-		offset.y = player->loc.y + player->height;
+	// ortho y snapping
+	offset.y = std::max(player->loc.y + player->height / 2, SCREEN_HEIGHT / 2.0f);
 
 	// "setup"
 	glMatrixMode(GL_PROJECTION);

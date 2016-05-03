@@ -5,6 +5,7 @@
 #define ACTION_EPILOUGE { actioning = false; actionHover = 0; }
 
 extern World *currentWorld;
+extern Arena *arena;
 extern Player *player;
 extern bool inBattle;
 
@@ -115,14 +116,11 @@ void actionAttack(void)
 
     if (m->type == MOBT) {
         if (!inBattle && m != nullptr) {
-            Arena *a = new Arena(currentWorld, player, Mobp(m));
-            a->setStyle("");
-            a->setBackground(WorldBGType::Forest);
-            a->setBGM("assets/music/embark.wav");
+            arena->fight(currentWorld, player, Mobp(m));
 
             ui::toggleWhiteFast();
             ui::waitForCover();
-            currentWorld = a;
+            currentWorld = arena;
             ui::toggleWhiteFast();
         }
     } else {

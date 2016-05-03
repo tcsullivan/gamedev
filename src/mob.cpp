@@ -310,6 +310,8 @@ Mob::~Mob()
 }
 
 extern World *currentWorld;
+extern Arena *arena;
+
 void Mob::wander(void)
 {
 	static bool YAYA = false;
@@ -320,16 +322,12 @@ void Mob::wander(void)
     if (aggressive && !YAYA && isInside(vec2 {player->loc.x + width / 2, player->loc.y + height / 4})) {
 		if (!ui::dialogBoxExists) {
             std::thread([&](void){
-			    auto *a = new Arena(currentWorld, player, this);
-			    a->setStyle("");
-			    a->setBackground(WorldBGType::Forest);
-			    a->setBGM("assets/music/embark.wav");
-
+			    arena->fight(currentWorld, player, this);
 			    ui::toggleWhiteFast();
 			    YAYA = true;
 			    ui::waitForCover();
 			    YAYA = false;
-			    currentWorld = a;
+			    currentWorld = arena;
 			    ui::toggleWhiteFast();
             }).detach();
 		}

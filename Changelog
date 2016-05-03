@@ -957,3 +957,14 @@
 	- render is now separated from the main loop
 
 	~8,100 lines of code
+
+5/3/2016:
+=========
+
+	- smoothed out ortho snapping
+	- improved arenas, fixed door texture
+	- fixed mob riding / ortho snaps
+	- added command line option handling, with -r option to clear .dat files
+	- found segfault when exiting game
+	- made string tokenizer for tokenizing strings
+	- messed with HLINE scaling, it's bad

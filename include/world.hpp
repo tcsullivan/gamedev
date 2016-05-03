@@ -320,10 +320,13 @@ private:
 public:
 
 	// creates the arena with the world being left for it
-	Arena(World *leave, Player *p, Mob *m);
+	Arena(void);
 
 	// frees memory
 	~Arena(void);
+
+	// starts a new fight??
+	void fight(World *leave, const Player *p, Mob *m);
 
 	// attempts to exit the arena, returning what world the player should be in
 	WorldSwitchInfo exitArena(Player *p);
