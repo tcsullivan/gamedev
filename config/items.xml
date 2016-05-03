@@ -13,5 +13,6 @@
 <item name="Fried Chicken"  type="Cooked Food"  value="10" maxStackSize="6" sprite="assets/items/FOOD_CHICKEN_FRIED.png" />
 
 <!-- NEW ITEMS -->
-<item name="Wood Sword"     type="Sword"        damage="69" maxStackSize="1" sprite="assets/items/SWORD_WOOD.png" />
-<item name="Clyne is shit bow" type="Bow"       damage="10" maxStackSize="1" sprite="assets/items/bow.png"/>
+<item name="Wood Sword"     type="Sword"    damage="3"  maxStackSize="1"    sprite="assets/items/SWORD_WOOD.png" />
+<item name="Hunters Bow"    type="Bow"      damage="2"  maxStackSize="1"    sprite="assets/items/bow.png"/>
+<item name="Crude Arrow"    type="Arrow"    damage="1"  maxStackSize="99"   sprite="assets/items/arrow_crude.png"/>

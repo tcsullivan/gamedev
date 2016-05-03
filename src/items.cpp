@@ -1,7 +1,9 @@
 #include <inventory.hpp>
 #include <entities.hpp>
+#include <world.hpp>
 
 extern Player *player;
+extern World *currentWorld;
 
 /************************************************************************************
 *                                          GLOBAL                                   *
@@ -64,6 +66,10 @@ int Sword::useItem()
 						if (hitbox.end.x > e->loc.x && hitbox.end.x < e->loc.x + e->width) {
 							if (hitbox.end.y > e->loc.y && hitbox.end.y < e->loc.y + e->height) {
 								e->takeHit(damage, 600);
+
+								// add some blood
+								// for(int r = 0; r < (rand()%5);r++)
+								// 	currentWorld->addParticle(rand()%game::HLINE*3 + e->loc.x - .05f,e->loc.y + e->height*.5, game::HLINE,game::HLINE, -(rand()%10)*.01,((rand()%4)*.001-.002), {(rand()%75+10)/100.0f,0,0}, 10000);
 							}
 						}
 
@@ -83,8 +89,34 @@ int Sword::useItem()
 	return 0;
 }
 
+int Arrow::useItem()
+{
+
+	return 0;
+}
+
 int Bow::useItem()
 {
+	float rot = atan(sqrt(pow(ui::mouse.y-(player->loc.y + player->height),2)/pow(ui::mouse.x-player->loc.x,2)));
+	float speed = 1.0;
+	float vx = speed * cos(rot);
+	float vy = speed * sin(rot);
+
+	ui::mouse.x < player->loc.x ? vx *= -1 : vx *= 1;
+	ui::mouse.y < player->loc.y + player->height ? vy *= -1 : vy *= 1;
+
+	currentWorld->addParticle(	player->loc.x,					// x
+								player->loc.y + player->height,	// y
+								HLINES(3),						// width
+								HLINES(3),						// height
+								vx,								// vel.x
+								vy,								// vel.y
+								{ 139, 69, 19 },				// RGB color
+								2500							// duration (ms)
+							);
+
+
+
 	return 0;
 }
 
@@ -113,6 +145,11 @@ BaseItem* BaseItem::clone()
 Sword* Sword::clone()
 {
 	return new Sword(*this);
+}
+
+Arrow* Arrow::clone()
+{
+	return new Arrow(*this);
 }
 
 Bow* Bow::clone()
@@ -190,12 +227,32 @@ void Sword::setDamage(float d)
 }
 
 /**************************************************
+*                      ARROW                      *
+**************************************************/
+
+float Arrow::getDamage()
+{
+	return damage;
+}
+
+void Arrow::setDamage(float d)
+{
+	damage = d;
+}
+
+
+/**************************************************
 *                      BOW                        *
 **************************************************/
 
 float Bow::getDamage()
 {
 	return damage;
+}
+
+void Bow::setDamage(float d)
+{
+	damage = d;
 }
 
 /**************************************************
