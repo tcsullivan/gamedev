@@ -79,7 +79,8 @@ And it wasn't stormy.
 	<text id="0" pause="true">
 		Here have this sword!
 		<give id="Wood Sword" count="1"/>
-		<give id="Clyne is shit bow" count="1"/>
+		<give id="Hunters Bow" count="1"/>
+		<give id="Crude Arrow" count="110"/>
 		<give id="Fried Chicken" count="1"/>
 	</text>
 </Dialog>

@@ -112,6 +112,24 @@ public:
 	Sword* clone();
 };
 
+class Arrow : public Item {
+private:
+	// same as sword
+	float damage;
+public:
+
+	// see sword
+	float getDamage();
+
+	// sets amount of damage
+	void setDamage(float d);
+
+	// uses item
+	int useItem();
+
+	Arrow *clone();
+};
+
 /**
  *	Bow class. We use this for shooting bow and arrows
  */
@@ -122,6 +140,9 @@ private:
 public:
 	// returns the amount of damage, see sword
 	float getDamage();
+
+	// sets the amount of damages
+	void setDamage(float d);
 
 	// handles shooting and arrow curving
 	int useItem();

@@ -41,8 +41,6 @@ void items(void)
 	XMLElement *exml = xml.FirstChildElement("item");
 	XMLElement *cxml = xml.FirstChildElement("currency");
 
-	Sword *tmpSword = new Sword();
-
 	while (cxml) {
 
 		// NEWEWEWEWEWEWEWEW
@@ -62,16 +60,26 @@ void items(void)
 		// if the type is a sword
 		} else if (strCaseCmp(name, "sword")) {
 
+			Sword *tmpSword = new Sword();
 			tmpSword->setDamage(exml->FloatAttribute("damage"));
 			ItemMap.push_back(tmpSword->clone());
 
 		// if the type is a bow
 		} else if (strCaseCmp(name, "bow")) {
 
-			ItemMap.push_back(new Bow());
+			Bow *tmpBow = new Bow();
+			tmpBow->setDamage(exml->FloatAttribute("damage"));
+			ItemMap.push_back(tmpBow->clone());
+
+		// arrow
+		} else if (strCaseCmp(name, "arrow")) {
+
+			Arrow *tmpArrow = new Arrow();
+			tmpArrow->setDamage(exml->FloatAttribute("damage"));
+			ItemMap.push_back(tmpArrow->clone());
 
 		// uncooked / raw food
-		} else if (strCaseCmp(name, "raw food")) {
+		}else if (strCaseCmp(name, "raw food")) {
 
 			ItemMap.push_back(new RawFood());
 
@@ -106,7 +114,7 @@ void items(void)
 
 int Inventory::addItem(std::string name, uint count)
 {
-	std::cout << "Adding: " << count << " " << name << std::endl;
+	std::cout << "Adding: " << count << " " << name << "\n";
 	for (uint i = 0; i < ItemMap.size(); i++) {
 		if (strCaseCmp(ItemMap[i]->name, name)) {
 			for (auto &it : Items) {
@@ -114,13 +122,32 @@ int Inventory::addItem(std::string name, uint count)
 					if ((it.second + count) < it.first->maxStackSize) {
 						it.second += count;
 						return 0;
+					} else {
+						count -= (it.second + count) - it.first->maxStackSize;
+						it.second = it.first->maxStackSize;
 					}
 				}
 			}
-			Items[os] = std::make_pair(ItemMap[i]->clone(), count);
-			if (!Items[os+1].second) {
-				os++;
-			}
+			uint tmpCount = count;
+			do {
+				if ((count) > ItemMap[i]->maxStackSize) {
+					count -=  ItemMap[i]->maxStackSize;
+					tmpCount = ItemMap[i]->maxStackSize;
+				} else {
+					tmpCount = count;
+					count = 0;
+				}
+				Items[os] = std::make_pair(ItemMap[i]->clone(), tmpCount);
+				if (!Items[os+1].second) {
+					os++;
+				} else {
+					for (uint z = 0; z < Items.size(); z++) {
+						if (!Items[z].second) {
+							os = z;
+						}
+					}
+				}
+			} while (count > 0);
 			return 0;
 		}
 	}
@@ -608,10 +635,17 @@ void itemDraw(Player *p, Item *d) {
 	glBindTexture(GL_TEXTURE_2D,d->tex->image[0]);
 	glColor4ub(255,255,255,255);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2f(itemLoc.x,					  itemLoc.y);
-		glTexCoord2i(1,1);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y);
-		glTexCoord2i(1,0);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y+d->dim.y);
-		glTexCoord2i(0,0);glVertex2f(itemLoc.x,			itemLoc.y+d->dim.y);
+		if (p->left) {
+			glTexCoord2i(0,1);glVertex2f(itemLoc.x,					  itemLoc.y);
+			glTexCoord2i(1,1);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y);
+			glTexCoord2i(1,0);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y+d->dim.y);
+			glTexCoord2i(0,0);glVertex2f(itemLoc.x,			itemLoc.y+d->dim.y);
+		} else {
+			glTexCoord2i(1,1);glVertex2f(itemLoc.x,					  itemLoc.y);
+			glTexCoord2i(0,1);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y);
+			glTexCoord2i(0,0);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y+d->dim.y);
+			glTexCoord2i(1,0);glVertex2f(itemLoc.x,			itemLoc.y+d->dim.y);
+		}
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	glTranslatef(player->loc.x*2,0,0);
