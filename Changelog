@@ -968,3 +968,12 @@
 	- found segfault when exiting game
 	- made string tokenizer for tokenizing strings
 	- messed with HLINE scaling, it's bad
+
+5/4/2016:
+=========
+
+	- began implementing event saving thing
+	- fixed fade transitions
+	- re-added click to speed up dialogs
+	- almost ready to add new draw stuff
+

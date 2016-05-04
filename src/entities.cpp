@@ -546,7 +546,7 @@ COMMONAIFUNC:
 				} while ((oxml = oxml->NextSiblingElement()));
 
 				// run the dialog stuff
-				ui::dialogBox(name, optstr, false, exml->GetText() + 1);
+				ui::dialogBox(name, optstr, false, exml->GetText() + 2);
 				ui::waitForDialog();
 
 				if (ui::dialogOptChosen)

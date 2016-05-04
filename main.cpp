@@ -6,6 +6,8 @@
 ** Includes section
 ** --------------------------------------------------------------------------*/
 
+#include <brice.hpp>
+
 // local library includes
 #include <tinyxml2.h>
 using namespace tinyxml2;

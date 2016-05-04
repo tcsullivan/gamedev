@@ -76,7 +76,7 @@ extern void mainLoop(void);
 static bool fadeEnable = false;
 static bool fadeWhite  = false;
 static bool fadeFast   = false;
-static unsigned int fadeIntensity = 0;
+static int fadeIntensity = 0;
 
 bool inBattle = false;
 Mix_Chunk *battleStart;
@@ -865,10 +865,10 @@ namespace ui {
 			return;
 		}
 
-		/*if (!typeOutDone) {
+		if (!typeOutDone) {
 			typeOutDone = true;
 			return;
-		}*/
+		}
 
 		for(i=0;i<dialogOptText.size();i++) {
 			if (mouse.x > dialogOptText[i].second.x &&
