@@ -44,9 +44,6 @@ constexpr const unsigned int GRASS_HEIGHT = 4;
 // the path of the currently loaded XML file, externally referenced in places
 std::string currentXML;
 
-// contains the current world's weather, extern'd in ui.cpp, main.cpp, ..?
-WorldWeather weather = WorldWeather::Sunny;
-
 // keeps track of pathnames of XML file'd worlds the player has left to enter structures
 static std::vector<std::string> inside;
 
@@ -212,6 +209,8 @@ generate(int width)
 		s.x = (randGet() % (-worldStart * 2)) + worldStart;
 		s.y = (randGet() % game::SCREEN_HEIGHT) + 100;
 	}
+
+	weather = WorldWeather::Sunny;
 }
 
 /**
@@ -707,8 +706,16 @@ detect(Player *p)
  * Also handles music fading, although that could probably be placed elsewhere.
  */
 void World::
-update(Player *p, unsigned int delta)
+update(Player *p, unsigned int delta, unsigned int ticks)
 {
+	// update day/night time
+	if (!(ticks % DAY_CYCLE) || ticks == 0) {
+		if (weather == WorldWeather::Sunny)
+			weather = WorldWeather::Dark;
+		else if (weather == WorldWeather::Dark)
+			weather = WorldWeather::Sunny;	
+	} 	
+
     // update player coords
 	p->loc.y += p->vel.y			 * delta;
 	p->loc.x +=(p->vel.x * p->speed) * delta;
@@ -1021,6 +1028,35 @@ setStyle(std::string pre)
         bgFiles.push_back(prefix + s);
     for (const auto &s : bgPaths[1])
         bgFilesIndoors.push_back(prefix + s);
+}
+
+/**
+ * Pretty self-explanatory.
+ */
+std::string World::
+getWeatherStr(void) const
+{
+	switch (weather) {
+	case WorldWeather::Sunny:
+		return "Sunny";
+		break;
+	case WorldWeather::Dark:
+		return "Dark";
+		break;
+	case WorldWeather::Rain:
+		return "Rainy";
+		break;
+	case WorldWeather::Snowy:
+		return "Snowy";
+		break;
+	}
+	return "???";
+}
+
+const WorldWeather& World::
+getWeatherId(void) const
+{
+	return weather;
 }
 
 /**
@@ -1492,11 +1528,13 @@ Arena::Arena(void)
 {
 	generate(800);
 	addMob(new Door(), vec2 {100, 100});
+	mmob = nullptr;
 }
 
 Arena::~Arena(void)
 {
-    mmob->die();
+    if (mmob != nullptr)
+		mmob->die();
 	deleteEntities();
 }
 
@@ -1524,24 +1562,6 @@ WorldSwitchInfo Arena::exitArena(Player *p)
     }
 
     return std::make_pair(this, vec2 {0, 0});
-}
-
-std::string getWorldWeatherStr(WorldWeather ww)
-{
-    switch (ww) {
-    case WorldWeather::Sunny:
-        return "Sunny";
-        break;
-    case WorldWeather::Dark:
-        return "Darky";
-        break;
-    case WorldWeather::Rain:
-        return "Rainy";
-        break;
-    default:
-        return "Snowy";
-        break;
-    }
 }
 
 static bool loadedLeft = false;

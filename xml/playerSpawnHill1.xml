@@ -17,7 +17,7 @@
 	<npc name="Johnny" hasDialog="false" x="300" />
 	<npc name="Big Dave" hasDialog="true" x="300" />
 
-	<page x="-200" id="assets/pages/gootaGoFast.png" />
+	<page x="-200" id="assets/pages/gootaGoFast.png" cid="canSprint" cvalue="1"/>
 
 	<village name="Swagville U.S.A.">
 		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>

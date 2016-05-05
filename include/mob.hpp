@@ -39,6 +39,7 @@ constexpr Mob *Mobp(Entity *e) {
 
 class Page : public Mob {
 private:
+	std::string cId, cValue;
     std::string pageTexPath;
     GLuint pageTexture;
 public:

@@ -27,9 +27,6 @@ using namespace tinyxml2;
 // the game's window title name
 constexpr const char *GAME_NAME = "Independent Study v0.7 alpha - NOW WITH lights and snow and stuff";
 
-// the current weather, declared in world.cpp
-extern WorldWeather weather;
-
 // SDL's window object
 SDL_Window *window = NULL;
 
@@ -196,11 +193,13 @@ int main(int argc, char *argv[]){
 
 	glEnable(GL_MULTISAMPLE);
 
-	/*
-	 * Load sprites used in the inventory menu. See src/inventory.cpp
-	 */
+	// load up some fresh hot brice
+	game::briceLoad();
+	game::briceUpdate();
 
+	// load sprites used in the inventory menu. See src/inventory.cpp
 	initInventorySprites();
+
 	// load mouse texture, and other inventory textures
 	mouseTex = Texture::loadTexture("assets/mouse.png");
 
@@ -242,12 +241,16 @@ int main(int argc, char *argv[]){
 
 	// the main loop, in all of its gloriousness..
 	gameRunning = true;
-	std::thread([&]{while (gameRunning)
-		mainLoop();
+	std::thread([&]{
+		while (gameRunning)
+			mainLoop();
 	}).detach();
 
-	while(gameRunning)
+	while (gameRunning)
 		render();
+
+	// put away the brice for later
+	game::briceSave();
 
     // free library resources
     Mix_HaltMusic();
@@ -300,7 +303,7 @@ void mainLoop(void){
 		if (game::time::tickHasPassed())
 			logic();
 
-		currentWorld->update(player, game::time::getDeltaTime());
+		currentWorld->update(player, game::time::getDeltaTime(), game::time::getTickCount());
 		currentWorld->detect(player);
 
 		if (++debugDiv == 20) {
@@ -376,7 +379,7 @@ void render() {
 					debugY,						// The player's y coordinate
 					game::time::getTickCount(),
 					game::config::VOLUME_MASTER,
-					getWorldWeatherStr(weather).c_str()
+					currentWorld->getWeatherStr().c_str()
 					);
 
 		if (ui::posFlag) {
@@ -460,49 +463,41 @@ void logic(){
 		}
 	}
 
-	// switch from day to night?
-	auto tickCount = game::time::getTickCount();
-	if (!(tickCount % DAY_CYCLE) || !tickCount){
-		if (weather == WorldWeather::Sunny)
-			weather = WorldWeather::Dark;
-		else
-			weather = WorldWeather::Sunny;
-	}
-
 	// calculate the world shading value
-	worldShade = 50 * sin((tickCount + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
+	worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 
 	// update fades
 	ui::fadeUpdate();
 
 	// create weather particles if necessary
-	 if (weather == WorldWeather::Rain) {
-		 for (unsigned int r = (randGet() % 25) + 11; r--;) {
-			 currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
-									   offset.y + game::SCREEN_HEIGHT / 2,
-									   HLINES(1.25),										// width
-									   HLINES(1.25),										// height
-									   randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
-									   (4 + randGet() % 6) * .05,							// vel.y
-									   { 0, 0, 255 },										// RGB color
-									   2500,												// duration (ms)
-									   (1 << 0) | (1 << 1)									// gravity and bounce
+	auto weather = currentWorld->getWeatherId();
+	if (weather == WorldWeather::Rain) {
+		for (unsigned int r = (randGet() % 25) + 11; r--;) {
+			currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
+									  offset.y + game::SCREEN_HEIGHT / 2,
+									  HLINES(1.25),										// width
+									  HLINES(1.25),										// height
+									  randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
+									  (4 + randGet() % 6) * .05,							// vel.y
+									  { 0, 0, 255 },										// RGB color
+									  2500,												// duration (ms)
+									  (1 << 0) | (1 << 1)									// gravity and bounce
 									  );
-		 }
-	 } else if (weather == WorldWeather::Snowy) {
-		 for (unsigned int r = (randGet() % 25) + 11; r--;) {
-			 currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
-									   offset.y + game::SCREEN_HEIGHT / 2,
-									   HLINES(1.25),										// width
-									   HLINES(1.25),										// height
+		}
+	} else if (weather == WorldWeather::Snowy) {
+		for (unsigned int r = (randGet() % 25) + 11; r--;) {
+			currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
+									  offset.y + game::SCREEN_HEIGHT / 2,
+									  HLINES(1.25),										// width
+									  HLINES(1.25),										// height
 							.0001 + randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
-									   (4 + randGet() % 6) * -.03,							// vel.y
-									   { 255, 255, 255 },									// RGB color
-									   5000,												// duration (ms)
-									   0													// no gravity, no bounce
+									  (4 + randGet() % 6) * -.03,							// vel.y
+									  { 255, 255, 255 },									// RGB color
+									  5000,												// duration (ms)
+									  0													// no gravity, no bounce
 									  );
-		 }
-	 }
+		}
+	}
 
 	// increment game ticker
 	game::time::tick();

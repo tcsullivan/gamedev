@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <chrono>
 #include <fstream>
+#include <sstream>
 
 #ifndef __WIN32__
 
@@ -18,6 +19,18 @@ unsigned int millis(void) {
 }
 
 #endif // __WIN32__
+
+std::vector<std::string> StringTokenizer(const std::string& str, char delim)
+{
+	std::vector<std::string> tokens;
+	std::istringstream is (str);
+	std::string token;
+
+	while (getline(is, token, delim))
+		tokens.push_back(token);
+
+	return tokens;
+}
 
 void DEBUG_prints(const char* file, int line, const char *s,...)
 {

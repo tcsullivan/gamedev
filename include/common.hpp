@@ -138,6 +138,9 @@ extern vec2 offset;
 // the shader program created in main.cpp
 extern GLuint shaderProgram;
 
+// splits a string into tokens
+std::vector<std::string> StringTokenizer(const std::string& str, char delim);
+
 /**
  *	Prints a formatted debug message to the console, along with the callee's file and line
  *	number.

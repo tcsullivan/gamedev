@@ -1,5 +1,6 @@
 #include <ui.hpp>
 
+#include <brice.hpp>
 #include <world.hpp>
 #include <gametime.hpp>
 
@@ -7,29 +8,27 @@ extern Menu* currentMenu;
 
 extern SDL_Window *window;
 
-/*
- *	External references for updating player coords / current world.
+/**
+ * External references for updating player coords / current world.
  */
 
 extern Player *player;
 extern World  *currentWorld;
 extern World  *currentWorldToLeft;
 extern World  *currentWorldToRight;
-extern WorldWeather weather;
 
-/*
- *	In the case of dialog, some NPC quests can be preloaded so that they aren't assigned until
- *	the dialog box closes. Reference variables for that here.
-*/
+/**
+ * In the case of dialog, some NPC quests can be preloaded so that they aren't assigned until
+ * the dialog box closes. Reference variables for that here.
+ */
 extern std::vector<NPC *> aipreload;
 
-/*
- *	Pressing ESC or closing the window will set this to false.
-*/
-
+/**
+ * Pressing ESC or closing the window will set this to false.
+ */
 extern bool gameRunning;
 
-/*
+/**
  *	Freetype variables
  */
 
@@ -854,7 +853,7 @@ namespace ui {
 
 	void dialogAdvance(void) {
 		unsigned char i;
-
+		
 		dialogPassive = false;
 		dialogPassiveTime = 0;
 
@@ -866,7 +865,8 @@ namespace ui {
 		}
 
 		if (!typeOutDone) {
-			typeOutDone = true;
+			if (!dialogImportant)
+				typeOutDone = true;
 			return;
 		}
 
@@ -1006,7 +1006,7 @@ EXIT:
 			case SDL_KEYDOWN:
 
 				// space - make player jump
-				if (SDL_KEY == SDLK_SPACE) {
+				if (SDL_KEY == SDLK_SPACE && game::canJump) {
 					if (player->ground) {
 						player->loc.y += HLINES(2);
 						player->vel.y = .4;
@@ -1094,11 +1094,14 @@ EXIT:
 						}
 						break;
 					case SDLK_LSHIFT:
-						if (debug) {
-							Mix_PlayChannel(1, sanic, -1);
-							player->speed = 4.0f;
-						} else
-							player->speed = 2.0f;
+						if (game::canSprint) {
+							if (debug) {
+								Mix_PlayChannel(1, sanic, -1);
+								player->speed = 4.0f;
+							} else {
+								player->speed = 2.0f;
+							}
+						}
 						break;
 					case SDLK_LCTRL:
 						player->speed = .5;
@@ -1139,9 +1142,6 @@ EXIT:
 				switch (SDL_KEY) {
 				case SDLK_F3:
 					debug ^= true;
-					break;
-				case SDLK_z:
-					weather = WorldWeather::Snowy;
 					break;
 				case SDLK_x:
 					m = currentWorld->getNearMob(*player);

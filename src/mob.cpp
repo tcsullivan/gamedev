@@ -1,6 +1,7 @@
 #include <mob.hpp>
 #include <ui.hpp>
 #include <world.hpp>
+#include <brice.hpp>
 
 extern World *currentWorld;
 
@@ -30,6 +31,8 @@ void Page::act(void)
         std::thread([this](void){
             ui::drawPage(pageTexture);
             ui::waitForDialog();
+			game::setValue(cId, cValue);
+			game::briceUpdate();
             die();
         }).detach();
     }
@@ -49,6 +52,9 @@ void Page::createFromXML(const XMLElement *e)
         loc.x = Xlocx;
     pageTexPath = e->StrAttribute("id");
     pageTexture = Texture::loadTexture(pageTexPath);
+
+	cId = e->StrAttribute("cid");
+	cValue = e->StrAttribute("cvalue");
 }
 
 Door::Door(void) : Mob()

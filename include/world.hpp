@@ -105,6 +105,9 @@ protected:
 	// an array of all the world's ground data
 	std::vector<WorldData> worldData;
 
+	// the world's current weather
+	WorldWeather weather;
+
 	// the size of `worldData`
 	unsigned int lineCount;
 
@@ -175,7 +178,7 @@ public:
 	void detect(Player *p);
 
 	// updates entities, moving them and such
-	void update(Player *p, unsigned int delta);
+	void update(Player *p, unsigned int delta, unsigned int ticks);
 
 	// gets the world's width in TODO
 	int getTheWidth(void) const;
@@ -219,6 +222,10 @@ public:
 
 	// sets the folder to collect entity textures from
 	void setStyle(std::string pre);
+
+	// gets the string that represents the current weather
+	std::string getWeatherStr(void) const;
+	const WorldWeather& getWeatherId(void) const;
 
 	// sets / gets pathnames of XML files for worlds to the left and right
 	std::string setToLeft(std::string file);
@@ -331,8 +338,6 @@ public:
 	// attempts to exit the arena, returning what world the player should be in
 	WorldSwitchInfo exitArena(Player *p);
 };
-
-std::string getWorldWeatherStr(WorldWeather ww);
 
 /**
  * Loads the player into the world created by the given XML file. If a world is
