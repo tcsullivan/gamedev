@@ -16,6 +16,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include <shader_utils.hpp>
+
 #define GLEW_STATIC
 #include <GL/glew.h>
 
@@ -23,6 +25,12 @@
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
+
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/noise.hpp>
 
 #include <config.hpp>
 
@@ -52,6 +60,11 @@ const float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
 extern GLuint colorIndex;	// Texture.cpp?
 
 /**
+ *	This separates xml strings with
+ */
+std::vector<std::string> StringTokenizer(const std::string& str, char delim);
+
+/**
  * This structure contains a set of coordinates for ease of coding.
  */
 
@@ -62,30 +75,62 @@ typedef struct {
 
 typedef ivec2 dim2;
 
-struct _vec2 {
+class vec2 {
+public:
 	float x;
 	float y;
 
-	bool operator==(const _vec2 &v) {
+	vec2 ()
+	{
+		x = y = 0.0f;
+	}
+
+	vec2 (float _x, float _y)
+	{
+		x = _x;
+		y = _y;
+	}
+
+	bool operator==(const vec2 &v) {
 		return (x == v.x) && (y == v.y);
 	}
 	template<typename T>
-	const _vec2 operator=(const T &n) {
+	const vec2 operator=(const T &n) {
 		x = y = n;
 		return *this;
 	}
 	template<typename T>
-	const _vec2 operator+(const T &n) {
-		return _vec2 {x + n, y + n};
+	const vec2 operator+(const T &n) {
+		return vec2 (x + n, y + n);
 	}
 };
-typedef struct _vec2 vec2;
 
-typedef struct {
+class vec3{
+public:
 	float x;
 	float y;
 	float z;
-} vec3;
+
+	vec3 ()
+	{
+		x = y = z = 0.0f;
+	}
+
+	vec3 (float _x, float _y, float _z)
+	{
+		x = _x;
+		y = _y;
+		z = _z;
+	}
+
+	vec3 (float _x, float _y)
+	{
+		x = _x;
+		y = _y;
+		z = 1.0f;
+	}
+
+};
 
 /**
  * This structure contains two sets of coordinates for ray drawing.
@@ -96,25 +141,34 @@ typedef struct {
 	vec2 end;
 } Ray;
 
-struct _color {
+class Color{
+public:
 	float red;
 	float green;
 	float blue;
-	_color operator-=(float a) {
+	Color()
+	{
+		red = green = blue = 0;
+	}
+	Color(float r, float g ,float b)
+	{
+		red = r;
+		green = g;
+		blue = b;
+	}
+	Color operator-=(float a) {
 		red-=a;
 		green-=a;
 		blue-=a;
 		return{red+a,green+a,blue+a};
 	}
-	_color operator+=(float a) {
+	Color operator+=(float a) {
 		return{red+a,green+a,blue+a};
 	}
-	_color operator=(float a) {
+	Color operator=(float a) {
 		return{red=a,green=a,blue=a};
 	}
 };
-
-typedef struct _color Color;
 
 // gets the length of `n` HLINEs
 template<typename T>
@@ -138,8 +192,15 @@ extern vec2 offset;
 // the shader program created in main.cpp
 extern GLuint shaderProgram;
 
-// splits a string into tokens
-std::vector<std::string> StringTokenizer(const std::string& str, char delim);
+extern GLuint textShader;
+extern GLint textShader_attribute_coord;
+extern GLint textShader_attribute_tex;
+extern GLint textShader_uniform_texture;
+
+extern GLuint worldShader;
+extern GLint worldShader_attribute_coord;
+extern GLint worldShader_attribute_tex;
+extern GLint worldShader_uniform_texture;
 
 /**
  *	Prints a formatted debug message to the console, along with the callee's file and line

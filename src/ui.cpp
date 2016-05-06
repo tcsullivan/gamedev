@@ -276,7 +276,7 @@ namespace ui {
 	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
 	*/
 
-	vec2 putChar(float xx,float yy,char c) {
+	vec2 putChar(float xx,float yy,char c){
 		vec2 c1,c2;
 
 		int x = xx, y = yy;
@@ -293,19 +293,48 @@ namespace ui {
 		 *	Draw the character:
 		*/
 
-		glEnable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(textShader_uniform_texture, 0);
 		glBindTexture(GL_TEXTURE_2D,(*ftex)[c-33]);
-		glPushMatrix();
-		glTranslatef(0,-c2.y,0);
-		glBegin(GL_QUADS);
-			glColor4ub(fontColor[0],fontColor[1],fontColor[2],fontColor[3]);
-			glTexCoord2f(0,1);glVertex2f(c1.x     ,c1.y		);
-			glTexCoord2f(1,1);glVertex2f(c1.x+c2.x,c1.y		);
-			glTexCoord2f(1,0);glVertex2f(c1.x+c2.x,c1.y+c2.y);
-			glTexCoord2f(0,0);glVertex2f(c1.x     ,c1.y+c2.y);
-		glEnd();
-		glPopMatrix();
-		glDisable(GL_TEXTURE_2D);
+
+		//glDisable(GL_DEPTH_TEST);
+
+		glUseProgram(textShader);
+
+		glEnableVertexAttribArray(textShader_attribute_coord);
+		glEnableVertexAttribArray(textShader_attribute_tex);
+
+		GLfloat tex_coord[] = {
+			0.0, 1.0,				//bottom left
+			1.0, 1.0,				//bottom right
+			1.0, 0.0,				//top right
+
+			1.0, 0.0,				//top right
+			0.0, 0.0,				//top left
+			0.0, 1.0,				//bottom left
+
+		};
+
+		GLfloat text_vert[] = {
+			c1.x, 		c1.y     -c2.y, 1.0,	//bottom left
+			c1.x+c2.x, 	c1.y	 -c2.y, 1.0, 	//bottom right
+			c1.x+c2.x, 	c1.y+c2.y-c2.y, 1.0,	//top right
+
+			c1.x+c2.x, 	c1.y+c2.y-c2.y, 1.0,	//top right
+			c1.x, 		c1.y+c2.y-c2.y, 1.0,	//top left
+			c1.x, 		c1.y	 -c2.y, 1.0,	//bottom left
+		};
+
+		glVertexAttribPointer(textShader_attribute_coord, 	3, GL_FLOAT, GL_FALSE, 0, text_vert);
+		glVertexAttribPointer(textShader_attribute_tex,  	2, GL_FLOAT, GL_FALSE, 0, tex_coord);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glDisableVertexAttribArray(textShader_attribute_tex);
+		glDisableVertexAttribArray(textShader_attribute_coord);
+
+		glUseProgram(0);
+
+		//glEnable(GL_DEPTH_TEST);
 
 		// return the width.
 		return (*ftdat)[c-33].ad;
@@ -610,19 +639,60 @@ namespace ui {
 	}
 
 	void drawBox(vec2 c1, vec2 c2) {
-		// draw black body
-		glColor3ub(0, 0, 0);
-		glRectf(c1.x, c1.y, c2.x, c2.y);
+        static vec2 lineIndexF = Texture::getIndex(Color(255, 255, 255));
+        static vec2 lineIndex = vec2(0.25f * lineIndexF.x, 0.125f * (8-lineIndexF.y));
+        static vec2 boxIndexF = Texture::getIndex(Color(0, 0, 0));
+        static vec2 boxIndex = vec2(0.25f * boxIndexF.x, 0.125f * (8-boxIndexF.y));
 
-		// draw white border
-		glColor3ub(255, 255, 255);
-		glBegin(GL_LINE_STRIP);
-			glVertex2i(c1.x    , c1.y);
-			glVertex2i(c2.x + 1, c1.y);
-			glVertex2i(c2.x + 1, c2.y);
-			glVertex2i(c1.x - 1, c2.y);
-			glVertex2i(c1.x    , c1.y);
-		glEnd();
+        GLfloat box[] = {c1.x, c1.y, 1.0,
+                         c2.x, c1.y, 1.0,
+                         c2.x, c2.y, 1.0,
+
+                         c2.x, c2.y, 1.0,
+                         c1.x, c2.y, 1.0,
+                         c1.x, c1.y, 1.0};
+
+        GLfloat line_strip[] = {c1.x,     c1.y, 1.0,
+                                c2.x + 1, c1.y, 1.0,
+                                c2.x + 1, c2.y, 1.0,
+                                c1.x - 1, c2.y, 1.0,
+                                c1.x,     c1.y, 1.0};
+
+        static GLfloat box_tex[] = {boxIndex.x,boxIndex.y,
+                                    boxIndex.x,boxIndex.y,
+                                    boxIndex.x,boxIndex.y,
+
+                                    boxIndex.x,boxIndex.y,
+                                    boxIndex.x,boxIndex.y,
+                                    boxIndex.x,boxIndex.y};
+
+        static GLfloat line_tex[] = {lineIndex.x, lineIndex.y,
+                                     lineIndex.x, lineIndex.y,
+                                     lineIndex.x, lineIndex.y,
+                                     lineIndex.x, lineIndex.y,
+                                     lineIndex.x, lineIndex.y};
+
+        glActiveTexture(GL_TEXTURE9); 
+        glBindTexture(GL_TEXTURE_2D, colorIndex);
+        glUniform1i(textShader_uniform_texture, 9);
+        glUseProgram(textShader);
+
+        glEnableVertexAttribArray(textShader_attribute_coord);
+        glEnableVertexAttribArray(textShader_attribute_tex);
+   
+        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, box);
+        glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
+        glDrawArrays(GL_TRIANGLES, 0 ,6);
+      
+        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, line_strip);
+        glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
+        glDrawArrays(GL_LINE_STRIP, 0 ,5);
+
+        glDisableVertexAttribArray(textShader_attribute_coord);
+        glDisableVertexAttribArray(textShader_attribute_tex);
+        
+        glUseProgram(0);
+        glActiveTexture(GL_TEXTURE0);  
 	}
 
 	void draw(void){

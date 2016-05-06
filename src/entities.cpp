@@ -88,6 +88,7 @@ void Entity::spawn(float x, float y)
 	//canMove	= true;
 	ground	= false;
 	forcedMove = false;
+	z = 1.0f;
 
 	ticksToUse = 0;
 	hitCooldown = 0;
@@ -261,6 +262,8 @@ Structures::Structures() { //sets the structure type
 
 	//inv = NULL;
 	canMove = false;
+
+	z = 1.0f;
 }
 Structures::~Structures() {
 	if (name)
@@ -321,8 +324,32 @@ void NPC::drawThingy(void) const
 
 void Entity::draw(void)
 {
-	glPushMatrix();
-	glColor3ub(255,255,255);
+	GLfloat tex_coord[] = {0.0, 0.0,
+						   1.0, 0.0,
+						   1.0, 1.0,
+
+						   1.0, 1.0,
+						   0.0, 1.0,
+						   0.0, 0.0};
+
+	GLfloat tex_coordL[] = {1.0, 0.0,
+						   	0.0, 0.0,
+						   	0.0, 1.0,
+
+						   	0.0, 1.0,
+						   	1.0, 1.0,
+						   	1.0, 0.0};
+
+	GLfloat coords[] = {loc.x, loc.y, z,
+						loc.x + width, loc.y, z,
+						loc.x + width, loc.y + height, z,
+
+						loc.x + width, loc.y + height, z,
+						loc.x, loc.y + height, z,
+						loc.x, loc.y, z};
+
+
+	glActiveTexture(GL_TEXTURE0);
 
 	if (!alive)
 		return;
@@ -341,13 +368,6 @@ void Entity::draw(void)
 	        Mobp(this)->rider->vel.y = .12;
 	    }
 	}
-	if (left) {
-		glScalef(-1.0f,1.0f,1.0f);
-		glTranslatef(0-width-loc.x*2,0,0);
-	}
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-	glEnable(GL_TEXTURE_2D);
 	switch(type) {
 	case PLAYERT:
 		static int texState = 0;
@@ -379,30 +399,84 @@ void Entity::draw(void)
 		break;
 	}
 
-	if (hitCooldown)
+	//TODO
+	/*if (hitCooldown)
 		glColor3ub(255,255,0);
 	else
-		glColor3ub(255,255,255);
+		glColor3ub(255,255,255);*/
 
-	glUseProgram(shaderProgram);
-	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
-	glBegin(GL_QUADS);
-		glTexCoord2i(0,1);glVertex2i(loc.x, loc.y);
-		glTexCoord2i(1,1);glVertex2i(loc.x + width, loc.y);
-		glTexCoord2i(1,0);glVertex2i(loc.x + width, loc.y + height);
-		glTexCoord2i(0,0);glVertex2i(loc.x, loc.y + height);
-	glEnd();
-	glUseProgram(0);
+		glUseProgram(worldShader);
+		glUniform1i(worldShader_uniform_texture, 0);
+		glEnableVertexAttribArray(worldShader_attribute_coord);
+		glEnableVertexAttribArray(worldShader_attribute_tex);
+
+		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
+		if(left)
+			glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coordL);
+		else
+			glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 NOPE:
-	glDisable(GL_TEXTURE_2D);
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
-	if (near && type != MOBT)
-		ui::putStringCentered(loc.x + width / 2, loc.y - ui::fontSize - game::HLINE / 2, name);
-	if (health != maxHealth) {
-		glColor3ub(150,0,0); glRectf(loc.x, loc.y + height, loc.x + width, loc.y + height + HLINES(2));
-		glColor3ub(255,0,0); glRectf(loc.x, loc.y + height, loc.x + width * (health / maxHealth), loc.y + height + HLINES(2));
-	}
+if (near && type != MOBT)
+	ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-game::HLINE/2,name);
+if (health != maxHealth) {
+
+	glBindTexture(GL_TEXTURE_2D,colorIndex);
+	glUniform1i(worldShader_uniform_texture, 0);
+
+	GLfloat coord_back[] = {
+		loc.x, 			loc.y + height, 			1.0,
+		loc.x + width,	loc.y + height, 			1.0,
+		loc.x + width, 	loc.y + height + game::HLINE * 2, 1.0,
+
+		loc.x + width, 	loc.y + height + game::HLINE * 2, 1.0,
+		loc.x, 			loc.y + height + game::HLINE * 2,	1.0,
+		loc.x, 			loc.y + height, 			1.0,
+	};
+
+	GLfloat coord_front[] = {
+		loc.x, 			loc.y + height, 			1.0,
+		loc.x + width,	loc.y + height, 			1.0,
+		loc.x + width, 	loc.y + height + game::HLINE * 2, 1.0,
+
+		loc.x + width, 	loc.y + height + game::HLINE * 2, 1.0,
+		loc.x, 			loc.y + height + game::HLINE * 2,	1.0,
+		loc.x, 			loc.y + height, 			1.0,
+	};
+
+	vec2 index = Texture::getIndex(Color(150,0,0));
+	GLfloat back_tex[] = {
+		float(.25*index.x), float(.125*index.y),
+		float(.25*index.x), float(.125*index.y),
+		float(.25*index.x), float(.125*index.y),
+
+		float(.25*index.x), float(.125*index.y),
+		float(.25*index.x), float(.125*index.y),
+		float(.25*index.x), float(.125*index.y),
+	};
+	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coord_back);
+	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, back_tex);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	index = Texture::getIndex(Color(255,0,0));
+	GLfloat front_tex[] = {
+		float(.25*index.x), float(.125*index.y),
+		float(.25*index.x), float(.125*index.y),
+		float(.25*index.x), float(.125*index.y),
+
+		float(.25*index.x), float(.125*index.y),
+		float(.25*index.x), float(.125*index.y),
+		float(.25*index.x), float(.125*index.y),
+	};
+	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coord_front);
+	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, front_tex);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+glDisableVertexAttribArray(worldShader_attribute_coord);
+glDisableVertexAttribArray(worldShader_attribute_tex);
+
+glUseProgram(0);
 }
 
 /**
@@ -786,16 +860,21 @@ Particles::Particles(float x, float y, float w, float h, float vx, float vy, Col
 	index = Texture::getIndex(c);
 }
 
-void Particles::draw(void) const
+std::vector<std::pair<vec2, vec3>> Particles::draw(void) const
 {
-	glColor3ub(255, 255, 255);
-	glBegin(GL_QUADS);
-		vec2 tc = vec2 {0.25f * index.x, 0.125f * index.y};
-		glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x        , loc.y);
-		glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x + width, loc.y);
-		glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x + width, loc.y + height);
-		glTexCoord2f(tc.x, tc.y); glVertex2i(loc.x        , loc.y + height);
-	glEnd();
+	vec2 tc = vec2 {0.25f * index.x, 0.125f * (8-index.y)};
+
+	std::vector<std::pair<vec2, vec3>> tmp;
+
+	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x,		   loc.y,	        1.0)));
+	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x + width, loc.y,		    1.0)));
+	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x + width, loc.y + height,  1.0)));
+
+	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x + width, loc.y + height,  1.0)));
+	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x,         loc.y + height,  1.0)));
+	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x,         loc.y, 		    1.0)));
+
+	return tmp;
 }
 
 void Particles::update(float _gravity, float ground_y)

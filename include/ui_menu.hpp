@@ -32,6 +32,7 @@ public:
 			float *var;
 		} slider;
 	};
+	menuItem(){}
 	~menuItem(){
 		//button.text = NULL;
 		//slider.text = NULL;

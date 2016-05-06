@@ -54,6 +54,28 @@ Player *player;
 GLuint fragShader;
 GLuint shaderProgram;
 
+/**
+ * These are the source and index variables for our shader
+ * used to draw text and ui elements
+ */
+
+GLuint textShader;
+GLint textShader_attribute_coord;
+GLint textShader_attribute_tex;
+GLint textShader_uniform_texture;
+GLint textShader_uniform_transform;
+
+/**
+ * These are the source and index variables for the world
+ * shader which is used to draw the world items and shade them
+ */
+
+GLuint worldShader;
+GLint worldShader_attribute_coord;
+GLint worldShader_attribute_tex;
+GLint worldShader_uniform_texture;
+GLint worldShader_uniform_transform;
+
 // keeps a simple palette of colors for single-color draws
 GLuint colorIndex;
 
@@ -191,7 +213,26 @@ int main(int argc, char *argv[]){
 
 	delete[] shaderSource;
 
-	glEnable(GL_MULTISAMPLE);
+	/**
+	 *	Creating the text shader and its attributes/uniforms
+	 */
+	textShader = create_program("shaders/new.vert", "shaders/new.frag");
+	textShader_attribute_coord = get_attrib(textShader, "coord2d");
+	textShader_attribute_tex = get_attrib(textShader, "tex_coord");
+	textShader_uniform_texture = get_uniform(textShader, "sampler");
+	textShader_uniform_transform = get_uniform(textShader, "ortho");
+
+
+	/**
+	 *	Creating the world's shader and its attributes/uniforms
+	 */
+	worldShader = create_program("shaders/world.vert", "shaders/world.frag");
+	worldShader_attribute_coord = get_attrib(worldShader, "coord2d");
+	worldShader_attribute_tex = get_attrib(worldShader, "tex_coord");
+	worldShader_uniform_texture = get_uniform(worldShader, "sampler");
+	worldShader_uniform_transform = get_uniform(worldShader, "ortho");
+
+	//glEnable(GL_MULTISAMPLE);
 
 	// load up some fresh hot brice
 	game::briceLoad();
@@ -335,22 +376,35 @@ void render() {
 	offset.y = std::max(player->loc.y + player->height / 2, SCREEN_HEIGHT / 2.0f);
 
 	// "setup"
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glOrtho(floor(offset.x - SCREEN_WIDTH  / 2), floor(offset.x + SCREEN_WIDTH  / 2),
-	        floor(offset.y - SCREEN_HEIGHT / 2), floor(offset.y + SCREEN_HEIGHT / 2),
-			20, -20);
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
+	glm::mat4 projection = glm::ortho(	static_cast<float>(floor(offset.x-SCREEN_WIDTH/2)), 	//left
+										static_cast<float>(floor(offset.x+SCREEN_WIDTH/2)), 	//right
+										static_cast<float>(floor(offset.y-SCREEN_HEIGHT/2)), 	//bottom
+										static_cast<float>(floor(offset.y+SCREEN_HEIGHT/2)), 	//top
+										10.0f,								//near
+										-10.0f);							//far
 
-	glPushAttrib(GL_DEPTH_BUFFER_BIT);
+	glm::mat4 view = glm::lookAt(glm::vec3(0,0,10.0f),  //pos
+								 glm::vec3(0,0,0.0f), //looking at
+								 glm::vec3(0,1.0f,0)); //up vector
 
-	// clear the screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glm::mat4 ortho = projection * view;
 
-	// draw the world
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	//glEnable(GL_DEPTH_TEST);
+
+	glUseProgram(textShader);
+	glUniformMatrix4fv(textShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(ortho));
+	glUseProgram(worldShader);
+	glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(ortho));
+
+	/**************************
+	**** RENDER STUFF HERE ****
+	**************************/
+
+	/**
+	 * Call the world's draw function, drawing the player, the world, the background, and entities. Also
+	 * draw the player's inventory if it exists.
+	 */
 	//player->near = true; // allow player's name to be drawn
 	currentWorld->draw(player);
 
@@ -396,21 +450,44 @@ void render() {
 	if (currentMenu)
 		ui::menu::draw();
 
-	// draw the mouse cursor
-	glColor3ub(255,255,255);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, mouseTex);
-	glBegin(GL_QUADS);
-		glTexCoord2f(0,0);glVertex2i(ui::mouse.x			,ui::mouse.y			);
-		glTexCoord2f(1,0);glVertex2i(ui::mouse.x+HLINES(5)	,ui::mouse.y		 	);
-		glTexCoord2f(1,1);glVertex2i(ui::mouse.x+HLINES(5)	,ui::mouse.y-HLINES(5)	);
-		glTexCoord2f(0,1);glVertex2i(ui::mouse.x 			,ui::mouse.y-HLINES(5) 	);
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
+		glUseProgram(textShader);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mouseTex);
+		glUniform1i(textShader_uniform_texture, 0);
 
-	// wrap up
-	glPopMatrix();
-	SDL_GL_SwapWindow(window);
+		glEnableVertexAttribArray(textShader_attribute_tex);
+		glEnableVertexAttribArray(textShader_attribute_coord);
+
+		glDisable(GL_DEPTH_TEST);
+
+		GLfloat mouseCoords[] = {
+			ui::mouse.x			,ui::mouse.y, 	      1.0, //bottom left
+			ui::mouse.x+15		,ui::mouse.y, 		  1.0, //bottom right
+			ui::mouse.x+15		,ui::mouse.y-15,	  1.0, //top right
+
+			ui::mouse.x+15		,ui::mouse.y-15, 	  1.0, //top right
+			ui::mouse.x 		,ui::mouse.y-15, 	  1.0, //top left
+			ui::mouse.x			,ui::mouse.y, 		  1.0, //bottom left
+		};
+
+		GLfloat mouseTex[] = {
+			0.0f, 0.0f, //bottom left
+			1.0f, 0.0f, //bottom right
+			1.0f, 1.0f, //top right
+
+			1.0f, 1.0f, //top right
+			0.0f, 1.0f, //top left
+			0.0f, 0.0f, //bottom left
+		};
+
+		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, mouseCoords);
+		glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, mouseTex);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glDisableVertexAttribArray(textShader_attribute_coord);
+		glDisableVertexAttribArray(textShader_attribute_tex);
+
+		SDL_GL_SwapWindow(window);
 }
 
 void logic(){

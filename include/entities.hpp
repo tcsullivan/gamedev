@@ -149,7 +149,7 @@ public:
 	~Particles(void){}
 
 	// draws the particle
-	void draw(void) const;
+	std::vector<std::pair<vec2, vec3>> draw(void) const;
 
 	// updates a particle
 	void update(float _gravity, float ground_y);
@@ -183,6 +183,7 @@ protected:
 public:
 	// contains the entity's coordinates, in pixels
 	vec2 loc;
+	float z;
 
 	// contains the entity's velocity, in pixels
 	vec2 vel;
