@@ -50,11 +50,13 @@ namespace game {
 	}
 
 	void briceLoad(void) {
-		const std::string data = readFile("brice.dat");
+		const char *data = readFile("brice.dat");
 		auto datas = StringTokenizer(data, ',');
 
 		for (const auto& d : datas)
 			std::cout << d << '\n';
+
+		delete[] data;
 	}
 
 	void briceUpdate(void) {

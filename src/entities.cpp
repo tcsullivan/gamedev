@@ -435,38 +435,38 @@ if (health != maxHealth) {
 	};
 
 	GLfloat coord_front[] = {
-		loc.x, 			loc.y + height, 			1.0,
-		loc.x + width,	loc.y + height, 			1.0,
-		loc.x + width, 	loc.y + height + game::HLINE * 2, 1.0,
+		loc.x, 			                    loc.y + height,                   1.0,
+		loc.x + health / maxHealth * width, loc.y + height,                   1.0,
+		loc.x + health / maxHealth * width, loc.y + height + game::HLINE * 2, 1.0,
 
-		loc.x + width, 	loc.y + height + game::HLINE * 2, 1.0,
-		loc.x, 			loc.y + height + game::HLINE * 2,	1.0,
-		loc.x, 			loc.y + height, 			1.0,
+		loc.x + health / maxHealth * width, loc.y + height + game::HLINE * 2, 1.0,
+		loc.x,                              loc.y + height + game::HLINE * 2, 1.0,
+		loc.x,                              loc.y + height,                   1.0,
 	};
 
-	vec2 index = Texture::getIndex(Color(150,0,0));
+	static const vec2 index1 = Texture::getIndex(Color(0,0,0));
 	GLfloat back_tex[] = {
-		float(.25*index.x), float(.125*index.y),
-		float(.25*index.x), float(.125*index.y),
-		float(.25*index.x), float(.125*index.y),
+		float(.25*index1.x), float(.125*index1.y),
+		float(.25*index1.x), float(.125*index1.y),
+		float(.25*index1.x), float(.125*index1.y),
 
-		float(.25*index.x), float(.125*index.y),
-		float(.25*index.x), float(.125*index.y),
-		float(.25*index.x), float(.125*index.y),
+		float(.25*index1.x), float(.125*index1.y),
+		float(.25*index1.x), float(.125*index1.y),
+		float(.25*index1.x), float(.125*index1.y),
 	};
 	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coord_back);
 	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, back_tex);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	index = Texture::getIndex(Color(255,0,0));
+	static const vec2 index2 = Texture::getIndex(Color(255,0,0));
 	GLfloat front_tex[] = {
-		float(.25*index.x), float(.125*index.y),
-		float(.25*index.x), float(.125*index.y),
-		float(.25*index.x), float(.125*index.y),
+		float(.25*index2.x), float(.125*index2.y),
+		float(.25*index2.x), float(.125*index2.y),
+		float(.25*index2.x), float(.125*index2.y),
 
-		float(.25*index.x), float(.125*index.y),
-		float(.25*index.x), float(.125*index.y),
-		float(.25*index.x), float(.125*index.y),
+		float(.25*index2.x), float(.125*index2.y),
+		float(.25*index2.x), float(.125*index2.y),
+		float(.25*index2.x), float(.125*index2.y),
 	};
 	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coord_front);
 	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, front_tex);

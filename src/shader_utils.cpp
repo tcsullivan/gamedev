@@ -1,9 +1,3 @@
-/**
- * From the OpenGL Programming wikibook: http://en.wikibooks.org/wiki/OpenGL_Programming
- * This file is in the public domain.
- * Contributors: Sylvain Beucler, Guus Sliepen
- */
-
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -76,21 +70,8 @@ GLuint create_shader(const char* filename, GLenum type) {
 		return 0;
 	}
 	GLuint res = glCreateShader(type);
-	const GLchar* sources[] = {
-		// Define GLSL version
-		"#version 130\n"  // OpenGL 2.0
-		,
-		// Define default float precision for fragment shaders:
-		(type == GL_FRAGMENT_SHADER) ?
-		"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-		"precision highp float;           \n"
-		"#else                            \n"
-		"precision mediump float;         \n"
-		"#endif                           \n"
-		: ""
-		,
-		source };
-	glShaderSource(res, 3, sources, NULL);
+	const GLchar* sources[2] = { "#version 120\n", source };
+	glShaderSource(res, 2, sources,NULL);
 	delete[] source;
 
 	glCompileShader(res);

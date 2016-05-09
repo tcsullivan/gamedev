@@ -99,9 +99,6 @@ void mainLoop(void);
 ********************************************************************************/
 
 int main(int argc, char *argv[]){
-	(void)argc;
-	(void)argv;
-
 	static SDL_GLContext mainGLContext = NULL;
 
 	// handle command line arguments
@@ -275,6 +272,7 @@ int main(int argc, char *argv[]){
 	if (currentWorld == NULL)
 		UserError("Plot twist: The world never existed...?");
 
+	// spawn the arena
 	arena = new Arena();
 	arena->setStyle("");
 	arena->setBackground(WorldBGType::Forest);
@@ -307,9 +305,7 @@ int main(int argc, char *argv[]){
 	// close up the game stuff
 	currentWorld->save();
 	delete arena;
-	//delete currentWorld;
-	//delete[] currentXML;
-	//aipreload.clear();
+	delete currentWorld;
 
     return 0; // Calls everything passed to atexit
 }

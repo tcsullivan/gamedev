@@ -112,7 +112,7 @@ protected:
 	unsigned int lineCount;
 
 	// the left-most (negative) coordinate of the worldStart
-	int worldStart;
+	float worldStart;
 
 	// holds / handles textures for background elements
 	TextureIterator bgTex;
@@ -191,8 +191,6 @@ public:
 
 	// gets a pointer to the most recently added mob
 	Mob *getLastMob(void);
-
-	std::vector<Entity*> getMobs(void);
 
 	// gets the nearest interactable entity to the given one
 	Entity *getNearInteractable(Entity &e);

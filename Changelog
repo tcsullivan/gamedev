@@ -977,3 +977,9 @@
 	- re-added click to speed up dialogs
 	- almost ready to add new draw stuff
 
+
+5/5/2016:
+=========
+
+	- pushing new drawing to master, it's okay...
+	- changed how swords function, only hits nearest entity

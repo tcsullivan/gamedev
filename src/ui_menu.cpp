@@ -135,7 +135,7 @@ namespace ui {
 
             //draw the dark transparent background
             glColor4f(0.0f, 0.0f, 0.0f, .8f);
-            glRectf(offset.x-SCREEN_WIDTH/2,0,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT);
+            glRectf(offset.x-SCREEN_WIDTH/2,-SCREEN_HEIGHT/2,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT/2);
 
             //loop through all elements of the menu
             for (auto &m : currentMenu->items) {

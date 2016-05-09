@@ -63,6 +63,7 @@ void items(void)
 			Sword *tmpSword = new Sword();
 			tmpSword->setDamage(exml->FloatAttribute("damage"));
 			ItemMap.push_back(tmpSword->clone());
+			delete tmpSword;
 
 		// if the type is a bow
 		} else if (strCaseCmp(name, "bow")) {
@@ -70,6 +71,7 @@ void items(void)
 			Bow *tmpBow = new Bow();
 			tmpBow->setDamage(exml->FloatAttribute("damage"));
 			ItemMap.push_back(tmpBow->clone());
+			delete tmpBow;
 
 		// arrow
 		} else if (strCaseCmp(name, "arrow")) {
@@ -77,6 +79,7 @@ void items(void)
 			Arrow *tmpArrow = new Arrow();
 			tmpArrow->setDamage(exml->FloatAttribute("damage"));
 			ItemMap.push_back(tmpArrow->clone());
+			delete tmpArrow;
 
 		// uncooked / raw food
 		}else if (strCaseCmp(name, "raw food")) {
@@ -214,8 +217,8 @@ void destroyInventory(void) {
 
 	// NEWEWEWEWEWEWEWEW
 	while (!ItemMap.empty()) {
-		delete ItemMap.front();
-		ItemMap.erase(std::begin(ItemMap));
+		delete ItemMap.back();
+		ItemMap.pop_back();
 	}
 
 	Mix_FreeChunk(swordSwing);

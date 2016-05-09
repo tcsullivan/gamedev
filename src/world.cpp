@@ -206,7 +206,7 @@ generate(int width)
     // create empty star array, should be filled here as well...
 	star = std::vector<vec2> (100, vec2 { 0, 400 });
 	for (auto &s : star) {
-		s.x = (randGet() % (-worldStart * 2)) + worldStart;
+		s.x = (randGet() % (static_cast<int>(-worldStart) * 2)) + worldStart;
 		s.y = (randGet() % game::SCREEN_HEIGHT) + 100;
 	}
 
@@ -269,8 +269,6 @@ draw(Player *p)
     glUniform1i(worldShader_uniform_texture, 0);
 
     // draw background images.
-    //glEnable(GL_TEXTURE_2D);
-
     GLfloat tex_coord[] = { 0.0f, 1.0f,
                             1.0f, 1.0f,
                             1.0f, 0.0f,
@@ -581,13 +579,13 @@ draw(Player *p)
         // glTexCoord2i(1, ty); glVertex2i(worldStart + i * HLINE + HLINE, 0);
         // glTexCoord2i(0, ty); glVertex2i(worldStart + i * HLINE	      , 0);
 
-        c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + i * HLINE,         worldData[i].groundHeight - GRASS_HEIGHT, 1.0f)));
-        c.push_back(std::make_pair(vec2(1, 0), vec3(worldStart + i * HLINE + HLINE, worldData[i].groundHeight - GRASS_HEIGHT, 1.0f)));
-        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + i * HLINE + HLINE, 0,                                        1.0f)));
+		c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + HLINES(i),         worldData[i].groundHeight - GRASS_HEIGHT, 1.0f)));
+        c.push_back(std::make_pair(vec2(1, 0), vec3(worldStart + HLINES(i) + HLINE, worldData[i].groundHeight - GRASS_HEIGHT, 1.0f)));
+        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + HLINES(i) + HLINE, 0,                                        1.0f)));
 
-        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + i * HLINE + HLINE, 0,                                        1.0f)));
-        c.push_back(std::make_pair(vec2(0, ty),vec3(worldStart + i * HLINE,         0,                                        1.0f)));
-        c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + i * HLINE,         worldData[i].groundHeight - GRASS_HEIGHT, 1.0f)));
+        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + HLINES(i) + HLINE, 0,                                        1.0f)));
+        c.push_back(std::make_pair(vec2(0, ty),vec3(worldStart + HLINES(i),         0,                                        1.0f)));
+        c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + HLINES(i),         worldData[i].groundHeight - GRASS_HEIGHT, 1.0f)));
 
         if (worldData[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1)
             worldData[i].groundHeight = 0;
@@ -659,22 +657,22 @@ draw(Player *p)
     			glTexCoord2i(1, 1); glVertex2i(worldStart + i * HLINE + HLINE    , wd.groundHeight - GRASS_HEIGHT);
     			glTexCoord2i(0, 1); glVertex2i(worldStart + i * HLINE + HLINE / 2, wd.groundHeight - GRASS_HEIGHT);*/
 
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + i * HLINE            , wd.groundHeight + gh[0])));
-                c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + i * HLINE + HLINE / 2, wd.groundHeight + gh[0])));
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + i * HLINE + HLINE / 2, wd.groundHeight - GRASS_HEIGHT)));
+                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0])));
+                c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[0])));
+                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT)));
 
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + i * HLINE + HLINE / 2, wd.groundHeight - GRASS_HEIGHT)));
-                c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + i * HLINE		     , wd.groundHeight - GRASS_HEIGHT)));
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + i * HLINE            , wd.groundHeight + gh[0])));
+                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT)));
+                c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i)		     , wd.groundHeight - GRASS_HEIGHT)));
+                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0])));
 
 
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + i * HLINE + HLINE / 2, wd.groundHeight + gh[1])));
-                c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + i * HLINE + HLINE    , wd.groundHeight + gh[1])));
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + i * HLINE + HLINE    , wd.groundHeight - GRASS_HEIGHT)));
+                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1])));
+                c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight + gh[1])));
+                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT)));
 
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + i * HLINE + HLINE    , wd.groundHeight - GRASS_HEIGHT)));
-                c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + i * HLINE + HLINE / 2, wd.groundHeight - GRASS_HEIGHT)));
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + i * HLINE + HLINE / 2, wd.groundHeight + gh[1])));
+                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT)));
+                c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT)));
+                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1])));
 
             //glEnd();
         }
@@ -1049,16 +1047,6 @@ Mob *World::
 getLastMob(void)
 {
     return mob.back();
-}
-
-std::vector<Entity*> World::
-getMobs(void)
-{
-    std::vector<Entity*> meme;
-    for (auto &m : mob) {
-        meme.push_back(m);
-    }
-    return meme;
 }
 
 /**

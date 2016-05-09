@@ -1035,8 +1035,10 @@ EXIT:
 				} else {
 					// left click uses item
 					if (e.button.button & SDL_BUTTON_LEFT) {
-						player->inv->currentAddInteract(currentWorld->getMobs());
-						player->inv->useCurrent();
+						if ((m = currentWorld->getNearMob(*player)) != nullptr) {
+							player->inv->currentAddInteract(m);
+							player->inv->useCurrent();
+						}
 					}
 
 				}

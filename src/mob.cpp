@@ -149,28 +149,23 @@ Rabbit::Rabbit(void) : Mob()
     actCounter = 1;
 }
 
-extern bool inBattle;
 void Rabbit::act(void)
 {
     static int direction = 0;
 
-    if (inBattle) {
-        die();
-    } else {
-        if (!--actCounter) {
-            actCounter = actCounterInitial;
-            direction = (randGet() % 3 - 1); 	//sets the direction to either -1, 0, 1
-            if (direction == 0)
-                ticksToUse /= 2;
-            vel.x *= direction;
-        }
+    if (!--actCounter) {
+        actCounter = actCounterInitial;
+        direction = (randGet() % 3 - 1); 	//sets the direction to either -1, 0, 1
+        if (direction == 0)
+            ticksToUse /= 2;
+        vel.x *= direction;
+    }
 
-        if (ground && direction) {
-            ground = false;
-            vel.y = .15;
-            loc.y += HLINES(0.25f);
-            vel.x = 0.05f * direction;
-        }
+    if (ground && direction) {
+        ground = false;
+        vel.y = .15;
+        loc.y += HLINES(0.25f);
+        vel.x = 0.05f * direction;
     }
 }
 

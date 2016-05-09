@@ -13,6 +13,8 @@
 #include <errno.h>
 #include <vector>
 
+#include <texture.hpp>
+
 unsigned int millis(void) {
 	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
 	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
