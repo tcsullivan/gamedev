@@ -36,6 +36,8 @@
 ** Structures section
 ** --------------------------------------------------------------------------*/
 
+#ifndef __WIN32__
+
 /**
  * Defines the layout of a bitmap (.bmp) file's header.
  */
@@ -63,6 +65,8 @@ typedef struct {
 	uint32_t biClrUsed;
 	uint32_t biClrImportant;
 } __attribute__((packed)) BITMAPINFOHEADER;
+
+#endif // __WIN32__
 
 /* ----------------------------------------------------------------------------
 ** The UI namespace

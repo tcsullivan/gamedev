@@ -32,12 +32,3 @@ void main(){
 	color += vec4(amb,amb,amb,1.0f+amb);
 	gl_FragColor = tex * vec4(color)*tex.a;
 }
-
-/*	b values
-	.002		10
-	.008		50
-	.0005		200
-	.00008		500
-	.00002		1000
-	.00005		2000
-*/

@@ -1007,7 +1007,7 @@ EXIT:
 			toggleBlackFast();
 			player->canMove = true;
 		};
-
+		
 		while(SDL_PollEvent(&e)) {
 			switch(e.type) {
 

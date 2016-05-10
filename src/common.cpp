@@ -15,12 +15,12 @@
 
 #include <texture.hpp>
 
+#endif // __WIN32__
+
 unsigned int millis(void) {
 	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
 	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }
-
-#endif // __WIN32__
 
 std::vector<std::string> StringTokenizer(const std::string& str, char delim)
 {
@@ -61,6 +61,7 @@ void safeSetColorA(int r,int g,int b,int a) {
 
 int getdir(std::string dir, std::vector<std::string> &files)
 {
+#ifndef __WIN32__
     DIR *dp;
     struct dirent *dirp;
     if (!(dp = opendir(dir.c_str()))) {
@@ -70,7 +71,30 @@ int getdir(std::string dir, std::vector<std::string> &files)
     while((dirp = readdir(dp)))
         files.push_back(std::string(dirp->d_name));
     closedir(dp);
-    return 0;
+#else
+	HANDLE dirh;
+	WIN32_FIND_DATA file_data;
+	
+	if ((dirh = FindFirstFile((dir + "/*").c_str(), &file_data)) == INVALID_HANDLE_VALUE)
+        return -1; /* No files found */
+
+    do {
+        const std::string file_name = file_data.cFileName;
+        const std::string full_file_name = dir + file_name;
+        const bool is_directory = (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+
+        if (file_name[0] == '.')
+            continue;
+
+        if (is_directory)
+            continue;
+		
+        files.push_back(file_name);
+    } while (FindNextFile(dirh, &file_data));
+
+    FindClose(dirh);
+#endif // __WIN32__
+	return 0;
 }
 
 void strVectorSortAlpha(std::vector<std::string> *v)
