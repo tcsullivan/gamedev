@@ -404,15 +404,21 @@ void Inventory::draw(void) {
 
 	 C("Start drawing inventory");
 	if (invOpen) {
-
+        useShader(&textShader,
+                  &textShader_uniform_texture,
+                  &textShader_attribute_coord,
+                  &textShader_attribute_tex);
 		for(auto &mr : massRay) {
-			glColor4f(0.0f,0.0f,0.0f, ((float)massDfp[a]/(float)massRange)*.5f);
-			glBegin(GL_QUADS);
-				glVertex2i(mr.x-(itemWide/2),		 mr.y-(itemWide/2));
-				glVertex2i(mr.x-(itemWide/2)+itemWide,mr.y-(itemWide/2));
-				glVertex2i(mr.x-(itemWide/2)+itemWide,mr.y-(itemWide/2)+itemWide);
-				glVertex2i(mr.x-(itemWide/2),		 mr.y-(itemWide/2)+itemWide);
-			glEnd();
+            float t = (((float)massDfp[a]/(float)massRange)*.5f);
+            glActiveTexture(GL_TEXTURE0);
+            glUseProgram(textShader);
+            
+			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0.0f,0.0f,0.0f, t >= 0? 255*t : 0)));
+            glUniform1i(textShader_uniform_texture, 0);
+
+            drawRect(vec2(mr.x-(itemWide/2), mr.y-(itemWide/2)), vec2(mr.x-(itemWide/2)+itemWide, mr.y-(itemWide/2)+itemWide));
+
+            glUseProgram(0);
 			if (!Items.empty() && a+numSlot < Items.size() && Items[a+numSlot].second) {
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, Items[a+numSlot].first->tex->image[0]);//itemtex[items[a+numSlot].id]);

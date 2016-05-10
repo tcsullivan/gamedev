@@ -146,16 +146,25 @@ public:
 	float red;
 	float green;
 	float blue;
-	Color()
+	float alpha;
+    Color()
 	{
-		red = green = blue = 0;
+		red = green = blue = alpha = 0;
 	}
 	Color(float r, float g ,float b)
 	{
 		red = r;
 		green = g;
 		blue = b;
+        alpha = 255;
 	}
+    Color(float r, float g, float b, float a)
+    {
+        red = r;
+        green = g;
+        blue = b;
+        alpha = a;
+    }
 	Color operator-=(float a) {
 		red-=a;
 		green-=a;
@@ -169,6 +178,19 @@ public:
 		return{red=a,green=a,blue=a};
 	}
 };
+
+/*
+ * A function used to tell the program what shader, attributes, and uniforms
+ * we want to draw our rectangles to. See below |
+ *                                             \|/
+ */
+void useShader(GLuint *sh, GLint *tu, GLint *ca, GLint *ta);
+
+/*
+ * A function to draw a colored box for opengl
+ * To use it, the lower left hand and upper right hand coords are passed along
+ */
+void drawRect(vec2 ll, vec2 ur);
 
 // gets the length of `n` HLINEs
 template<typename T>

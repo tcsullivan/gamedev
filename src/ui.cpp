@@ -294,8 +294,8 @@ namespace ui {
 		*/
 
 		glActiveTexture(GL_TEXTURE0);
-		glUniform1i(textShader_uniform_texture, 0);
 		glBindTexture(GL_TEXTURE_2D,(*ftex)[c-33]);
+		glUniform1i(textShader_uniform_texture, 0);
 
 		//glDisable(GL_DEPTH_TEST);
 
@@ -639,11 +639,6 @@ namespace ui {
 	}
 
 	void drawBox(vec2 c1, vec2 c2) {
-        static vec2 lineIndexF = Texture::getIndex(Color(255, 255, 255));
-        static vec2 lineIndex = vec2(0.25f * lineIndexF.x, 0.125f * (8-lineIndexF.y));
-        static vec2 boxIndexF = Texture::getIndex(Color(0, 0, 0));
-        static vec2 boxIndex = vec2(0.25f * boxIndexF.x, 0.125f * (8-boxIndexF.y));
-
         GLfloat box[] = {c1.x, c1.y, 1.0,
                          c2.x, c1.y, 1.0,
                          c2.x, c2.y, 1.0,
@@ -655,26 +650,23 @@ namespace ui {
         GLfloat line_strip[] = {c1.x,     c1.y, 1.0,
                                 c2.x + 1, c1.y, 1.0,
                                 c2.x + 1, c2.y, 1.0,
-                                c1.x - 1, c2.y, 1.0,
+                                c1.x,     c2.y, 1.0,
                                 c1.x,     c1.y, 1.0};
 
-        static GLfloat box_tex[] = {boxIndex.x,boxIndex.y,
-                                    boxIndex.x,boxIndex.y,
-                                    boxIndex.x,boxIndex.y,
+        GLfloat box_tex[] = {0,0,
+                             1,0,
+                             1,1,
 
-                                    boxIndex.x,boxIndex.y,
-                                    boxIndex.x,boxIndex.y,
-                                    boxIndex.x,boxIndex.y};
+                             1,1,
+                             0,1,
+                             0,0};
 
-        static GLfloat line_tex[] = {lineIndex.x, lineIndex.y,
-                                     lineIndex.x, lineIndex.y,
-                                     lineIndex.x, lineIndex.y,
-                                     lineIndex.x, lineIndex.y,
-                                     lineIndex.x, lineIndex.y};
+        static GLuint boxT = Texture::genColor(Color(0,0,0));
+        static GLuint lineT = Texture::genColor(Color(255,255,255));
 
-        glActiveTexture(GL_TEXTURE9); 
-        glBindTexture(GL_TEXTURE_2D, colorIndex);
-        glUniform1i(textShader_uniform_texture, 9);
+        glActiveTexture(GL_TEXTURE0); 
+        glBindTexture(GL_TEXTURE_2D, boxT);
+        glUniform1i(textShader_uniform_texture, 0);
         glUseProgram(textShader);
 
         glEnableVertexAttribArray(textShader_attribute_coord);
@@ -683,16 +675,18 @@ namespace ui {
         glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, box);
         glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
         glDrawArrays(GL_TRIANGLES, 0 ,6);
-      
-        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, line_strip);
-        glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
-        glDrawArrays(GL_LINE_STRIP, 0 ,5);
+       
+        glBindTexture(GL_TEXTURE_2D, lineT);
+        glUniform1i(textShader_uniform_texture, 0);
 
+        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, line_strip);
+        glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
+        glDrawArrays(GL_LINE_STRIP, 0 ,8);
+         
         glDisableVertexAttribArray(textShader_attribute_coord);
         glDisableVertexAttribArray(textShader_attribute_tex);
         
         glUseProgram(0);
-        glActiveTexture(GL_TEXTURE0);  
 	}
 
 	void draw(void){
@@ -700,22 +694,46 @@ namespace ui {
 		float x,y,tmp;
 		std::string rtext;
 
-		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
-		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+		auto SCREEN_WIDTH = static_cast<float>(game::SCREEN_WIDTH);
+		auto SCREEN_HEIGHT = static_cast<float>(game::SCREEN_HEIGHT);
 
 		// will return if not toggled
 		action::draw(vec2 {player->loc.x + player->width / 2, player->loc.y + player->height + game::HLINE});
 
 		if (pageTexReady) {
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, pageTex);
-			glBegin(GL_QUADS);
-				glTexCoord2i(0, 0); glVertex2i(offset.x - 300, SCREEN_HEIGHT - 100);
-				glTexCoord2i(1, 0); glVertex2i(offset.x + 300, SCREEN_HEIGHT - 100);
-				glTexCoord2i(1, 1); glVertex2i(offset.x + 300, SCREEN_HEIGHT - 600);
-				glTexCoord2i(0, 1); glVertex2i(offset.x - 300, SCREEN_HEIGHT - 600);
-			glEnd();
-			glDisable(GL_TEXTURE_2D);
+
+            GLfloat page_loc[] = {offset.x - 300, SCREEN_HEIGHT - 100, 1.0,
+                                  offset.x + 300, SCREEN_HEIGHT - 100, 1.0,
+                                  offset.x + 300, SCREEN_HEIGHT - 600, 1.0,
+
+                                  offset.x + 300, SCREEN_HEIGHT - 600, 1.0,
+                                  offset.x - 300, SCREEN_HEIGHT - 600, 1.0,
+                                  offset.x - 300, SCREEN_HEIGHT - 100, 1.0};
+
+            GLfloat page_tex[] = {0.0, 0.0,
+                                  1.0, 0.0,
+                                  1.0, 1.0,
+
+                                  1.0, 1.0,
+                                  0.0, 1.0,
+                                  0.0, 0.0};
+
+            glActiveTexture(GL_TEXTURE0); 
+            glBindTexture(GL_TEXTURE_2D, pageTex);
+            glUniform1i(textShader_uniform_texture, 0);
+            glUseProgram(textShader);
+
+            glEnableVertexAttribArray(textShader_attribute_coord);
+            glEnableVertexAttribArray(textShader_attribute_tex);
+       
+            glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, page_loc);
+            glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, page_tex);
+            glDrawArrays(GL_TRIANGLES, 0 ,6);
+           
+            glDisableVertexAttribArray(textShader_attribute_coord);
+            glDisableVertexAttribArray(textShader_attribute_tex);
+            
+            glUseProgram(0);
 
 		} else if (dialogBoxExists) {
 			rtext = typeOut(dialogBoxText);
@@ -756,25 +774,53 @@ namespace ui {
 				putStringCentered(merchBase.x - SCREEN_WIDTH / 10     , merchBase.y + 40 + fontSize    , merchTrade.item[1]);
 				putStringCentered(offset.x, merchBase.y + 60, "for");
 
-				glEnable(GL_TEXTURE_2D);
+                // render the two items we are trading
+                GLfloat item_tex[] = {0.0, 1.0,
+                                      1.0, 1.0,
+                                      1.0, 0.0,
 
-				glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[0]));
-				glBegin(GL_QUADS);
-					glTexCoord2d(0,1);glVertex2f(offset.x - (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5));
-					glTexCoord2d(1,1);glVertex2f(offset.x - (SCREEN_WIDTH / 10) + 40,offset.y + (SCREEN_HEIGHT/5));
-					glTexCoord2d(1,0);glVertex2f(offset.x - (SCREEN_WIDTH / 10) + 40,offset.y + (SCREEN_HEIGHT/5) + 40);
-					glTexCoord2d(0,0);glVertex2f(offset.x - (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5) + 40);
-				glEnd();
+                                      1.0, 0.0,
+                                      0.0, 0.0,
+                                      0.0, 1.0};
 
-				glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[1]));
-				glBegin(GL_QUADS);
-					glTexCoord2d(0,1);glVertex2f(offset.x + (SCREEN_WIDTH / 10) - 40,offset.y + (SCREEN_HEIGHT/5));
-					glTexCoord2d(1,1);glVertex2f(offset.x + (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5));
-					glTexCoord2d(1,0);glVertex2f(offset.x + (SCREEN_WIDTH / 10)     ,offset.y + (SCREEN_HEIGHT/5) + 40);
-					glTexCoord2d(0,0);glVertex2f(offset.x + (SCREEN_WIDTH / 10) - 40,offset.y + (SCREEN_HEIGHT/5) + 40);
-				glEnd();
+                GLfloat left_item[] = {offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5),     1.0,
+                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5),     1.0,
+                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
 
-				glDisable(GL_TEXTURE_2D);
+                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
+                                       offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
+                                       offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5),     1.0};
+
+                GLfloat right_item[] = {offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5),     1.0,
+                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5),     1.0,
+                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
+
+                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
+                                        offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
+                                        offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5),     1.0};
+
+                glActiveTexture(GL_TEXTURE0); 
+                glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[0]));
+                glUniform1i(textShader_uniform_texture, 0);
+                glUseProgram(textShader);
+
+                glEnableVertexAttribArray(textShader_attribute_coord);
+                glEnableVertexAttribArray(textShader_attribute_tex);
+           
+                glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, left_item);
+                glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
+                glDrawArrays(GL_TRIANGLES, 0 ,6);
+               
+                glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[1]));
+
+                glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, right_item);
+                glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
+                glDrawArrays(GL_TRIANGLES, 0 ,6);
+
+                glDisableVertexAttribArray(textShader_attribute_coord);
+                glDisableVertexAttribArray(textShader_attribute_tex);
+                
+                glUseProgram(0);
 
 				merchArrowLoc[0].x = offset.x - (SCREEN_WIDTH / 8.5) - 16;
 				merchArrowLoc[1].x = offset.x + (SCREEN_WIDTH / 8.5) + 16;
@@ -789,14 +835,34 @@ namespace ui {
 						(mouse.x < merchArrowLoc[i].x     && mouse.x > merchArrowLoc[i].z)) &&
 					     mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8) {
 						glColor3ub(255,255, 0);
-					}else{
+                        glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255,255,0)));
+                    }else{
 						glColor3ub(255,255,255);
+                        glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255,255,255)));
 					}
-					glBegin(GL_TRIANGLES);
-						glVertex2f(merchArrowLoc[i].x,merchArrowLoc[i].y);
-						glVertex2f(merchArrowLoc[i].z,merchArrowLoc[i].y-8);
-						glVertex2f(merchArrowLoc[i].z,merchArrowLoc[i].y+8);
-					glEnd();
+
+                    GLfloat tri_t[] = {0.0, 0.0,
+                                       0.0, 1.0,
+                                       1.0, 1.0};
+
+                    GLfloat tri_c[] = {merchArrowLoc[i].x, merchArrowLoc[i].y,      1.0,
+                                       merchArrowLoc[i].z, merchArrowLoc[i].y - 8,  1.0,
+                                       merchArrowLoc[i].z, merchArrowLoc[i].y + 8,  1.0};
+
+                    glUniform1i(textShader_uniform_texture, 0);
+                    glUseProgram(textShader);
+
+                    glEnableVertexAttribArray(textShader_attribute_coord);
+                    glEnableVertexAttribArray(textShader_attribute_tex);
+               
+                    glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, tri_c);
+                    glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tri_t);
+                    glDrawArrays(GL_TRIANGLES, 0 ,6);
+                   
+                    glDisableVertexAttribArray(textShader_attribute_coord);
+                    glDisableVertexAttribArray(textShader_attribute_tex);
+                    
+                    glUseProgram(0);
 				}
 
 
@@ -865,18 +931,47 @@ namespace ui {
 												(unsigned)player->maxHealth
 												);
 			if (player->isAlive()) {
-				glColor3ub(150,0,0);
 				hub.y-=fontSize*1.15;
-				glRectf(hub.x,
-						hub.y,
-						hub.x+150,
-						hub.y+12);
-				glColor3ub(255,0,0);
-				glRectf(hub.x,
-						hub.y,
-						hub.x+(player->health/player->maxHealth * 150),
-						hub.y+12);
-			}
+
+                GLfloat tex[] = {0.0, 0.0,
+                                 1.0, 0.0,
+                                 0.0, 1.0,
+                                 1.0, 1.0};
+
+                GLfloat back[] = {hub.x,        hub.y,      1.0,
+                                  hub.x + 150,  hub.y,      1.0,
+                                  hub.x,        hub.y + 12, 1.0,
+                                  hub.x + 150,  hub.y + 12, 1.0};
+
+                GLfloat front[] = {hub.x,       hub.y,      1.0,
+                                   hub.x + 150, hub.y,      1.0,
+                                   hub.x,       hub.y + 12, 1.0,
+                                   hub.x + 150, hub.y + 12, 1.0};
+
+                
+                glUniform1i(textShader_uniform_texture, 0);
+                glUseProgram(textShader);
+
+                glEnableVertexAttribArray(textShader_attribute_coord);
+                glEnableVertexAttribArray(textShader_attribute_tex);
+           
+                glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(150,0,0)));
+
+                glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, front);
+                glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+               
+                glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255,0,0)));
+                
+                glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, back);
+                glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+                glDisableVertexAttribArray(textShader_attribute_coord);
+                glDisableVertexAttribArray(textShader_attribute_tex);             
+
+                glUseProgram(0);
+            }
 
 			/*
 			 *	Lists all of the quests the player is currently taking.
@@ -1328,16 +1423,36 @@ EXIT:
 		}
 
 		if (fadeWhite)
-			safeSetColorA(255, 255, 255, fadeIntensity);
+			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255, 255, 255, fadeIntensity)));
 		else
-			safeSetColorA(0, 0, 0, fadeIntensity);
+			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0, 0, 0, fadeIntensity)));
 
-		glRectf(offset.x - SCREEN_WIDTH  / 2,
-				offset.y - SCREEN_HEIGHT / 2,
-				offset.x + SCREEN_WIDTH  / 2,
-				offset.y + SCREEN_HEIGHT / 2
-			    );
-	}
+        GLfloat tex[] = {0.0, 0.0,
+                        1.0, 0.0,
+                        0.0, 1.0,
+                        1.0, 1.0};
+
+        GLfloat backdrop[] = {offset.x - SCREEN_WIDTH / 2, offset.y - SCREEN_HEIGHT / 2, 1.0,
+                              offset.x + SCREEN_WIDTH / 2, offset.y - SCREEN_HEIGHT / 2, 1.0,
+                              offset.x - SCREEN_WIDTH / 2, offset.y + SCREEN_HEIGHT / 2, 1.0,
+                              offset.x + SCREEN_WIDTH / 2, offset.y + SCREEN_HEIGHT / 2, 1.0};
+	    
+        glUniform1i(textShader_uniform_texture, 0);
+        glUseProgram(textShader);
+
+        glEnableVertexAttribArray(textShader_attribute_coord);
+        glEnableVertexAttribArray(textShader_attribute_tex);
+   
+        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
+        glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+       
+        glDisableVertexAttribArray(textShader_attribute_coord);
+        glDisableVertexAttribArray(textShader_attribute_tex);
+        
+        glUseProgram(0);
+
+    }
 
 	void fadeUpdate(void) {
 		if (fadeEnable) {

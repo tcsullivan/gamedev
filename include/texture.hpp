@@ -26,6 +26,7 @@ namespace Texture {
 	 */
 
 	GLuint loadTexture(std::string fileName);
+    GLuint genColor(Color c);
 
 	void freeTextures(void);
 

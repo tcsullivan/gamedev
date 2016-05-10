@@ -19,6 +19,19 @@ struct index_t {
 	int indexy;
 };
 
+// convert any type to octal
+template <typename T>
+uint toOctal(T toConvert)
+{
+    int n = 0;
+    uint t = 0;
+    while (toConvert > 0) {
+        t += (pow(10, n++)) * (static_cast<int>(toConvert) % 8);
+        toConvert /= 8;
+    }
+    return t;
+}
+
 /**
  * A vector of all loaded textures.
  *
@@ -88,6 +101,49 @@ namespace Texture{
 
 		return object;
 	}
+
+    GLuint genColor(Color c)
+    {
+        std::string out;
+        
+        // add the red
+        out += static_cast<int>(c.red);
+
+        // add the green
+        out += static_cast<int>(c.green);
+
+        // add the blue
+        out += static_cast<int>(c.blue);
+
+        // add the alpha
+        out += static_cast<int>(c.alpha);
+
+        GLuint object;
+
+        glActiveTexture(GL_TEXTURE0);
+        glGenTextures(1,&object);				// Turns "object" into a texture
+		glBindTexture(GL_TEXTURE_2D,object);	// Binds "object" to the top of the stack
+		//glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+
+		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	// Sets the "min" filter
+		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	// The the "max" filter of the stack
+
+		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Wrap the texture to the matrix
+		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); //
+
+		glTexImage2D(GL_TEXTURE_2D,     // Sets the texture to the image file loaded above
+					 0,                 // level
+					 GL_RGBA,           // internal format
+					 1,                 // width
+					 1,                 // height
+					 0,                 // border
+					 GL_RGBA,           // image format
+					 GL_UNSIGNED_BYTE,  // type
+					 out.data()         // source
+					);
+        
+        return object;
+    }
 
 	dim2 imageDim(std::string fileName) {
 		for(auto &t : LoadedTexture) {
