@@ -7,7 +7,7 @@
 
 	<hill peakx="0" peaky="1000" width="50" />
 
-	<rabbit x="300" aggressive="true" health="100" />
+	<rabbit x="300" aggressive="false" health="100" />
 	<bird y="500"/>
 	<cat />
 

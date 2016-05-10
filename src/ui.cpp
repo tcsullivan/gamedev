@@ -998,6 +998,16 @@ EXIT:
 		static vec2 fr;
 		static Entity *ig;
 
+		auto worldSwitch = [&](const WorldSwitchInfo& wsi){
+			player->canMove = false;
+			toggleBlackFast();
+			waitForCover();
+			wsi.first->bgmPlay(currentWorld);
+			std::tie(currentWorld, player->loc) = wsi;
+			toggleBlackFast();
+			player->canMove = true;
+		};
+
 		while(SDL_PollEvent(&e)) {
 			switch(e.type) {
 
@@ -1089,6 +1099,9 @@ EXIT:
 				// only let other keys be handled if dialog allows it
 				} else if (!dialogBoxExists || dialogPassive) {
 					switch(SDL_KEY) {
+					case SDLK_DELETE:
+						gameRunning = false;
+						break;
 					case SDLK_t:
 						game::time::tick(50);
 						break;
@@ -1101,15 +1114,8 @@ EXIT:
 						if (currentWorldToLeft) {
 							std::thread([&](void){
 								auto thing = currentWorld->goWorldLeft(player);
-								if (thing.first != currentWorld) {
-									player->canMove = false;
-									toggleBlackFast();
-									waitForCover();
-									currentWorld = thing.first;
-									player->loc = thing.second;
-									toggleBlackFast();
-									player->canMove = true;
-								}
+								if (thing.first != currentWorld)
+									worldSwitch(thing);
 							}).detach();
 						}
 						break;
@@ -1122,15 +1128,8 @@ EXIT:
 						if (currentWorldToRight) {
 							std::thread([&](void){
 								auto thing = currentWorld->goWorldRight(player);
-								if (thing.first != currentWorld) {
-									player->canMove = false;
-									toggleBlackFast();
-									waitForCover();
-									currentWorld = thing.first;
-									player->loc = thing.second;
-									toggleBlackFast();
-									player->canMove = true;
-								}
+								if (thing.first != currentWorld)
+									worldSwitch(thing);
 							}).detach();
 						}
 						break;
@@ -1138,30 +1137,14 @@ EXIT:
 						if (inBattle) {
 							std::thread([&](void){
 								auto thing = dynamic_cast<Arena *>(currentWorld)->exitArena(player);
-								if (thing.first != currentWorld) {
-									player->canMove = false;
-									toggleBlackFast();
-									waitForCover();
-									//delete dynamic_cast<Arena *>(currentWorld);
-									currentWorld = thing.first;
-									player->loc = thing.second;
-									toggleBlackFast();
-									player->canMove = true;
-								}
+								if (thing.first != currentWorld)
+									worldSwitch(thing);
 							}).detach();
 						} else {
 							std::thread([&](void){
 								auto thing = currentWorld->goInsideStructure(player);
-								if (thing.first != currentWorld) {
-									player->canMove = false;
-									toggleBlackFast();
-									waitForCover();
-									currentWorld = thing.first;
-									if (thing.second.x)
-										player->loc.x = thing.second.x;
-									toggleBlackFast();
-									player->canMove = true;
-								}
+								if (thing.first != currentWorld)
+									worldSwitch(thing);
 							}).detach();
 						}
 						break;
@@ -1239,11 +1222,10 @@ EXIT:
 					right = false;
 					break;
 				case SDLK_LSHIFT:
-					if (player->speed == 4) {
+					if (player->speed == 4)
 						Mix_FadeOutChannel(1,2000);
-					}
-					player->speed = 1;
-					break;
+
+					// fall through					
 				case SDLK_LCTRL:
 					player->speed = 1;
 					break;
@@ -1251,9 +1233,11 @@ EXIT:
 					edown=false;
 					if (player->inv->invHover) {
 						player->inv->invHover = false;
-					}else{
-						if (!player->inv->selected)player->inv->invOpening ^= true;
-						else player->inv->selected = false;
+					} else {
+						if (!player->inv->selected)
+							player->inv->invOpening ^= true;
+						else
+							player->inv->selected = false;
 						player->inv->mouseSel = false;
 					}
 

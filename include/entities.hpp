@@ -25,12 +25,13 @@
  * An entity type enumerator for identifying entities.
  */
 enum _TYPE {
-	OBJECTT = -2,	/**< an object (Object) */
-	STRUCTURET,		/**< a structure (Structures *) */
-	PLAYERT,		/**< the player (Player *) */
-	NPCT,			/**< an NPC (NPC *) */
-	MERCHT,			/**< a merchant (Merchant *) */
-	MOBT			/**< A mob (Mob *) */
+	UNKNOWNT = -999, /**< who knows? */
+	OBJECTT = -2,	 /**< an object (Object) */
+	STRUCTURET,		 /**< a structure (Structures *) */
+	PLAYERT,		 /**< the player (Player *) */
+	NPCT,			 /**< an NPC (NPC *) */
+	MERCHT,			 /**< a merchant (Merchant *) */
+	MOBT			 /**< A mob (Mob *) */
 };
 
 /**
@@ -279,6 +280,9 @@ public:
 	// returns true if the coordinate is within the entity
 	bool isInside(vec2 coord) const;
 
+	// a common constructor, clears variables
+	Entity(void);
+
 	// frees memory taken by the entity
 	virtual ~Entity(){}
 };
@@ -329,7 +333,7 @@ public:
 	virtual void wander(int);
 };
 
-class Merchant : public NPC{
+class Merchant : public NPC {
 public:
 	std::vector<Trade>trade;
 	uint currTrade;

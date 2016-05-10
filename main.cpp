@@ -321,7 +321,6 @@ static float debugY=0;
 
 void mainLoop(void){
 	static unsigned int debugDiv=0;			// A divisor used to update the debug menu if it's open
-	World *prev;
 
 	game::time::mainLoopHandler();
 
@@ -329,13 +328,7 @@ void mainLoop(void){
 		return;
 	} else {
 		// handle keypresses - currentWorld could change here
-		prev = currentWorld;
 		ui::handleEvents();
-
-		if(prev != currentWorld){
-			currentWorld->bgmPlay(prev);
-			ui::dialogBoxExists = false;
-		}
 
 		if (game::time::tickHasPassed())
 			logic();

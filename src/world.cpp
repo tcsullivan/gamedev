@@ -104,6 +104,8 @@ World::
 World(void)
 {
     bgmObj = nullptr;
+	worldStart = 0;
+	lineCount = 0;
 }
 
 /**
@@ -218,8 +220,7 @@ generate(int width)
  * This function will draw the background layers, entities, and player to the
  * screen.
  */
-void World::
-draw(Player *p)
+void World::drawBackgrounds(void)
 {
     auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
@@ -228,15 +229,6 @@ draw(Player *p)
     const ivec2 backgroundOffset = ivec2 {
         static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2
     };
-
-    // iterators ranges
-    int iStart, iEnd;
-
-    // shade value for draws -- may be unnecessary
-	//int shadeBackground = -worldShade;
-
-    // player's offset in worldData[]
-	int pOffset;
 
     // world width in pixels
 	int width = worldData.size() * HLINE;
@@ -249,7 +241,6 @@ draw(Player *p)
 
 	if (shadeAmbient > 0.9f)
 		shadeAmbient = 1;
-
 
 	// the sunny wallpaper is faded with the night depending on tickCount
     switch (weather) {
@@ -285,14 +276,6 @@ draw(Player *p)
                             vec2(0.0f, 1.0f),
                             vec2(0.0f, 0.0f)};
 
-	/*safeSetColorA(255, 255, 255, alpha);
-	glBegin(GL_QUADS);
-		glTexCoord2i(0, 0); glVertex2i(offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y);
-		glTexCoord2i(1, 0); glVertex2i(offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y);
-		glTexCoord2i(1, 1); glVertex2i(offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y);
-		glTexCoord2i(0, 1); glVertex2i(offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y);
-	glEnd();*/
-
     bgTex(0);
     GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 1.0f,
                                 offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 1.0f,
@@ -318,36 +301,10 @@ draw(Player *p)
 
 
 	bgTex++;
-    //TODO
-    //glDrawArrays(GL_TRIANGLES, 0 , 6);
-
-    // TODO fade and draw night bg
-	/*safeSetColorA(255, 255, 255, !alpha ? 255 : worldShade * 4);
-	glBegin(GL_QUADS);
-        glTexCoord2i(0, 0); glVertex2i(offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y);
-        glTexCoord2i(1, 0); glVertex2i(offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y);
-        glTexCoord2i(1, 1); glVertex2i(offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y);
-        glTexCoord2i(0, 1); glVertex2i(offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y);
-	glEnd();*/
-
-	//glDisable(GL_TEXTURE_2D);
-
-	// draw the stars if the time deems it appropriate
-	/*if (worldShade > 0) {
-		safeSetColorA(255, 255, 255, 255 - (randGet() % 30 - 15));
-
-        auto xcoord = offset.x * 0.9f;
-		for (auto &s : star)
-			glRectf(s.x + xcoord, s.y, s.x + xcoord + HLINE, s.y + HLINE);
-	}*/
-
-	// draw remaining background items
-	//glEnable(GL_TEXTURE_2D);
 
     std::vector<vec3> bg_items;
 
 	bgTex++;
-	//safeSetColorA(150 + shadeBackground * 2, 150 + shadeBackground * 2, 150 + shadeBackground * 2, 255);
     auto xcoord = width / 2 * -1 + offset.x * 0.85f;
 	for (unsigned int i = 0; i <= worldData.size() * HLINE / 1920; i++) {
         bg_items.push_back(vec3(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM, 1.0f));
@@ -389,16 +346,10 @@ draw(Player *p)
 
     glUseProgram(0);
 
-    //GARNBSFJBSJOFBSJDVFJDSF
-
+	// draw the remaining layers
 	for (unsigned int i = 0; i < 4; i++) {
         std::vector<vec3>c;
 		bgTex++;
-		/*safeSetColorA(bgDraw[i][0] + shadeBackground * 2,
-                      bgDraw[i][0] + shadeBackground * 2,
-                      bgDraw[i][0] + shadeBackground * 2,
-                      bgDraw[i][1]
-                  );*/
         auto xcoord = offset.x * bgDraw[i][2];
 		for (int j = worldStart; j <= -worldStart; j += 600) {
             c.push_back(vec3(j       + xcoord, GROUND_HEIGHT_MINIMUM, 1));
@@ -440,12 +391,16 @@ draw(Player *p)
 
         glUseProgram(0);
 	}
+}
 
-	//glDisable(GL_TEXTURE_2D);
+void World::draw(Player *p)
+{
+	int iStart, iEnd, pOffset;
 
-	// draw black under backgrounds (y-coordinate)
-	//glColor3ub(0, 0, 0);
-	//glRectf(worldStart, GROUND_HEIGHT_MINIMUM, -worldStart, 0);
+	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+	auto HLINE = game::HLINE;
+
+	drawBackgrounds();
 
 	// draw particles and buildings
     glBindTexture(GL_TEXTURE_2D, colorIndex);
@@ -510,41 +465,6 @@ draw(Player *p)
         }
     }
 
-    // draw light elements
-    //glEnable(GL_TEXTURE_2D);
-    //glActiveTexture(GL_TEXTURE0);
-
-    /*std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
-	auto pointArray = pointArrayBuf.get();
-    GLfloat flameArray[64];
-
-	for (unsigned int i = 0; i < light.size(); i++) {
-        if (light[i].flame) {
-    		pointArray[2 * i    ] = light[i].fireLoc.x - offset.x;
-    		pointArray[2 * i + 1] = light[i].fireLoc.y;
-        }else{
-            pointArray[2 * i    ] = light[i].loc.x - offset.x;
-            pointArray[2 * i + 1] = light[i].loc.y;
-        }
-	}
-
-    for (unsigned int i = 0; i < light.size(); i++) {
-        flameArray[i] = light[i].fireFlicker;
-    }
-
-	//glUseProgram(shaderProgram);
-	//glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
-	//glUniform1f(glGetUniformLocation(shaderProgram, "amb"), shadeAmbient);
-
-	if (light.empty())
-		glUniform1i(glGetUniformLocation(shaderProgram, "numLight"), 0);
-	else {
-		glUniform1i (glGetUniformLocation(shaderProgram, "numLight"), light.size());
-		glUniform2fv(glGetUniformLocation(shaderProgram, "lightLocation"), light.size(), pointArray);
-		glUniform3f (glGetUniformLocation(shaderProgram, "lightColor"), 1.0f, 1.0f, 1.0f);
-        glUniform1fv(glGetUniformLocation(shaderProgram,"fireFlicker"), light.size(),flameArray);
-	}*/
-
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
@@ -553,13 +473,9 @@ draw(Player *p)
 
     // only draw world within player vision
     iStart = static_cast<int>(fmax(pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS, 0));
-    iEnd   = static_cast<int>(fmin(pOffset + (SCREEN_WIDTH / 2 / HLINE) + GROUND_HILLINESS + HLINE, worldData.size()));
-    iEnd   = static_cast<int>(fmax(iEnd, GROUND_HILLINESS));
-
-
-
-	//glBegin(GL_QUADS);
-    //std::for_each(std::begin(worldData) + iStart, std::begin(worldData) + iEnd, [&](WorldData wd) {
+	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / HLINE)),
+                      static_cast<int>(GROUND_HILLINESS),
+                      static_cast<int>(worldData.size()));
 
     // draw the dirt
     bgTex++;
@@ -895,8 +811,9 @@ detect(Player *p)
     // handle particles
 	for (auto &part : particles) {
 		// get particle's current world line
-		l = (int)fmax((part.loc.x + part.width / 2 - worldStart) / game::HLINE, 0);
-        l = (int)fmin(lineCount - 1, l);
+		l = std::clamp(static_cast<int>((part.loc.x + part.width / 2 - worldStart) / game::HLINE),
+                       0,
+                       static_cast<int>(lineCount - 1));
 		part.update(GRAVITY_CONSTANT, worldData[l].groundHeight);
 	}
 
@@ -1199,15 +1116,7 @@ void World::load(void){
 void World::
 bgmPlay(World *prev) const
 {
-	if (prev) {
-        if (bgm != prev->bgm) {
-		    // new world, new music
-		    Mix_FadeOutMusic(800);
-		    Mix_PlayMusic(bgmObj, -1);
-        }
-        // sucks to be here
-	} else {
-        // first call
+	if (prev == nullptr || bgm != prev->bgm) {
 		Mix_FadeOutMusic(800);
 		Mix_PlayMusic(bgmObj, -1);
 	}
@@ -1399,6 +1308,7 @@ goInsideStructure(Player *p)
 {
 	World *tmp;
 
+	// enter a building
 	if (inside.empty()) {
         auto d = std::find_if(std::begin(build), std::end(build), [p](const Structures *s) {
             return ((p->loc.x > s->loc.x) && (p->loc.x + p->width < s->loc.x + s->width));
@@ -1412,8 +1322,11 @@ goInsideStructure(Player *p)
 		inside.push_back(&currentXML[xmlFolder.size()]);
 		tmp = loadWorldFromXML(b->inside);
 
-		return std::make_pair(tmp, vec2 {0, 0});
-	} else {
+		return std::make_pair(tmp, vec2 {0, 100});
+	}
+
+	// exit the building
+	else {
         std::string current = &currentXML[xmlFolder.size()];
 		tmp = loadWorldFromXML(inside.back());
         inside.clear();
@@ -1531,7 +1444,7 @@ addHill(const ivec2 peak, const unsigned int width)
 	int start  = peak.x - width / 2,
         end    = start + width,
         offset = 0;
-	const float thing = peak.y - worldData[start].groundHeight;
+	const float thing = peak.y - worldData[std::clamp(start, 0, static_cast<int>(lineCount))].groundHeight;
     const float period = PI / width;
 
 	if (start < 0) {

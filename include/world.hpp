@@ -154,6 +154,10 @@ protected:
 	// frees entities and clears vectors that contain them
 	void deleteEntities(void);
 
+protected:
+	
+	void drawBackgrounds();
+
 public:
 
 	// entity vectors that need to be public because we're based

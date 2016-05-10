@@ -72,30 +72,45 @@ void randGetomName(Entity *e)
 	delete[] bufs;
 }
 
+Entity::Entity(void)
+{
+	vel = 0;
+	width = 0;
+	height = 0;
+	health = 0;
+	maxHealth = 0;
+	z = 1.0f;
+	targetx = 0.9112001f;
+
+	type = UNKNOWNT;
+
+	// set flags
+	alive      = true;
+	right      = true;
+	left       = false;
+	near       = false;
+	canMove    = true;
+	ground     = false;
+	forcedMove = false;
+
+	// clear counters
+	ticksToUse = 0;
+	hitCooldown = 0;
+
+	inv = nullptr;
+	name = nullptr;
+}
+
 // spawns the entity you pass to it based off of coords and global entity settings
 void Entity::spawn(float x, float y)
 {
 	loc.x = x;
 	loc.y = y;
-	vel.x = 0;
-	vel.y = 0;
-	targetx = 0.9112001f;
 
-	alive	= true;
-	right	= true;
-	left	= false;
-	near	= false;
-	//canMove	= true;
-	ground	= false;
-	forcedMove = false;
-	z = 1.0f;
-
-	ticksToUse = 0;
-	hitCooldown = 0;
-
-	if (!maxHealth)
+	if (health == 0 && maxHealth == 0)
 		health = maxHealth = 1;
 
+	// generate a name
 	name = new char[32];
 	if (type == MOBT)
 		name[0] = '\0';
@@ -131,11 +146,7 @@ void Entity::setCooldown(unsigned int c)
 
 void Entity::handleHits(void)
 {
-	int c = hitCooldown - game::time::getDeltaTime();
-	if (c >= 0)
-		hitCooldown = c;
-	else
-		hitCooldown = 0;
+	hitCooldown = fmax(hitCooldown - game::time::getDeltaTime(), 0);
 
 	if (!forcedMove)
 		return;
@@ -168,7 +179,8 @@ void Entity::moveTo(float dest_x)
 	targetx = dest_x;
 }
 
-Player::Player(){ //sets all of the player specific traits on object creation
+Player::Player() : Entity() 
+{
 	width = HLINES(10);
 	height = HLINES(16);
 
@@ -191,12 +203,15 @@ Player::Player(){ //sets all of the player specific traits on object creation
 
 	inv = new Inventory(PLAYER_INV_SIZE);
 }
-Player::~Player() {
+
+Player::~Player()
+{
 	delete inv;
 	delete[] name;
 }
 
-NPC::NPC() {	//sets all of the NPC specific traits on object creation
+NPC::NPC() : Entity()
+{
 	width = HLINES(10);
 	height = HLINES(16);
 
@@ -213,6 +228,7 @@ NPC::NPC() {	//sets all of the NPC specific traits on object creation
 
 	randDialog = rand() % RAND_DIALOG_COUNT - 1;
 	dialogIndex = 0;
+	dialogCount = 0;
 }
 
 NPC::~NPC()
@@ -221,7 +237,8 @@ NPC::~NPC()
 	delete[] name;
 }
 
-Merchant::Merchant() {	//sets all of the Merchant specific traits on object creation
+Merchant::Merchant() : NPC()
+{
 	width = HLINES(10);
 	height = HLINES(16);
 
@@ -230,7 +247,6 @@ Merchant::Merchant() {	//sets all of the Merchant specific traits on object crea
 
 	health = maxHealth = 100;
 
-	maxHealth = health = 100;
 	canMove = true;
 
 	trade.reserve(100);
@@ -246,64 +262,49 @@ Merchant::Merchant() {	//sets all of the Merchant specific traits on object crea
 	dialogIndex = 0;
 }
 
-Merchant::~Merchant() {
-	delete inside;
+Merchant::~Merchant()
+{
 	//delete inv;
-	//delete[] name;
+	delete[] name;
 }
 
-Structures::Structures() { //sets the structure type
+Structures::Structures() : Entity()
+{
+	canMove = false;
 	health = maxHealth = 1;
-
-	alive = false;
-	near  = false;
-
-	name = NULL;
-
-	//inv = NULL;
-	canMove = false;
-
-	z = 1.0f;
-}
-Structures::~Structures() {
-	if (name)
-		delete[] name;
 }
 
-Object::Object() {
+Structures::~Structures()
+{
+	delete[] name;
+}
+
+Object::Object()
+{
 	type = OBJECTT;
-	alive = true;
-	near = false;
-	width  = 0;
-	height = 0;
-	canMove = false;
-
-	maxHealth = health = 1;
-
-	inv = NULL;
 }
 
-Object::Object(std::string in, std::string pd) {
+Object::Object(std::string in, std::string pd)
+{
 	iname = in;
 
 	pickupDialog = pd;
 	questObject = !pd.empty();
 
 	type = OBJECTT;
-	alive = true;
-	near = false;
 	width  = getItemWidth(in);
 	height = getItemHeight(in);
 
-	maxHealth = health = 1;
 	tex = TextureIterator({getItemTexturePath(in)});
-	inv = NULL;
 }
-Object::~Object() {
+
+Object::~Object()
+{
 	delete[] name;
 }
 
-void Object::reloadTexture(void) {
+void Object::reloadTexture(void)
+{
 	tex = TextureIterator({getItemTexturePath(iname)});
 	width  = getItemWidth(iname);
 	height = getItemHeight(iname);
@@ -411,7 +412,7 @@ void Entity::draw(void)
 		glEnableVertexAttribArray(worldShader_attribute_tex);
 
 		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
-		if(left)
+		if (left)
 			glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coordL);
 		else
 			glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
