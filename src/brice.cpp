@@ -41,7 +41,7 @@ namespace game {
 			UserError("Cannot open brice data file");
 
 		for (const auto& i : brice) {
-			data.append(i.first  + ',' );
+			data.append(i.first  + '\n');
 			data.append(i.second + '\n');
 		}
 
@@ -51,10 +51,16 @@ namespace game {
 
 	void briceLoad(void) {
 		const char *data = readFile("brice.dat");
-		auto datas = StringTokenizer(data, ',');
+		auto datas = StringTokenizer(data, '\n');
 
-		for (const auto& d : datas)
-			std::cout << d << '\n';
+		if (datas.size() != 0) {
+			const unsigned int count = datas[0][0] - '0';
+
+			for (unsigned int i = 1; i <= count; i += 2) {
+				std::cout << datas[i] << ' ' << datas[i + 1] << '\n';
+				brice.emplace(std::make_pair(datas[i], datas[i + 1]));
+			}
+		}
 
 		delete[] data;
 	}
@@ -64,7 +70,7 @@ namespace game {
 			int val;
 			try {
 				val = std::stoi(getValue(id));
-			} catch (std::invalid_argument &e) {
+			} catch (const std::invalid_argument &e) {
 				val = 0;
 			}
 			return val;
@@ -77,5 +83,9 @@ namespace game {
 		// attempt to load actual values
 		canJump = getIntValue("canJump");
 		canSprint = getIntValue("canSprint");
+
+		// re-save values
+		setValue("canJump", std::to_string(canJump));
+		setValue("canSprint", std::to_string(canSprint));
 	}
 }

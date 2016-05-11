@@ -114,7 +114,7 @@ int main(int argc, char *argv[]){
 	}
 	
 	// attempt to initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
 		UserError(std::string("SDL was not able to initialize! Error: ") + SDL_GetError());
 	atexit(SDL_Quit);
 
@@ -253,7 +253,6 @@ int main(int argc, char *argv[]){
 	
 	// load the first valid XML file for the world
 	for (const auto &xf : xmlFiles) {
-		std::cout << xf << std::endl;
 		if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
 			// read it in
 			std::cout << "File to load: " << xf << '\n';
@@ -290,8 +289,8 @@ int main(int argc, char *argv[]){
 
 	// put away the brice for later
 	game::briceSave();
-
-    // free library resources
+    
+	// free library resources
     Mix_HaltMusic();
     Mix_CloseAudio();
 
@@ -305,7 +304,7 @@ int main(int argc, char *argv[]){
 	// close up the game stuff
 	currentWorld->save();
 	delete arena;
-	delete currentWorld;
+	//delete currentWorld;
 
     return 0; // Calls everything passed to atexit
 }
