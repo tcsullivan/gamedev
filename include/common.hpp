@@ -240,7 +240,7 @@ void UserError(std::string reason);
 namespace std {
 	template<class T>
 	constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
-		return (v > hi) ? ((v > lo) ? v : lo) : hi;
+		return (v > hi) ? hi : ((v > lo) ? v : lo);
 	}
 }
 

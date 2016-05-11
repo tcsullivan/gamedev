@@ -747,7 +747,7 @@ singleDetect(Entity *e)
         e->handleHits();
 
 		// calculate the line that this entity is currently standing on
-        l = std::clamp(static_cast<int>((e->loc.x + e->width / 2 - worldStart) / game::HLINE), 0, static_cast<int>(lineCount - 1));
+        l = (e->loc.x + e->width / 2 - worldStart) / game::HLINE;
 
 		// if the entity is under the world/line, pop it back to the surface
 		if (e->loc.y < worldData[l].groundHeight) {
