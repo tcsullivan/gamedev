@@ -294,13 +294,13 @@ draw(Player *p)
 	glEnd();*/
 
     bgTex(0);
-    GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 1.0f,
-                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 1.0f,
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 1.0f,
+    GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 10.0f,
+                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 10.0f,
+                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 10.0f,
 
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 1.0f,
-                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 1.0f,
-                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 1.0f};
+                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 10.0f,
+                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 10.0f,
+                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 10.0f};
 
     glUseProgram(worldShader);
 
@@ -350,13 +350,13 @@ draw(Player *p)
 	//safeSetColorA(150 + shadeBackground * 2, 150 + shadeBackground * 2, 150 + shadeBackground * 2, 255);
     auto xcoord = width / 2 * -1 + offset.x * 0.85f;
 	for (unsigned int i = 0; i <= worldData.size() * HLINE / 1920; i++) {
-        bg_items.push_back(vec3(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM, 1.0f));
-        bg_items.push_back(vec3(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM, 1.0f));
-        bg_items.push_back(vec3(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + 1080, 1.0f));
+        bg_items.push_back(vec3(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM, 8.0f));
+        bg_items.push_back(vec3(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM, 8.0f));
+        bg_items.push_back(vec3(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + 1080, 8.0f));
 
-        bg_items.push_back(vec3(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + 1080, 1.0f));
-        bg_items.push_back(vec3(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM + 1080, 1.0f));
-        bg_items.push_back(vec3(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM, 1.0f));
+        bg_items.push_back(vec3(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + 1080, 8.0f));
+        bg_items.push_back(vec3(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM + 1080, 8.0f));
+        bg_items.push_back(vec3(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM, 8.0f));
 	}
 
     std::vector<GLfloat> bg_i;
@@ -401,13 +401,13 @@ draw(Player *p)
                   );*/
         auto xcoord = offset.x * bgDraw[i][2];
 		for (int j = worldStart; j <= -worldStart; j += 600) {
-            c.push_back(vec3(j       + xcoord, GROUND_HEIGHT_MINIMUM, 1));
-            c.push_back(vec3(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM, 1));
-            c.push_back(vec3(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM + 400, 1));
+            c.push_back(vec3(j       + xcoord, GROUND_HEIGHT_MINIMUM, 7-(i*.1)));
+            c.push_back(vec3(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM, 7-(i*.1)));
+            c.push_back(vec3(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM + 400, 7-(i*.1)));
 
-            c.push_back(vec3(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM + 400, 1));
-            c.push_back(vec3(j       + xcoord, GROUND_HEIGHT_MINIMUM + 400, 1));
-            c.push_back(vec3(j       + xcoord, GROUND_HEIGHT_MINIMUM, 1));
+            c.push_back(vec3(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM + 400, 7-(i*.1)));
+            c.push_back(vec3(j       + xcoord, GROUND_HEIGHT_MINIMUM + 400, 7-(i*.1)));
+            c.push_back(vec3(j       + xcoord, GROUND_HEIGHT_MINIMUM, 7-(i*.1)));
 		}
 
         bg_i.clear();
@@ -455,24 +455,12 @@ draw(Player *p)
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
 
-    std::vector<std::vector<std::pair<vec2, vec3>>> partv(0);
     std::vector<GLfloat> partc(0);
     std::vector<GLfloat> partt(0);
 
     for (auto &p : particles) {
         if (p.behind)
-            partv.push_back(p.draw());
-    }
-
-    for (auto &pv : partv) {
-        for (auto &v : pv){
-            partc.push_back(v.second.x);
-            partc.push_back(v.second.y);
-            partc.push_back(v.second.z);
-            
-            partt.push_back(v.first.x);
-            partt.push_back(v.first.y);
-        }
+            p.draw(partc, partt);
     }
 
     glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, &partc[0]);
@@ -714,24 +702,12 @@ draw(Player *p)
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
 
-    partv.clear();
     partc.clear();
     partt.clear();
 
     for (auto &p : particles) {
         if (!p.behind)
-            partv.push_back(p.draw());
-    }
-
-    for (auto &pv : partv) {
-        for (auto &v : pv){
-            partc.push_back(v.second.x);
-            partc.push_back(v.second.y);
-            partc.push_back(v.second.z);
-            
-            partt.push_back(v.first.x);
-            partt.push_back(v.first.y);
-        }
+            p.draw(partc, partt);
     }
 
     glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, &partc[0]);
@@ -1750,7 +1726,7 @@ draw(Player *p)
     glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
     glUseProgram(shaderProgram);
 
-    std::for_each(particles.begin(), particles.end(), [](Particles &part) { part.draw(); });
+    //std::for_each(particles.begin(), particles.end(), [](Particles &part) { part.draw(); });
 
     glUseProgram(0);
 

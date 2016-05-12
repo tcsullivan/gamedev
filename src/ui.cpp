@@ -324,10 +324,18 @@ namespace ui {
 			c1.x, 		c1.y+c2.y-c2.y, 1.0,	//top left
 			c1.x, 		c1.y	 -c2.y, 1.0,	//bottom left
 		};
+        
+        glUniform4f(textShader_uniform_color, 
+                    static_cast<float>(fontColor[0]/255), 
+                    static_cast<float>(fontColor[1]/255), 
+                    static_cast<float>(fontColor[2]/255), 
+                    static_cast<float>(fontColor[3]/255)); 
 
 		glVertexAttribPointer(textShader_attribute_coord, 	3, GL_FLOAT, GL_FALSE, 0, text_vert);
 		glVertexAttribPointer(textShader_attribute_tex,  	2, GL_FLOAT, GL_FALSE, 0, tex_coord);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glUniform4f(textShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 
 		glDisableVertexAttribArray(textShader_attribute_tex);
 		glDisableVertexAttribArray(textShader_attribute_coord);

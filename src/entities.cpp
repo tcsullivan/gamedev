@@ -88,7 +88,7 @@ void Entity::spawn(float x, float y)
 	//canMove	= true;
 	ground	= false;
 	forcedMove = false;
-	z = 1.0f;
+	z = -1.0f;
 
 	ticksToUse = 0;
 	hitCooldown = 0;
@@ -425,23 +425,23 @@ if (health != maxHealth) {
 	glUniform1i(worldShader_uniform_texture, 0);
 
 	GLfloat coord_back[] = {
-		loc.x, 			loc.y + height, 			1.0,
-		loc.x + width,	loc.y + height, 			1.0,
-		loc.x + width, 	loc.y + height + game::HLINE * 2, 1.0,
+		loc.x, 			loc.y + height, 			     z,
+		loc.x + width,	loc.y + height, 			     z,
+		loc.x + width, 	loc.y + height + game::HLINE * 2,z,
 
-		loc.x + width, 	loc.y + height + game::HLINE * 2, 1.0,
-		loc.x, 			loc.y + height + game::HLINE * 2,	1.0,
-		loc.x, 			loc.y + height, 			1.0,
+		loc.x + width, 	loc.y + height + game::HLINE * 2,z,
+		loc.x, 			loc.y + height + game::HLINE * 2,z,
+		loc.x, 			loc.y + height, 			     z,
 	};
 
 	GLfloat coord_front[] = {
-		loc.x, 			                    loc.y + height,                   1.0,
-		loc.x + health / maxHealth * width, loc.y + height,                   1.0,
-		loc.x + health / maxHealth * width, loc.y + height + game::HLINE * 2, 1.0,
+		loc.x, 			                    loc.y + height,                   z,
+		loc.x + health / maxHealth * width, loc.y + height,                   z,
+		loc.x + health / maxHealth * width, loc.y + height + game::HLINE * 2, z,
 
-		loc.x + health / maxHealth * width, loc.y + height + game::HLINE * 2, 1.0,
-		loc.x,                              loc.y + height + game::HLINE * 2, 1.0,
-		loc.x,                              loc.y + height,                   1.0,
+		loc.x + health / maxHealth * width, loc.y + height + game::HLINE * 2, z,
+		loc.x,                              loc.y + height + game::HLINE * 2, z,
+		loc.x,                              loc.y + height,                   z,
 	};
 
 	static const vec2 index1 = Texture::getIndex(Color(0,0,0));
@@ -860,21 +860,43 @@ Particles::Particles(float x, float y, float w, float h, float vx, float vy, Col
 	index = Texture::getIndex(c);
 }
 
-std::vector<std::pair<vec2, vec3>> Particles::draw(void) const
+void Particles::draw(std::vector<GLfloat> &verts, std::vector<GLfloat> &tex) const
 {
 	vec2 tc = vec2 {0.25f * index.x, 0.125f * (8-index.y)};
 
-	std::vector<std::pair<vec2, vec3>> tmp;
+    float z = 0.0;
+    if (behind)
+        z = 2.0;
 
-	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x,		   loc.y,	        1.0)));
-	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x + width, loc.y,		    1.0)));
-	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x + width, loc.y + height,  1.0)));
+    verts.push_back(loc.x);
+    verts.push_back(loc.y);
+    verts.push_back(z);
 
-	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x + width, loc.y + height,  1.0)));
-	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x,         loc.y + height,  1.0)));
-	tmp.push_back(std::make_pair(vec2(tc.x, tc.y), vec3(loc.x,         loc.y, 		    1.0)));
+    verts.push_back(loc.x + width);
+    verts.push_back(loc.y);
+    verts.push_back(z);
+	
+    verts.push_back(loc.x + width);
+    verts.push_back(loc.y + height);
+    verts.push_back(z);
 
-	return tmp;
+
+    verts.push_back(loc.x + width);
+    verts.push_back(loc.y + height);
+    verts.push_back(z);
+
+    verts.push_back(loc.x);
+    verts.push_back(loc.y + height);
+    verts.push_back(z);
+
+    verts.push_back(loc.x);
+    verts.push_back(loc.y);
+    verts.push_back(z);
+
+    for (int i = 0; i < 6; i++){
+        tex.push_back(tc.x);
+        tex.push_back(tc.y);
+    }
 }
 
 void Particles::update(float _gravity, float ground_y)

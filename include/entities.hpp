@@ -149,7 +149,7 @@ public:
 	~Particles(void){}
 
 	// draws the particle
-	std::vector<std::pair<vec2, vec3>> draw(void) const;
+	void draw(std::vector<GLfloat> &verts, std::vector<GLfloat> &tex) const;
 
 	// updates a particle
 	void update(float _gravity, float ground_y);

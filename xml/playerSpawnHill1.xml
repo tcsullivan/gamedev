@@ -7,7 +7,7 @@
 
 	<hill peakx="0" peaky="1000" width="50" />
 
-	<rabbit x="300" aggressive="true" health="100" />
+	<rabbit x="300" aggressive="false" health="100" />
 	<bird y="500"/>
 	<cat />
 
@@ -71,13 +71,13 @@ And it wasn't stormy.
 	</text>
 
 	<text id="1" nextid="1" pause="true" >
-		Broooooooooooooo...
+        Broooooooooooooo...
 	</text>
 </Dialog>
 
 <Dialog name="Big Dave">
 	<text id="0" pause="true">
-		Here have this sword!
+        Hey friend! It's dangerous out there, here take these!
 		<give id="Wood Sword" count="1"/>
 		<give id="Hunters Bow" count="1"/>
 		<give id="Crude Arrow" count="110"/>

@@ -218,6 +218,7 @@ extern GLuint textShader;
 extern GLint textShader_attribute_coord;
 extern GLint textShader_attribute_tex;
 extern GLint textShader_uniform_texture;
+extern GLint textShader_uniform_color;
 
 extern GLuint worldShader;
 extern GLint worldShader_attribute_coord;

@@ -1,9 +1,9 @@
 uniform sampler2D sampler;
 
 varying vec2 texCoord;
-varying float join;
+varying vec4 color;
 
 void main(){
-    vec4 color = texture2D(sampler, vec2(texCoord.x, texCoord.y));
-    gl_FragColor = color;
+    vec4 pixelColor = texture2D(sampler, vec2(texCoord.x, texCoord.y));
+    gl_FragColor = pixelColor * color;
 }

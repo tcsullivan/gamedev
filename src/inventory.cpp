@@ -346,7 +346,7 @@ void Inventory::draw(void) {
 	if (invOpening) {
 		for (auto &d : dfp) {
 			if (!a || dfp[a - 1] > 50)
-				d += 1.65f * deltaTime;
+				d += 4.0f * deltaTime;
 			if (d > range)
 				d = range;
 			a++;
@@ -354,7 +354,7 @@ void Inventory::draw(void) {
 
 		for (auto &cd : curdfp) {
 			if (!a || curdfp[a - 1] > 90)
-				cd += 1.5f * deltaTime;
+				cd += 3.0f * deltaTime;
 			if (cd > curRange)
 				cd = curRange;
 			a++;
@@ -362,7 +362,7 @@ void Inventory::draw(void) {
 
 		while (a < massOrder.size()) {
 			if (!a || massDfp[massOrder[a - 1]] > massRange * 0.75f)
-				massDfp[massOrder[a]] += 5.0f * deltaTime;
+				massDfp[massOrder[a]] += 20.0f * deltaTime;
 			if (massDfp[massOrder[a]] > massRange)
 				massDfp[massOrder[a]] = massRange;
 			a++;
@@ -373,16 +373,16 @@ void Inventory::draw(void) {
 	} else {
 		for (auto &d : dfp) {
 			if (d > 0)
-				d -= 1.65f * deltaTime;
+				d -= 4.5f * deltaTime;
 		}
 		for (auto &cd : curdfp) {
 			if (cd > 0)
-				cd -= 1.0f * deltaTime;
+				cd -= 3.0f * deltaTime;
 		}
 
 		while (a < massRay.size()) {
 			if (!a || massDfp[massOrderClosing[a - 1]] <= 0)
-				massDfp[massOrderClosing[a]] -= 10.0f * deltaTime;
+				massDfp[massOrderClosing[a]] -= 30.0f * deltaTime;
 			else if (massDfp[massOrderClosing[a - 1]] < 0)
 				massDfp[massOrderClosing[a - 1]] = 0;
 			a++;
@@ -420,26 +420,20 @@ void Inventory::draw(void) {
 
             glUseProgram(0);
 			if (!Items.empty() && a+numSlot < Items.size() && Items[a+numSlot].second) {
-				glEnable(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, Items[a+numSlot].first->tex->image[0]);//itemtex[items[a+numSlot].id]);
-				glColor4f(1.0f, 1.0f, 1.0f, ((float)massDfp[a]/(float)(massRange?massRange:1))*0.8f);
-				glBegin(GL_QUADS);
-					if (Items[a+numSlot].first->dim.y > Items[a+numSlot].first->dim.x) {
-						glTexCoord2i(0,1);glVertex2i(mr.x-((itemWide/2)*((float)Items[a+numSlot].first->dim.x/(float)Items[a+numSlot].first->dim.y)),	mr.y-(itemWide/2));
-						glTexCoord2i(1,1);glVertex2i(mr.x+((itemWide/2)*((float)Items[a+numSlot].first->dim.x/(float)Items[a+numSlot].first->dim.y)),	mr.y-(itemWide/2));
-						glTexCoord2i(1,0);glVertex2i(mr.x+((itemWide/2)*((float)Items[a+numSlot].first->dim.x/(float)Items[a+numSlot].first->dim.y)),	mr.y+(itemWide/2));
-						glTexCoord2i(0,0);glVertex2i(mr.x-((itemWide/2)*((float)Items[a+numSlot].first->dim.x/(float)Items[a+numSlot].first->dim.y)),	mr.y+(itemWide/2));
-					}else{
-						glTexCoord2i(0,1);glVertex2i(mr.x-(itemWide/2),mr.y-(itemWide/2)*((float)Items[a+numSlot].first->dim.y/(float)Items[a+numSlot].first->dim.x));
-						glTexCoord2i(1,1);glVertex2i(mr.x+(itemWide/2),mr.y-(itemWide/2)*((float)Items[a+numSlot].first->dim.y/(float)Items[a+numSlot].first->dim.x));
-						glTexCoord2i(1,0);glVertex2i(mr.x+(itemWide/2),mr.y+(itemWide/2)*((float)Items[a+numSlot].first->dim.y/(float)Items[a+numSlot].first->dim.x));
-						glTexCoord2i(0,0);glVertex2i(mr.x-(itemWide/2),mr.y+(itemWide/2)*((float)Items[a+numSlot].first->dim.y/(float)Items[a+numSlot].first->dim.x));
-					}
-				glEnd();
-				glDisable(GL_TEXTURE_2D);
+				glUseProgram(textShader);
+                glBindTexture(GL_TEXTURE_2D, Items[a+numSlot].first->tex->image[0]);//itemtex[items[a+numSlot].id]);
+				glUniform4f(textShader_uniform_color, 1.0f, 1.0f, 1.0f, ((float)massDfp[a]/(float)(massRange?massRange:1))*0.8f);
+                if (Items[a+numSlot].first->dim.y > Items[a+numSlot].first->dim.x) {
+                    drawRect(vec2(mr.x-((itemWide/2)*((float)Items[a+numSlot].first->dim.x/(float)Items[a+numSlot].first->dim.y)),	mr.y-(itemWide/2)),
+                             vec2(mr.x+((itemWide/2)*((float)Items[a+numSlot].first->dim.x/(float)Items[a+numSlot].first->dim.y)),	mr.y+(itemWide/2)));
+                }else{
+                    drawRect(vec2(mr.x-(itemWide/2),mr.y-(itemWide/2)*((float)Items[a+numSlot].first->dim.y/(float)Items[a+numSlot].first->dim.x)),
+                             vec2(mr.x-(itemWide/2),mr.y+(itemWide/2)*((float)Items[a+numSlot].first->dim.y/(float)Items[a+numSlot].first->dim.x)));
+                }
 				ui::setFontColor(255,255,255,((float)massDfp[a]/(float)(massRange?massRange:1))*255);
 				ui::putText(mr.x-(itemWide/2)+(itemWide*.85),mr.y-(itemWide/2),"%d",Items[a+numSlot].second);
 				ui::setFontColor(255,255,255,255);
+                glUseProgram(0);
 			}
 			a++;
 		}a=0;
@@ -448,14 +442,14 @@ void Inventory::draw(void) {
 			curCurCoord[a].x -= float((curdfp[a]) * cos(-1));
 			curCurCoord[a].y += float((curdfp[a]) * sin(0));
 			cr.end = curCurCoord[a];
+            
+            float curTrans = (((float)curdfp[a]/(float)(curRange?curRange:1))*0.5f);
 
-			glColor4f(0.0f, 0.0f, 0.0f, ((float)curdfp[a]/(float)(curRange?curRange:1))*0.5f);
- 			glBegin(GL_QUADS);
-				glVertex2i(cr.end.x-(itemWide/2),		 cr.end.y-(itemWide/2));
-				glVertex2i(cr.end.x-(itemWide/2)+itemWide,cr.end.y-(itemWide/2));
-				glVertex2i(cr.end.x-(itemWide/2)+itemWide,cr.end.y-(itemWide/2)+itemWide);
-				glVertex2i(cr.end.x-(itemWide/2),		 cr.end.y-(itemWide/2)+itemWide);
-			glEnd();
+            glUseProgram(textShader);
+			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0.0f, 0.0f, 0.0f, curTrans >= 0 ? 255 * curTrans : 0)));
+            drawRect(vec2(cr.end.x-(itemWide/2),		 cr.end.y-(itemWide/2)),
+                     vec2(cr.end.x-(itemWide/2)+itemWide,cr.end.y-(itemWide/2)+itemWide));
+            glUseProgram(0);
 			a++;
 		}a=0;
 
@@ -465,42 +459,33 @@ void Inventory::draw(void) {
 			curCoord[a].y += float((dfp[a]) * sin(angle*PI/180));
 			r.end = curCoord[a];
 
-			glColor4f(0.0f, 0.0f, 0.0f, ((float)dfp[a]/(float)(range?range:1))*0.5f);
- 			glBegin(GL_QUADS);
-				glVertex2i(r.end.x-(itemWide/2),		 r.end.y-(itemWide/2));
-				glVertex2i(r.end.x-(itemWide/2)+itemWide,r.end.y-(itemWide/2));
-				glVertex2i(r.end.x-(itemWide/2)+itemWide,r.end.y-(itemWide/2)+itemWide);
-				glVertex2i(r.end.x-(itemWide/2),		 r.end.y-(itemWide/2)+itemWide);
-			glEnd();
+            float t = ((float)dfp[a]/(float)(range?range:1))*0.5f;
+
+            glUseProgram(textShader);
+ 			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0.0f, 0.0f, 0.0f, t >= 0 ? 255 * t : 0)));
+            drawRect(vec2(r.end.x-(itemWide/2),		 r.end.y-(itemWide/2)),
+                     vec2(r.end.x-(itemWide/2)+itemWide,r.end.y-(itemWide/2)+itemWide));
 
 			if (!Items.empty() && a < numSlot && Items[a].second) {
-				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, Items[a].first->tex->image[0]);//itemtex[items[a].id]);
-				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)(range?range:1))*0.8f);
-				glBegin(GL_QUADS);
+				glUniform4f(textShader_uniform_color, 1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)(range?range:1))*0.8f);
 				if (Items[a].first->dim.y > Items[a].first->dim.x) {
-					glTexCoord2i(0,1);glVertex2i(r.end.x-((itemWide/2)*((float)Items[a].first->dim.x/(float)Items[a].first->dim.y)),	r.end.y-(itemWide/2));
-					glTexCoord2i(1,1);glVertex2i(r.end.x+((itemWide/2)*((float)Items[a].first->dim.x/(float)Items[a].first->dim.y)),	r.end.y-(itemWide/2));
-					glTexCoord2i(1,0);glVertex2i(r.end.x+((itemWide/2)*((float)Items[a].first->dim.x/(float)Items[a].first->dim.y)),	r.end.y+(itemWide/2));
-					glTexCoord2i(0,0);glVertex2i(r.end.x-((itemWide/2)*((float)Items[a].first->dim.x/(float)Items[a].first->dim.y)),	r.end.y+(itemWide/2));
-				}else{
-					glTexCoord2i(0,1);glVertex2i(r.end.x-(itemWide/2),r.end.y-(itemWide/2)*((float)Items[a].first->dim.y/(float)Items[a].first->dim.x));
-					glTexCoord2i(1,1);glVertex2i(r.end.x+(itemWide/2),r.end.y-(itemWide/2)*((float)Items[a].first->dim.y/(float)Items[a].first->dim.x));
-					glTexCoord2i(1,0);glVertex2i(r.end.x+(itemWide/2),r.end.y+(itemWide/2)*((float)Items[a].first->dim.y/(float)Items[a].first->dim.x));
-					glTexCoord2i(0,0);glVertex2i(r.end.x-(itemWide/2),r.end.y+(itemWide/2)*((float)Items[a].first->dim.y/(float)Items[a].first->dim.x));
+				    drawRect(vec2(r.end.x-((itemWide/2)*((float)Items[a].first->dim.x/(float)Items[a].first->dim.y)),	r.end.y-(itemWide/2)),
+                             vec2(r.end.x+((itemWide/2)*((float)Items[a].first->dim.x/(float)Items[a].first->dim.y)),	r.end.y+(itemWide/2)));
+                }else{
+                    drawRect(vec2(r.end.x-(itemWide/2),r.end.y-(itemWide/2)*((float)Items[a].first->dim.y/(float)Items[a].first->dim.x)),
+                             vec2(r.end.x+(itemWide/2),r.end.y+(itemWide/2)*((float)Items[a].first->dim.y/(float)Items[a].first->dim.x)));
 				}
-				glEnd();
-				glDisable(GL_TEXTURE_2D);
 				ui::setFontColor(255,255,255,((float)dfp[a]/(float)(range?range:1))*255);
 				ui::putStringCentered(r.end.x,r.end.y-(itemWide*.9),Items[a].first->name);//itemMap[items[a].id]->name);
 				ui::putText(r.end.x-(itemWide/2)+(itemWide*.85),r.end.y-(itemWide/2),"%d",Items[a].second);
 				ui::setFontColor(255,255,255,255);
 			}
-
+            glUseProgram(0);
 			if (sel == a) {
 				static float sc = 1;
 				static bool up;
-				up ? sc += .0005*deltaTime : sc -= .0005*deltaTime;
+				up ? sc += .0025*deltaTime : sc -= .0025*deltaTime;
 				if (sc > 1.2) {
 					up = false;
 					sc = 1.2;
@@ -509,28 +494,36 @@ void Inventory::draw(void) {
 					up = true;
 					sc = 1.0;
 				}
-	 			glBegin(GL_QUADS);
-	 				glColor4f(1.0f, 1.0f, 1.0f, ((float)dfp[a]/(float)(range?range:1)));
-					glVertex2f(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09);
-					glVertex2f(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09);
-					glVertex2f(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2);
-					glVertex2f(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2);
+                float t = ((float)dfp[a]/(float)(range?range:1));
+                useShader(&textShader,
+                          &textShader_uniform_texture,
+                          &textShader_attribute_coord,
+                          &textShader_attribute_tex);
+	 			
+                glUseProgram(textShader);
+                glUniform4f(textShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 
-					glVertex2f(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09);
-					glVertex2f(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09);
-					glVertex2f(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2);
-					glVertex2f(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2);
+                // bottom
+                glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255, 255, 255, t >= 0 ? 255 * t : 0)));
+                drawRect(vec2(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09),
+                         vec2(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2));
+ 
+                // top
+                glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255, 255, 255, t  >= 0 ? 255 * t : 0)));
+                drawRect(vec2(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09),
+                         vec2(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2));
 
-					glVertex2f(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09);
-					glVertex2f(r.end.x - (itemWide*sc)/2				   ,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09);
-					glVertex2f(r.end.x - (itemWide*sc)/2				   ,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09);
-					glVertex2f(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09);
+                // left
+                glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255, 255, 255, t >= 0 ? 255 * t : 0)));
+                drawRect(vec2(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09),
+                         vec2(r.end.x - (itemWide*sc)/2				   ,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09));
 
-					glVertex2f(r.end.x + (itemWide*sc)/2					,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09);
-					glVertex2f(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09);
-					glVertex2f(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09);
-					glVertex2f(r.end.x + (itemWide*sc)/2					,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09);
-				glEnd();
+                // right
+                glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255, 255, 255, t >= 0 ? 255 * t : 0)));
+                drawRect(vec2(r.end.x + (itemWide*sc)/2					,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09),
+                         vec2(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09));
+
+                //glUseProgram(0);
 			}
 			a++;
 		}
@@ -627,10 +620,7 @@ void itemDraw(Player *p, Item *d) {
 
 	itemLoc.y = p->loc.y+(p->height/3);
 	itemLoc.x = p->left?p->loc.x-d->dim.x/2:p->loc.x+p->width-d->dim.x/2;
-	glPushMatrix();
 
-	glUseProgram(shaderProgram);
-	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
 	if (p->left) {
 		glTranslatef(itemLoc.x+d->dim.x/2,itemLoc.y,0);
 		glRotatef(d->rotation, 0.0f, 0.0f, 1.0f);
@@ -640,26 +630,44 @@ void itemDraw(Player *p, Item *d) {
 		glRotatef(d->rotation, 0.0f, 0.0f, 1.0f);
 		glTranslatef(-itemLoc.x-d->dim.x/2,-itemLoc.y,0);
 	}
-	glEnable(GL_TEXTURE_2D);
+
+    GLfloat itemTex[12] = {0.0, 0.0,
+                           1.0, 0.0,
+                           1.0, 1.0,
+
+                           1.0, 1.0,
+                           0.0, 1.0,
+                           0.0, 0.0};
+    if (!p->left) {
+        itemTex[0] = 1.0;
+        itemTex[2] = 0.0;
+        itemTex[4] = 0.0;
+        itemTex[6] = 0.0;
+        itemTex[8] = 1.0;
+        itemTex[10] = 1.0;
+    }
+
+    GLfloat itemCoords[] = {itemLoc.x,          itemLoc.y,          1.0,
+                            itemLoc.x+d->dim.x, itemLoc.y,          1.0,
+                            itemLoc.x+d->dim.x, itemLoc.y+d->dim.y, 1.0,
+
+                            itemLoc.x+d->dim.x, itemLoc.y+d->dim.y, 1.0,
+                            itemLoc.x,          itemLoc.y+d->dim.y, 1.0,
+                            itemLoc.x,          itemLoc.y,          1.0};
+	glUseProgram(worldShader);
 	glBindTexture(GL_TEXTURE_2D,d->tex->image[0]);
-	glColor4ub(255,255,255,255);
-	glBegin(GL_QUADS);
-		if (p->left) {
-			glTexCoord2i(0,1);glVertex2f(itemLoc.x,					  itemLoc.y);
-			glTexCoord2i(1,1);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y);
-			glTexCoord2i(1,0);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y+d->dim.y);
-			glTexCoord2i(0,0);glVertex2f(itemLoc.x,			itemLoc.y+d->dim.y);
-		} else {
-			glTexCoord2i(1,1);glVertex2f(itemLoc.x,					  itemLoc.y);
-			glTexCoord2i(0,1);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y);
-			glTexCoord2i(0,0);glVertex2f(itemLoc.x+d->dim.x,itemLoc.y+d->dim.y);
-			glTexCoord2i(1,0);glVertex2f(itemLoc.x,			itemLoc.y+d->dim.y);
-		}
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
-	glTranslatef(player->loc.x*2,0,0);
-	glPopMatrix();
-	glUseProgram(0);
+
+    glEnableVertexAttribArray(worldShader_attribute_coord);
+    glEnableVertexAttribArray(worldShader_attribute_tex);
+
+    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, itemCoords);
+    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, itemTex);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDisableVertexAttribArray(worldShader_attribute_coord);
+    glDisableVertexAttribArray(worldShader_attribute_tex);
+
+    glUseProgram(0);
 }
 
 /*

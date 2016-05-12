@@ -64,6 +64,7 @@ GLint textShader_attribute_coord;
 GLint textShader_attribute_tex;
 GLint textShader_uniform_texture;
 GLint textShader_uniform_transform;
+GLint textShader_uniform_color;
 
 /**
  * These are the source and index variables for the world
@@ -218,7 +219,7 @@ int main(int argc, char *argv[]){
 	textShader_attribute_tex = get_attrib(textShader, "tex_coord");
 	textShader_uniform_texture = get_uniform(textShader, "sampler");
 	textShader_uniform_transform = get_uniform(textShader, "ortho");
-
+    textShader_uniform_color = get_uniform(textShader, "tex_color");
 
 	/**
 	 *	Creating the world's shader and its attributes/uniforms
@@ -305,7 +306,7 @@ int main(int argc, char *argv[]){
 	// close up the game stuff
 	currentWorld->save();
 	delete arena;
-	delete currentWorld;
+	//delete currentWorld;
 
     return 0; // Calls everything passed to atexit
 }
@@ -379,18 +380,20 @@ void render() {
 										10.0f,								//near
 										-10.0f);							//far
 
-	glm::mat4 view = glm::lookAt(glm::vec3(0,0,10.0f),  //pos
-								 glm::vec3(0,0,0.0f), //looking at
+	glm::mat4 view = glm::lookAt(glm::vec3(0,0,0.0f),  //pos
+								 glm::vec3(0,0,-10.0f), //looking at
 								 glm::vec3(0,1.0f,0)); //up vector
 
 	glm::mat4 ortho = projection * view;
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	//glEnable(GL_DEPTH_TEST);
+	// TODO add depth
+    //glEnable(GL_DEPTH_TEST);
 
 	glUseProgram(textShader);
 	glUniformMatrix4fv(textShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(ortho));
-	glUseProgram(worldShader);
+    glUniform4f(textShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
+    glUseProgram(worldShader);
 	glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(ortho));
 
 	/**************************

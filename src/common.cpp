@@ -57,13 +57,13 @@ void drawRect(vec2 ll, vec2 ur)
                        ll.x, ur.y, 1.0,
                        ll.x, ll.y, 1.0};
    
-    GLfloat tex[] = {0.0, 0.0,
+    GLfloat tex[] = {0.0, 1.0,
+                     1.0, 1.0,
                      1.0, 0.0,
-                     1.0, 1.0,
 
-                     1.0, 1.0,
-                     0.0, 1.0,
-                     0.0, 0.0};
+                     1.0, 0.0,
+                     0.0, 0.0,
+                     0.0, 1.0};
 
     glUniform1i(*tex_uni, 0);
 
