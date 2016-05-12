@@ -983,3 +983,11 @@
 
 	- pushing new drawing to master, it's okay...
 	- changed how swords function, only hits nearest entity
+
+5/11/2016:
+==========
+
+	- hired artist
+	- fixed important bugs/memory leaks, few segfaults happen now
+	- new rendering almost complete
+	- brice stuff almost done

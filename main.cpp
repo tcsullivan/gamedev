@@ -101,7 +101,7 @@ void mainLoop(void);
 
 int main(int argc, char *argv[]){
 	static SDL_GLContext mainGLContext = NULL;
-
+	
 	// handle command line arguments
 	if (argc > 1) {
 		std::vector<std::string> args (argc, "");
@@ -113,9 +113,9 @@ int main(int argc, char *argv[]){
 				system("rm -f xml/*.dat");
 		}
 	}
-
+	
 	// attempt to initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
 		UserError(std::string("SDL was not able to initialize! Error: ") + SDL_GetError());
 	atexit(SDL_Quit);
 
@@ -238,10 +238,9 @@ int main(int argc, char *argv[]){
 
 	// load sprites used in the inventory menu. See src/inventory.cpp
 	initInventorySprites();
-
+	
 	// load mouse texture, and other inventory textures
 	mouseTex = Texture::loadTexture("assets/mouse.png");
-
 
 	// read in all XML file names in the folder
 	std::vector<std::string> xmlFiles;
@@ -252,7 +251,7 @@ int main(int argc, char *argv[]){
 
 	// alphabetically sort files
 	strVectorSortAlpha(&xmlFiles);
-
+	
 	// load the first valid XML file for the world
 	for (const auto &xf : xmlFiles) {
 		if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
@@ -262,16 +261,16 @@ int main(int argc, char *argv[]){
 			break;
 		}
 	}
-
+	
+	// make sure the world was made
+	if (currentWorld == NULL)
+		UserError("Plot twist: The world never existed...?");
+	
 	// spawn the player
 	player = new Player();
 	player->sspawn(0,100);
 	ui::menu::init();
-	currentWorld->bgmPlay(NULL);
-
-	// make sure the world was made
-	if (currentWorld == NULL)
-		UserError("Plot twist: The world never existed...?");
+	currentWorld->bgmPlay(nullptr);
 
 	// spawn the arena
 	arena = new Arena();
@@ -291,8 +290,8 @@ int main(int argc, char *argv[]){
 
 	// put away the brice for later
 	game::briceSave();
-
-    // free library resources
+    
+	// free library resources
     Mix_HaltMusic();
     Mix_CloseAudio();
 
@@ -322,7 +321,6 @@ static float debugY=0;
 
 void mainLoop(void){
 	static unsigned int debugDiv=0;			// A divisor used to update the debug menu if it's open
-	World *prev;
 
 	game::time::mainLoopHandler();
 
@@ -330,13 +328,7 @@ void mainLoop(void){
 		return;
 	} else {
 		// handle keypresses - currentWorld could change here
-		prev = currentWorld;
 		ui::handleEvents();
-
-		if(prev != currentWorld){
-			currentWorld->bgmPlay(prev);
-			ui::dialogBoxExists = false;
-		}
 
 		if (game::time::tickHasPassed())
 			logic();

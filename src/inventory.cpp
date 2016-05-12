@@ -110,14 +110,10 @@ void items(void)
 
 		exml = exml->NextSiblingElement();
 	}
-	for (auto &i : ItemMap) {
-		std::cout << i->name << ", " << i->maxStackSize << ", " << i->dim.x << ", " << i->dim.y << std::endl;
-	}
 }
 
 int Inventory::addItem(std::string name, uint count)
 {
-	std::cout << "Adding: " << count << " " << name << "\n";
 	for (uint i = 0; i < ItemMap.size(); i++) {
 		if (strCaseCmp(ItemMap[i]->name, name)) {
 			for (auto &it : Items) {

@@ -12,9 +12,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <thread>
 #include <cmath>
 #include <algorithm>
+
+#ifndef __WIN32__
+#	include <thread>
+#else
+#	include <win32thread.hpp>
+#endif // __WIN32__
 
 #include <shader_utils.hpp>
 
@@ -241,12 +246,7 @@ void safeSetColor(int r,int g,int b);
  */
 void safeSetColorA(int r,int g,int b,int a);
 
-// use our own millis function if we can, windows doesn't like <chrono> at the moment...
-#ifdef __WIN32__
-#define millis() SDL_GetTicks()
-#else
 unsigned int millis(void);
-#endif // __WIN32__
 
 // reads the names of files in a directory into the given string vector
 int getdir(std::string dir, std::vector<std::string> &files);
@@ -263,10 +263,7 @@ void UserError(std::string reason);
 namespace std {
 	template<class T>
 	constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
-		if (v < hi)
-			return (v > lo) ? v : lo;
-		else
-			return (v < hi) ? v : hi;
+		return (v > hi) ? hi : ((v > lo) ? v : lo);
 	}
 }
 

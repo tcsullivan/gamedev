@@ -8,6 +8,7 @@ extern World *currentWorld;
 Mob::Mob(void)
 {
     type = MOBT;
+	inv = nullptr;
     rider = nullptr;
     canMove = true;
 }
