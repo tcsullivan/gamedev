@@ -1089,8 +1089,7 @@ void World::load(void){
  * Toggle play/stop of the background music.
  * If new music is to be played a crossfade will occur, otherwise... uhm.
  */
-void World::
-bgmPlay(World *prev) const
+void World::bgmPlay(World *prev) const
 {
 	if (prev == nullptr || bgm != prev->bgm) {
 		Mix_FadeOutMusic(800);
@@ -1103,8 +1102,7 @@ bgmPlay(World *prev) const
  * This will load a sound file to be played while the player is in this world.
  * If no file is found, no music should play.
  */
-void World::
-setBGM(std::string path)
+void World::setBGM(std::string path)
 {
 	if (!path.empty())
 		bgmObj = Mix_LoadMUS((bgm = path).c_str());
@@ -1115,8 +1113,7 @@ setBGM(std::string path)
  * The images chosen for the background layers are selected depending on the
  * world's background type.
  */
-void World::
-setBackground(WorldBGType bgt)
+void World::setBackground(WorldBGType bgt)
 {
     // load textures with a limit check
 	switch ((bgType = bgt)) {
@@ -1137,8 +1134,7 @@ setBackground(WorldBGType bgt)
  * The world's style will determine what sprites are used for things like\
  * generic structures.
  */
-void World::
-setStyle(std::string pre)
+void World::setStyle(std::string pre)
 {
     // get folder prefix
 	std::string prefix = pre.empty() ? "assets/style/classic/" : pre;
@@ -1157,8 +1153,7 @@ setStyle(std::string pre)
 /**
  * Pretty self-explanatory.
  */
-std::string World::
-getWeatherStr(void) const
+std::string World::getWeatherStr(void) const
 {
 	switch (weather) {
 	case WorldWeather::Sunny:
@@ -1177,8 +1172,7 @@ getWeatherStr(void) const
 	return "???";
 }
 
-const WorldWeather& World::
-getWeatherId(void) const
+const WorldWeather& World::getWeatherId(void) const
 {
 	return weather;
 }
@@ -1186,8 +1180,7 @@ getWeatherId(void) const
 /**
  * Pretty self-explanatory.
  */
-std::string World::
-setToLeft(std::string file)
+std::string World::setToLeft(std::string file)
 {
     return (toLeft = file);
 }
@@ -1195,8 +1188,7 @@ setToLeft(std::string file)
 /**
  * Pretty self-explanatory.
  */
-std::string World::
-setToRight(std::string file)
+std::string World::setToRight(std::string file)
 {
 	return (toRight = file);
 }
@@ -1204,8 +1196,7 @@ setToRight(std::string file)
 /**
  * Pretty self-explanatory.
  */
-std::string World::
-getToLeft(void) const
+std::string World::getToLeft(void) const
 {
     return toLeft;
 }
@@ -1213,8 +1204,7 @@ getToLeft(void) const
 /**
  * Pretty self-explanatory.
  */
-std::string World::
-getToRight(void) const
+std::string World::getToRight(void) const
 {
     return toRight;
 }
@@ -1222,8 +1212,7 @@ getToRight(void) const
 /**
  * Attempts to go to the left world, returning either that world or itself.
  */
-WorldSwitchInfo World::
-goWorldLeft(Player *p)
+WorldSwitchInfo World::goWorldLeft(Player *p)
 {
 	World *tmp;
 
@@ -1243,8 +1232,7 @@ goWorldLeft(Player *p)
 /**
  * Attempts to go to the right world, returning either that world or itself.
  */
-WorldSwitchInfo World::
-goWorldRight(Player *p)
+WorldSwitchInfo World::goWorldRight(Player *p)
 {
 	World *tmp;
 
@@ -1256,19 +1244,51 @@ goWorldRight(Player *p)
 	return std::make_pair(this, vec2 {0, 0});
 }
 
+void World::adoptNPC(NPC *e)
+{
+	entity.push_back(e);
+	npc.push_back(e);
+}
+
+void World::adoptMob(Mob *e)
+{
+	entity.push_back(e);
+	mob.push_back(e);
+}
+
 /**
  * Acts like goWorldLeft(), but takes an NPC; returning true on success.
  */
-bool World::
-goWorldLeft(NPC *e)
+bool World::goWorldLeft(NPC *e)
 {
 	// check if entity is at world edge
-	if(!toLeft.empty() && e->loc.x < worldStart + HLINES(15)) {
-        currentWorldToLeft->addNPC(e->loc.x,e->loc.y);
-        e->die();
+	if (!toLeft.empty() && e->loc.x < worldStart + HLINES(15)) {
+		currentWorldToLeft->adoptNPC(e);
 
-        currentWorldToLeft->npc.back()->loc.x = currentWorldToLeft->worldStart + currentWorldToLeft->getTheWidth() - HLINES(15);
-		currentWorldToLeft->npc.back()->loc.y = GROUND_HEIGHT_MAXIMUM;
+		npc.erase(std::find(std::begin(npc), std::end(npc), e));
+		entity.erase(std::find(std::begin(entity), std::end(entity), e));
+
+        e->loc.x = currentWorldToLeft->worldStart + currentWorldToLeft->getTheWidth() - HLINES(15);
+		e->loc.y = GROUND_HEIGHT_MAXIMUM;
+		++e->outnabout;
+
+		return true;
+	}
+
+	return false;
+}
+
+bool World::goWorldRight(NPC *e)
+{
+	if (!toRight.empty() && e->loc.x + e->width > -worldStart - HLINES(15)) {
+		currentWorldToRight->adoptNPC(e);
+
+		npc.erase(std::find(std::begin(npc), std::end(npc), e));
+		entity.erase(std::find(std::begin(entity), std::end(entity), e));
+	
+		e->loc.x = currentWorldToRight->worldStart + HLINES(15);
+		e->loc.y = GROUND_HEIGHT_MINIMUM;
+		--e->outnabout;
 
 		return true;
 	}
@@ -1279,8 +1299,7 @@ goWorldLeft(NPC *e)
 /**
  * Attempts to enter a building that the player is standing in front of.
  */
-WorldSwitchInfo World::
-goInsideStructure(Player *p)
+WorldSwitchInfo World::goInsideStructure(Player *p)
 {
 	World *tmp;
 

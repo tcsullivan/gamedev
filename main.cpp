@@ -506,6 +506,8 @@ void logic(){
 				e->near = false;
 				continue;
 			} else if (e->canMove) {
+				if (!currentWorld->goWorldLeft(dynamic_cast<NPC *>(e)))
+					currentWorld->goWorldRight(dynamic_cast<NPC *>(e));
 				e->wander((rand() % 120 + 30));
 				if (NPCSelected) {
 					e->near = false;
@@ -520,8 +522,13 @@ void logic(){
 				else
 					NPCSelected = true;
 
-				if ((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) && !ui::dialogBoxExists)
+				if ((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) && !ui::dialogBoxExists) {
+					if (ui::mouse.x < player->loc.x && player->right)
+						player->left = true, player->right = false;
+					else if(ui::mouse.x > player->loc.x && player->left)
+						player->right = true, player->left = false;
 					e->interact();
+				}
 			} else {
 				e->near = false;
 			}

@@ -442,7 +442,7 @@ namespace ui {
 
 	std::string ret;
 	std::string typeOut(std::string str) {
-		static unsigned int tadv = TICKS_PER_SEC / 12;
+		static unsigned int tadv = 1;
 		static unsigned int tickk,
 							linc=0,	//	Contains the number of letters that should be drawn.
 							size=0;	//	Contains the full size of the current string.
@@ -467,9 +467,21 @@ namespace ui {
 			tickk = tickCount + tadv;
 			ret += str[linc];
 
-			if (linc < size)
-				linc++;
-			else
+			if (linc < size) {
+				switch (str[++linc]) {
+				case '!':
+				case '?':
+				case '.':
+					tadv = 10;
+					break;
+				case ',':
+					tadv = 5;
+				break;
+				default:
+					tadv = 1;
+					break;
+				}
+			} else
 				typeOutDone = true;
 		}
 

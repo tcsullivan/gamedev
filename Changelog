@@ -991,3 +991,9 @@
 	- fixed important bugs/memory leaks, few segfaults happen now
 	- new rendering almost complete
 	- brice stuff almost done
+
+5/13/2016:
+==========
+
+	- NPCs and mobs can gracefully walk between worlds, carry dialog
+	- began more work on combat stuffs

@@ -1,23 +1,14 @@
-/* ----------------------------------------------------------------------------
-** The world stuffs.
-**
-** This file contains the classes and variables necessary to create an in-game
-** world... "and stuffs".
-** --------------------------------------------------------------------------*/
 #ifndef WORLD_H
 #define WORLD_H
 
-/* ----------------------------------------------------------------------------
-** Includes section
-** --------------------------------------------------------------------------*/
+/**
+ * @file  world.hpp
+ * @brief The world system
+ */
 
 // local game includes
 #include <common.hpp>
 #include <entities.hpp>
-
-/* ----------------------------------------------------------------------------
-** Structures section
-** --------------------------------------------------------------------------*/
 
 /**
  * The background type enum.
@@ -47,164 +38,363 @@ enum class WorldWeather : unsigned char {
  * lines. Dirt color and grass properties are also kept track of here.
  */
 typedef struct {
-    bool          grassUnpressed;
-    float         grassHeight[2];
-    float         groundHeight;
-    unsigned char groundColor;
+    bool          grassUnpressed; /**< squishes grass if false */
+    float         grassHeight[2]; /**< height of the two grass blades */
+    float         groundHeight;   /**< height of the 'line' */
+    unsigned char groundColor;    /**< a value that affects the ground's color */
 } WorldData;
 
+/**
+ * Contains info necessary for switching worlds.
+ * This pair contains a pointer to the new world, and the new set of
+ * coordinates the player should be at in that world.
+ */
 typedef std::pair<World *, vec2> WorldSwitchInfo;
 
-/* ----------------------------------------------------------------------------
-** Variables section
-** --------------------------------------------------------------------------*/
-
-// affects brightness of world elements when drawn
+/**
+ * Alters how bright world elements are drawn.
+ * This value is based off of the current time of day (tick count), set in
+ * main.cpp.
+ */
 extern int worldShade;
 
-// the path to the currently loaded XML file.
+/**
+ * The file path to the currently loaded XML file.
+ */
 extern std::string currentXML;
 
-// defines how many game ticks it takes for a day to elapse
+/**
+ * Defines how many game ticks it takes to go from day to night or vice versa.
+ */
 constexpr const unsigned int DAY_CYCLE = 12000;
 
-// velocity of player when moved by user
+/**
+ * Defines the velocity of player when moved by the keyboard
+ */
 constexpr const float PLAYER_SPEED_CONSTANT = 0.15f;
 
-// maximum pull of gravity in one game tick
+/**
+ * Defines the strongest pull gravity can have on an entity.
+ * This is the most that can be subtracted from an entity's velocity in one
+ * game tick.
+ */
 constexpr const float GRAVITY_CONSTANT = 0.001f;
 
-// height of the floor in an indoor world
+/**
+ * Defines the thickness of the floor in an indoor world.
+ */
 constexpr const unsigned int INDOOR_FLOOR_THICKNESS = 50;
-constexpr const unsigned int INDOOR_FLOOR_HEIGHTT = 400;
-constexpr const unsigned int INDOOR_FLOOR_HEIGHT = (INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS);
-
-/* ----------------------------------------------------------------------------
-** Classes / function prototypes section
-** --------------------------------------------------------------------------*/
 
 /**
- * The village class, used to group structures into villages.
+ * Defines how far each floor can be from the next (height).
+ */
+constexpr const unsigned int INDOOR_FLOOR_HEIGHTT = 400;
+
+/**
+ * Gets a combined height of the floor and the area before it.
+ * This value is commonly used for operations like moving between floors.
+ */
+constexpr const unsigned int INDOOR_FLOOR_HEIGHT = (INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS);
+
+/**
+ * The village class.
+ * This class defines an area in a world that is considered to be a village,
+ * and provides a welcome message when the player enters the area.
  */
 class Village {
 public:
+	/**
+	 * The name of the village.
+	 */
 	std::string name;
+
+	/**
+	 * The start and end coordinates of the village.
+	 */
 	vec2 start, end;
+
+	/**
+	 * A "player in village" flag.
+	 * This flag is used to trigger displaying the welcome message.
+	 */
 	bool in;
 
+	/**
+	 * Constructs a village with the given name, inside the given world.
+	 */
 	Village(std::string meme, World *w);
+
+	/**
+	 * Destructs the village.
+	 */
 	~Village(void){}
 };
 
 /**
- * The world class. This class does everything a world should do.
+ * The world class. 
+ * This class handles entity creation, management, and deletion. Most
+ * world-related operations have to be done through this class, such as
+ * drawing.
  */
 class World {
 protected:
 
-	// an array of all the world's ground data
+	/**
+	 * An array of all the world's ground data, populated through
+	 * World::generate().
+	 *
+	 * @see generate()
+	 */
 	std::vector<WorldData> worldData;
 
-	// the world's current weather
+	/**
+	 * Contains the current state of weather in the world.
+	 */
 	WorldWeather weather;
 
-	// the size of `worldData`
+	/**
+	 * Contains the size of the 'worldData' array.
+	 */
 	unsigned int lineCount;
 
-	// the left-most (negative) coordinate of the worldStart
+	/**
+	 * The starting x-coordinate of the world.
+	 */
 	float worldStart;
 
-	// holds / handles textures for background elements
+	/**
+	 * Handles textures for the background elements.
+	 */
 	TextureIterator bgTex;
 
-	// defines what type of background is being used
+	/**
+	 * Defines the set of background images being used for the world.
+	 *
+	 * @see setBackground()
+	 */
 	WorldBGType bgType;
 
-	// an SDL_mixer object for the world's BGM
+	/**
+	 * SDL_Mixer's object for the loaded BGM.
+	 */
 	Mix_Music *bgmObj;
 
-	// the pathname of the loaded BGM
+	/**
+	 * The filename of the world's BGM file.
+	 *
+	 * @see setBGM()
+	 */
 	std::string bgm;
 
-	// XML file names of worlds to the left and right, empty if nonexistant
+	/**
+	 * The path to the XML file of the world to the left.
+	 *
+	 * @see setToLeft()
+	 */
 	std::string toLeft;
+
+	/**
+	 * The path to the XML file of the world to the right.
+	 *
+	 * @see setToRight()
+	 */
 	std::string toRight;
 
-	// structure texture file paths
+	/**
+	 * A vector of paths for the structure textures.
+	 * The appearance of structures depends on the world's theme.
+	 *
+	 * @see setStyle()
+	 */
 	std::vector<std::string> sTexLoc;
 
-	// TODO
+	/**
+	 * The paths of files to be used for the background textures.
+	 *
+	 * @see setStyle()
+	 */
 	std::vector<std::string> bgFiles;
+
+	/**
+	 * The paths of files to be used for the indoor background textures.
+	 *
+	 * @see setStyle()
+	 */
 	std::vector<std::string> bgFilesIndoors;
 
-	// an array of star coordinates
+	/**
+	 * Contains randomly generated coordinates for stars.
+	 */
 	std::vector<vec2> star;
 
-	// entity vectors
+	/**
+	 * A vector of all light elements in the world.
+	 *
+	 * @see addLight()
+	 * @see getLastLight()
+	 */
 	std::vector<Light>        light;
+
+	/**
+	 * A vector of all mobs in the world.
+	 *
+	 * @see addMob()
+	 * @see getLastMob()
+	 * @see getNearMob()
+	 */
 	std::vector<Mob *>        mob;
+
+	/**
+	 * A vector of all objects in the world.
+	 *
+	 * @see addObject()
+	 */
 	std::vector<Object>	      object;
+
+	/**
+	 * A vector of all particles in the world.
+	 *
+	 * @see addParticle()
+	 */
 	std::vector<Particles>    particles;
+
+	/**
+	 * A vector of all structures in the world.
+	 *
+	 * @see addStructure()
+	 * @see getStructurePos()
+	 */
 	std::vector<Structures *> build;
+
+	/**
+	 * A vector of all villages in the world.
+	 *
+	 * @see addVillage()
+	 */
 	std::vector<Village>      village;
 
-	// handles death, gravity, etc. for a single entity
+	/**
+	 * Handles death, gravity, etc. for a single entity
+	 */
 	virtual void singleDetect(Entity *e);
 
-	// frees entities and clears vectors that contain them
+	/**
+	 * Destroys entities and clears vectors that contain them.
+	 * This function is only called in the world destructor.
+	 */
 	void deleteEntities(void);
-
-protected:
 	
+	/**
+	 * Draws background textures.
+	 */
 	void drawBackgrounds();
 
 public:
 
-	// entity vectors that need to be public because we're based
+	/**
+	 * A vector of pointers to all entities from the other vectors.
+	 * This is used to mass-manage entities, or operate on entities
+	 * outside of what the world does.
+	 *
+	 * @see getNearInteractable()
+	 */
 	std::vector<Entity *> entity;
 
+	/**
+	 * A vector of all NPCs in the world.
+	 *
+	 * @see addNPC()
+	 */
 	std::vector<NPC	*>      npc;
+
+	/**
+	 * A vector of all merchants in the world.
+	 *
+	 * @see addMerchant()
+	 */
 	std::vector<Merchant *> merchant;
 
-	// the world constructor, prepares variables
+	/**
+	 * Constructs the world, resets variables.
+	 */
 	World(void);
 
-	// destructor, frees used memory
+	/**
+	 * Destructs the world, frees memory.
+	 */
 	virtual ~World(void);
 
-	// generates a world of the specified width
+	/**
+	 * Generates a world of the specified width.
+	 * This will populate the 'worldData' array and create star coordinates.
+	 * It's necessary to call this function to actually use the world.
+	 */
 	void generate(int width);
 
-	// draws everything to the screen
+	/**
+	 * Draws everything the world handles to the screen (and the player).
+	 * Drawing is based off of the player so that off-screen elements are not
+	 * drawn.
+	 */
 	virtual void draw(Player *p);
 
-	// handles collisions/death of player and all entities
+	/**
+	 * Handles physics for all entities and the player.
+	 *
+	 * @see singleDetect()
+	 */
 	void detect(Player *p);
 
-	// updates entities, moving them and such
+	/**
+	 * Updates entity positions, time of day, and music.
+	 */
 	void update(Player *p, unsigned int delta, unsigned int ticks);
 
-	// gets the world's width in TODO
+	/**
+	 * Gets the width of the world, presumably in pixels.
+	 * TODO
+	 */
 	int getTheWidth(void) const;
 
-	// gets the starting x coordinate of the world
+	/**
+	 * Gets the starting x-coordinate of the world.
+	 *
+	 * @see worldStart
+	 */
 	float getWorldStart(void) const;
 
-	// gets a pointer to the most recently added light
+	/**
+	 * Gets a pointer to the most recently created light.
+	 * This is used to update properties of the light outside of the
+	 * world class.
+	 */
 	Light *getLastLight(void);
 
-	// gets a pointer to the most recently added mob
+	/**
+	 * Gets a pointer ot the most recently created mob.
+	 * This is used to update properties of the mob outside of the
+	 * world class.
+	 */
 	Mob *getLastMob(void);
 
-	// gets the nearest interactable entity to the given one
+	/**
+	 * Finds the entity nearest to the provided one.
+	 */
 	Entity *getNearInteractable(Entity &e);
 
+	/**
+	 * Finds the mob nearest to the given entity.
+	 */
 	Mob *getNearMob(Entity &e);
 
-	// gets the coordinates of the `index`th structure
+	/**
+	 * Gets the coordinates of the `index`th structure.
+	 */
 	vec2 getStructurePos(int index);
 
-	// gets the texture path of the `index`th structure
+	/**
+	 * Gets the texture path of the `index`th structure
+	 */
 	std::string getSTextureLocation(unsigned int index) const;
 
 	// saves the world's data to an XML file
@@ -239,11 +429,28 @@ public:
 	WorldSwitchInfo goWorldLeft(Player *p);
 	WorldSwitchInfo goWorldRight(Player *p);
 
-	// attempts to move an NPC to the left adjacent world, returning true on success
+	/**
+	 * Attempts to move an NPC to the left adjacent world, returning true on success.
+	 */
 	bool goWorldLeft(NPC *e);
+
+	/**
+	 * Attempts to move an NPC to the world to the right, returning true on success.
+	 */
+	bool goWorldRight(NPC *e);
 
 	// attempts to enter a structure that the player would be standing in front of
 	WorldSwitchInfo goInsideStructure(Player *p);
+
+	/**
+	 * Adopts an NPC from another world, taking its ownership.
+	 */
+	void adoptNPC(NPC *e);
+	
+	/**
+	 * Adopts a mob from another world, taking its ownership.
+	 */
+	void adoptMob(Mob *e);
 
 	// adds a hole at the specified start and end x-coordinates
 	void addHole(unsigned int start,unsigned int end);

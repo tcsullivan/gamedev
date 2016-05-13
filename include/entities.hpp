@@ -207,6 +207,9 @@ public:
 	// tells direction entity is facing
 	bool right, left;
 
+	// tells if the entity is from another world
+	char outnabout;
+
 	// set to 1 if entity is on the ground, 0 if in the air
 	unsigned char ground;
 

@@ -79,6 +79,7 @@ Entity::Entity(void)
 	height = 0;
 	health = 0;
 	maxHealth = 0;
+	outnabout = 0;
 	z = 1.0f;
 	targetx = 0.9112001f;
 
@@ -374,18 +375,19 @@ void Entity::draw(void)
 	case PLAYERT:
 		static int texState = 0;
 		if (speed && !(game::time::getTickCount() % ((2.0f/speed) < 1 ? 1 : (int)((float)2.0f/(float)speed)))) {
-			if (++texState==9)texState=1;
+			if (++texState == 9)
+				texState = 1;
 			glActiveTexture(GL_TEXTURE0);
 			tex(texState);
 		}
 		if (!ground) {
-			glActiveTexture(GL_TEXTURE0 + 0);
+			glActiveTexture(GL_TEXTURE0);
 			tex(0);
-		}else if (vel.x) {
-			glActiveTexture(GL_TEXTURE0 + 0);
+		} else if (vel.x) {
+			glActiveTexture(GL_TEXTURE0);
 			tex(texState);
-		}else{
-			glActiveTexture(GL_TEXTURE0 + 0);
+		} else {
+			glActiveTexture(GL_TEXTURE0);
 			tex(0);
 		}
 		break;
@@ -427,13 +429,13 @@ if (health != maxHealth) {
 	glUniform1i(worldShader_uniform_texture, 0);
 
 	GLfloat coord_back[] = {
-		loc.x, 			loc.y + height, 			     z,
-		loc.x + width,	loc.y + height, 			     z,
-		loc.x + width, 	loc.y + height + game::HLINE * 2,z,
+		loc.x, 			loc.y + height, 			      z,
+		loc.x + width,	loc.y + height, 			      z,
+		loc.x + width, 	loc.y + height + game::HLINE * 2, z,
 
-		loc.x + width, 	loc.y + height + game::HLINE * 2,z,
-		loc.x, 			loc.y + height + game::HLINE * 2,z,
-		loc.x, 			loc.y + height, 			     z,
+		loc.x + width, 	loc.y + height + game::HLINE * 2, z,
+		loc.x, 			loc.y + height + game::HLINE * 2, z,
+		loc.x, 			loc.y + height, 			      z,
 	};
 
 	GLfloat coord_front[] = {
@@ -550,7 +552,12 @@ void NPC::interact() { //have the npc's interact back to the player
 
 		if (dialogCount && dialogIndex != 9999) {
 			// load the XML file and find the dialog tags
-			xml.LoadFile(currentXML.c_str());
+			if (outnabout == 0)
+				xml.LoadFile(currentXML.c_str());
+			else if (outnabout < 0)
+				xml.LoadFile((xmlFolder + currentWorld->getToLeft()).c_str());
+			else
+				xml.LoadFile((xmlFolder + currentWorld->getToRight()).c_str());
 COMMONAIFUNC:
 			idx = 0;
 			stop = false;
@@ -608,6 +615,10 @@ COMMONAIFUNC:
 			if ((oxml = exml->FirstChildElement("gotox")))
 				moveTo(std::stoi(oxml->GetText()));
 
+			// asdlfkj
+			auto ptr = exml->GetText() - 1;
+			while (isspace(*++ptr));
+
 			// handle dialog options
 			if ((oxml = exml->FirstChildElement("option"))) {
 				std::string optstr;
@@ -620,9 +631,9 @@ COMMONAIFUNC:
 					// save the associated XMLElement
 					dopt.push_back(oxml);
 				} while ((oxml = oxml->NextSiblingElement()));
-
+				
 				// run the dialog stuff
-				ui::dialogBox(name, optstr, false, exml->GetText() + 2);
+				ui::dialogBox(name, optstr, false, ptr);
 				ui::waitForDialog();
 
 				if (ui::dialogOptChosen)
@@ -633,7 +644,7 @@ COMMONAIFUNC:
 
 			// optionless dialog
 			else {
-				ui::dialogBox(name, "", false, exml->GetText());
+				ui::dialogBox(name, "", false, ptr);
 				ui::waitForDialog();
 			}
 
