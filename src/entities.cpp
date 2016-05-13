@@ -144,8 +144,6 @@ void Entity::setCooldown(unsigned int c)
 	hitCooldown = c;
 }
 
-
-
 void Entity::handleHits(void)
 {
 	hitCooldown = fmax(hitCooldown - game::time::getDeltaTime(), 0);
@@ -204,6 +202,9 @@ Player::Player() : Entity()
 					       });
 
 	inv = new Inventory(PLAYER_INV_SIZE);
+	dim2 tmpDim = Texture::imageDim(tex.getTexturePath(0));
+	width = HLINES(tmpDim.x/2);
+	height = HLINES(tmpDim.y/2);
 }
 
 Player::~Player()
@@ -231,6 +232,10 @@ NPC::NPC() : Entity()
 	randDialog = rand() % RAND_DIALOG_COUNT - 1;
 	dialogIndex = 0;
 	dialogCount = 0;
+
+	dim2 tmpDim = Texture::imageDim(tex.getTexturePath(0));
+	width = HLINES(tmpDim.x/2);
+	height = HLINES(tmpDim.y/2);
 }
 
 NPC::~NPC()
@@ -262,6 +267,10 @@ Merchant::Merchant() : NPC()
 
 	//randDialog = rand() % RAND_DIALOG_COUNT - 1;
 	dialogIndex = 0;
+
+	dim2 tmpDim = Texture::imageDim(tex.getTexturePath(0));
+	width = HLINES(tmpDim.x/2);
+	height = HLINES(tmpDim.y/2);
 }
 
 Merchant::~Merchant()
@@ -843,14 +852,14 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y) {
 		case STALL_MARKET:
 			tex = TextureIterator({ textureLoc });
 			dim = Texture::imageDim(textureLoc);
-			width = dim.x;
-			height = dim.y;
+			width = HLINES(dim.x/2);
+			height = HLINES(dim.y/2);
 			break;
 		default:
 			tex = TextureIterator({ textureLoc });
 			dim = Texture::imageDim(textureLoc);
-			width = dim.x;
-			height = dim.y;
+			width = HLINES(dim.x/2);
+			height = HLINES(dim.y/2);
 			inv = NULL;
 			break;
 	}

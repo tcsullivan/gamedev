@@ -19,7 +19,7 @@
 
 	<page x="-200" id="assets/pages/gootaGoFast.png" cid="canSprint" cvalue="1"/>
 
-	<village name="Swagville U.S.A.">
+	<village name="Big Dave's bagel emporium! The greatest place on earth!">
 		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
 		<structure type="5" x="-500" />
 		<stall type="market" texture="assets/style/classic/stall.png">
@@ -71,13 +71,16 @@ And it wasn't stormy.
 	</text>
 
 	<text id="1" nextid="1" pause="true" >
-        Broooooooooooooo...
+		Broooooooooooooo...
 	</text>
 </Dialog>
 
 <Dialog name="Big Dave">
 	<text id="0" pause="true">
-        Hey friend! It's dangerous out there, here take these!
+		Hey friend! It's dangerous out there, here take these!
+
+
+		Wait, promise you'll stop by my stand in the local market!
 		<give id="Wood Sword" count="1"/>
 		<give id="Hunters Bow" count="1"/>
 		<give id="Crude Arrow" count="110"/>
