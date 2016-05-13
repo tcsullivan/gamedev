@@ -99,6 +99,8 @@ Entity::Entity(void)
 	ticksToUse = 0;
 	hitCooldown = 0;
 
+	hitDuration = maxHitDuration = 0;
+
 	inv = nullptr;
 	name = nullptr;
 }
@@ -118,15 +120,20 @@ void Entity::spawn(float x, float y)
 		name[0] = '\0';
 	else
 		randGetomName(this);
+
+	setCooldown(0);
 }
 
 void Entity::takeHit(unsigned int _health, unsigned int cooldown)
 {
 	if (hitCooldown <= 1) {
+		std::cout << "Taking hit " << std::endl;
 		// modify variables
 		health = fmax(health - _health, 0);
 		forcedMove = true;
 		hitCooldown = cooldown;
+
+		hitDuration = maxHitDuration = 350.0f;
 
 		// pushback
 		vel.x = player->left ? -0.5f : 0.5f;
@@ -146,7 +153,8 @@ void Entity::setCooldown(unsigned int c)
 
 void Entity::handleHits(void)
 {
-	hitCooldown = fmax(hitCooldown - game::time::getDeltaTime(), 0);
+	hitCooldown = fmax(static_cast<int>(hitCooldown - game::time::getDeltaTime()), 0);
+	hitDuration = fmax(hitDuration - game::time::getDeltaTime(), 0);
 
 	if (!forcedMove)
 		return;
@@ -418,23 +426,32 @@ void Entity::draw(void)
 	else
 		glColor3ub(255,255,255);*/
 
-		glUseProgram(worldShader);
-		glUniform1i(worldShader_uniform_texture, 0);
-		glEnableVertexAttribArray(worldShader_attribute_coord);
-		glEnableVertexAttribArray(worldShader_attribute_tex);
+	glUseProgram(worldShader);
+	// make the entity hit flash red
+	if (maxHitDuration-hitDuration) {
+		float flashAmt = 1-(hitDuration/maxHitDuration);
+		glUniform4f(worldShader_uniform_color, 1.0, flashAmt, flashAmt, 1.0);
+	}
 
-		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
-		if (left)
-			glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coordL);
-		else
-			glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+	glUniform1i(worldShader_uniform_texture, 0);
+	glEnableVertexAttribArray(worldShader_attribute_coord);
+	glEnableVertexAttribArray(worldShader_attribute_tex);
+
+	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
+	if (left)
+		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coordL);
+	else
+		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 NOPE:
 if (near && type != MOBT)
 	ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-game::HLINE/2,name);
 if (health != maxHealth) {
 
-	glBindTexture(GL_TEXTURE_2D,colorIndex);
+	static GLuint frontH = Texture::genColor(Color(255,0,0));
+	static GLuint backH =  Texture::genColor(Color(150,0,0));
 	glUniform1i(worldShader_uniform_texture, 0);
 
 	GLfloat coord_back[] = {
@@ -456,33 +473,23 @@ if (health != maxHealth) {
 		loc.x,                              loc.y + height + game::HLINE * 2, z,
 		loc.x,                              loc.y + height,                   z,
 	};
-
-	static const vec2 index1 = Texture::getIndex(Color(0,0,0));
-	GLfloat back_tex[] = {
-		float(.25*index1.x), float(.125*index1.y),
-		float(.25*index1.x), float(.125*index1.y),
-		float(.25*index1.x), float(.125*index1.y),
-
-		float(.25*index1.x), float(.125*index1.y),
-		float(.25*index1.x), float(.125*index1.y),
-		float(.25*index1.x), float(.125*index1.y),
+	
+	glBindTexture(GL_TEXTURE_2D, backH);
+	GLfloat tex[] = { 0.0, 0.0,
+						   1.0, 0.0,
+						   1.0, 1.0,
+						   
+						   1.0, 1.0,
+						   0.0, 1.0,
+						   0.0, 0.0,
 	};
 	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coord_back);
-	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, back_tex);
+	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	static const vec2 index2 = Texture::getIndex(Color(255,0,0));
-	GLfloat front_tex[] = {
-		float(.25*index2.x), float(.125*index2.y),
-		float(.25*index2.x), float(.125*index2.y),
-		float(.25*index2.x), float(.125*index2.y),
-
-		float(.25*index2.x), float(.125*index2.y),
-		float(.25*index2.x), float(.125*index2.y),
-		float(.25*index2.x), float(.125*index2.y),
-	};
+	glBindTexture(GL_TEXTURE_2D, frontH);
 	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coord_front);
-	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, front_tex);
+	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 

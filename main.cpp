@@ -76,6 +76,7 @@ GLint worldShader_attribute_coord;
 GLint worldShader_attribute_tex;
 GLint worldShader_uniform_texture;
 GLint worldShader_uniform_transform;
+GLint worldShader_uniform_color;
 
 // keeps a simple palette of colors for single-color draws
 GLuint colorIndex;
@@ -214,21 +215,22 @@ int main(int argc, char *argv[]){
 	/**
 	 *	Creating the text shader and its attributes/uniforms
 	 */
-	textShader = create_program("shaders/new.vert", "shaders/new.frag");
-	textShader_attribute_coord = get_attrib(textShader, "coord2d");
-	textShader_attribute_tex = get_attrib(textShader, "tex_coord");
-	textShader_uniform_texture = get_uniform(textShader, "sampler");
-	textShader_uniform_transform = get_uniform(textShader, "ortho");
-    textShader_uniform_color = get_uniform(textShader, "tex_color");
+	textShader = 					create_program("shaders/new.vert", "shaders/new.frag");
+	textShader_attribute_coord = 	get_attrib(textShader, "coord2d");
+	textShader_attribute_tex = 		get_attrib(textShader, "tex_coord");
+	textShader_uniform_texture = 	get_uniform(textShader, "sampler");
+	textShader_uniform_transform = 	get_uniform(textShader, "ortho");
+    textShader_uniform_color = 		get_uniform(textShader, "tex_color");
 
 	/**
 	 *	Creating the world's shader and its attributes/uniforms
 	 */
-	worldShader = create_program("shaders/world.vert", "shaders/world.frag");
-	worldShader_attribute_coord = get_attrib(worldShader, "coord2d");
-	worldShader_attribute_tex = get_attrib(worldShader, "tex_coord");
-	worldShader_uniform_texture = get_uniform(worldShader, "sampler");
+	worldShader = 					create_program("shaders/world.vert", "shaders/world.frag");
+	worldShader_attribute_coord = 	get_attrib(worldShader, "coord2d");
+	worldShader_attribute_tex = 	get_attrib(worldShader, "tex_coord");
+	worldShader_uniform_texture = 	get_uniform(worldShader, "sampler");
 	worldShader_uniform_transform = get_uniform(worldShader, "ortho");
+	worldShader_uniform_color = 	get_uniform(worldShader, "tex_color");
 
 	//glEnable(GL_MULTISAMPLE);
 
@@ -387,7 +389,7 @@ void render() {
     glUniform4f(textShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
     glUseProgram(worldShader);
 	glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(ortho));
-
+	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 	/**************************
 	**** RENDER STUFF HERE ****
 	**************************/

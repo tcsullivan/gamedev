@@ -181,6 +181,11 @@ protected:
 	// TODO
 	float targetx;
 
+	// the cooldown display (red overlay)
+	float hitDuration;
+
+	// the max cooldown display
+	float maxHitDuration;
 public:
 	// contains the entity's coordinates, in pixels
 	vec2 loc;

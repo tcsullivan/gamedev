@@ -820,7 +820,7 @@ namespace ui {
                                         offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5),     1.0};
 
                 glActiveTexture(GL_TEXTURE0); 
-                glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[0]));
+                glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[1]));
                 glUniform1i(textShader_uniform_texture, 0);
                 glUseProgram(textShader);
 
@@ -831,7 +831,7 @@ namespace ui {
                 glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
                 glDrawArrays(GL_TRIANGLES, 0 ,6);
                
-                glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[1]));
+                glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[0]));
 
                 glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, right_item);
                 glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
@@ -1103,6 +1103,7 @@ EXIT:
 
 		auto indoor = dynamic_cast<IndoorWorld *>(currentWorld);
 		Mob *m; // ;lkjfdsa
+		Entity *en; // used for interaction
 
 		SDL_Event e;
 
@@ -1153,15 +1154,15 @@ EXIT:
 				if ((action::make = e.button.button & SDL_BUTTON_RIGHT))
 					/*player->inv->invHover =*/ edown = false;
 
-				if (dialogBoxExists || pageTexReady) {
+			if (dialogBoxExists || pageTexReady) {
 					// right click advances dialog
 					if ((e.button.button & SDL_BUTTON_RIGHT))
 						dialogAdvance();
 				} else {
 					// left click uses item
 					if (e.button.button & SDL_BUTTON_LEFT) {
-						if ((m = currentWorld->getNearMob(*player)) != nullptr) {
-							player->inv->currentAddInteract(m);
+						if ((en = currentWorld->getNearMob(*player)) != nullptr) {
+							player->inv->currentAddInteract(en);
 							player->inv->useCurrent();
 						}
 					}
