@@ -106,6 +106,11 @@ namespace ui {
 
             SDL_Event e;
 
+			useShader(&textShader,
+					  &textShader_uniform_texture,
+					  &textShader_attribute_coord,
+					  &textShader_attribute_tex);
+
             setFontSize(24);
             game::config::update();
 
@@ -133,9 +138,24 @@ namespace ui {
                 }
             }
 
-            //draw the dark transparent background
+			static GLuint backTex = Texture::genColor(Color(0, 0, 0, 204));
+			//static GLuint bsTex =	Texture::genColor(Color(30, 30, 30));
+			static GLuint border =	Texture::genColor(Color(245, 245, 245));            
+
+			GLfloat line_tex[] = {0.0, 0.0,
+								  1.0, 0.0,
+								  1.0, 1.0,
+								  0.0, 1.0,
+								  0.0, 0.0};
+
+			//draw the dark transparent background
             glColor4f(0.0f, 0.0f, 0.0f, .8f);
-            glRectf(offset.x-SCREEN_WIDTH/2,-SCREEN_HEIGHT/2,offset.x+SCREEN_WIDTH/2,SCREEN_HEIGHT/2);
+			glUseProgram(textShader);
+			
+			glBindTexture(GL_TEXTURE_2D, backTex);
+			drawRect(vec2(offset.x - SCREEN_WIDTH / 2, offset.y - (SCREEN_HEIGHT / 2)), vec2(offset.x + SCREEN_WIDTH / 2, offset.y + (SCREEN_HEIGHT / 2)));
+
+			glUseProgram(0);
 
             //loop through all elements of the menu
             for (auto &m : currentMenu->items) {
@@ -143,11 +163,13 @@ namespace ui {
                 if (m.member == 0 || m.member == -1 || m.member == -2) {
 
                     //draw the button background
-                    glColor3f(m.button.color.red,m.button.color.green,m.button.color.blue);
-                    glRectf(offset.x+m.button.loc.x,
-                            offset.y+m.button.loc.y,
-                            offset.x+m.button.loc.x + m.button.dim.x,
-                            offset.y+m.button.loc.y + m.button.dim.y);
+                    GLuint bsTex = Texture::genColor(Color(m.button.color.red,m.button.color.green,m.button.color.blue));
+					
+					glUseProgram(textShader);
+					glBindTexture(GL_TEXTURE_2D, bsTex);
+
+					drawRect(vec2(offset.x + m.button.loc.x, offset.y + m.button.loc.y),
+							 vec2(offset.x + m.button.loc.x + m.button.dim.x, offset.y + m.button.loc.y + m.button.dim.y));
                     //draw the button text
                     putStringCentered(offset.x + m.button.loc.x + (m.button.dim.x/2),
                                       (offset.y + m.button.loc.y + (m.button.dim.y/2)) - ui::fontSize/2,
@@ -158,15 +180,25 @@ namespace ui {
                         if (mouse.y >= offset.y+m.button.loc.y && mouse.y <= offset.y+m.button.loc.y + m.button.dim.y) {
 
                             //if the mouse if over the button, it draws this white outline
-                            glColor3f(1.0f,1.0f,1.0f);
-                            glBegin(GL_LINE_STRIP);
-                                glVertex2f(offset.x+m.button.loc.x, 					offset.y+m.button.loc.y);
-                                glVertex2f(offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y);
-                                glVertex2f(offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y+m.button.dim.y);
-                                glVertex2f(offset.x+m.button.loc.x, 					offset.y+m.button.loc.y+m.button.dim.y);
-                                glVertex2f(offset.x+m.button.loc.x, 					offset.y+m.button.loc.y);
-                            glEnd();
+							glBindTexture(GL_TEXTURE_2D, border);
+						
+							GLfloat verts[] = {offset.x+m.button.loc.x, 					offset.y+m.button.loc.y,				1.0,
+                                			   offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y,				1.0,
+                                			   offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y+m.button.dim.y, 1.0,
+                                			   offset.x+m.button.loc.x, 					offset.y+m.button.loc.y+m.button.dim.y, 1.0,
+                                			   offset.x+m.button.loc.x, 					offset.y+m.button.loc.y, 				1.0};
 
+							glUseProgram(textShader);
+							glEnableVertexAttribArray(textShader_attribute_coord);
+							glEnableVertexAttribArray(textShader_attribute_tex);
+
+							glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, verts);
+							glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
+							glDrawArrays(GL_LINE_STRIP, 0, 5);
+
+							glDisableVertexAttribArray(textShader_attribute_coord);
+							glDisableVertexAttribArray(textShader_attribute_tex);
+							
                             //if the mouse is over the button and clicks
                             if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
                                 switch(m.member) {
@@ -206,27 +238,25 @@ namespace ui {
                         m.slider.sliderLoc = m.slider.minValue + (*m.slider.var/m.slider.maxValue)*(m.slider.dim.x-sliderW);
                     }
                     //draw the background of the slider
-                    glColor4f(m.slider.color.red,m.slider.color.green,m.slider.color.blue, .5f);
-                    glRectf(offset.x+m.slider.loc.x,
-                            offset.y+m.slider.loc.y,
-                            offset.x+m.slider.loc.x + m.slider.dim.x,
-                            offset.y+m.slider.loc.y + m.slider.dim.y);
+					glUseProgram(textShader);
+                    GLuint bsTex = Texture::genColor(Color(m.slider.color.red, m.slider.color.green, m.slider.color.blue, 175));
+					GLuint hTex =  Texture::genColor(Color(m.slider.color.red, m.slider.color.green, m.slider.color.blue, 255));					
 
-                    //draw the slider handle
-                    glColor4f(m.slider.color.red,m.slider.color.green,m.slider.color.blue, 1.0f);
-                    if (m.slider.dim.y > m.slider.dim.x) {
-                        glRectf(offset.x+m.slider.loc.x,
-                            offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05),
-                            offset.x+m.slider.loc.x + sliderW,
-                            offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH);
+					glBindTexture(GL_TEXTURE_2D, bsTex);
+					drawRect(vec2(offset.x + m.slider.loc.x, offset.y + m.slider.loc.y),
+							 vec2(offset.x + m.slider.loc.x + m.slider.dim.x, offset.y + m.slider.loc.y + m.slider.dim.y));
+	                    
+					//draw the slider handle
+                    glBindTexture(GL_TEXTURE_2D, hTex);
+					if (m.slider.dim.y > m.slider.dim.x) {
+                        drawRect(vec2(offset.x+m.slider.loc.x, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),
+                            	 vec2(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH));
 
                         //draw the now combined slider text
                         putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y*1.05)) - ui::fontSize/2, outSV);
                     }else{
-                        glRectf(offset.x+m.slider.loc.x+m.slider.sliderLoc,
-                                offset.y+m.slider.loc.y,
-                                offset.x+m.slider.loc.x + m.slider.sliderLoc + sliderW,
-                                offset.y+m.slider.loc.y + sliderH);
+                        drawRect(vec2(offset.x+m.slider.loc.x+m.slider.sliderLoc, offset.y+m.slider.loc.y),
+                                 vec2(offset.x+m.slider.loc.x + m.slider.sliderLoc + sliderW, offset.y+m.slider.loc.y + sliderH));
 
                         //draw the now combined slider text
                         putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y/2)) - ui::fontSize/2, outSV);
@@ -236,31 +266,46 @@ namespace ui {
                         if (mouse.y >= offset.y+m.slider.loc.y && mouse.y <= offset.y+m.slider.loc.y + m.slider.dim.y) {
 
                             //if it is we draw a white border around it
-                            glColor3f(1.0f,1.0f,1.0f);
-                            glBegin(GL_LINE_STRIP);
-                                glVertex2f(offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y);
-                                glVertex2f(offset.x+m.slider.loc.x+m.slider.dim.x, 		offset.y+m.slider.loc.y);
-                                glVertex2f(offset.x+m.slider.loc.x+m.slider.dim.x, 		offset.y+m.slider.loc.y+m.slider.dim.y);
-                                glVertex2f(offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y+m.slider.dim.y);
-                                glVertex2f(offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y);
+                            glBindTexture(GL_TEXTURE_2D, border);
+							glUseProgram(textShader);
 
-                                if (m.slider.dim.y > m.slider.dim.x) {
-                                    //and a border around the slider handle
-                                    glVertex2f(offset.x+m.slider.loc.x, 		  offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05));
-                                    glVertex2f(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05));
-                                    glVertex2f(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH);
-                                    glVertex2f(offset.x+m.slider.loc.x,           offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH);
-                                    glVertex2f(offset.x+m.slider.loc.x,           offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05));
-                                }else{
-                                    //and a border around the slider handle
-                                    glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y);
-                                    glVertex2f(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y);
-                                    glVertex2f(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y+m.slider.dim.y);
-                                    glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y+m.slider.dim.y);
-                                    glVertex2f(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y);
-                                }
+							glEnableVertexAttribArray(textShader_attribute_coord);
+							glEnableVertexAttribArray(textShader_attribute_tex);
+                            
+							GLfloat box_border[] = {offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y, 				1.0,
+                                					offset.x+m.slider.loc.x+m.slider.dim.x, 	offset.y+m.slider.loc.y,				1.0,
+                                					offset.x+m.slider.loc.x+m.slider.dim.x, 	offset.y+m.slider.loc.y+m.slider.dim.y,	1.0,
+                                					offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y+m.slider.dim.y,	1.0,
+                                					offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y,				1.0};
 
-                            glEnd();
+							glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, box_border);
+							glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
+							glDrawArrays(GL_LINE_STRIP, 0, 5);	
+                            if (m.slider.dim.y > m.slider.dim.x) {
+                                //and a border around the slider handle
+                                GLfloat handle_border[] = {offset.x+m.slider.loc.x, 		  static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				1.0,
+                                						   offset.x+m.slider.loc.x + sliderW, static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				1.0,
+                                						   offset.x+m.slider.loc.x + sliderW, static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH),	1.0,
+                                						   offset.x+m.slider.loc.x,           static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH),	1.0,
+                                						   offset.x+m.slider.loc.x,           static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				1.0};
+								glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, handle_border);
+								glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
+								glDrawArrays(GL_LINE_STRIP, 0, 5);	
+                            }else{
+                                //and a border around the slider handle
+                                GLfloat handle_border[] = {offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y,							1.0,
+                                						   offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y,				1.0,
+                                						   offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y+m.slider.dim.y,1.0,
+                                						   offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y+m.slider.dim.y,			1.0,
+                                						   offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y,							1.0};
+								glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, handle_border);
+								glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
+								glDrawArrays(GL_LINE_STRIP, 0, 5);	
+                            }
+
+
+							glDisableVertexAttribArray(textShader_attribute_coord);
+							glDisableVertexAttribArray(textShader_attribute_tex);
 
                             //if we are inside the slider and click it will set the slider to that point
                             if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
@@ -268,20 +313,16 @@ namespace ui {
                                 if (m.slider.dim.y > m.slider.dim.x) {
                                     *m.slider.var = (((mouse.y-offset.y) - m.slider.loc.y)/m.slider.dim.y)*100;
                                     //draw a white box over the handle
-                                    glColor3f(1.0f,1.0f,1.0f);
-                                    glRectf(offset.x+m.slider.loc.x,
-                                            offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05),
-                                            offset.x+m.slider.loc.x + sliderW,
-                                            offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH);
+                                    glBindTexture(GL_TEXTURE_2D, border);
+									drawRect(vec2(offset.x+m.slider.loc.x, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),
+                                             vec2(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH));
 
                                 }else{
                                     *m.slider.var = (((mouse.x-offset.x) - m.slider.loc.x)/m.slider.dim.x)*100;
                                     //draw a white box over the handle
-                                    glColor3f(1.0f,1.0f,1.0f);
-                                    glRectf(offset.x+m.slider.loc.x + m.slider.sliderLoc,
-                                            offset.y+m.slider.loc.y,
-                                            offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW),
-                                            offset.y+m.slider.loc.y + m.slider.dim.y);
+                                    glBindTexture(GL_TEXTURE_2D, border);
+									drawRect(vec2(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y),
+                                             vec2(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y + m.slider.dim.y));
                                 }
                             }
 
