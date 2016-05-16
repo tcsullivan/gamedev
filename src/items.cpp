@@ -60,20 +60,45 @@ int Sword::useItem()
 					float dist = 0.0f;
 					while (dist < dim.y) {
 						hitbox.end = hitbox.start;
-						hitbox.end.x += dist * cos(rotation*PI/180);
+						if (player->left)
+							hitbox.end.x -= dist * cos(rotation*PI/180);
+						else 
+							hitbox.end.x += dist * cos(rotation*PI/180);
+
 						hitbox.end.y += dist * sin(rotation*PI/180);
 
 						if (hitbox.end.x > e->loc.x && hitbox.end.x < e->loc.x + e->width) {
 							if (hitbox.end.y > e->loc.y && hitbox.end.y < e->loc.y + e->height) {
 								e->takeHit(damage, 600);
 
+						static GLuint sColor = Texture::genColor(Color(255,0,0));
+
+						GLfloat t[] = {0.0, 0.0,
+									   1.0, 1.0};
+
+						GLfloat v[] = {hitbox.start.x, 	hitbox.start.y, 1.0,
+									   hitbox.end.x,	hitbox.end.y,	1.0};
+
+					
+						glBindTexture(GL_TEXTURE_2D, sColor);
+						glUseProgram(worldShader);
+						glEnableVertexAttribArray(worldShader_attribute_coord);
+						glEnableVertexAttribArray(worldShader_attribute_tex);
+						
+						glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, v);
+						glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, t);
+						glDrawArrays(GL_LINES, 0, 2);
+
+						glDisableVertexAttribArray(worldShader_attribute_coord);
+						glDisableVertexAttribArray(worldShader_attribute_tex);
+						glUseProgram(0);
 								// add some blood
 								// for(int r = 0; r < (rand()%5);r++)
 								// 	currentWorld->addParticle(rand()%game::HLINE*3 + e->loc.x - .05f,e->loc.y + e->height*.5, game::HLINE,game::HLINE, -(rand()%10)*.01,((rand()%4)*.001-.002), {(rand()%75+10)/100.0f,0,0}, 10000);
 							}
 						}
 
-						dist += HLINES(1);
+						dist += HLINES(0.5f);
 					}
 				}
 			}

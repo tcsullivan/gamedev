@@ -349,14 +349,23 @@ void NPC::drawThingy(void) const
 			c[2], c[3], z, c[0], c[3], z, c[0], c[1], z
 		};
 		
+		// TODO use texture made for this
+		static GLuint thingyColor = Texture::genColor(Color(236, 238, 15));
+	
 		glUseProgram(worldShader);
+		
 		glEnableVertexAttribArray(worldShader_attribute_coord);
 		glEnableVertexAttribArray(worldShader_attribute_tex);
+		
+		glBindTexture(GL_TEXTURE_2D, thingyColor);
+			
 		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
 		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		
 		glDisableVertexAttribArray(worldShader_attribute_coord);
 		glDisableVertexAttribArray(worldShader_attribute_tex);
+		
 		glUseProgram(0);
 	}
 }

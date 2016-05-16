@@ -254,7 +254,6 @@ void World::drawBackgrounds(void)
         alpha = 255 - worldShade * 4;
         break;
     }
-    (void)alpha;
 
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(worldShader_uniform_texture, 0);
@@ -276,7 +275,6 @@ void World::drawBackgrounds(void)
                             vec2(0.0f, 1.0f),
                             vec2(0.0f, 0.0f)};
 
-    bgTex(0);
     GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 10.0f,
                                 offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 10.0f,
                                 offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 10.0f,
@@ -290,17 +288,84 @@ void World::drawBackgrounds(void)
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
 
+    bgTex(0);
+	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
     glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, back_tex_coord);
     glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
     glDrawArrays(GL_TRIANGLES, 0 , 6);
 
+	bgTex++;
+	glUniform4f(worldShader_uniform_color, .8, .8, .8, 1.3 - static_cast<float>(alpha)/255.0f);
+    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, back_tex_coord);
+    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
+    glDrawArrays(GL_TRIANGLES, 0 , 6);
+
+		
+	static GLuint starTex = Texture::genColor(Color(255, 255, 255));
+	const static float stardim = 2;
+	GLfloat star_coord[star.size() * 5 * 6 + 1];
+    GLfloat *si = &star_coord[0];		
+
+	if (worldShade > 0) {
+
+		auto xcoord = offset.x * 0.9f;
+		
+		for (auto &s : star) {
+			*(si++) = s.x + xcoord;
+			*(si++) = s.y,
+			*(si++) = 9.8;
+
+			*(si++) = 0.0;
+			*(si++) = 0.0;
+			
+			*(si++) = s.x + xcoord + stardim;
+			*(si++) = s.y,
+			*(si++) = 9.8;
+			
+			*(si++) = 1.0;
+			*(si++) = 0.0;
+			
+			*(si++) = s.x + xcoord + stardim;
+			*(si++) = s.y + stardim,
+			*(si++) = 9.8;
+			
+			*(si++) = 1.0;
+			*(si++) = 1.0;
+			
+			*(si++) = s.x + xcoord + stardim;
+			*(si++) = s.y + stardim,
+			*(si++) = 9.8;
+			
+			*(si++) = 1.0;
+			*(si++) = 1.0;
+			
+			*(si++) = s.x + xcoord;
+			*(si++) = s.y + stardim,
+			*(si++) = 9.8;
+			
+			*(si++) = 0.0;
+			*(si++) = 1.0;
+			
+			*(si++) = s.x + xcoord;
+			*(si++) = s.y,
+			*(si++) = 9.8;
+			
+			*(si++) = 0.0;
+			*(si++) = 0.0;
+		}
+		glBindTexture(GL_TEXTURE_2D, starTex);
+		glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, (255.0f - (randGet() % 200 - 100)) / 255.0f);
+	
+		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[0]);
+		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[3]);
+		glDrawArrays(GL_TRIANGLES, 0, star.size() * 6);
+	}
     glDisableVertexAttribArray(worldShader_attribute_coord);
     glDisableVertexAttribArray(worldShader_attribute_tex);
 
+	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
     glUseProgram(0);
 
-
-	bgTex++;
 
     std::vector<vec3> bg_items;
 

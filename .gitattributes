@@ -1,6 +1,11 @@
 include/tinyxml2.h linguist-vendored
 src/tinyxml2.cpp linguist-vendored
-src/threadpool.cpp linguist-vendored
+
 include/threadpool.h linguist-vendored
+src/threadpool.cpp linguist-vendored
+
 include/SDL2/* linguist-vendored
+
 include/freetype/* linguist-vendored
+
+include/glm/* linguist-vendored

@@ -104,7 +104,9 @@ void items(void)
 		ItemMap.back()->tex = new Texturec(1, exml->Attribute("sprite"));
 
 		// get the width and height of the object based off of its sprite
-		ItemMap.back()->dim = Texture::imageDim(exml->Attribute("sprite"));
+		dim2 tmpDim = Texture::imageDim(exml->Attribute("sprite"));
+		ItemMap.back()->dim.x = HLINES(tmpDim.x/2);
+		ItemMap.back()->dim.y = HLINES(tmpDim.y/2);
 
 		ItemMap.back()->name = exml->Attribute("name");
 
