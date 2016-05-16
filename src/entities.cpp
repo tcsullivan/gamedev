@@ -187,7 +187,7 @@ void Entity::moveTo(float dest_x)
 	targetx = dest_x;
 }
 
-Player::Player() : Entity() 
+Player::Player() : Entity()
 {
 	width = HLINES(10);
 	height = HLINES(16);
@@ -473,12 +473,12 @@ if (health != maxHealth) {
 		loc.x,                              loc.y + height + game::HLINE * 2, z,
 		loc.x,                              loc.y + height,                   z,
 	};
-	
+
 	glBindTexture(GL_TEXTURE_2D, backH);
 	GLfloat tex[] = { 0.0, 0.0,
 						   1.0, 0.0,
 						   1.0, 1.0,
-						   
+
 						   1.0, 1.0,
 						   0.0, 1.0,
 						   0.0, 0.0,
@@ -647,7 +647,7 @@ COMMONAIFUNC:
 					// save the associated XMLElement
 					dopt.push_back(oxml);
 				} while ((oxml = oxml->NextSiblingElement()));
-				
+
 				// run the dialog stuff
 				ui::dialogBox(name, optstr, false, ptr);
 				ui::waitForDialog();
@@ -889,7 +889,7 @@ Particles::Particles(float x, float y, float w, float h, float vx, float vy, Col
 	index = Texture::getIndex(c);
 }
 
-void Particles::draw(std::vector<GLfloat> &verts, std::vector<GLfloat> &tex) const
+void Particles::draw(std::vector<GLfloat> &p) const
 {
 	vec2 tc = vec2 {0.25f * index.x, 0.125f * (8-index.y)};
 
@@ -897,35 +897,53 @@ void Particles::draw(std::vector<GLfloat> &verts, std::vector<GLfloat> &tex) con
     if (behind)
         z = 2.0;
 
-    verts.push_back(loc.x);
-    verts.push_back(loc.y);
-    verts.push_back(z);
+	// lower left
+    p.push_back(loc.x);
+    p.push_back(loc.y);
+    p.push_back(z);
 
-    verts.push_back(loc.x + width);
-    verts.push_back(loc.y);
-    verts.push_back(z);
-	
-    verts.push_back(loc.x + width);
-    verts.push_back(loc.y + height);
-    verts.push_back(z);
+	p.push_back(tc.x);
+	p.push_back(tc.y);
 
+	// lower right
+    p.push_back(loc.x + width);
+    p.push_back(loc.y);
+    p.push_back(z);
 
-    verts.push_back(loc.x + width);
-    verts.push_back(loc.y + height);
-    verts.push_back(z);
+	p.push_back(tc.x);
+	p.push_back(tc.y);
 
-    verts.push_back(loc.x);
-    verts.push_back(loc.y + height);
-    verts.push_back(z);
+	// upper right
+    p.push_back(loc.x + width);
+    p.push_back(loc.y + height);
+    p.push_back(z);
 
-    verts.push_back(loc.x);
-    verts.push_back(loc.y);
-    verts.push_back(z);
+	p.push_back(tc.x);
+	p.push_back(tc.y);
 
-    for (int i = 0; i < 6; i++){
-        tex.push_back(tc.x);
-        tex.push_back(tc.y);
-    }
+	// upper right
+    p.push_back(loc.x + width);
+    p.push_back(loc.y + height);
+    p.push_back(z);
+
+	p.push_back(tc.x);
+	p.push_back(tc.y);
+
+	// upper left
+    p.push_back(loc.x);
+    p.push_back(loc.y + height);
+    p.push_back(z);
+
+	p.push_back(tc.x);
+    p.push_back(tc.y);
+
+	// lower left
+    p.push_back(loc.x);
+    p.push_back(loc.y);
+    p.push_back(z);
+
+    p.push_back(tc.x);
+    p.push_back(tc.y);
 }
 
 void Particles::update(float _gravity, float ground_y)

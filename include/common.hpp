@@ -14,6 +14,8 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <list>
+#include <iterator>
 
 #ifndef __WIN32__
 #	include <thread>

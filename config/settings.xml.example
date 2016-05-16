@@ -16,7 +16,7 @@ Available fonts:
 -->
 <font path="ttf/FreePixel.ttf"/>
 
-<hline size="3"/>
+<hline size="5"/>
 
 <volume>
     <master volume="100"/>

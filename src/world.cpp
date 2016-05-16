@@ -410,17 +410,19 @@ void World::draw(Player *p)
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
 
-    std::vector<GLfloat> partc(0);
-    std::vector<GLfloat> partt(0);
+    uint ps = particles.size();
+
+    std::vector<GLfloat> partVec;
+    partVec.reserve(ps * 6 * 5);
 
     for (auto &p : particles) {
-        if (p.behind)
-            p.draw(partc, partt);
+        if (!p.behind)
+            p.draw(partVec);
     }
 
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, &partc[0]);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, &partt[0]);
-    glDrawArrays(GL_TRIANGLES, 0, partc.size()/3);
+    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
+    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[3]);
+    glDrawArrays(GL_TRIANGLES, 0, ps * 6);
 
     glDisableVertexAttribArray(worldShader_attribute_tex);
     glDisableVertexAttribArray(worldShader_attribute_coord);
@@ -618,17 +620,17 @@ void World::draw(Player *p)
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
 
-    partc.clear();
-    partt.clear();
+    partVec.clear();
+    partVec.reserve(ps * 6 * 5);
 
     for (auto &p : particles) {
         if (!p.behind)
-            p.draw(partc, partt);
+            p.draw(partVec);
     }
 
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, &partc[0]);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, &partt[0]);
-    glDrawArrays(GL_TRIANGLES, 0, partc.size()/3);
+    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
+    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[3]);
+    glDrawArrays(GL_TRIANGLES, 0, ps * 6);
 
     glDisableVertexAttribArray(worldShader_attribute_tex);
     glDisableVertexAttribArray(worldShader_attribute_coord);
@@ -855,8 +857,8 @@ update(Player *p, unsigned int delta, unsigned int ticks)
 		if (weather == WorldWeather::Sunny)
 			weather = WorldWeather::Dark;
 		else if (weather == WorldWeather::Dark)
-			weather = WorldWeather::Sunny;	
-	} 	
+			weather = WorldWeather::Sunny;
+	}
 
     // update player coords
 	p->loc.y += p->vel.y			 * delta;
@@ -1285,7 +1287,7 @@ bool World::goWorldRight(NPC *e)
 
 		npc.erase(std::find(std::begin(npc), std::end(npc), e));
 		entity.erase(std::find(std::begin(entity), std::end(entity), e));
-	
+
 		e->loc.x = currentWorldToRight->worldStart + HLINES(15);
 		e->loc.y = GROUND_HEIGHT_MINIMUM;
 		--e->outnabout;
