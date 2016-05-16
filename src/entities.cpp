@@ -336,9 +336,28 @@ bool Entity::isNear(Entity e) {
 void NPC::drawThingy(void) const
 {
 	if (dialogCount) {
-		auto w = width / 3;
-		glColor3ub(255, 255, 0);
-		glRectf(loc.x + w, loc.y + height, loc.x + w * 2, loc.y + height + w);
+		const auto w = width / 3;
+		GLfloat tex_coord[] = {
+			0, 0, 1, 0, 1, 1,
+			1, 1, 0, 1, 0, 0
+		};
+		const GLfloat c[4] = {
+			loc.x + w, loc.y + height, loc.x + w * 2, loc.y + height + w
+		};
+		GLfloat coords[] = {
+			c[0], c[1], z, c[2], c[1], z, c[2], c[3], z,
+			c[2], c[3], z, c[0], c[3], z, c[0], c[1], z
+		};
+		
+		glUseProgram(worldShader);
+		glEnableVertexAttribArray(worldShader_attribute_coord);
+		glEnableVertexAttribArray(worldShader_attribute_tex);
+		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
+		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDisableVertexAttribArray(worldShader_attribute_coord);
+		glDisableVertexAttribArray(worldShader_attribute_tex);
+		glUseProgram(0);
 	}
 }
 
@@ -873,6 +892,11 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y) {
 
 	return 0;
 }
+
+/*Particles::Particles(const Structures *&s, vec2 vell, Color c, float d, )
+{
+
+}*/
 
 Particles::Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d)
 {

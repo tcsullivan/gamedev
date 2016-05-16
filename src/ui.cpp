@@ -1437,9 +1437,9 @@ EXIT:
                         0.0, 1.0,
                         1.0, 1.0};
 
-        GLfloat backdrop[] = {offset.x - SCREEN_WIDTH / 2, offset.y - SCREEN_HEIGHT / 2, 1.0,
+        GLfloat backdrop[] = {offset.x - SCREEN_WIDTH / 2 - 1, offset.y - SCREEN_HEIGHT / 2, 1.0,
                               offset.x + SCREEN_WIDTH / 2, offset.y - SCREEN_HEIGHT / 2, 1.0,
-                              offset.x - SCREEN_WIDTH / 2, offset.y + SCREEN_HEIGHT / 2, 1.0,
+                              offset.x - SCREEN_WIDTH / 2 - 1, offset.y + SCREEN_HEIGHT / 2, 1.0,
                               offset.x + SCREEN_WIDTH / 2, offset.y + SCREEN_HEIGHT / 2, 1.0};
 
         glUniform1i(textShader_uniform_texture, 0);

@@ -35,6 +35,8 @@ clean:
 cleandata:
 	rm -rf xml/*.dat
 	rm -rf storyXML/*.dat
+	rm brice.dat
+	touch brice.dat
 
 $(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
 	@echo "  CXX/LD  main"
