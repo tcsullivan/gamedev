@@ -898,52 +898,52 @@ void Particles::draw(std::vector<GLfloat> &p) const
         z = 2.0;
 
 	// lower left
-    p.push_back(loc.x);
-    p.push_back(loc.y);
-    p.push_back(z);
+    p.emplace_back(loc.x);
+    p.emplace_back(loc.y);
+    p.emplace_back(z);
 
-	p.push_back(tc.x);
-	p.push_back(tc.y);
+	p.emplace_back(tc.x);
+	p.emplace_back(tc.y);
 
 	// lower right
-    p.push_back(loc.x + width);
-    p.push_back(loc.y);
-    p.push_back(z);
+    p.emplace_back(loc.x + width);
+    p.emplace_back(loc.y);
+    p.emplace_back(z);
 
-	p.push_back(tc.x);
-	p.push_back(tc.y);
-
-	// upper right
-    p.push_back(loc.x + width);
-    p.push_back(loc.y + height);
-    p.push_back(z);
-
-	p.push_back(tc.x);
-	p.push_back(tc.y);
+	p.emplace_back(tc.x);
+	p.emplace_back(tc.y);
 
 	// upper right
-    p.push_back(loc.x + width);
-    p.push_back(loc.y + height);
-    p.push_back(z);
+    p.emplace_back(loc.x + width);
+    p.emplace_back(loc.y + height);
+    p.emplace_back(z);
 
-	p.push_back(tc.x);
-	p.push_back(tc.y);
+	p.emplace_back(tc.x);
+	p.emplace_back(tc.y);
+
+	// upper right
+    p.emplace_back(loc.x + width);
+    p.emplace_back(loc.y + height);
+    p.emplace_back(z);
+
+	p.emplace_back(tc.x);
+	p.emplace_back(tc.y);
 
 	// upper left
-    p.push_back(loc.x);
-    p.push_back(loc.y + height);
-    p.push_back(z);
+    p.emplace_back(loc.x);
+    p.emplace_back(loc.y + height);
+    p.emplace_back(z);
 
-	p.push_back(tc.x);
-    p.push_back(tc.y);
+	p.emplace_back(tc.x);
+    p.emplace_back(tc.y);
 
 	// lower left
-    p.push_back(loc.x);
-    p.push_back(loc.y);
-    p.push_back(z);
+    p.emplace_back(loc.x);
+    p.emplace_back(loc.y);
+    p.emplace_back(z);
 
-    p.push_back(tc.x);
-    p.push_back(tc.y);
+    p.emplace_back(tc.x);
+    p.emplace_back(tc.y);
 }
 
 void Particles::update(float _gravity, float ground_y)

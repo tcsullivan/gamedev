@@ -76,6 +76,7 @@ GLint worldShader_attribute_coord;
 GLint worldShader_attribute_tex;
 GLint worldShader_uniform_texture;
 GLint worldShader_uniform_transform;
+GLint worldShader_uniform_ortho;
 GLint worldShader_uniform_color;
 
 // keeps a simple palette of colors for single-color draws
@@ -102,7 +103,7 @@ void mainLoop(void);
 
 int main(int argc, char *argv[]){
 	static SDL_GLContext mainGLContext = NULL;
-	
+
 	// handle command line arguments
 	if (argc > 1) {
 		std::vector<std::string> args (argc, "");
@@ -114,7 +115,7 @@ int main(int argc, char *argv[]){
 				system("rm -f xml/*.dat");
 		}
 	}
-	
+
 	// attempt to initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
 		UserError(std::string("SDL was not able to initialize! Error: ") + SDL_GetError());
@@ -229,7 +230,8 @@ int main(int argc, char *argv[]){
 	worldShader_attribute_coord = 	get_attrib(worldShader, "coord2d");
 	worldShader_attribute_tex = 	get_attrib(worldShader, "tex_coord");
 	worldShader_uniform_texture = 	get_uniform(worldShader, "sampler");
-	worldShader_uniform_transform = get_uniform(worldShader, "ortho");
+	worldShader_uniform_transform = get_uniform(worldShader, "transform");
+	worldShader_uniform_ortho = get_uniform(worldShader, "ortho");
 	worldShader_uniform_color = 	get_uniform(worldShader, "tex_color");
 
 	//glEnable(GL_MULTISAMPLE);
@@ -240,7 +242,7 @@ int main(int argc, char *argv[]){
 
 	// load sprites used in the inventory menu. See src/inventory.cpp
 	initInventorySprites();
-	
+
 	// load mouse texture, and other inventory textures
 	mouseTex = Texture::loadTexture("assets/mouse.png");
 
@@ -253,7 +255,7 @@ int main(int argc, char *argv[]){
 
 	// alphabetically sort files
 	strVectorSortAlpha(&xmlFiles);
-	
+
 	// load the first valid XML file for the world
 	for (const auto &xf : xmlFiles) {
 		if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
@@ -263,11 +265,11 @@ int main(int argc, char *argv[]){
 			break;
 		}
 	}
-	
+
 	// make sure the world was made
 	if (currentWorld == NULL)
 		UserError("Plot twist: The world never existed...?");
-	
+
 	// spawn the player
 	player = new Player();
 	player->sspawn(0,100);
@@ -292,7 +294,7 @@ int main(int argc, char *argv[]){
 
 	// put away the brice for later
 	game::briceSave();
-    
+
 	// free library resources
     Mix_HaltMusic();
     Mix_CloseAudio();
@@ -388,7 +390,8 @@ void render() {
 	glUniformMatrix4fv(textShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(ortho));
     glUniform4f(textShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
     glUseProgram(worldShader);
-	glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(ortho));
+	glUniformMatrix4fv(worldShader_uniform_ortho, 1, GL_FALSE, glm::value_ptr(ortho));
+	glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 	/**************************
 	**** RENDER STUFF HERE ****

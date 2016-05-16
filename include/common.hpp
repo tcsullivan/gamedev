@@ -232,6 +232,7 @@ extern GLint worldShader_attribute_coord;
 extern GLint worldShader_attribute_tex;
 extern GLint worldShader_uniform_texture;
 extern GLint worldShader_uniform_color;
+extern GLint worldShader_uniform_transform;
 
 /**
  *	Prints a formatted debug message to the console, along with the callee's file and line

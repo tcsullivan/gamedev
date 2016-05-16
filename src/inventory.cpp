@@ -408,7 +408,7 @@ void Inventory::draw(void) {
             float t = (((float)massDfp[a]/(float)massRange)*.5f);
             glActiveTexture(GL_TEXTURE0);
             glUseProgram(textShader);
-            
+
 			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0.0f,0.0f,0.0f, t >= 0? 255*t : 0)));
             glUniform1i(textShader_uniform_texture, 0);
 
@@ -438,7 +438,7 @@ void Inventory::draw(void) {
 			curCurCoord[a].x -= float((curdfp[a]) * cos(-1));
 			curCurCoord[a].y += float((curdfp[a]) * sin(0));
 			cr.end = curCurCoord[a];
-            
+
             float curTrans = (((float)curdfp[a]/(float)(curRange?curRange:1))*0.5f);
 
             glUseProgram(textShader);
@@ -495,7 +495,7 @@ void Inventory::draw(void) {
                           &textShader_uniform_texture,
                           &textShader_attribute_coord,
                           &textShader_attribute_tex);
-	 			
+
                 glUseProgram(textShader);
                 glUniform4f(textShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 
@@ -503,7 +503,7 @@ void Inventory::draw(void) {
                 glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255, 255, 255, t >= 0 ? 255 * t : 0)));
                 drawRect(vec2(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2 - (itemWide*sc)*.09),
                          vec2(r.end.x + (itemWide*sc)/2 + (itemWide*sc)*.09,r.end.y - (itemWide*sc)/2));
- 
+
                 // top
                 glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255, 255, 255, t  >= 0 ? 255 * t : 0)));
                 drawRect(vec2(r.end.x - (itemWide*sc)/2 - (itemWide*sc)*.09,r.end.y + (itemWide*sc)/2 + (itemWide*sc)*.09),
@@ -617,14 +617,34 @@ void itemDraw(Player *p, Item *d) {
 	itemLoc.y = p->loc.y+(p->height/3);
 	itemLoc.x = p->left?p->loc.x-d->dim.x/2:p->loc.x+p->width-d->dim.x/2;
 
+	glUseProgram(worldShader);
+
 	if (p->left) {
-		glTranslatef(itemLoc.x+d->dim.x/2,itemLoc.y,0);
-		glRotatef(d->rotation, 0.0f, 0.0f, 1.0f);
-		glTranslatef(-itemLoc.x-d->dim.x/2,-itemLoc.y,0);
+		// move to center of screen
+		glm::mat4 tro = glm::translate(glm::mat4(1.0f),
+									   glm::vec3(itemLoc.x+d->dim.x/2, itemLoc.y, 0));
+		// rotate off center
+		glm::mat4 rot = glm::rotate(glm::mat4(1.0f),
+									static_cast<GLfloat>((d->rotation*3.14159)/180.0f),
+									glm::vec3(0.0f, 0.0f, 1.0f));
+		// move back to player
+		glm::mat4 trt = glm::translate(glm::mat4(1.0f),
+									   glm::vec3(-itemLoc.x-d->dim.x/2, -itemLoc.y, 0));
+		// tell shader to translate the object using steps above
+		glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(tro * rot * trt));
 	} else {
-		glTranslatef(itemLoc.x+d->dim.x/2,itemLoc.y,0);
-		glRotatef(d->rotation, 0.0f, 0.0f, 1.0f);
-		glTranslatef(-itemLoc.x-d->dim.x/2,-itemLoc.y,0);
+		// move to center of screen
+		glm::mat4 tro = glm::translate(glm::mat4(1.0f),
+									   glm::vec3(itemLoc.x+d->dim.x/2,itemLoc.y,0));
+		// rotate off center
+		glm::mat4 rot = glm::rotate(glm::mat4(1.0f),
+									static_cast<GLfloat>((d->rotation*3.14159)/180.0f),
+									glm::vec3(0.0f, 0.0f, 1.0f));
+		// move back to player
+		glm::mat4 trt = glm::translate(glm::mat4(1.0f),
+									   glm::vec3(-itemLoc.x-d->dim.x/2,-itemLoc.y,0));
+		// tell shader to translate the object using steps above
+		glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(tro * rot * trt));
 	}
 
     GLfloat itemTex[12] = {0.0, 0.0,
@@ -650,7 +670,7 @@ void itemDraw(Player *p, Item *d) {
                             itemLoc.x+d->dim.x, itemLoc.y+d->dim.y, 1.0,
                             itemLoc.x,          itemLoc.y+d->dim.y, 1.0,
                             itemLoc.x,          itemLoc.y,          1.0};
-	glUseProgram(worldShader);
+
 	glBindTexture(GL_TEXTURE_2D,d->tex->image[0]);
 
     glEnableVertexAttribArray(worldShader_attribute_coord);

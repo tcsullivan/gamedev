@@ -324,12 +324,12 @@ namespace ui {
 			c1.x, 		c1.y+c2.y-c2.y, 1.0,	//top left
 			c1.x, 		c1.y	 -c2.y, 1.0,	//bottom left
 		};
-        
-        glUniform4f(textShader_uniform_color, 
-                    static_cast<float>(fontColor[0]/255), 
-                    static_cast<float>(fontColor[1]/255), 
-                    static_cast<float>(fontColor[2]/255), 
-                    static_cast<float>(fontColor[3]/255)); 
+
+        glUniform4f(textShader_uniform_color,
+                    static_cast<float>(fontColor[0]/255),
+                    static_cast<float>(fontColor[1]/255),
+                    static_cast<float>(fontColor[2]/255),
+                    static_cast<float>(fontColor[3]/255));
 
 		glVertexAttribPointer(textShader_attribute_coord, 	3, GL_FLOAT, GL_FALSE, 0, text_vert);
 		glVertexAttribPointer(textShader_attribute_tex,  	2, GL_FLOAT, GL_FALSE, 0, tex_coord);
@@ -684,28 +684,28 @@ namespace ui {
         static GLuint boxT = Texture::genColor(Color(0,0,0));
         static GLuint lineT = Texture::genColor(Color(255,255,255));
 
-        glActiveTexture(GL_TEXTURE0); 
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, boxT);
         glUniform1i(textShader_uniform_texture, 0);
         glUseProgram(textShader);
 
         glEnableVertexAttribArray(textShader_attribute_coord);
         glEnableVertexAttribArray(textShader_attribute_tex);
-   
+
         glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, box);
         glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
         glDrawArrays(GL_TRIANGLES, 0 ,6);
-       
+
         glBindTexture(GL_TEXTURE_2D, lineT);
         glUniform1i(textShader_uniform_texture, 0);
 
         glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, line_strip);
         glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
         glDrawArrays(GL_LINE_STRIP, 0 ,8);
-         
+
         glDisableVertexAttribArray(textShader_attribute_coord);
         glDisableVertexAttribArray(textShader_attribute_tex);
-        
+
         glUseProgram(0);
 	}
 
@@ -738,21 +738,21 @@ namespace ui {
                                   0.0, 1.0,
                                   0.0, 0.0};
 
-            glActiveTexture(GL_TEXTURE0); 
+            glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, pageTex);
             glUniform1i(textShader_uniform_texture, 0);
             glUseProgram(textShader);
 
             glEnableVertexAttribArray(textShader_attribute_coord);
             glEnableVertexAttribArray(textShader_attribute_tex);
-       
+
             glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, page_loc);
             glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, page_tex);
             glDrawArrays(GL_TRIANGLES, 0 ,6);
-           
+
             glDisableVertexAttribArray(textShader_attribute_coord);
             glDisableVertexAttribArray(textShader_attribute_tex);
-            
+
             glUseProgram(0);
 
 		} else if (dialogBoxExists) {
@@ -819,18 +819,18 @@ namespace ui {
                                         offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
                                         offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5),     1.0};
 
-                glActiveTexture(GL_TEXTURE0); 
+                glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[1]));
                 glUniform1i(textShader_uniform_texture, 0);
                 glUseProgram(textShader);
 
                 glEnableVertexAttribArray(textShader_attribute_coord);
                 glEnableVertexAttribArray(textShader_attribute_tex);
-           
+
                 glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, left_item);
                 glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
                 glDrawArrays(GL_TRIANGLES, 0 ,6);
-               
+
                 glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[0]));
 
                 glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, right_item);
@@ -839,7 +839,7 @@ namespace ui {
 
                 glDisableVertexAttribArray(textShader_attribute_coord);
                 glDisableVertexAttribArray(textShader_attribute_tex);
-                
+
                 glUseProgram(0);
 
 				merchArrowLoc[0].x = offset.x - (SCREEN_WIDTH / 8.5) - 16;
@@ -874,14 +874,14 @@ namespace ui {
 
                     glEnableVertexAttribArray(textShader_attribute_coord);
                     glEnableVertexAttribArray(textShader_attribute_tex);
-               
+
                     glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, tri_c);
                     glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tri_t);
                     glDrawArrays(GL_TRIANGLES, 0 ,6);
-                   
+
                     glDisableVertexAttribArray(textShader_attribute_coord);
                     glDisableVertexAttribArray(textShader_attribute_tex);
-                    
+
                     glUseProgram(0);
 				}
 
@@ -968,27 +968,27 @@ namespace ui {
                                    hub.x,       hub.y + 12, 1.0,
                                    hub.x + 150, hub.y + 12, 1.0};
 
-                
+
                 glUniform1i(textShader_uniform_texture, 0);
                 glUseProgram(textShader);
 
                 glEnableVertexAttribArray(textShader_attribute_coord);
                 glEnableVertexAttribArray(textShader_attribute_tex);
-           
+
                 glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(150,0,0)));
 
                 glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, front);
                 glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-               
+
                 glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255,0,0)));
-                
+
                 glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, back);
                 glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
                 glDisableVertexAttribArray(textShader_attribute_coord);
-                glDisableVertexAttribArray(textShader_attribute_tex);             
+                glDisableVertexAttribArray(textShader_attribute_tex);
 
                 glUseProgram(0);
             }
@@ -1038,7 +1038,7 @@ namespace ui {
 
 	void dialogAdvance(void) {
 		unsigned char i;
-		
+
 		dialogPassive = false;
 		dialogPassiveTime = 0;
 
@@ -1123,7 +1123,7 @@ EXIT:
 			toggleBlackFast();
 			player->canMove = true;
 		};
-		
+
 		while(SDL_PollEvent(&e)) {
 			switch(e.type) {
 
@@ -1163,8 +1163,8 @@ EXIT:
 					if (e.button.button & SDL_BUTTON_LEFT) {
 						if ((en = currentWorld->getNearMob(*player)) != nullptr) {
 							player->inv->currentAddInteract(en);
-							player->inv->useCurrent();
 						}
+							player->inv->useCurrent();
 					}
 
 				}
@@ -1341,7 +1341,7 @@ EXIT:
 					if (player->speed == 4)
 						Mix_FadeOutChannel(1,2000);
 
-					// fall through					
+					// fall through
 				case SDLK_LCTRL:
 					player->speed = 1;
 					break;
@@ -1441,20 +1441,20 @@ EXIT:
                               offset.x + SCREEN_WIDTH / 2, offset.y - SCREEN_HEIGHT / 2, 1.0,
                               offset.x - SCREEN_WIDTH / 2, offset.y + SCREEN_HEIGHT / 2, 1.0,
                               offset.x + SCREEN_WIDTH / 2, offset.y + SCREEN_HEIGHT / 2, 1.0};
-	    
+
         glUniform1i(textShader_uniform_texture, 0);
         glUseProgram(textShader);
 
         glEnableVertexAttribArray(textShader_attribute_coord);
         glEnableVertexAttribArray(textShader_attribute_tex);
-   
+
         glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
         glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-       
+
         glDisableVertexAttribArray(textShader_attribute_coord);
         glDisableVertexAttribArray(textShader_attribute_tex);
-        
+
         glUseProgram(0);
 
     }
