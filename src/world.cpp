@@ -747,6 +747,8 @@ singleDetect(Entity *e)
     } else if (e->health <= 0) {
         // die
         e->die();
+		if (inBattle && e->type == MOBT)
+			Mobp(e)->onDeath();
 
         // delete the entity
 		for (i = 0; i < entity.size(); i++) {

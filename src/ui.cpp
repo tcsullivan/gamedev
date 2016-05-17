@@ -58,6 +58,8 @@ static unsigned char fontColor[4] = {255,255,255,255};
  *	Variables for dialog boxes / options.
  */
 
+static std::vector<std::pair<vec2, std::string>> textToDraw;
+
 static std::vector<std::pair<std::string,vec3>> dialogOptText;
 static std::string dialogBoxText;
 static std::vector<vec3> merchArrowLoc (2, vec3 { 0, 0, 0 });
@@ -511,6 +513,18 @@ namespace ui {
 		return putString(x, y, buf.get());
 	}
 
+	void putTextL(vec2 c, const char *str, ...) {
+		va_list args;
+		std::unique_ptr<char[]> buf (new char[512]);
+		memset(buf.get(), 0, 512 * sizeof(char));
+		
+		va_start(args, str);
+		vsnprintf(buf.get(), 512, str, args);
+		va_end(args);
+
+		textToDraw.push_back(std::make_pair(c, buf.get()));
+	}
+
 	void dialogBox(std::string name, std::string opt, bool passive, std::string text, ...) {
 		va_list dialogArgs;
 		std::unique_ptr<char[]> printfbuf (new char[512]);
@@ -940,7 +954,11 @@ namespace ui {
 					Mix_PlayChannel(1, dialogClick, 0);
 			}
 
+		} else {
+			for (const auto &s : textToDraw)
+				putString(s.first.x, s.first.y, s.second);
 		}
+
 		if (!fadeIntensity) {
 			vec2 hub = {
 				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
@@ -1154,7 +1172,9 @@ EXIT:
 				if ((action::make = e.button.button & SDL_BUTTON_RIGHT))
 					/*player->inv->invHover =*/ edown = false;
 
-			if (dialogBoxExists || pageTexReady) {
+				textToDraw.clear();
+
+				if (dialogBoxExists || pageTexReady) {
 					// right click advances dialog
 					if ((e.button.button & SDL_BUTTON_RIGHT))
 						dialogAdvance();

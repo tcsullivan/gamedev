@@ -39,6 +39,12 @@ void Page::act(void)
     }
 }
 
+void Page::onHit(unsigned int _health)
+{
+	(void)_health;
+	act();
+}
+
 bool Page::bindTex(void)
 {
     glActiveTexture(GL_TEXTURE0);
@@ -70,6 +76,11 @@ Door::Door(void) : Mob()
 
 void Door::act(void)
 {
+}
+
+void Door::onHit(unsigned int _health)
+{
+	(void)_health;
 }
 
 bool Door::bindTex(void)
@@ -124,6 +135,11 @@ void Cat::act(void)
     }
 }
 
+void Cat::onHit(unsigned int _health)
+{
+	health += _health;
+}
+
 bool Cat::bindTex(void)
 {
     glActiveTexture(GL_TEXTURE0);
@@ -148,6 +164,10 @@ Rabbit::Rabbit(void) : Mob()
     tex = TextureIterator({"assets/rabbit.png", "assets/rabbit1.png"});
     actCounterInitial = randGet() % 240 + 15;
     actCounter = 1;
+
+	drop = {
+		std::make_tuple("Dank MayMay", 5, 1.00f)
+	};
 }
 
 void Rabbit::act(void)
@@ -168,6 +188,11 @@ void Rabbit::act(void)
         loc.y += HLINES(0.25f);
         vel.x = 0.05f * direction;
     }
+}
+
+void Rabbit::onHit(unsigned int _health)
+{
+	takeHit(_health, 600);
 }
 
 bool Rabbit::bindTex(void)
@@ -217,6 +242,11 @@ void Bird::act(void)
     if (loc.y <= initialY)
         vel.y = 0.3f;
     vel.x = direction ? -0.3f : 0.3f;
+}
+
+void Bird::onHit(unsigned int _health)
+{
+	takeHit(_health, 1000);
 }
 
 bool Bird::bindTex(void)
@@ -292,6 +322,11 @@ void Trigger::act(void)
     }
 }
 
+void Trigger::onHit(unsigned int _health)
+{
+	(void)_health;
+}
+
 bool Trigger::bindTex(void)
 {
     return false;
@@ -346,4 +381,19 @@ void Mob::ride(Entity *e)
         rider = nullptr;
     else
         rider = e;
+}
+
+void Mob::onDeath(void)
+{
+	vec2 q = vec2 {player->loc.x, game::SCREEN_HEIGHT - 100.0f};
+
+	ui::putTextL(q, "Player got: ");
+
+	for (const auto &d : drop) {
+		if ((randGet() % 100) < std::get<float>(d) * 100.0f) {
+			q.y -= 20;
+			ui::putTextL(q, "%d x %s", std::get<unsigned int>(d), std::get<std::string>(d).c_str());
+			player->inv->addItem(std::get<std::string>(d), std::get<unsigned int>(d));
+		}
+	}
 }
