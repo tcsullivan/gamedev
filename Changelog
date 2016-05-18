@@ -997,3 +997,17 @@
 
 	- NPCs and mobs can gracefully walk between worlds, carry dialog
 	- began more work on combat stuffs
+
+5/16/2016:
+==========
+
+	- added jump page
+	- created quest lightbulb texture
+	- fixed overlay
+	
+5/17/2016:
+==========
+
+	- added onHit and onDeath routines to mobs
+	- added mob drops on arena kills
+	- continued work on new renderings

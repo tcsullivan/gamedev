@@ -154,7 +154,8 @@ namespace ui {
 			glUseProgram(textShader);
 			
 			glBindTexture(GL_TEXTURE_2D, backTex);
-			drawRect(vec2(offset.x - SCREEN_WIDTH / 2, offset.y - (SCREEN_HEIGHT / 2)), vec2(offset.x + SCREEN_WIDTH / 2, offset.y + (SCREEN_HEIGHT / 2)), -8.5);
+			drawRect(vec2(offset.x - SCREEN_WIDTH / 2 - 1, offset.y - (SCREEN_HEIGHT / 2)),
+			         vec2(offset.x + SCREEN_WIDTH / 2, offset.y + (SCREEN_HEIGHT / 2)), -8.5);
 
 			glUseProgram(0);
 

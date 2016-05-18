@@ -95,6 +95,12 @@ namespace ui {
 
 	float putText(const float x,const float y,const char *str,...);
 
+	/**
+	 * This function is a facility for logic events to draw text; the text
+	 * will be prepared then drawn in the render loop.
+	 */
+	void putTextL(vec2 c,const char *str, ...);
+
 	/*
 	 *	Creates a dialogBox text string (format: `name`: `text`). This function simply sets up
 	 *	variables that are drawn in ui::draw(). When the dialog box exists player control is

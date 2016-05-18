@@ -116,7 +116,7 @@ void Entity::spawn(float x, float y)
 	// generate a name
 	name = new char[32];
 	if (type == MOBT)
-		name[0] = '\0';
+		strncpy(name, "mob", 3);
 	else
 		randGetomName(this);
 
@@ -126,7 +126,6 @@ void Entity::spawn(float x, float y)
 void Entity::takeHit(unsigned int _health, unsigned int cooldown)
 {
 	if (hitCooldown <= 1) {
-		std::cout << "Taking hit " << std::endl;
 		// modify variables
 		health = fmax(health - _health, 0);
 		forcedMove = true;
