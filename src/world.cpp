@@ -275,13 +275,13 @@ void World::drawBackgrounds(void)
                             vec2(0.0f, 1.0f),
                             vec2(0.0f, 0.0f)};
 
-    GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 10.0f,
-                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 10.0f,
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 10.0f,
+    GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f,
+                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
+                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f,
 
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 10.0f,
-                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 10.0f,
-                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 10.0f};
+                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f,
+                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f,
+                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f};
 
     glUseProgram(worldShader);
 
@@ -476,13 +476,13 @@ void World::draw(Player *p)
     glEnableVertexAttribArray(worldShader_attribute_tex);
 
     uint ps = particles.size();
-
-    std::vector<GLfloat> partVec;
-    partVec.reserve(ps * 6 * 5);
+	
+	GLfloat partVec[ps * 6 * 5 + 1];
+	GLfloat *pIndex = &partVec[0];
 
     for (auto &p : particles) {
         if (!p.behind)
-            p.draw(partVec);
+            p.draw(pIndex);
     }
 
     glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
@@ -493,18 +493,6 @@ void World::draw(Player *p)
     glDisableVertexAttribArray(worldShader_attribute_coord);
 
     glUseProgram(0);
-
-	for (auto &b : build) {
-        if (b->bsubtype == STALL_MARKET) {
-            for (auto &n : npc) {
-                if (n->type == MERCHT && static_cast<Merchant *>(n)->inside == b) {
-                    n->draw();
-                    break;
-                }
-            }
-        }
-        b->draw();
-    }
 
     for (auto &l : light) {
         if (l.belongsTo) {
@@ -550,13 +538,13 @@ void World::draw(Player *p)
         // glTexCoord2i(1, ty); glVertex2i(worldStart + i * HLINE + HLINE, 0);
         // glTexCoord2i(0, ty); glVertex2i(worldStart + i * HLINE	      , 0);
 
-		c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + HLINES(i),         worldData[i].groundHeight - GRASS_HEIGHT, 1.0f)));
-        c.push_back(std::make_pair(vec2(1, 0), vec3(worldStart + HLINES(i) + HLINE, worldData[i].groundHeight - GRASS_HEIGHT, 1.0f)));
-        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + HLINES(i) + HLINE, 0,                                        1.0f)));
+		c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + HLINES(i),         worldData[i].groundHeight - GRASS_HEIGHT, -4.0f)));
+        c.push_back(std::make_pair(vec2(1, 0), vec3(worldStart + HLINES(i) + HLINE, worldData[i].groundHeight - GRASS_HEIGHT, -4.0f)));
+        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + HLINES(i) + HLINE, 0,                                        -4.0f)));
 
-        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + HLINES(i) + HLINE, 0,                                        1.0f)));
-        c.push_back(std::make_pair(vec2(0, ty),vec3(worldStart + HLINES(i),         0,                                        1.0f)));
-        c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + HLINES(i),         worldData[i].groundHeight - GRASS_HEIGHT, 1.0f)));
+        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + HLINES(i) + HLINE, 0,                                        -4.0f)));
+        c.push_back(std::make_pair(vec2(0, ty),vec3(worldStart + HLINES(i),         0,                                        -4.0f)));
+        c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + HLINES(i),         worldData[i].groundHeight - GRASS_HEIGHT, -4.0f)));
 
         if (worldData[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1)
             worldData[i].groundHeight = 0;
@@ -628,22 +616,22 @@ void World::draw(Player *p)
     			glTexCoord2i(1, 1); glVertex2i(worldStart + i * HLINE + HLINE    , wd.groundHeight - GRASS_HEIGHT);
     			glTexCoord2i(0, 1); glVertex2i(worldStart + i * HLINE + HLINE / 2, wd.groundHeight - GRASS_HEIGHT);*/
 
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0])));
-                c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[0])));
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT)));
+                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0], 		-3)));
+                c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[0], 		-3)));
+                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT, 	-3)));
 
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT)));
-                c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i)		     , wd.groundHeight - GRASS_HEIGHT)));
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0])));
+                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT,	-3)));
+                c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i)		     , wd.groundHeight - GRASS_HEIGHT,	-3)));
+                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0],			-3)));
 
 
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1])));
-                c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight + gh[1])));
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT)));
+                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1],			-3)));
+                c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight + gh[1],			-3)));
+                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT,	-3)));
 
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT)));
-                c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT)));
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1])));
+                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT,	-3)));
+                c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT,	-3)));
+                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1],			-3)));
 
             //glEnd();
         }
@@ -685,27 +673,30 @@ void World::draw(Player *p)
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
 
-    partVec.clear();
-    partVec.reserve(ps * 6 * 5);
+	/*GLfloat *pIndexT = &partVec[0];
 
     for (auto &p : particles) {
         if (!p.behind)
-            p.draw(partVec);
+            p.draw(pIndexT);
     }
 
     glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
     glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[3]);
     glDrawArrays(GL_TRIANGLES, 0, ps * 6);
-
+*/
     glDisableVertexAttribArray(worldShader_attribute_tex);
     glDisableVertexAttribArray(worldShader_attribute_coord);
 
     glUseProgram(0);
 
+	// draw the buildings
+	for (auto &b : build) {
+        b->draw();
+    }
+
     // draw remaining entities
 	for (auto &n : npc) {
-		if (n->type != MERCHT)
-            n->draw();
+        n->draw();
     }
 
 	for (auto &m : mob)
@@ -1453,7 +1444,8 @@ addMerchant(float x, float y, bool housed)
 
     if (housed) {
         merchant.back()->inside = build.back();
-    }
+    	merchant.back()->z = build.back()->z+.1;
+	}
 
 	npc.push_back(merchant.back());
 	entity.push_back(npc.back());
@@ -1625,7 +1617,7 @@ singleDetect(Entity *e)
 void IndoorWorld::
 draw(Player *p)
 {
-	unsigned int i,f;
+	unsigned int i,fl;
 	int x;
 
     auto SCREEN_WIDTH = game::SCREEN_WIDTH;
@@ -1646,7 +1638,7 @@ draw(Player *p)
             l.fireFlicker = 1.0f;
     }
 
-    std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
+/*    std::unique_ptr<GLfloat[]> pointArrayBuf = std::make_unique<GLfloat[]> (2 * (light.size()));
 	auto pointArray = pointArrayBuf.get();
     GLfloat flameArray[64];
 
@@ -1679,55 +1671,125 @@ draw(Player *p)
 		glUniform3f (glGetUniformLocation(shaderProgram, "lightColor"), 1.0f, 1.0f, 1.0f);
         glUniform1fv(glGetUniformLocation(shaderProgram, "fireFlicker"), light.size(), flameArray);
 	}
+*/
+	
+	glUseProgram(worldShader);
 
+	glActiveTexture(GL_TEXTURE0);
 	bgTex(0);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
-	glColor4ub(255,255,255,255);
 
-    glBegin(GL_QUADS);
-        glTexCoord2i(0,1);							     glVertex2i(worldStart - SCREEN_WIDTH / 2,0);
-		glTexCoord2i((-worldStart*2+SCREEN_WIDTH)/512,1);glVertex2i(-worldStart + SCREEN_WIDTH / 2,0);
-		glTexCoord2i((-worldStart*2+SCREEN_WIDTH)/512,0);glVertex2i(-worldStart + SCREEN_WIDTH / 2,SCREEN_HEIGHT);
-		glTexCoord2i(0,0);							     glVertex2i(worldStart - SCREEN_WIDTH / 2,SCREEN_HEIGHT);
-    glEnd();
+	glUniform1i(worldShader_uniform_texture, 0);
+	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 
-    glUseProgram(0);
+	GLfloat backTile[] = {worldStart - SCREEN_WIDTH / 2,  	0, 									9.9,
+						  -worldStart + SCREEN_WIDTH / 2, 	0, 									9.9,
+						  -worldStart + SCREEN_WIDTH / 2, 	static_cast<float>(SCREEN_HEIGHT), 	9.9,
+						  
+						  -worldStart + SCREEN_WIDTH / 2, 	static_cast<float>(SCREEN_HEIGHT), 	9.9,
+						  worldStart - SCREEN_WIDTH / 2,	static_cast<float>(SCREEN_HEIGHT), 	9.9,
+						  worldStart - SCREEN_WIDTH / 2,	0,									9.9};
+
+	GLfloat backTile_tex[] = {0, 1,
+		 					  (-worldStart*2+SCREEN_WIDTH)/512, 1,
+							  (-worldStart*2+SCREEN_WIDTH)/512, 0,
+
+							  (-worldStart*2+SCREEN_WIDTH)/512, 0,
+							  0, 0,
+							  0, 1};
+
+	glEnableVertexAttribArray(worldShader_attribute_coord);
+	glEnableVertexAttribArray(worldShader_attribute_tex);
+
+	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, backTile);
+	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, backTile_tex);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDisableVertexAttribArray(worldShader_attribute_coord);
+	glDisableVertexAttribArray(worldShader_attribute_tex);
+
+	glUseProgram(0);
 
 	/*
 	 *	Draw the ground.
 	*/
 
-	glUseProgram(shaderProgram);
-	glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
-	glBegin(GL_QUADS);
-        safeSetColor(150, 100, 50);
-        for (f = 0; f < floor.size(); f++) {
-            i = 0;
-    		for (const auto &h : floor[f]) {
-    			x = worldStart + fstart[f] * HLINE + HLINES(i);
-    			glVertex2i(x        , h            );
-    			glVertex2i(x + HLINE, h            );
-    			glVertex2i(x + HLINE, h - INDOOR_FLOOR_THICKNESS);
-    			glVertex2i(x        , h - INDOOR_FLOOR_THICKNESS);
-                i++;
-    		}
-        }
-	glEnd();
+	// TODO make floor texture
+
+	static GLuint floorTex = Texture::genColor(Color(150, 100, 50));
+
+	glUseProgram(worldShader);
+	glBindTexture(GL_TEXTURE_2D, floorTex);
+
+	std::vector<GLfloat>f;
+
+	for (fl = 0; fl < floor.size(); fl++) {
+        i = 0;
+    	for (const auto &h : floor[fl]) {
+    		x = worldStart + fstart[fl] * HLINE + HLINES(i);
+    		
+			f.emplace_back(x);
+    		f.emplace_back(h);
+			f.emplace_back(-3);
+			f.emplace_back(0);
+			f.emplace_back(0);
+    		
+			f.emplace_back(x + HLINE);
+			f.emplace_back(h);
+			f.emplace_back(-3);
+ 		   	f.emplace_back(1);
+			f.emplace_back(0);
+			
+			f.emplace_back(x + HLINE);
+			f.emplace_back(h - INDOOR_FLOOR_THICKNESS);
+			f.emplace_back(-3);
+ 		   	f.emplace_back(1);
+			f.emplace_back(1);
+
+
+			f.emplace_back(x + HLINE);
+			f.emplace_back(h - INDOOR_FLOOR_THICKNESS);
+			f.emplace_back(-3);
+ 		   	f.emplace_back(1);
+			f.emplace_back(1);
+			
+			f.emplace_back(x);
+        	f.emplace_back(h - INDOOR_FLOOR_THICKNESS);
+			f.emplace_back(-3);
+			f.emplace_back(0);
+ 		   	f.emplace_back(1);
+
+			f.emplace_back(x);
+    		f.emplace_back(h);
+			f.emplace_back(-3);
+			f.emplace_back(0);
+			f.emplace_back(0);
+
+			i++;
+    	}
+    }
+	
+	glEnableVertexAttribArray(worldShader_attribute_coord);
+	glEnableVertexAttribArray(worldShader_attribute_tex);
+
+	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &f[0]);
+	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &f[3]);
+	glDrawArrays(GL_TRIANGLES, 0, floor.size() * 6);
+
+	glDisableVertexAttribArray(worldShader_attribute_coord);
+	glDisableVertexAttribArray(worldShader_attribute_tex);
+
 	glUseProgram(0);
 
 	/*
 	 *	Draw all entities.
 	*/
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, colorIndex);
+    
+	// TODO draw particles
+	// glBindTexture(GL_TEXTURE_2D, colorIndex);
 
-    glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
-    glUseProgram(shaderProgram);
-
-    //std::for_each(particles.begin(), particles.end(), [](Particles &part) { part.draw(); });
-
-    glUseProgram(0);
 
 	/*for (auto &part : particles)
 		part.draw();*/

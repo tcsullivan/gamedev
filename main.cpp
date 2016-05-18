@@ -384,7 +384,7 @@ void render() {
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	// TODO add depth
-    //glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 
 	glUseProgram(textShader);
 	glUniformMatrix4fv(textShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(ortho));
@@ -432,16 +432,47 @@ void render() {
 					currentWorld->getWeatherStr().c_str()
 					);
 
+		static GLuint tracerText = Texture::genColor(Color(100,100,255));
+
+		uint es = currentWorld->entity.size();
+		GLfloat tpoint[es * 2 * 5];
+		GLfloat *tp = &tpoint[0];
+
+		glUseProgram(textShader);
+		glBindTexture(GL_TEXTURE_2D, tracerText);
+
 		if (ui::posFlag) {
-			glBegin(GL_LINES);
-				glColor3ub(100,100,255);
-				for (auto &e : currentWorld->entity) {
-					glVertex2i(player->loc.x + player->width / 2, player->loc.y + player->height / 2);
-					glVertex2i(e->loc.x + e->width / 2, e->loc.y + e->height / 2);
-				}
-			glEnd();
+			for (auto &e : currentWorld->entity) {
+				*(tp++) = player->loc.x + player->width / 2;
+				*(tp++) = player->loc.y + player->height / 2;
+				*(tp++) = -5.0;
+
+				*(tp++) = 0.0;
+				*(tp++) = 0.0;
+
+				*(tp++) = e->loc.x + e->width / 2;
+ 				*(tp++) = e->loc.y + e->height / 2;
+				*(tp++) = -5.0;
+
+				*(tp++) = 1.0;
+				*(tp++) = 1.0;
+			}
 		}
+		
+		glEnableVertexAttribArray(worldShader_attribute_coord);
+		glEnableVertexAttribArray(worldShader_attribute_coord);
+		
+		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[0]);
+		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[3]);
+		glDrawArrays(GL_LINES, 0, es * 2);
+
+		glDisableVertexAttribArray(worldShader_attribute_tex);
+		glDisableVertexAttribArray(worldShader_attribute_tex);
+		glUseProgram(0);
+		
 	}
+
+
 
 	if (currentMenu)
 		ui::menu::draw();

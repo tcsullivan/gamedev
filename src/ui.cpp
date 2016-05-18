@@ -184,6 +184,7 @@ namespace ui {
 	*/
 
 	unsigned int fontSize;
+	float fontZ = -8.0;
 
     void takeScreenshot(GLubyte* pixels);
 
@@ -273,6 +274,13 @@ namespace ui {
 	}
 
 	/*
+ 	 *	Set the font's z layer
+ 	 */
+	void setFontZ(float z) {
+		fontZ = z;
+	}
+
+	/*
 	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
 	*/
 
@@ -316,13 +324,13 @@ namespace ui {
 		};
 
 		GLfloat text_vert[] = {
-			c1.x, 		c1.y     -c2.y, 1.0,	//bottom left
-			c1.x+c2.x, 	c1.y	 -c2.y, 1.0, 	//bottom right
-			c1.x+c2.x, 	c1.y+c2.y-c2.y, 1.0,	//top right
+			c1.x, 		c1.y     -c2.y, fontZ,	//bottom left
+			c1.x+c2.x, 	c1.y	 -c2.y, fontZ, 	//bottom right
+			c1.x+c2.x, 	c1.y+c2.y-c2.y, fontZ,	//top right
 
-			c1.x+c2.x, 	c1.y+c2.y-c2.y, 1.0,	//top right
-			c1.x, 		c1.y+c2.y-c2.y, 1.0,	//top left
-			c1.x, 		c1.y	 -c2.y, 1.0,	//bottom left
+			c1.x+c2.x, 	c1.y+c2.y-c2.y, fontZ,	//top right
+			c1.x, 		c1.y+c2.y-c2.y, fontZ,	//top left
+			c1.x, 		c1.y	 -c2.y, fontZ	//bottom left
 		};
 
         glUniform4f(textShader_uniform_color,
@@ -659,19 +667,19 @@ namespace ui {
 	}
 
 	void drawBox(vec2 c1, vec2 c2) {
-        GLfloat box[] = {c1.x, c1.y, 1.0,
-                         c2.x, c1.y, 1.0,
-                         c2.x, c2.y, 1.0,
+        GLfloat box[] = {c1.x, c1.y, -7.0,
+                         c2.x, c1.y, -7.0,
+                         c2.x, c2.y, -7.0,
 
-                         c2.x, c2.y, 1.0,
-                         c1.x, c2.y, 1.0,
-                         c1.x, c1.y, 1.0};
+                         c2.x, c2.y, -7.0,
+                         c1.x, c2.y, -7.0,
+                         c1.x, c1.y, -7.0};
 
-        GLfloat line_strip[] = {c1.x,     c1.y, 1.0,
-                                c2.x + 1, c1.y, 1.0,
-                                c2.x + 1, c2.y, 1.0,
-                                c1.x,     c2.y, 1.0,
-                                c1.x,     c1.y, 1.0};
+        GLfloat line_strip[] = {c1.x,     c1.y, -7.1,
+                                c2.x + 1, c1.y, -7.1,
+                                c2.x + 1, c2.y, -7.1,
+                                c1.x,     c2.y, -7.1,
+                                c1.x,     c1.y, -7.1};
 
         GLfloat box_tex[] = {0,0,
                              1,0,
@@ -722,13 +730,13 @@ namespace ui {
 
 		if (pageTexReady) {
 
-            GLfloat page_loc[] = {offset.x - 300, SCREEN_HEIGHT - 100, 1.0,
-                                  offset.x + 300, SCREEN_HEIGHT - 100, 1.0,
-                                  offset.x + 300, SCREEN_HEIGHT - 600, 1.0,
+            GLfloat page_loc[] = {offset.x - 300, SCREEN_HEIGHT - 100, -6.0,
+                                  offset.x + 300, SCREEN_HEIGHT - 100, -6.0,
+                                  offset.x + 300, SCREEN_HEIGHT - 600, -6.0,
 
-                                  offset.x + 300, SCREEN_HEIGHT - 600, 1.0,
-                                  offset.x - 300, SCREEN_HEIGHT - 600, 1.0,
-                                  offset.x - 300, SCREEN_HEIGHT - 100, 1.0};
+                                  offset.x + 300, SCREEN_HEIGHT - 600, -6.0,
+                                  offset.x - 300, SCREEN_HEIGHT - 600, -6.0,
+                                  offset.x - 300, SCREEN_HEIGHT - 100, -6.0};
 
             GLfloat page_tex[] = {0.0, 0.0,
                                   1.0, 0.0,
@@ -803,21 +811,21 @@ namespace ui {
                                       0.0, 0.0,
                                       0.0, 1.0};
 
-                GLfloat left_item[] = {offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5),     1.0,
-                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5),     1.0,
-                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
+                GLfloat left_item[] = {offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5),     -7.2,
+                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5),     -7.2,
+                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
 
-                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
-                                       offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
-                                       offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5),     1.0};
+                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
+                                       offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
+                                       offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5),     -7.2};
 
-                GLfloat right_item[] = {offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5),     1.0,
-                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5),     1.0,
-                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
+                GLfloat right_item[] = {offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5),     -7.2,
+                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5),     -7.2,
+                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
 
-                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
-                                        offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5) + 40,1.0,
-                                        offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5),     1.0};
+                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
+                                        offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
+                                        offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5),     -7.2};
 
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[1]));
@@ -865,9 +873,9 @@ namespace ui {
                                        0.0, 1.0,
                                        1.0, 1.0};
 
-                    GLfloat tri_c[] = {merchArrowLoc[i].x, merchArrowLoc[i].y,      1.0,
-                                       merchArrowLoc[i].z, merchArrowLoc[i].y - 8,  1.0,
-                                       merchArrowLoc[i].z, merchArrowLoc[i].y + 8,  1.0};
+                    GLfloat tri_c[] = {merchArrowLoc[i].x, merchArrowLoc[i].y,      -7.1,
+                                       merchArrowLoc[i].z, merchArrowLoc[i].y - 8,  -7.1,
+                                       merchArrowLoc[i].z, merchArrowLoc[i].y + 8,  -7.1};
 
                     glUniform1i(textShader_uniform_texture, 0);
                     glUseProgram(textShader);
@@ -950,6 +958,9 @@ namespace ui {
 			putText(hub.x,hub.y,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
 												(unsigned)player->maxHealth
 												);
+			static GLuint frontHealth = Texture::genColor(Color(255,0,0));
+			static GLuint backHealth = Texture::genColor(Color(150,0,0));
+
 			if (player->isAlive()) {
 				hub.y-=fontSize*1.15;
 
@@ -958,15 +969,15 @@ namespace ui {
                                  0.0, 1.0,
                                  1.0, 1.0};
 
-                GLfloat back[] = {hub.x,        hub.y,      1.0,
-                                  hub.x + 150,  hub.y,      1.0,
-                                  hub.x,        hub.y + 12, 1.0,
-                                  hub.x + 150,  hub.y + 12, 1.0};
+                GLfloat back[] = {hub.x,        hub.y,      -7.0,
+                                  hub.x + 150,  hub.y,      -7.0,
+                                  hub.x,        hub.y + 12, -7.0,
+                                  hub.x + 150,  hub.y + 12, -7.0};
 
-                GLfloat front[] = {hub.x,       hub.y,      1.0,
-                                   hub.x + 150, hub.y,      1.0,
-                                   hub.x,       hub.y + 12, 1.0,
-                                   hub.x + 150, hub.y + 12, 1.0};
+                GLfloat front[] = {hub.x,       hub.y,      -7.1,
+                                   hub.x + 150, hub.y,      -7.1,
+                                   hub.x,       hub.y + 12, -7.1,
+                                   hub.x + 150, hub.y + 12, -7.1};
 
 
                 glUniform1i(textShader_uniform_texture, 0);
@@ -975,13 +986,13 @@ namespace ui {
                 glEnableVertexAttribArray(textShader_attribute_coord);
                 glEnableVertexAttribArray(textShader_attribute_tex);
 
-                glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(150,0,0)));
+                glBindTexture(GL_TEXTURE_2D, frontHealth);
 
                 glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, front);
                 glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-                glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255,0,0)));
+                glBindTexture(GL_TEXTURE_2D, backHealth);
 
                 glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, back);
                 glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
@@ -1155,7 +1166,7 @@ EXIT:
 					/*player->inv->invHover =*/ edown = false;
 
 			if (dialogBoxExists || pageTexReady) {
-					// right click advances dialog
+					//right click advances dialog
 					if ((e.button.button & SDL_BUTTON_RIGHT))
 						dialogAdvance();
 				} else {
@@ -1420,7 +1431,7 @@ EXIT:
 	void drawFade(void) {
 		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
-
+		
 		if (!fadeIntensity) {
 			if (fontSize != 16)
 				setFontSize(16);
@@ -1437,11 +1448,12 @@ EXIT:
                         0.0, 1.0,
                         1.0, 1.0};
 
-        GLfloat backdrop[] = {offset.x - SCREEN_WIDTH / 2 - 1, offset.y - SCREEN_HEIGHT / 2, 1.0,
-                              offset.x + SCREEN_WIDTH / 2, offset.y - SCREEN_HEIGHT / 2, 1.0,
-                              offset.x - SCREEN_WIDTH / 2 - 1, offset.y + SCREEN_HEIGHT / 2, 1.0,
-                              offset.x + SCREEN_WIDTH / 2, offset.y + SCREEN_HEIGHT / 2, 1.0};
-
+        GLfloat backdrop[] = {offset.x - SCREEN_WIDTH / 2 - 1, offset.y - SCREEN_HEIGHT / 2, -8.1,
+                              offset.x + SCREEN_WIDTH / 2, offset.y - SCREEN_HEIGHT / 2, 	 -8.1,
+                              offset.x - SCREEN_WIDTH / 2 - 1, offset.y + SCREEN_HEIGHT / 2, -8.1,
+                              offset.x + SCREEN_WIDTH / 2, offset.y + SCREEN_HEIGHT / 2, 	 -8.1};
+		
+		setFontZ(-8.2);
         glUniform1i(textShader_uniform_texture, 0);
         glUseProgram(textShader);
 
@@ -1456,6 +1468,7 @@ EXIT:
         glDisableVertexAttribArray(textShader_attribute_tex);
 
         glUseProgram(0);
+		setFontZ(-8.0);
 
     }
 

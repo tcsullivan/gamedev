@@ -81,6 +81,7 @@ namespace ui {
 	void setFontFace(const char *ttf);
 	void setFontSize(unsigned int size);
 	void setFontColor(unsigned char r,unsigned char g,unsigned char b, unsigned char a);
+	void setFontZ(float z);
 
 	/*
 	 *	Draw a centered string.

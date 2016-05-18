@@ -47,15 +47,15 @@ void useShader(GLuint *sh, GLint *tu, GLint *ca, GLint *ta)
     tex_attrib = ta;
 }
 
-void drawRect(vec2 ll, vec2 ur)
+void drawRect(vec2 ll, vec2 ur, float z)
 {
-    GLfloat verts[] = {ll.x, ll.y, 1.0,
-                       ur.x, ll.y, 1.0,
-                       ur.x, ur.y, 1.0,
+    GLfloat verts[] = {ll.x, ll.y, z,
+                       ur.x, ll.y, z,
+                       ur.x, ur.y, z,
                        
-                       ur.x, ur.y, 1.0,
-                       ll.x, ur.y, 1.0,
-                       ll.x, ll.y, 1.0};
+                       ur.x, ur.y, z,
+                       ll.x, ur.y, z,
+                       ll.x, ll.y, z};
    
     GLfloat tex[] = {0.0, 1.0,
                      1.0, 1.0,

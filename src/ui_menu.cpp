@@ -113,6 +113,7 @@ namespace ui {
 
             setFontSize(24);
             game::config::update();
+			setFontZ(-9.0);
 
             mouse.x = ui::premouse.x+offset.x-(SCREEN_WIDTH/2);
             mouse.y = (offset.y+SCREEN_HEIGHT/2)-ui::premouse.y;
@@ -153,7 +154,7 @@ namespace ui {
 			glUseProgram(textShader);
 			
 			glBindTexture(GL_TEXTURE_2D, backTex);
-			drawRect(vec2(offset.x - SCREEN_WIDTH / 2, offset.y - (SCREEN_HEIGHT / 2)), vec2(offset.x + SCREEN_WIDTH / 2, offset.y + (SCREEN_HEIGHT / 2)));
+			drawRect(vec2(offset.x - SCREEN_WIDTH / 2, offset.y - (SCREEN_HEIGHT / 2)), vec2(offset.x + SCREEN_WIDTH / 2, offset.y + (SCREEN_HEIGHT / 2)), -8.5);
 
 			glUseProgram(0);
 
@@ -169,7 +170,7 @@ namespace ui {
 					glBindTexture(GL_TEXTURE_2D, bsTex);
 
 					drawRect(vec2(offset.x + m.button.loc.x, offset.y + m.button.loc.y),
-							 vec2(offset.x + m.button.loc.x + m.button.dim.x, offset.y + m.button.loc.y + m.button.dim.y));
+							 vec2(offset.x + m.button.loc.x + m.button.dim.x, offset.y + m.button.loc.y + m.button.dim.y), -8.6);
                     //draw the button text
                     putStringCentered(offset.x + m.button.loc.x + (m.button.dim.x/2),
                                       (offset.y + m.button.loc.y + (m.button.dim.y/2)) - ui::fontSize/2,
@@ -182,11 +183,11 @@ namespace ui {
                             //if the mouse if over the button, it draws this white outline
 							glBindTexture(GL_TEXTURE_2D, border);
 						
-							GLfloat verts[] = {offset.x+m.button.loc.x, 					offset.y+m.button.loc.y,				1.0,
-                                			   offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y,				1.0,
-                                			   offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y+m.button.dim.y, 1.0,
-                                			   offset.x+m.button.loc.x, 					offset.y+m.button.loc.y+m.button.dim.y, 1.0,
-                                			   offset.x+m.button.loc.x, 					offset.y+m.button.loc.y, 				1.0};
+							GLfloat verts[] = {offset.x+m.button.loc.x, 					offset.y+m.button.loc.y,				-8.7,
+                                			   offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y,				-8.7,
+                                			   offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y+m.button.dim.y, -8.7,
+                                			   offset.x+m.button.loc.x, 					offset.y+m.button.loc.y+m.button.dim.y, -8.7,
+                                			   offset.x+m.button.loc.x, 					offset.y+m.button.loc.y, 				-8.7};
 
 							glUseProgram(textShader);
 							glEnableVertexAttribArray(textShader_attribute_coord);
@@ -244,19 +245,19 @@ namespace ui {
 
 					glBindTexture(GL_TEXTURE_2D, bsTex);
 					drawRect(vec2(offset.x + m.slider.loc.x, offset.y + m.slider.loc.y),
-							 vec2(offset.x + m.slider.loc.x + m.slider.dim.x, offset.y + m.slider.loc.y + m.slider.dim.y));
+							 vec2(offset.x + m.slider.loc.x + m.slider.dim.x, offset.y + m.slider.loc.y + m.slider.dim.y), -8.6);
 	                    
 					//draw the slider handle
                     glBindTexture(GL_TEXTURE_2D, hTex);
 					if (m.slider.dim.y > m.slider.dim.x) {
                         drawRect(vec2(offset.x+m.slider.loc.x, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),
-                            	 vec2(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH));
+                            	 vec2(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH), -8.7);
 
                         //draw the now combined slider text
                         putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y*1.05)) - ui::fontSize/2, outSV);
                     }else{
                         drawRect(vec2(offset.x+m.slider.loc.x+m.slider.sliderLoc, offset.y+m.slider.loc.y),
-                                 vec2(offset.x+m.slider.loc.x + m.slider.sliderLoc + sliderW, offset.y+m.slider.loc.y + sliderH));
+                                 vec2(offset.x+m.slider.loc.x + m.slider.sliderLoc + sliderW, offset.y+m.slider.loc.y + sliderH), -8.7);
 
                         //draw the now combined slider text
                         putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y/2)) - ui::fontSize/2, outSV);
@@ -272,32 +273,32 @@ namespace ui {
 							glEnableVertexAttribArray(textShader_attribute_coord);
 							glEnableVertexAttribArray(textShader_attribute_tex);
                             
-							GLfloat box_border[] = {offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y, 				1.0,
-                                					offset.x+m.slider.loc.x+m.slider.dim.x, 	offset.y+m.slider.loc.y,				1.0,
-                                					offset.x+m.slider.loc.x+m.slider.dim.x, 	offset.y+m.slider.loc.y+m.slider.dim.y,	1.0,
-                                					offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y+m.slider.dim.y,	1.0,
-                                					offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y,				1.0};
+							GLfloat box_border[] = {offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y, 				-8.8,
+                                					offset.x+m.slider.loc.x+m.slider.dim.x, 	offset.y+m.slider.loc.y,				-8.8,
+                                					offset.x+m.slider.loc.x+m.slider.dim.x, 	offset.y+m.slider.loc.y+m.slider.dim.y,	-8.8,
+                                					offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y+m.slider.dim.y,	-8.8,
+                                					offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y,				-8.8};
 
 							glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, box_border);
 							glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
 							glDrawArrays(GL_LINE_STRIP, 0, 5);	
                             if (m.slider.dim.y > m.slider.dim.x) {
                                 //and a border around the slider handle
-                                GLfloat handle_border[] = {offset.x+m.slider.loc.x, 		  static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				1.0,
-                                						   offset.x+m.slider.loc.x + sliderW, static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				1.0,
-                                						   offset.x+m.slider.loc.x + sliderW, static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH),	1.0,
-                                						   offset.x+m.slider.loc.x,           static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH),	1.0,
-                                						   offset.x+m.slider.loc.x,           static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				1.0};
+                                GLfloat handle_border[] = {offset.x+m.slider.loc.x, 		  static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				-8.8,
+                                						   offset.x+m.slider.loc.x + sliderW, static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				-8.8,
+                                						   offset.x+m.slider.loc.x + sliderW, static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH),	-8.8,
+                                						   offset.x+m.slider.loc.x,           static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH),	-8.8,
+                                						   offset.x+m.slider.loc.x,           static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				-8.8};
 								glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, handle_border);
 								glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
 								glDrawArrays(GL_LINE_STRIP, 0, 5);	
                             }else{
                                 //and a border around the slider handle
-                                GLfloat handle_border[] = {offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y,							1.0,
-                                						   offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y,				1.0,
-                                						   offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y+m.slider.dim.y,1.0,
-                                						   offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y+m.slider.dim.y,			1.0,
-                                						   offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y,							1.0};
+                                GLfloat handle_border[] = {offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y,							-8.8,
+                                						   offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y,				-8.8,
+                                						   offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y+m.slider.dim.y,-8.8,
+                                						   offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y+m.slider.dim.y,			-8.8,
+                                						   offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y,							-8.8};
 								glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, handle_border);
 								glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
 								glDrawArrays(GL_LINE_STRIP, 0, 5);	
@@ -315,14 +316,14 @@ namespace ui {
                                     //draw a white box over the handle
                                     glBindTexture(GL_TEXTURE_2D, border);
 									drawRect(vec2(offset.x+m.slider.loc.x, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),
-                                             vec2(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH));
+                                             vec2(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH), -8.9);
 
                                 }else{
                                     *m.slider.var = (((mouse.x-offset.x) - m.slider.loc.x)/m.slider.dim.x)*100;
                                     //draw a white box over the handle
                                     glBindTexture(GL_TEXTURE_2D, border);
 									drawRect(vec2(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y),
-                                             vec2(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y + m.slider.dim.y));
+                                             vec2(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y + m.slider.dim.y), -8.9);
                                 }
                             }
 
@@ -334,6 +335,7 @@ namespace ui {
                 }
             }
             setFontSize(16);
+			setFontZ(-8.0);
         }
 
 

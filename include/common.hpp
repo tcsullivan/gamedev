@@ -197,7 +197,7 @@ void useShader(GLuint *sh, GLint *tu, GLint *ca, GLint *ta);
  * A function to draw a colored box for opengl
  * To use it, the lower left hand and upper right hand coords are passed along
  */
-void drawRect(vec2 ll, vec2 ur);
+void drawRect(vec2 ll, vec2 ur, float z);
 
 // gets the length of `n` HLINEs
 template<typename T>

@@ -80,7 +80,6 @@ Entity::Entity(void)
 	health = 0;
 	maxHealth = 0;
 	outnabout = 0;
-	z = 1.0f;
 	targetx = 0.9112001f;
 
 	type = UNKNOWNT;
@@ -93,7 +92,7 @@ Entity::Entity(void)
 	canMove    = true;
 	ground     = false;
 	forcedMove = false;
-	z = -1.0f;
+	z = 0.0f;
 
 	// clear counters
 	ticksToUse = 0;
@@ -213,6 +212,8 @@ Player::Player() : Entity()
 	dim2 tmpDim = Texture::imageDim(tex.getTexturePath(0));
 	width = HLINES(tmpDim.x/2);
 	height = HLINES(tmpDim.y/2);
+	
+	z = -2.0;
 }
 
 Player::~Player()
@@ -348,24 +349,24 @@ void NPC::drawThingy(void) const
 			c[0], c[1], z, c[2], c[1], z, c[2], c[3], z,
 			c[2], c[3], z, c[0], c[3], z, c[0], c[1], z
 		};
-		
+
 		// TODO use texture made for this
 		static GLuint thingyColor = Texture::genColor(Color(236, 238, 15));
-	
+
 		glUseProgram(worldShader);
-		
+
 		glEnableVertexAttribArray(worldShader_attribute_coord);
 		glEnableVertexAttribArray(worldShader_attribute_tex);
-		
+
 		glBindTexture(GL_TEXTURE_2D, thingyColor);
-			
+
 		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
 		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		
+
 		glDisableVertexAttribArray(worldShader_attribute_coord);
 		glDisableVertexAttribArray(worldShader_attribute_tex);
-		
+
 		glUseProgram(0);
 	}
 }
@@ -448,12 +449,6 @@ void Entity::draw(void)
 		break;
 	}
 
-	//TODO
-	/*if (hitCooldown)
-		glColor3ub(255,255,0);
-	else
-		glColor3ub(255,255,255);*/
-
 	glUseProgram(worldShader);
 	// make the entity hit flash red
 	if (maxHitDuration-hitDuration) {
@@ -483,13 +478,13 @@ if (health != maxHealth) {
 	glUniform1i(worldShader_uniform_texture, 0);
 
 	GLfloat coord_back[] = {
-		loc.x, 			loc.y + height, 			      z,
-		loc.x + width,	loc.y + height, 			      z,
-		loc.x + width, 	loc.y + height + game::HLINE * 2, z,
+		loc.x, 			loc.y + height, 			      z + 0.1f,
+		loc.x + width,	loc.y + height, 			      z + 0.1f,
+		loc.x + width, 	loc.y + height + game::HLINE * 2, z + 0.1f,
 
-		loc.x + width, 	loc.y + height + game::HLINE * 2, z,
-		loc.x, 			loc.y + height + game::HLINE * 2, z,
-		loc.x, 			loc.y + height, 			      z,
+		loc.x + width, 	loc.y + height + game::HLINE * 2, z + 0.1f,
+		loc.x, 			loc.y + height + game::HLINE * 2, z + 0.1f,
+		loc.x, 			loc.y + height, 			      z + 0.1f,
 	};
 
 	GLfloat coord_front[] = {
@@ -504,12 +499,12 @@ if (health != maxHealth) {
 
 	glBindTexture(GL_TEXTURE_2D, backH);
 	GLfloat tex[] = { 0.0, 0.0,
-						   1.0, 0.0,
-						   1.0, 1.0,
+					  1.0, 0.0,
+					  1.0, 1.0,
 
-						   1.0, 1.0,
-						   0.0, 1.0,
-						   0.0, 0.0,
+					  1.0, 1.0,
+					  0.0, 1.0,
+					  0.0, 0.0,
 	};
 	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coord_back);
 	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
@@ -873,6 +868,7 @@ unsigned int Structures::spawn(BUILD_SUB sub, float x, float y) {
 	bsubtype = sub;
 	dim2 dim;
 
+	z = 1.0;
 	/*
 	 *	tempN is the amount of entities that will be spawned in the village. Currently the village
 	 *	will spawn bewteen 2 and 7 villagers for the starting hut.
@@ -922,7 +918,7 @@ Particles::Particles(float x, float y, float w, float h, float vx, float vy, Col
 	index = Texture::getIndex(c);
 }
 
-void Particles::draw(std::vector<GLfloat> &p) const
+void Particles::draw(GLfloat*& p) const
 {
 	vec2 tc = vec2 {0.25f * index.x, 0.125f * (8-index.y)};
 
@@ -931,52 +927,52 @@ void Particles::draw(std::vector<GLfloat> &p) const
         z = 2.0;
 
 	// lower left
-    p.emplace_back(loc.x);
-    p.emplace_back(loc.y);
-    p.emplace_back(z);
+    *(p++) = loc.x;
+    *(p++) = loc.y;
+    *(p++) = z;
 
-	p.emplace_back(tc.x);
-	p.emplace_back(tc.y);
+	*(p++) = tc.x;
+	*(p++) = tc.y;
 
 	// lower right
-    p.emplace_back(loc.x + width);
-    p.emplace_back(loc.y);
-    p.emplace_back(z);
+    *(p++) = loc.x + width;
+    *(p++) = loc.y;
+    *(p++) = z;
 
-	p.emplace_back(tc.x);
-	p.emplace_back(tc.y);
-
-	// upper right
-    p.emplace_back(loc.x + width);
-    p.emplace_back(loc.y + height);
-    p.emplace_back(z);
-
-	p.emplace_back(tc.x);
-	p.emplace_back(tc.y);
+	*(p++) = tc.x;
+	*(p++) = tc.y;
 
 	// upper right
-    p.emplace_back(loc.x + width);
-    p.emplace_back(loc.y + height);
-    p.emplace_back(z);
+    *(p++) = loc.x + width;
+    *(p++) = loc.y + height;
+    *(p++) = z;
 
-	p.emplace_back(tc.x);
-	p.emplace_back(tc.y);
+	*(p++) = tc.x;
+	*(p++) = tc.y;
+
+	// upper right
+    *(p++) = loc.x + width;
+    *(p++) = loc.y + height;
+    *(p++) = z;
+
+	*(p++) = tc.x;
+	*(p++) = tc.y;
 
 	// upper left
-    p.emplace_back(loc.x);
-    p.emplace_back(loc.y + height);
-    p.emplace_back(z);
+    *(p++) = loc.x;
+    *(p++) = loc.y + height;
+    *(p++) = z;
 
-	p.emplace_back(tc.x);
-    p.emplace_back(tc.y);
+	*(p++) = tc.x;
+    *(p++) = tc.y;
 
 	// lower left
-    p.emplace_back(loc.x);
-    p.emplace_back(loc.y);
-    p.emplace_back(z);
+    *(p++) = loc.x;
+    *(p++) = loc.y;
+    *(p++) = z;
 
-    p.emplace_back(tc.x);
-    p.emplace_back(tc.y);
+    *(p++) = tc.x;
+    *(p++) = tc.y;
 }
 
 void Particles::update(float _gravity, float ground_y)

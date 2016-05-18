@@ -150,7 +150,7 @@ public:
 	~Particles(void){}
 
 	// draws the particle
-	void draw(std::vector<GLfloat> &p) const;
+	void draw(GLfloat*& p) const;
 
 	// updates a particle
 	void update(float _gravity, float ground_y);
