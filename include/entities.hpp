@@ -109,6 +109,7 @@ class Particles{
 public:
 	// the location of the particle
 	vec2 loc;
+	float zOffset;
 
 	// the width of the particle, in pixels
 	float width;

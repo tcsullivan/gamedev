@@ -283,7 +283,15 @@ void World::drawBackgrounds(void)
                                 offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f,
                                 offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f};
 
-    glUseProgram(worldShader);
+    GLfloat fron_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f,
+                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.8f,
+                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
+
+                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
+                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.8f,
+                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f};
+    
+	glUseProgram(worldShader);
 
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
@@ -296,7 +304,7 @@ void World::drawBackgrounds(void)
 
 	bgTex++;
 	glUniform4f(worldShader_uniform_color, .8, .8, .8, 1.3 - static_cast<float>(alpha)/255.0f);
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, back_tex_coord);
+    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, fron_tex_coord);
     glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
     glDrawArrays(GL_TRIANGLES, 0 , 6);
 
@@ -467,32 +475,6 @@ void World::draw(Player *p)
 
 	drawBackgrounds();
 
-	// draw particles and buildings
-    glBindTexture(GL_TEXTURE_2D, colorIndex);
-    glUniform1i(worldShader_uniform_texture, 0);
-    glUseProgram(worldShader);
-
-    glEnableVertexAttribArray(worldShader_attribute_coord);
-    glEnableVertexAttribArray(worldShader_attribute_tex);
-
-    uint ps = particles.size();
-	
-	GLfloat partVec[ps * 6 * 5 + 1];
-	GLfloat *pIndex = &partVec[0];
-
-    for (auto &p : particles) {
-        if (!p.behind)
-            p.draw(pIndex);
-    }
-
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[3]);
-    glDrawArrays(GL_TRIANGLES, 0, ps * 6);
-
-    glDisableVertexAttribArray(worldShader_attribute_tex);
-    glDisableVertexAttribArray(worldShader_attribute_coord);
-
-    glUseProgram(0);
 
     for (auto &l : light) {
         if (l.belongsTo) {
@@ -716,6 +698,44 @@ void World::draw(Player *p)
 
     // draw the player
 	p->draw();
+
+	// draw particles like a MASTAH
+    glBindTexture(GL_TEXTURE_2D, colorIndex);
+    glUniform1i(worldShader_uniform_texture, 0);
+    glUseProgram(worldShader);
+
+	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, .8);
+
+    glEnableVertexAttribArray(worldShader_attribute_coord);
+    glEnableVertexAttribArray(worldShader_attribute_tex);
+
+    uint ps = particles.size();
+    uint pss = ps * 6 * 5;	
+	uint pc = 0;
+	
+	std::vector<GLfloat> partVec(pss);
+	GLfloat *pIndex = &partVec[0];
+    
+	for (uint p = 0; p < ps; p++) {
+        pc += 30;
+		if (pc > pss) {
+			// TODO resize the vector or something better than breaking
+			std::cout << "Whoops:" << pc << "," << partVec.size() << std::endl;
+			break;
+		}
+		particles[p].draw(pIndex);
+    }
+
+    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
+    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[3]);
+    glDrawArrays(GL_TRIANGLES, 0, ps * 6);
+
+    glDisableVertexAttribArray(worldShader_attribute_tex);
+    glDisableVertexAttribArray(worldShader_attribute_coord);
+
+	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
+
+    glUseProgram(0);
 }
 
 /**
@@ -863,7 +883,7 @@ detect(Player *p)
 							HLINES(1.25),										// width
 							HLINES(1.25),										// height
 							randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
-							(4 + randGet() % 6) * .05,							// vel.y
+							randGet() % 1 ? (8 + randGet() % 6) * .05 : (4 + randGet() % 6) * .05,							// vel.y
 							{ 0, 0, 255 },										// RGB color
 							2500												// duration (ms)
 							);

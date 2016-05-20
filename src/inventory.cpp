@@ -665,13 +665,13 @@ void itemDraw(Player *p, Item *d) {
         itemTex[10] = 1.0;
     }
 
-    GLfloat itemCoords[] = {itemLoc.x,          itemLoc.y,          1.0,
-                            itemLoc.x+d->dim.x, itemLoc.y,          1.0,
-                            itemLoc.x+d->dim.x, itemLoc.y+d->dim.y, 1.0,
+    GLfloat itemCoords[] = {itemLoc.x,          itemLoc.y,          p->z,
+                            itemLoc.x+d->dim.x, itemLoc.y,          p->z,
+                            itemLoc.x+d->dim.x, itemLoc.y+d->dim.y, p->z,
 
-                            itemLoc.x+d->dim.x, itemLoc.y+d->dim.y, 1.0,
-                            itemLoc.x,          itemLoc.y+d->dim.y, 1.0,
-                            itemLoc.x,          itemLoc.y,          1.0};
+                            itemLoc.x+d->dim.x, itemLoc.y+d->dim.y, p->z,
+                            itemLoc.x,          itemLoc.y+d->dim.y, p->z,
+                            itemLoc.x,          itemLoc.y,          p->z};
 
 	glBindTexture(GL_TEXTURE_2D,d->tex->image[0]);
 

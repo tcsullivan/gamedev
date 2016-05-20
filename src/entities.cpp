@@ -915,15 +915,18 @@ Particles::Particles(float x, float y, float w, float h, float vx, float vy, Col
 	behind = false;
 	bounce = false;
 	index = Texture::getIndex(c);
+	zOffset = ((rand()%20)-10)/1000.0f;
 }
 
 void Particles::draw(GLfloat*& p) const
 {
-	vec2 tc = vec2 {0.25f * index.x, 0.125f * (8-index.y)};
+	vec2 tc = vec2(0.25f * this->index.x, 0.125f * (8.0f - this->index.y));
 
-    float z = 0.0;
-    if (behind)
-        z = 2.0;
+    float z = 0.9;
+	if (behind)
+		z = 2.0;
+
+	z += zOffset;
 
 	// lower left
     *(p++) = loc.x;
