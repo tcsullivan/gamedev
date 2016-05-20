@@ -551,7 +551,7 @@ void logic(){
 				}
 			}
 
-			if(e->isInside(ui::mouse) && player->isNear(*e)) {
+			if(e->isInside(ui::mouse) && player->isNear(e)) {
 				e->near = true;
 				if (e->type == OBJECTT)
 					ObjectSelected = true;
@@ -569,7 +569,7 @@ void logic(){
 				e->near = false;
 			}
 		} else if (e->type == MOBT) {
-			e->near = player->isNear(*e);
+			e->near = player->isNear(e);
 			e->wander();
 		}
 	}

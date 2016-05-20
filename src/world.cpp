@@ -1010,7 +1010,7 @@ getNearInteractable(Entity &e)
 {
     auto n = std::find_if(std::begin(entity), std::end(entity), [&](Entity *&a) {
         return ((a->type == MOBT) || (a->type == NPCT) || a->type == MERCHT) &&
-               e.isNear(*a) && (e.left ? (a->loc.x < e.loc.x) : (a->loc.x > e.loc.x));
+               e.isNear(a) && (e.left ? (a->loc.x < e.loc.x) : (a->loc.x > e.loc.x));
     });
 
     return n == std::end(entity) ? nullptr : *n;
@@ -1020,7 +1020,7 @@ Mob *World::
 getNearMob(Entity &e)
 {
     auto n = std::find_if(std::begin(mob), std::end(mob), [&](Mob *&a) {
-        return e.isNear(*a) && (e.left ? (a->loc.x < e.loc.x + e.width / 2) : (a->loc.x > e.loc.x + e.width / 2));
+        return e.isNear(a) && (e.left ? (a->loc.x < e.loc.x + e.width / 2) : (a->loc.x > e.loc.x + e.width / 2));
     });
 
     return n == std::end(mob) ? nullptr : *n;

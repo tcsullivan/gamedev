@@ -329,8 +329,8 @@ void Object::reloadTexture(void)
 	height = getItemHeight(iname);
 }
 
-bool Entity::isNear(Entity e) {
-	return pow(e.loc.x - loc.x, 2) + pow(e.loc.y - loc.y, 2) <= pow(HLINES(40), 2);
+bool Entity::isNear(const Entity *e) {
+	return pow(e->loc.x - loc.x, 2) + pow(e->loc.y - loc.y, 2) <= pow(HLINES(40), 2);
 }
 
 void NPC::drawThingy(void) const

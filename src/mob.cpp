@@ -11,6 +11,7 @@ Mob::Mob(void)
 	inv = nullptr;
     rider = nullptr;
     canMove = true;
+	loc = 0;
 }
 
 Page::Page(void) : Mob()

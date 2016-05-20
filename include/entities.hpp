@@ -283,7 +283,7 @@ public:
 	bool isHit(void) const;
 
 	// returns true if this entity is near the one provided
-	bool isNear(Entity e);
+	bool isNear(const Entity *e);
 
 	// returns true if the coordinate is within the entity
 	bool isInside(vec2 coord) const;
