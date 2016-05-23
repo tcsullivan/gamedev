@@ -208,7 +208,7 @@ int main(int argc, char *argv[]){
 	worldShader_uniform_transform = 		get_uniform(worldShader, "transform");
 	worldShader_uniform_ortho = 			get_uniform(worldShader, "ortho");
 	worldShader_uniform_color = 			get_uniform(worldShader, "tex_color");
-	worldShader_uniform_ambient =			get_uniform(worldShader, "ambient");
+	worldShader_uniform_ambient =			get_uniform(worldShader, "ambientLight");
 	worldShader_uniform_light = 			get_uniform(worldShader, "light");
 	worldShader_uniform_light_color = 		get_uniform(worldShader, "lightColor");
 	worldShader_uniform_light_impact = 		get_uniform(worldShader, "lightImpact");
@@ -374,7 +374,7 @@ void render() {
 	glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 	
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
-	glUniform1f(worldShader_uniform_ambient, 1.0);
+	glUniform4f(worldShader_uniform_ambient, 1.0, 1.0, 1.0, 1.0);
 	glUniform1i(worldShader_uniform_light_amt, 0);
 	glUniform1f(worldShader_uniform_light_impact, 1.0);
 	/**************************

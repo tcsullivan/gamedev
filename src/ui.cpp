@@ -1345,6 +1345,9 @@ EXIT:
 				case SDLK_F3:
 					debug ^= true;
 					break;
+				case SDLK_BACKSLASH:
+					dialogBoxExists = false;
+					break;
 				case SDLK_x:
 					m = currentWorld->getNearMob(*player);
 					if (m != nullptr)

@@ -462,7 +462,7 @@ void Inventory::draw(void) {
             glUseProgram(textShader);
  			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0.0f, 0.0f, 0.0f, t >= 0 ? 255 * t : 0)));
             drawRect(vec2(r.end.x-(itemWide/2),		 r.end.y-(itemWide/2)),
-                     vec2(r.end.x-(itemWide/2)+itemWide,r.end.y-(itemWide/2)+itemWide), -6.1);
+                     vec2(r.end.x-(itemWide/2)+itemWide,r.end.y-(itemWide/2)+itemWide), -6.0);
 
 			if (!Items.empty() && a < numSlot && Items[a].second) {
 				glBindTexture(GL_TEXTURE_2D, Items[a].first->tex->image[0]);//itemtex[items[a].id]);
