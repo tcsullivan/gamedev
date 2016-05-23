@@ -218,9 +218,7 @@ constexpr const float PI = 3.1415926535f;
 // references the variable in main.cpp, used for drawing with the player
 extern vec2 offset;
 
-// the shader program created in main.cpp
-extern GLuint shaderProgram;
-
+// reference to the shader programs we use throughout
 extern GLuint textShader;
 extern GLint textShader_attribute_coord;
 extern GLint textShader_attribute_tex;
@@ -231,8 +229,14 @@ extern GLuint worldShader;
 extern GLint worldShader_attribute_coord;
 extern GLint worldShader_attribute_tex;
 extern GLint worldShader_uniform_texture;
+extern GLint worldShader_uniform_texture_normal;
 extern GLint worldShader_uniform_color;
 extern GLint worldShader_uniform_transform;
+extern GLint worldShader_uniform_ambient;
+extern GLint worldShader_uniform_light;
+extern GLint worldShader_uniform_light_color;
+extern GLint worldShader_uniform_light_impact;
+extern GLint worldShader_uniform_light_amt;
 
 /**
  *	Prints a formatted debug message to the console, along with the callee's file and line
@@ -240,6 +244,7 @@ extern GLint worldShader_uniform_transform;
  */
 void DEBUG_prints(const char* file, int line, const char *s,...);
 
+// TODO make sure we don't use these. Then burn them.
 /**
  * Sets color using glColor3ub(), but handles potential overflow.
  */

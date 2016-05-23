@@ -50,10 +50,6 @@ Menu *currentMenu;
 // the player object
 Player *player;
 
-// shaders for rendering
-GLuint fragShader;
-GLuint shaderProgram;
-
 /**
  * These are the source and index variables for our shader
  * used to draw text and ui elements
@@ -75,9 +71,15 @@ GLuint worldShader;
 GLint worldShader_attribute_coord;
 GLint worldShader_attribute_tex;
 GLint worldShader_uniform_texture;
+GLint worldShader_uniform_texture_normal;
 GLint worldShader_uniform_transform;
 GLint worldShader_uniform_ortho;
 GLint worldShader_uniform_color;
+GLint worldShader_uniform_ambient;
+GLint worldShader_uniform_light;
+GLint worldShader_uniform_light_color;
+GLint worldShader_uniform_light_impact;
+GLint worldShader_uniform_light_amt;
 
 // keeps a simple palette of colors for single-color draws
 GLuint colorIndex;
@@ -181,58 +183,36 @@ int main(int argc, char *argv[]){
 	// initialize shaders
 	std::cout << "Initializing shaders!\n";
 
-	const GLchar *shaderSource = readFile("frig.frag");
-	GLint bufferln = GL_FALSE;
-	int logLength;
-
-	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragShader, 1, &shaderSource, NULL);
-	glCompileShader(fragShader);
-
-	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &bufferln);
-	glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
-
-	std::vector<char> fragShaderError ((logLength > 1) ? logLength : 1);
-
-	glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
-	std::cout << &fragShaderError[0] << std::endl;
-
-	if (bufferln == GL_FALSE)
-		UserError("Error compiling shader");
-
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, fragShader);
-	glLinkProgram(shaderProgram);
-	glValidateProgram(shaderProgram);
-
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &bufferln);
-    glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
-    std::vector<char> programError((logLength > 1) ? logLength : 1);
-    glGetProgramInfoLog(shaderProgram, logLength, NULL, &programError[0]);
-    std::cout << &programError[0] << std::endl;
-
-	delete[] shaderSource;
-
 	/**
 	 *	Creating the text shader and its attributes/uniforms
 	 */
-	textShader = 					create_program("shaders/new.vert", "shaders/new.frag");
-	textShader_attribute_coord = 	get_attrib(textShader, "coord2d");
-	textShader_attribute_tex = 		get_attrib(textShader, "tex_coord");
-	textShader_uniform_texture = 	get_uniform(textShader, "sampler");
-	textShader_uniform_transform = 	get_uniform(textShader, "ortho");
-    textShader_uniform_color = 		get_uniform(textShader, "tex_color");
+	textShader = 							create_program("shaders/new.vert", "shaders/new.frag");
+
+	textShader_attribute_coord = 			get_attrib(textShader, "coord2d");
+	textShader_attribute_tex = 				get_attrib(textShader, "tex_coord");
+
+	textShader_uniform_texture = 			get_uniform(textShader, "sampler");
+	textShader_uniform_transform = 			get_uniform(textShader, "ortho");
+    textShader_uniform_color = 				get_uniform(textShader, "tex_color");
 
 	/**
 	 *	Creating the world's shader and its attributes/uniforms
 	 */
-	worldShader = 					create_program("shaders/world.vert", "shaders/world.frag");
-	worldShader_attribute_coord = 	get_attrib(worldShader, "coord2d");
-	worldShader_attribute_tex = 	get_attrib(worldShader, "tex_coord");
-	worldShader_uniform_texture = 	get_uniform(worldShader, "sampler");
-	worldShader_uniform_transform = get_uniform(worldShader, "transform");
-	worldShader_uniform_ortho = get_uniform(worldShader, "ortho");
-	worldShader_uniform_color = 	get_uniform(worldShader, "tex_color");
+	worldShader = 							create_program("shaders/world.vert", "shaders/world.frag");
+
+	worldShader_attribute_coord = 			get_attrib(worldShader, "coord2d");
+	worldShader_attribute_tex = 			get_attrib(worldShader, "tex_coord");
+
+	worldShader_uniform_texture = 			get_uniform(worldShader, "texture");
+	worldShader_uniform_texture_normal =	get_uniform(worldShader, "normalTex");
+	worldShader_uniform_transform = 		get_uniform(worldShader, "transform");
+	worldShader_uniform_ortho = 			get_uniform(worldShader, "ortho");
+	worldShader_uniform_color = 			get_uniform(worldShader, "tex_color");
+	worldShader_uniform_ambient =			get_uniform(worldShader, "ambient");
+	worldShader_uniform_light = 			get_uniform(worldShader, "light");
+	worldShader_uniform_light_color = 		get_uniform(worldShader, "lightColor");
+	worldShader_uniform_light_impact = 		get_uniform(worldShader, "lightImpact");
+	worldShader_uniform_light_amt = 		get_uniform(worldShader, "lightSize");
 
 	//glEnable(GL_MULTISAMPLE);
 
@@ -392,7 +372,11 @@ void render() {
     glUseProgram(worldShader);
 	glUniformMatrix4fv(worldShader_uniform_ortho, 1, GL_FALSE, glm::value_ptr(ortho));
 	glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+	
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
+	glUniform1f(worldShader_uniform_ambient, 1.0);
+	glUniform1i(worldShader_uniform_light_amt, 0);
+	glUniform1f(worldShader_uniform_light_impact, 1.0);
 	/**************************
 	**** RENDER STUFF HERE ****
 	**************************/
@@ -406,6 +390,7 @@ void render() {
 
 	// draw the player's inventory
 	player->inv->draw();
+
 
 	// draw the fade overlay
 	ui::drawFade();
