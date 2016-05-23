@@ -330,7 +330,7 @@ void Object::reloadTexture(void)
 }
 
 bool Entity::isNear(const Entity *e) {
-	return pow(e->loc.x - loc.x, 2) + pow(e->loc.y - loc.y, 2) <= pow(HLINES(40), 2);
+	return (e != nullptr) ? (pow(e->loc.x - loc.x, 2) + pow(e->loc.y - loc.y, 2) <= pow(HLINES(40), 2)) : false;
 }
 
 void NPC::drawThingy(void) const
@@ -412,8 +412,9 @@ void Entity::draw(void)
 	} else if (type == MOBT) {
 		if (Mobp(this)->rider != nullptr) {
 			Mobp(this)->rider->loc.x = loc.x + width * 0.25f;
-	        Mobp(this)->rider->loc.y = loc.y + height - game::HLINE;
+	        Mobp(this)->rider->loc.y = loc.y + height - HLINES(5);
 	        Mobp(this)->rider->vel.y = .12;
+			Mobp(this)->rider->z     = z + 0.01;
 	    }
 	}
 	switch(type) {

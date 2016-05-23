@@ -689,6 +689,8 @@ void World::draw(Player *p)
 
 	// flatten grass under the player if the player is on the ground
 	if (p->ground) {
+		pOffset = (p->loc.x + p->width / 2 - worldStart) / HLINE;
+
 		for (unsigned int i = 0; i < worldData.size(); i++)
 			worldData[i].grassUnpressed = !(i < static_cast<unsigned int>(pOffset + 6) && i > static_cast<unsigned int>(pOffset - 6));
 	} else {
@@ -752,6 +754,9 @@ singleDetect(Entity *e)
 
     auto deltaTime = game::time::getDeltaTime();
 
+	if (e == nullptr)
+		return;
+
 	// kill dead entities
 	if (!e->isAlive()) {
         return;
@@ -803,7 +808,9 @@ singleDetect(Entity *e)
         e->handleHits();
 
 		// calculate the line that this entity is currently standing on
-        l = (e->loc.x + e->width / 2 - worldStart) / game::HLINE;
+        l = std::clamp(static_cast<int>((e->loc.x + e->width / 2 - worldStart) / game::HLINE),
+                       0,
+                       static_cast<int>(lineCount));
 
 		// if the entity is under the world/line, pop it back to the surface
 		if (e->loc.y < worldData[l].groundHeight) {
@@ -1040,7 +1047,7 @@ Mob *World::
 getNearMob(Entity &e)
 {
     auto n = std::find_if(std::begin(mob), std::end(mob), [&](Mob *&a) {
-        return e.isNear(a) && (e.left ? (a->loc.x < e.loc.x + e.width / 2) : (a->loc.x > e.loc.x + e.width / 2));
+        return e.isNear(a) && (e.left ? (a->loc.x < e.loc.x + e.width / 2) : (a->loc.x + a->width > e.loc.x + e.width / 2));
     });
 
     return n == std::end(mob) ? nullptr : *n;
@@ -1892,7 +1899,7 @@ World *loadWorldFromPtr(World *ptr)
  */
 World *
 loadWorldFromXMLNoSave(std::string path) {
-	XMLDocument xml;
+XMLDocument currentXMLDoc;
 	XMLElement *wxml;
 	XMLElement *vil;
 
@@ -1909,18 +1916,18 @@ loadWorldFromXMLNoSave(std::string path) {
         return NULL;
 
     currentXML = std::string(xmlFolder + path);
-	xml.LoadFile(currentXML.c_str());
+	currentXMLDoc.LoadFile(currentXML.c_str());
 
     // attempt to load a <World> tag
-	if ((wxml = xml.FirstChildElement("World"))) {
+	if ((wxml = currentXMLDoc.FirstChildElement("World"))) {
 		wxml = wxml->FirstChildElement();
-		vil = xml.FirstChildElement("World")->FirstChildElement("village");
+		vil = currentXMLDoc.FirstChildElement("World")->FirstChildElement("village");
 		tmp = new World();
         Indoor = false;
 	}
 
     // attempt to load an <IndoorWorld> tag
-    else if ((wxml = xml.FirstChildElement("IndoorWorld"))) {
+    else if ((wxml = currentXMLDoc.FirstChildElement("IndoorWorld"))) {
 		wxml = wxml->FirstChildElement();
 		vil = NULL;
 		tmp = new IndoorWorld();
@@ -2079,9 +2086,11 @@ loadWorldFromXMLNoSave(std::string path) {
 	Village *vptr;
 
 	if (vil) {
-		vptr = tmp->addVillage(vil->Attribute("name"), tmp);
+		vptr = tmp->addVillage(vil->StrAttribute("name"), tmp);
 		vil = vil->FirstChildElement();
 	}
+
+	std::cout << currentXML << ' ' << tmp->build.size() << '\n';
 
 	while(vil) {
 		name = vil->Name();

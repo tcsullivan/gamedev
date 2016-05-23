@@ -1011,3 +1011,10 @@
 	- added onHit and onDeath routines to mobs
 	- added mob drops on arena kills
 	- continued work on new renderings
+
+5/23/2016:
+==========
+
+	- fixed grass squishing
+	- player sits on cat better
+	- world shading is good-er

@@ -264,7 +264,6 @@ protected:
 	 * @see addStructure()
 	 * @see getStructurePos()
 	 */
-	std::vector<Structures *> build;
 
 	/**
 	 * A vector of all villages in the world.
@@ -291,6 +290,7 @@ protected:
 
 public:
 
+	std::vector<Structures *> build;
 	/**
 	 * A vector of pointers to all entities from the other vectors.
 	 * This is used to mass-manage entities, or operate on entities

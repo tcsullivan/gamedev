@@ -56,8 +56,7 @@ namespace game {
 		if (datas.size() != 0) {
 			const unsigned int count = datas[0][0] - '0';
 
-			for (unsigned int i = 1; i <= count; i += 2) {
-				std::cout << datas[i] << ' ' << datas[i + 1] << '\n';
+			for (unsigned int i = 1; i <= count * 2; i += 2) {
 				brice.emplace(std::make_pair(datas[i], datas[i + 1]));
 			}
 		}
