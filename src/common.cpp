@@ -174,6 +174,39 @@ const char *readFile(const char *path)
 	return buf;
 }
 
+std::string readFile(const std::string& path)
+{
+	std::ifstream in (path, std::ios::in);
+	std::string buffer;
+
+	if (!in.is_open())
+		UserError("Error reading file " + path);
+
+	in.seekg(0, in.end);
+	buffer.reserve(in.tellg());
+	in.seekg(0, in.beg);
+	in.read(&buffer[0], buffer.size());
+
+	in.close();
+	return buffer;
+}
+
+std::vector<std::string> readFileA(const std::string& path)
+{
+	std::ifstream in (path, std::ios::in);
+	std::vector<std::string> lines;
+	std::string line;
+
+	if (!in.is_open())
+		UserError("Error reading file " + path);
+
+	while(std::getline(in, line))
+		lines.push_back(line);
+
+	in.close();
+	return lines;
+}
+
 void UserError(std::string reason)
 {
     std::cout << "User error: " << reason << "!\n";

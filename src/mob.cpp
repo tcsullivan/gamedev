@@ -10,6 +10,7 @@ Mob::Mob(void)
     type = MOBT;
 	inv = nullptr;
     rider = nullptr;
+	xmle = nullptr;
     canMove = true;
 	loc = 0;
 }
@@ -53,8 +54,9 @@ bool Page::bindTex(void)
     return true;
 }
 
-void Page::createFromXML(const XMLElement *e)
+void Page::createFromXML(XMLElement *e, World *w=nullptr)
 {
+	(void)w;
     float Xlocx;
     if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
         loc.x = Xlocx;
@@ -91,8 +93,9 @@ bool Door::bindTex(void)
     return true;
 }
 
-void Door::createFromXML(const XMLElement *e)
+void Door::createFromXML(XMLElement *e, World *w=nullptr)
 {
+	(void)w;
     float Xlocx;
     if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
         loc.x = Xlocx;
@@ -148,8 +151,9 @@ bool Cat::bindTex(void)
     return true;
 }
 
-void Cat::createFromXML(const XMLElement *e)
+void Cat::createFromXML(XMLElement *e, World *w=nullptr)
 {
+	(void)w;
     float Xlocx;
     if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
         loc.x = Xlocx;
@@ -203,15 +207,19 @@ bool Rabbit::bindTex(void)
     return true;
 }
 
-void Rabbit::createFromXML(const XMLElement *e)
+void Rabbit::createFromXML(XMLElement *e, World *w=nullptr)
 {
+	(void)w;
     float Xlocx, Xhealth;
     if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
         loc.x = Xlocx;
     if (e->QueryFloatAttribute("health", &Xhealth) == XML_NO_ERROR)
         maxHealth = health = Xhealth;
-    if (e->QueryBoolAttribute("aggressive", &aggressive) != XML_NO_ERROR)
+    if (e->QueryBoolAttribute("aggressive", &aggressive) != XML_NO_ERROR) {
         aggressive = false;
+	}
+
+	xmle = e;
 }
 
 Bird::Bird(void) : Mob()
@@ -257,8 +265,9 @@ bool Bird::bindTex(void)
     return true;
 }
 
-void Bird::createFromXML(const XMLElement *e)
+void Bird::createFromXML(XMLElement *e, World *w=nullptr)
 {
+	(void)w;
     float Xlocx, Xhealth;
     if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
         loc.x = Xlocx;
@@ -333,8 +342,9 @@ bool Trigger::bindTex(void)
     return false;
 }
 
-void Trigger::createFromXML(const XMLElement *e)
+void Trigger::createFromXML(XMLElement *e, World *w=nullptr)
 {
+	(void)w;
     float Xlocx;
     if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
         loc.x = Xlocx;
@@ -344,7 +354,6 @@ void Trigger::createFromXML(const XMLElement *e)
 Mob::~Mob()
 {
 	delete inv;
-	delete[] name;
 }
 
 extern World *currentWorld;

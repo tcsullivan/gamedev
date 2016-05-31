@@ -226,33 +226,38 @@ int main(int argc, char *argv[]){
 	// load mouse texture, and other inventory textures
 	mouseTex = Texture::loadTexture("assets/mouse.png");
 
-	// read in all XML file names in the folder
-	std::vector<std::string> xmlFiles;
+	// spawn the player
+	player = new Player();
+	player->sspawn(0,100);
+
+	// get a world
 	if (xmlFolder.empty())
 		xmlFolder = "xml/";
-	if (getdir(std::string("./" + xmlFolder).c_str(), xmlFiles))
-		UserError("Error reading XML files!!!");
 
-	// alphabetically sort files
-	strVectorSortAlpha(&xmlFiles);
+	if (currentWorld == nullptr) {
+		// read in all XML file names in the folder
+		std::vector<std::string> xmlFiles;
+		if (getdir(std::string("./" + xmlFolder).c_str(), xmlFiles))
+			UserError("Error reading XML files!!!");
 
-	// load the first valid XML file for the world
-	for (const auto &xf : xmlFiles) {
-		if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
-			// read it in
-			std::cout << "File to load: " << xf << '\n';
-			currentWorld = loadWorldFromXML(xf);
-			break;
+		// alphabetically sort files
+		strVectorSortAlpha(&xmlFiles);
+
+		// load the first valid XML file for the world
+		for (const auto &xf : xmlFiles) {
+			if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
+				// read it in
+				std::cout << "File to load: " << xf << '\n';
+				currentWorld = loadWorldFromXML(xf);
+				break;
+			}
 		}
 	}
 
 	// make sure the world was made
-	if (currentWorld == NULL)
+	if (currentWorld == nullptr)
 		UserError("Plot twist: The world never existed...?");
 
-	// spawn the player
-	player = new Player();
-	player->sspawn(0,100);
 	ui::menu::init();
 	currentWorld->bgmPlay(nullptr);
 
@@ -385,7 +390,7 @@ void render() {
 	 * Call the world's draw function, drawing the player, the world, the background, and entities. Also
 	 * draw the player's inventory if it exists.
 	 */
-	//player->near = true; // allow player's name to be drawn
+	player->near = true; // allow player's name to be drawn
 	currentWorld->draw(player);
 
 	// draw the player's inventory

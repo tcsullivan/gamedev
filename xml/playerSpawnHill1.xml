@@ -1,39 +1,33 @@
 <?xml version="1.0"?>
 <World>
-	<style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/" />
-	<generation type="Random" width="500" />
-	<link right="playerSpawnHill2.xml" />
-	<time>12000</time>
-
-	<hill peakx="0" peaky="1000" width="50" />
-
-	<rabbit x="300" aggressive="false" health="100" />
-	<bird y="500"/>
-	<cat />
-
-	<trigger x="-300" id="Test" />
-
-	<npc name="Ralph" hasDialog="true" x="300" />
-	<npc name="Johnny" hasDialog="false" x="300" />
-	<npc name="Big Dave" hasDialog="true" x="300" />
-
-	<page x="-200" id="assets/pages/gootaGoFast.png" cid="canSprint" cvalue="1" />
-	<page x="-500" id="assets/pages/gootaJump.png" cid="canJump" cvalue="1" />
-
-	<village name="Big Dave's bagel emporium! The greatest place on earth!">
-		<structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
-		<structure type="5" x="-500" />
-		<stall type="market" texture="assets/style/classic/stall.png">
-			<text>
-				<greet>Welcome to Smithy's! What would you like to purchase today?</greet>
-				<accept>Thanks!</accept>
-				<deny>Come back with more money to get this item!</deny>
-				<leave>Have a great day, and watch out for my rabbit Mr. Cuddles, he might try to attack you.</leave>
-			</text>
-			<trade quantity="420" item="Dank MayMay" quantity1="1" item1="Wood Sword"/>
-			<trade quantity="666" item="Wood Sword" quantity1="420" item1="Dank MayMay"/>
-		</stall>
-	</village>
+    <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
+    <generation type="Random" width="500"/>
+    <link right="playerSpawnHill2.xml"/>
+    <time>12000</time>
+    <hill peakx="0" peaky="1000" width="50"/>
+    <rabbit x="300" aggressive="false" health="100" alive="0"/>
+    <bird y="500"/>
+    <cat/>
+    <trigger x="-300" id="Test"/>
+    <npc name="Ralph" hasDialog="true" x="300"/>
+    <npc name="Johnny" hasDialog="false" x="300"/>
+    <npc name="Big Dave" hasDialog="true" x="300"/>
+    <page x="-200" id="assets/pages/gootaGoFast.png" cid="canSprint" cvalue="1"/>
+    <page x="-500" id="assets/pages/gootaJump.png" cid="canJump" cvalue="1"/>
+    <village name="Big Dave&apos;s bagel emporium! The greatest place on earth!">
+        <structure type="0" x="-300" inside="playerSpawnHill1_Building1.xml"/>
+        <structure type="5" x="-500"/>
+        <stall type="market" texture="assets/style/classic/stall.png">
+            <text>
+                <greet>Welcome to Smithy's! What would you like to purchase today?</greet>
+                <accept>Thanks!</accept>
+                <deny>Come back with more money to get this item!</deny>
+                <leave>Have a great day, and watch out for my rabbit Mr. Cuddles, he might try to attack you.</leave>
+            </text>
+            <trade quantity="420" item="Dank MayMay" quantity1="1" item1="Wood Sword"/>
+            <trade quantity="666" item="Wood Sword" quantity1="420" item1="Dank MayMay"/>
+        </stall>
+    </village>
 </World>
 
 <Trigger id="Test">It was a dark and stormy night...
@@ -42,49 +36,39 @@ And it wasn't stormy.
 ...</Trigger>
 
 <Dialog name="Ralph">
-
-	<text id="0" nextid="1">
+    <text id="0" nextid="1">
 		Hello there! My name is Ralph.
-		<gotox>300</gotox>
-	</text>
-
-	<text id="1" nextid="2" call="Johnny" callid="0" pause="true" >
+		        <gotox>300</gotox>
+    </text>
+    <text id="1" nextid="2" call="Johnny" callid="0" pause="true">
 		You should go talk to my friend Johnny. He's a pretty chill dude.
 	</text>
-
-	<text id="2" >
+    <text id="2">
 		Niice.
-		<quest check="Your First Quest" fail="3" />
-	</text>
-
-	<text id="3">
+		        <quest check="Your First Quest" fail="3"/></text>
+    <text id="3">
 		Go check out Johnny. He's cool.
 	</text>
 </Dialog>
 
 <Dialog name="Johnny">
-	<text id="0" nextid="1" pause="true" >
+    <text id="0" nextid="1" pause="true">
 		Sup bro! Have a quest. To complete it, just go talk to Ralph again.
-		<quest assign="Your First Quest" >
+		        <quest assign="Your First Quest">
 			Dank MayMay,2
 			Wood Sword,1
 		</quest>
-	</text>
-
-	<text id="1" nextid="1" pause="true" >
+    </text>
+    <text id="1" nextid="1" pause="true">
 		Broooooooooooooo...
 	</text>
 </Dialog>
 
 <Dialog name="Big Dave">
-	<text id="0" pause="true">
+    <text id="0" pause="true">
 		Hey friend! It's dangerous out there, here take these!
 
 
 		Wait, promise you'll stop by my stand in the local market!
-		<give id="Wood Sword" count="1"/>
-		<give id="Hunters Bow" count="1"/>
-		<give id="Crude Arrow" count="110"/>
-		<give id="Fried Chicken" count="1"/>
-	</text>
+		        <give id="Wood Sword" count="1"/>        <give id="Hunters Bow" count="1"/>        <give id="Crude Arrow" count="110"/>        <give id="Fried Chicken" count="1"/></text>
 </Dialog>

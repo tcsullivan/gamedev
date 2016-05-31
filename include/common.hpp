@@ -265,6 +265,8 @@ void strVectorSortAlpha(std::vector<std::string> *v);
 
 // reads the given file into a buffer and returns a pointer to the buffer
 const char *readFile(const char *path);
+std::string readFile(const std::string& path);
+std::vector<std::string> readFileA(const std::string& path);
 
 // aborts the program, printing the given error
 void UserError(std::string reason);

@@ -15,7 +15,7 @@
  * This enum contains all different possibilities for world backgrounds; used
  * in World::setBackground() to select the appropriate images.
  */
-enum class WorldBGType : unsigned char {
+enum class WorldBGType : unsigned int {
 	Forest,		/**< A forest theme. */
 	WoodHouse	/**< An indoor wooden house theme. */
 };
@@ -465,14 +465,14 @@ public:
 
 	void addMob(Mob *m, vec2 coord);
 
-	void addNPC(float x, float y);
+	void addNPC(NPC *n);
 
 	void addObject(std::string in, std::string pickupDialog, float x, float y);
 
 	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int dur);
 	void addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int dur, unsigned char flags);
 
-	void addStructure(BUILD_SUB subtype, float x, float y, std::string tex, std::string inside);
+	void addStructure(Structures *s);
 
 	Village *addVillage(std::string name, World *world);
 };
@@ -549,6 +549,12 @@ public:
 };
 
 /**
+ * Constructs an XML object for accessing/modifying the current world's XML
+ * file.
+ */
+const XMLDocument& loadWorldXML(void);
+
+/**
  * Loads the player into the world created by the given XML file. If a world is
  * already loaded it will be saved before the transition is made.
  */
@@ -560,8 +566,16 @@ World *loadWorldFromXML(std::string path);
  */
 World *loadWorldFromXMLNoSave(std::string path);
 
+/**
+ * Loads a world using a pointer to the current world (used for loading adjacent
+ * worlds that have already been read into memory.
+ */
 World *loadWorldFromPtr(World *ptr);
 
+/**
+ * Casts a normal world to an indoor world, to access IndoorWorld-exclusive
+ * elements.
+ */
 constexpr IndoorWorld *Indoorp(World *w)
 {
     return (IndoorWorld *)w;

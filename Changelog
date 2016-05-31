@@ -1018,3 +1018,12 @@
 	- fixed grass squishing
 	- player sits on cat better
 	- world shading is good-er
+
+5/31/2016:
+==========
+
+	- fixed name generation-er
+	- move random dialogs to file
+	- entitys can modify their XMLs
+	- 'alive' XML attribute works
+	- lighting's pretty neat
