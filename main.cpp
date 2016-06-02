@@ -295,8 +295,10 @@ int main(int argc, char *argv[]){
 		}
 	}).detach();
 
-	while (gameRunning)
+	while (gameRunning) {
 		render();
+		ui::handleEvents();
+	}
 
 	// put away the brice for later
 	game::briceSave();
@@ -327,7 +329,7 @@ void mainLoop(void){
 		return;
 	} else {
 		// handle keypresses - currentWorld could change here
-		ui::handleEvents();
+		//ui::handleEvents();
 
 		if (game::time::tickHasPassed())
 			logic();
@@ -359,8 +361,8 @@ void render() {
 										floor(offset.x+SCREEN_WIDTH/2), 	//right
 										floor(offset.y-SCREEN_HEIGHT/2), 	//bottom
 										floor(offset.y+SCREEN_HEIGHT/2), 	//top
-										10.0f,								//near
-										-10.0f);							//far
+										10.0,								//near
+										-10.0);							//far
 
 	glm::mat4 view = glm::lookAt(glm::vec3(0,0,0.0f),  //pos
 								 glm::vec3(0,0,-10.0f), //looking at

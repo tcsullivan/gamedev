@@ -712,12 +712,12 @@ void World::draw(Player *p)
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
 
-    uint ps = particles.size();
+    uint ps = 0;particles.size();
     uint pss = ps * 6 * 5;	
-	uint pc = 0;
+	//uint pc = 0;
 	
 	std::vector<GLfloat> partVec(pss);
-	GLfloat *pIndex = &partVec[0];
+	/*GLfloat *pIndex = &partVec[0];
    
 	for (const auto &p : particles) {
         pc += 30;
@@ -727,7 +727,7 @@ void World::draw(Player *p)
 			break;
 		}
 		p.draw(pIndex);
-    }
+    }*/
 
     glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
     glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[3]);
@@ -2193,15 +2193,15 @@ loadWorldFromXMLNoSave(std::string path) {
 		vil = vil->NextSiblingElement();
 	}
 
-	std::ifstream dat ((_currentXML + ".dat").data());
-	if (dat.good()) {
-		dat.close();
-		tmp->load();
-	}
-
 	if (!loadedLeft && !loadedRight) {
 		currentXML = _currentXML;
 		currentXMLRaw = _currentXMLRaw;
+		
+		std::ifstream dat ((_currentXML + ".dat").data());
+		if (dat.good()) {
+			dat.close();
+			tmp->load();
+		}
 	} else {
 		delete _currentXMLDoc;
 	}

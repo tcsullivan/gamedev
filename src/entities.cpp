@@ -133,10 +133,10 @@ void Entity::die(void)
 	alive = false;
 	health = 0;
 
-	if (xmle) {
+	/*if (xmle) {
 		xmle->SetAttribute("alive", false);
 		currentXMLDoc.SaveFile(currentXML.c_str(), false);
-	}
+	}*/
 }
 
 bool Entity::isAlive(void) const
