@@ -311,7 +311,7 @@ void World::drawBackgrounds(void)
 
 		
 	static GLuint starTex = Texture::genColor(Color(255, 255, 255));
-	const static float stardim = 2;
+	constexpr const static float stardim = 2;
 	GLfloat star_coord[star.size() * 5 * 6 + 1];
     GLfloat *si = &star_coord[0];		
 
@@ -718,15 +718,15 @@ void World::draw(Player *p)
 	
 	std::vector<GLfloat> partVec(pss);
 	GLfloat *pIndex = &partVec[0];
-    
-	for (uint p = 0; p < ps; p++) {
+   
+	for (const auto &p : particles) {
         pc += 30;
 		if (pc > pss) {
 			// TODO resize the vector or something better than breaking
-			std::cout << "Whoops:" << pc << "," << partVec.size() << std::endl;
+			//std::cout << "Whoops:" << pc << "," << partVec.size() << std::endl;
 			break;
 		}
-		particles[p].draw(pIndex);
+		p.draw(pIndex);
     }
 
     glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
@@ -896,6 +896,7 @@ detect(Player *p)
 							2500												// duration (ms)
 							);
 				particles.back().fountain = true;
+				particles.back().stu = b;
 			}
 			break;
 		case FIRE_PIT:
@@ -911,6 +912,7 @@ detect(Player *p)
 							);
 				particles.back().gravity = false;
 				particles.back().behind  = true;
+				particles.back().stu = b;
 			}
 			break;
 		default:
@@ -968,25 +970,20 @@ update(Player *p, unsigned int delta, unsigned int ticks)
         }
 	}
     // iterate through particles
-    particles.erase(std::remove_if(particles.begin(), particles.end(), [&delta](Particles &part) {
-                        return part.kill(delta);
-                    }),
-                    particles.end());
+    particles.remove_if([](const Particles &part) {
+		return part.duration <= 0;
+    });
 
-    for (auto part = particles.begin(); part != particles.end(); part++) {
-        auto pa = *part;
+    for (auto &pa : particles) {
+		if (pa.canMove) { // causes overhead
+			pa.loc.y += pa.vel.y * delta;
+			pa.loc.x += pa.vel.x * delta;
 
-		if (pa.canMove) {
-			(*part).loc.y += pa.vel.y * delta;
-			(*part).loc.x += pa.vel.x * delta;
-
-            if (std::any_of(std::begin(build), std::end(build), [pa](const Structures *s) {
-                    return (s->bsubtype == FOUNTAIN) &&
-                           (pa.loc.x >= s->loc.x) && (pa.loc.x <= s->loc.x + s->width) &&
-                           (pa.loc.y <= s->loc.y + s->height * 0.25f);
-                })) {
-                particles.erase(part);
-            }
+			if (pa.stu != nullptr) {
+				if (pa.loc.x >= pa.stu->loc.x && pa.loc.x <= pa.stu->loc.x + pa.stu->width &&
+				    pa.loc.y <= pa.stu->loc.y + pa.stu->height * 0.25f)
+					pa.duration = 0;
+			}
 		}
 	}
 

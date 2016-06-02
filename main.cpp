@@ -25,7 +25,7 @@ using namespace tinyxml2;
 ** --------------------------------------------------------------------------*/
 
 // the game's window title name
-constexpr const char *GAME_NAME = "Independent Study v0.7 alpha - NOW WITH lights and snow and stuff";
+constexpr const char *GAME_NAME = "Independent Study v0.8 alpha - NOW WITH decent shaders";
 
 // SDL's window object
 SDL_Window *window = NULL;
@@ -89,6 +89,15 @@ GLuint mouseTex;
 
 // the center of the screen
 vec2 offset;
+
+/*
+ * fps contains the game's current FPS, debugY contains the player's
+ * y coordinates, updated at a certain interval. These are used in
+ * the debug menu (see below).
+ */
+
+static unsigned int fps=0;
+static float debugY=0;
 
 // handles all logic operations
 void logic(void);
@@ -270,8 +279,20 @@ int main(int argc, char *argv[]){
 	// the main loop, in all of its gloriousness..
 	gameRunning = true;
 	std::thread([&]{
-		while (gameRunning)
+		while (gameRunning) {
 			mainLoop();
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+	}).detach();
+
+	// the debug loop, gets debug screen values
+	std::thread([&]{
+		while (gameRunning) {	
+			fps = 1000 / game::time::getDeltaTime();
+			debugY = player->loc.y;
+
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+		}
 	}).detach();
 
 	while (gameRunning)
@@ -299,18 +320,7 @@ int main(int argc, char *argv[]){
     return 0; // Calls everything passed to atexit
 }
 
-/*
- * fps contains the game's current FPS, debugY contains the player's
- * y coordinates, updated at a certain interval. These are used in
- * the debug menu (see below).
- */
-
-static unsigned int fps=0;
-static float debugY=0;
-
 void mainLoop(void){
-	static unsigned int debugDiv=0;			// A divisor used to update the debug menu if it's open
-
 	game::time::mainLoopHandler();
 
 	if (currentMenu) {
@@ -324,16 +334,7 @@ void mainLoop(void){
 
 		currentWorld->update(player, game::time::getDeltaTime(), game::time::getTickCount());
 		currentWorld->detect(player);
-
-		if (++debugDiv == 20) {
-			debugDiv=0;
-
-			fps = 1000 / game::time::getDeltaTime();
-			debugY = player->loc.y;
-		}
 	}
-
-	SDL_Delay(1);
 }
 
 void render() {
@@ -354,10 +355,10 @@ void render() {
 	offset.y = std::max(player->loc.y + player->height / 2, SCREEN_HEIGHT / 2.0f);
 
 	// "setup"
-	glm::mat4 projection = glm::ortho(	static_cast<float>(floor(offset.x-SCREEN_WIDTH/2)), 	//left
-										static_cast<float>(floor(offset.x+SCREEN_WIDTH/2)), 	//right
-										static_cast<float>(floor(offset.y-SCREEN_HEIGHT/2)), 	//bottom
-										static_cast<float>(floor(offset.y+SCREEN_HEIGHT/2)), 	//top
+	glm::mat4 projection = glm::ortho(	floor(offset.x-SCREEN_WIDTH/2), 	//left
+										floor(offset.x+SCREEN_WIDTH/2), 	//right
+										floor(offset.y-SCREEN_HEIGHT/2), 	//bottom
+										floor(offset.y+SCREEN_HEIGHT/2), 	//top
 										10.0f,								//near
 										-10.0f);							//far
 
@@ -390,7 +391,7 @@ void render() {
 	 * Call the world's draw function, drawing the player, the world, the background, and entities. Also
 	 * draw the player's inventory if it exists.
 	 */
-	player->near = true; // allow player's name to be drawn
+	//player->near = true; // allow player's name to be drawn
 	currentWorld->draw(player);
 
 	// draw the player's inventory

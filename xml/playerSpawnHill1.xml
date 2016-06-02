@@ -8,7 +8,7 @@
     <rabbit x="300" aggressive="false" health="100" alive="0"/>
     <bird y="500"/>
     <cat/>
-    <trigger x="-300" id="Test"/>
+    <!--<trigger x="-300" id="Test"/>-->
     <npc name="Ralph" hasDialog="true" x="300"/>
     <npc name="Johnny" hasDialog="false" x="300"/>
     <npc name="Big Dave" hasDialog="true" x="300"/>

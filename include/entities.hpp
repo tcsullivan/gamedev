@@ -107,64 +107,6 @@ extern const unsigned int NPC_INV_SIZE;
 class World;
 
 /**
- * The particle class, handles a single particle.
- */
-class Particles{
-public:
-	// the location of the particle
-	vec2 loc;
-	float zOffset;
-
-	// the width of the particle, in pixels
-	float width;
-
-	// the height of the particle, in pixels
-	float height;
-
-	// the velocity of the particle, in pixels
-	vec2 vel;
-
-	// the color of the particle
-	Color color;
-
-	// TODO
-	vec2 index;
-
-	// the amount of milliseconds left for the particle to live
-	float duration;
-
-	// when true, the particle will move
-	bool canMove;
-
-	// TODO
-	bool fountain;
-
-	// when true, the particle will be affected by gravity
-	bool gravity;
-
-	// when true, draws the particle behind structures
-	bool behind;
-
-	// when true, the particle will bounce on impact with ground
-	bool bounce;
-
-	// creates a particle with the desired characteristics
-	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d);
-
-	// allows the particle to be destroyed
-	~Particles(void){}
-
-	// draws the particle
-	void draw(GLfloat*& p) const;
-
-	// updates a particle
-	void update(float _gravity, float ground_y);
-
-	// returns true if the particle should be killed
-	bool kill(float delta);
-};
-
-/**
  * The entity class.
  * This class contains common functions and variables for all types of
  * entities, i.e. a common structure.
@@ -431,6 +373,66 @@ public:
 	}
 	
 	void createFromXML(XMLElement *e);
+};
+
+/**
+ * The particle class, handles a single particle.
+ */
+class Particles{
+public:
+	// the location of the particle
+	vec2 loc;
+	float zOffset;
+
+	// the width of the particle, in pixels
+	float width;
+
+	// the height of the particle, in pixels
+	float height;
+
+	// the velocity of the particle, in pixels
+	vec2 vel;
+
+	// the color of the particle
+	Color color;
+
+	// TODO
+	vec2 index;
+
+	// the amount of milliseconds left for the particle to live
+	float duration;
+
+	// when true, the particle will move
+	bool canMove;
+
+	// TODO
+	bool fountain;
+
+	// when true, the particle will be affected by gravity
+	bool gravity;
+
+	// when true, draws the particle behind structures
+	bool behind;
+
+	// when true, the particle will bounce on impact with ground
+	bool bounce;
+
+	Structures *stu;
+
+	// creates a particle with the desired characteristics
+	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d);
+
+	// allows the particle to be destroyed
+	~Particles(void){}
+
+	// draws the particle
+	void draw(GLfloat*& p) const;
+
+	// updates a particle
+	void update(float _gravity, float ground_y);
+
+	// returns true if the particle should be killed
+	bool timeUp(void);
 };
 
 #include <mob.hpp>

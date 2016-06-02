@@ -941,11 +941,12 @@ Particles::Particles(float x, float y, float w, float h, float vx, float vy, Col
 	bounce = false;
 	index = Texture::getIndex(c);
 	zOffset = ((rand()%20)-10)/1000.0f;
+	stu = nullptr;
 }
 
 void Particles::draw(GLfloat*& p) const
 {
-	vec2 tc = vec2(0.25f * this->index.x, 0.125f * (8.0f - this->index.y));
+	vec2 tc = vec2(0.25f * index.x, 0.125f * (8.0f - index.y));
 
     float z = 0.9;
 	if (behind)
@@ -1004,6 +1005,8 @@ void Particles::draw(GLfloat*& p) const
 
 void Particles::update(float _gravity, float ground_y)
 {
+	auto delta = game::time::getDeltaTime();
+
 	// handle ground collision
 	if (loc.y < ground_y) {
 		loc.y = ground_y;
@@ -1020,13 +1023,16 @@ void Particles::update(float _gravity, float ground_y)
 
 	// handle gravity
 	else if (gravity && vel.y > -1.0f) {
-		vel.y -= _gravity * game::time::getDeltaTime();
+		vel.y -= _gravity * delta;
 	}
+
+	// handle lifetime
+	duration -= delta;
 }
 
-bool Particles::kill(float delta)
+bool Particles::timeUp(void)
 {
-	return (duration -= delta) <= 0;
+	return !(duration > 0);
 }
 
 void Player::save(void) {

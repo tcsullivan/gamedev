@@ -256,7 +256,7 @@ protected:
 	 *
 	 * @see addParticle()
 	 */
-	std::vector<Particles>    particles;
+	std::list<Particles>    particles;
 
 	/**
 	 * A vector of all structures in the world.
