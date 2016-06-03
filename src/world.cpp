@@ -718,7 +718,7 @@ void World::draw(Player *p)
 	
 	std::vector<GLfloat> partVec(pss);
 	GLfloat *pIndex = &partVec[0];
-   
+
 	for (const auto &p : particles) {
         pc += 30;
 		if (pc > pss) {
@@ -1487,14 +1487,14 @@ addObject(std::string in, std::string p, float x, float y)
 void World::
 addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d)
 {
-	particles.emplace_back(x, y, w, h, vx, vy, color, d);
+	particles.push_back(Particles(x, y, w, h, vx, vy, color, d));
 	particles.back().canMove = true;
 }
 
 void World::
 addParticle(float x, float y, float w, float h, float vx, float vy, Color color, int d, unsigned char flags)
 {
-	particles.emplace_back(x, y, w, h, vx, vy, color, d);
+	particles.push_back(Particles(x, y, w, h, vx, vy, color, d));
 	particles.back().canMove = true;
     particles.back().gravity = flags & (1 << 0);
     particles.back().bounce  = flags & (1 << 1);

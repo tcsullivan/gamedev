@@ -419,6 +419,8 @@ public:
 
 	Structures *stu;
 
+	Particles(void){}
+
 	// creates a particle with the desired characteristics
 	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d);
 

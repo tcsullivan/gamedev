@@ -9,6 +9,7 @@
 // local game includes
 #include <common.hpp>
 #include <entities.hpp>
+#include <coolarray.hpp>
 
 /**
  * The background type enum.
@@ -256,7 +257,7 @@ protected:
 	 *
 	 * @see addParticle()
 	 */
-	std::list<Particles>    particles;
+	CoolArray<Particles>    particles;
 
 	/**
 	 * A vector of all structures in the world.

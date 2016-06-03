@@ -1027,3 +1027,11 @@
 	- entitys can modify their XMLs
 	- 'alive' XML attribute works
 	- lighting's pretty neat
+
+6/3/2016:
+=========
+
+	- majorly improved particle handling, made CoolArray
+	- found bugs in quest handling...
+	- making lights and stars n stuff goood
+	- story??? art??? music???
