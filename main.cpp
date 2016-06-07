@@ -295,8 +295,10 @@ int main(int argc, char *argv[]){
 		}
 	}).detach();
 
-	while (gameRunning)
+	while (gameRunning) {
 		render();
+		ui::handleEvents();
+	}
 
 	// put away the brice for later
 	game::briceSave();
@@ -327,7 +329,7 @@ void mainLoop(void){
 		return;
 	} else {
 		// handle keypresses - currentWorld could change here
-		ui::handleEvents();
+		//ui::handleEvents();
 
 		if (game::time::tickHasPassed())
 			logic();

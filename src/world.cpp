@@ -718,7 +718,7 @@ void World::draw(Player *p)
 	
 	std::vector<GLfloat> partVec(pss);
 	GLfloat *pIndex = &partVec[0];
-
+  
 	for (const auto &p : particles) {
         pc += 30;
 		if (pc > pss) {
@@ -2193,15 +2193,15 @@ loadWorldFromXMLNoSave(std::string path) {
 		vil = vil->NextSiblingElement();
 	}
 
-	std::ifstream dat ((_currentXML + ".dat").data());
-	if (dat.good()) {
-		dat.close();
-		tmp->load();
-	}
-
 	if (!loadedLeft && !loadedRight) {
 		currentXML = _currentXML;
 		currentXMLRaw = _currentXMLRaw;
+		
+		std::ifstream dat ((_currentXML + ".dat").data());
+		if (dat.good()) {
+			dat.close();
+			tmp->load();
+		}
 	} else {
 		delete _currentXMLDoc;
 	}
