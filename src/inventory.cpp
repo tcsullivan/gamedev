@@ -91,6 +91,11 @@ void items(void)
 
 			ItemMap.push_back(new Food());
 
+		// light
+		} else if (strCaseCmp(name, "light")) {
+				
+			ItemMap.push_back(new ItemLight());
+
 		// if type was not specified make it a base item
 		} else {
 
@@ -98,7 +103,9 @@ void items(void)
 		}
 
 		// set how much of the item we can stack
-		ItemMap.back()->maxStackSize = exml->UnsignedAttribute("maxStackSize");
+		if(exml->QueryUnsignedAttribute("maxStackSize", &ItemMap.back()->maxStackSize) != XML_NO_ERROR) {
+			ItemMap.back()->maxStackSize = 1;
+		}
 
 		// set all of the texture frames we can use
 		ItemMap.back()->tex = new Texturec(1, exml->Attribute("sprite"));

@@ -459,7 +459,7 @@ public:
 	void addHill(ivec2 peak, unsigned int width);
 
 	// functions to add entities to the world
-	void addLight(vec2 xy, Color color);
+	void addLight(vec2 xy, float radius, Color color);
 
 	void addMerchant(float x, float y, bool housed);
 

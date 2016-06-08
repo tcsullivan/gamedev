@@ -76,6 +76,9 @@ public:
 
 		return textures[index].second;
 	}
+	const dim2 getTextureDim(void) {
+		return Texture::imageDim((*position).second);
+	}
 };
 
 /**

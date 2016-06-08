@@ -86,5 +86,6 @@ And it wasn't stormy.
 		<give id="Hunters Bow" count="1"/>
 		<give id="Crude Arrow" count="110"/>
 		<give id="Fried Chicken" count="1"/>
+		<give id="Mossy Torch"	count="1"/>
 	</text>
 </Dialog>

@@ -1397,19 +1397,19 @@ EXIT:
 					heyOhLetsGo = 0;
 					break;
 				case SDLK_l:
-					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
-					//currentWorld->getLastLight()->follow(player);
+					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});
+					currentWorld->getLastLight()->follow(player);
 					currentWorld->getLastLight()->makeFlame();
 					break;
 				case SDLK_f:
-					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
+					currentWorld->addLight({player->loc.x, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});
 					break;
 				case SDLK_b:
 					if (debug)
 						posFlag ^= true;
 					else {
 						currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
-						currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y},{1.0f,1.0f,1.0f});
+						currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 400.0f, {1.0f,1.0f,1.0f});
 						//currentWorld->getLastLight()->follow(currentWorld->build.back());
 						currentWorld->getLastLight()->makeFlame();
 					}

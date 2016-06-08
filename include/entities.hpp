@@ -400,7 +400,8 @@ public:
 	float fireFlicker;
 	vec2 fireLoc;
 
-	Light(vec2 l, Color c, float r){
+	Light(vec2 l, float r, Color c)
+	{
 		loc = l;
 		color = c;
 		radius = r;
@@ -411,7 +412,14 @@ public:
 		flame = false;
 	}
 
-	void makeFlame(void){
+	void follow(Entity *f)
+	{
+		following = f;
+		belongsTo = true;
+	}
+
+	void makeFlame(void)
+	{
 		flame = true;
 	}
 };

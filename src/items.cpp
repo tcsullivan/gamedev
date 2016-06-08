@@ -158,6 +158,11 @@ int Food::useItem()
 	return 0;
 }
 
+int ItemLight::useItem()
+{
+	std::cout << "fsdfsdf" << std::endl;
+	return 0;
+}
 
 /**************************************************
 *                       CLONE                     *
@@ -193,6 +198,10 @@ RawFood* RawFood::clone()
 	return new RawFood(*this);
 }
 
+ItemLight* ItemLight::clone()
+{
+	return new ItemLight(*this);
+}
 /************************************************************************************
 *                                    ITEM SPECIFIC                                  *
 ************************************************************************************/
