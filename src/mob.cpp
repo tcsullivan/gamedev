@@ -65,7 +65,12 @@ void Page::createFromXML(XMLElement *e, World *w=nullptr)
 
 	cId = e->StrAttribute("cid");
 	cValue = e->StrAttribute("cvalue");
+
+	xmle = e;
 }
+
+void Page::saveToXML(void)
+{}
 
 Door::Door(void) : Mob()
 {
@@ -100,6 +105,9 @@ void Door::createFromXML(XMLElement *e, World *w=nullptr)
     if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
         loc.x = Xlocx;
 }
+
+void Door::saveToXML(void)
+{}
 
 Cat::Cat(void) : Mob()
 {
@@ -154,9 +162,23 @@ bool Cat::bindTex(void)
 void Cat::createFromXML(XMLElement *e, World *w=nullptr)
 {
 	(void)w;
-    float Xlocx;
-    if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
-        loc.x = Xlocx;
+    float spawnc;
+
+    if (e->QueryFloatAttribute("x", &spawnc) == XML_NO_ERROR)
+        loc.x = spawnc;
+	else
+		loc.x = e->FloatAttribute("spawnx");
+
+	if (e->QueryFloatAttribute("y", &spawnc) == XML_NO_ERROR)
+		loc.y = spawnc;
+
+	xmle = e;
+}
+
+void Cat::saveToXML(void)
+{
+	E_SAVE_COORDS;
+	xmle->SetAttribute("alive", alive);
 }
 
 Rabbit::Rabbit(void) : Mob()
@@ -210,16 +232,27 @@ bool Rabbit::bindTex(void)
 void Rabbit::createFromXML(XMLElement *e, World *w=nullptr)
 {
 	(void)w;
-    float Xlocx, Xhealth;
-    if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
-        loc.x = Xlocx;
-    if (e->QueryFloatAttribute("health", &Xhealth) == XML_NO_ERROR)
-        maxHealth = health = Xhealth;
-    if (e->QueryBoolAttribute("aggressive", &aggressive) != XML_NO_ERROR) {
-        aggressive = false;
-	}
+    float spawnc;
 
 	xmle = e;
+
+    if (e->QueryFloatAttribute("x", &spawnc) == XML_NO_ERROR)
+        loc.x = spawnc;
+	else
+		loc.x = e->FloatAttribute("spawnx");
+
+	if (e->QueryFloatAttribute("y", &spawnc) == XML_NO_ERROR)
+		loc.y = spawnc;
+
+	E_LOAD_HEALTH;
+	
+	if (e->QueryBoolAttribute("aggressive", &aggressive) != XML_NO_ERROR)
+		aggressive = false;
+}
+
+void Rabbit::saveToXML(void)
+{
+	E_SAVE_HEALTH;
 }
 
 Bird::Bird(void) : Mob()
@@ -269,14 +302,24 @@ void Bird::createFromXML(XMLElement *e, World *w=nullptr)
 {
 	(void)w;
     float Xlocx, Xhealth;
-    if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
-        loc.x = Xlocx;
-    if (e->QueryFloatAttribute("health", &Xhealth) == XML_NO_ERROR)
-        maxHealth = health = Xhealth;
-    if (e->QueryFloatAttribute("y", &initialY) != XML_NO_ERROR)
-        initialY = 300;
+	
+	xmle = e;
+
+	if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
+		loc.x = Xlocx;
+	if (e->QueryFloatAttribute("y", &initialY) != XML_NO_ERROR)
+		initialY = 300;
+
+	E_LOAD_HEALTH;
+
     if (e->QueryBoolAttribute("aggressive", &aggressive) != XML_NO_ERROR)
         aggressive = false;
+}
+
+void Bird::saveToXML(void)
+{
+	E_SAVE_COORDS;
+	E_SAVE_HEALTH;
 }
 
 Trigger::Trigger(void) : Mob()
@@ -350,6 +393,9 @@ void Trigger::createFromXML(XMLElement *e, World *w=nullptr)
         loc.x = Xlocx;
     id = e->StrAttribute("id");
 }
+
+void Trigger::saveToXML(void)
+{}
 
 Mob::~Mob()
 {

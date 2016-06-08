@@ -112,8 +112,10 @@ void mainLoop(void);
 ** MAIN ************************************************************************
 ********************************************************************************/
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
 	static SDL_GLContext mainGLContext = NULL;
+	static bool worldReset = false;
 
 	// handle command line arguments
 	if (argc > 1) {
@@ -123,7 +125,7 @@ int main(int argc, char *argv[]){
 
 		for (const auto &s : args) {
 			if (s == "--reset" || s == "-r")
-				system("rm -f xml/*.dat");
+				worldReset = true;
 		}
 	}
 
@@ -243,18 +245,48 @@ int main(int argc, char *argv[]){
 	if (xmlFolder.empty())
 		xmlFolder = "xml/";
 
+	// read in all XML file names in the folder
+	std::vector<std::string> xmlFiles;
+	if (getdir(std::string("./" + xmlFolder).c_str(), xmlFiles))
+		UserError("Error reading XML files!!!");
+
+	// alphabetically sort files
+	strVectorSortAlpha(&xmlFiles);
+
+	if (worldReset) {
+		for (const auto &xf : xmlFiles) {
+			if (xf[0] != '.') {
+				XMLDocument xmld;
+				xmld.LoadFile(xf.c_str());
+
+				auto xmle = xmld.FirstChildElement("World");
+
+				if (xmle == nullptr)
+					xmle = xmld.FirstChildElement("IndoorWorld");
+
+				if (xmle == nullptr)
+					continue;
+
+				xmle = xmle->FirstChildElement();
+					std::cout << xmle->Name() << '\n';
+				while (xmle) {
+					xmle->DeleteAttribute("x");
+					xmle->DeleteAttribute("y");
+					xmle->DeleteAttribute("health");
+					xmle->DeleteAttribute("alive");
+					xmle->DeleteAttribute("dindex");
+					xmle = xmle->NextSiblingElement();
+				}
+				xmld.SaveFile(xf.c_str(), false);
+			}
+		}
+	}
+
 	if (currentWorld == nullptr) {
-		// read in all XML file names in the folder
-		std::vector<std::string> xmlFiles;
-		if (getdir(std::string("./" + xmlFolder).c_str(), xmlFiles))
-			UserError("Error reading XML files!!!");
-
-		// alphabetically sort files
-		strVectorSortAlpha(&xmlFiles);
-
+		
 		// load the first valid XML file for the world
 		for (const auto &xf : xmlFiles) {
-			if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
+			if (xf[0] != '.') {
 				// read it in
 				std::cout << "File to load: " << xf << '\n';
 				currentWorld = loadWorldFromXML(xf);

@@ -93,6 +93,9 @@ static const float bgDraw[4][3]={
 	{ 255, 255, 0.1  }
 };
 
+static std::string currentXMLRaw;
+XMLDocument currentXMLDoc;
+
 /* ----------------------------------------------------------------------------
 ** Functions section
 ** --------------------------------------------------------------------------*/
@@ -1067,110 +1070,24 @@ getSTextureLocation(unsigned int index) const
 vec2 World::
 getStructurePos(int index)
 {
-	if (build.empty())
+	if (build.empty() || (unsigned)index >= build.size())
 		return vec2 {0, 0};
 
     if (index < 0)
         return build.back()->loc;
-    else if ((unsigned)index >= build.size())
-        return vec2 {0, 0};
 
     return build[index]->loc;
-}
-
-template<typename T>
-void appVal(const T &x, std::string &str)
-{
-    str.append(std::to_string(static_cast<int>(x)) + "\n");
 }
 
 /**
  * Saves world data to a file.
  */
-void World::save(void){
-	std::string data;
-	std::string save = currentXML + ".dat";
-	std::ofstream out (save, std::ios::out | std::ios::binary);
-
-	std::cout << "Saving to " << save << " ..." << '\n';
-
-    // save npcs
-	for (auto &n : npc) {
-        appVal(n->dialogIndex, data);
-        appVal(n->loc.x, data);
-        appVal(n->loc.y, data);
-	}
-
-    // save structures
-	for (auto &b : build) {
-        appVal(b->loc.x, data);
-        appVal(b->loc.y, data);
-	}
-
-    // save mobs
-	for (auto &m : mob) {
-        appVal(m->loc.x, data);
-        appVal(m->loc.y, data);
-		appVal(m->isAlive(), data);
-	}
-
-    // wrap up
-	data.append("dOnE\0");
-	out.write(data.data(), data.size());
-	out.close();
-}
-
-template<typename T>
-bool getVal(T &x, std::istringstream &iss)
+void World::save(void)
 {
-    std::string str;
-    std::getline(iss, str);
+	for (const auto &e : entity)
+		e->saveToXML();
 
-    if (str == "dOnE")
-        return false;
-
-    x = std::stoi(str);
-    return true;
-}
-
-void World::load(void){
-	std::string save, data, line;
-	const char *filedata;
-
-	save = currentXML + ".dat";
-	filedata = readFile(save.c_str());
-	data = filedata;
-	std::istringstream iss (data);
-
-	for(auto &n : npc){
-        if (!getVal(n->dialogIndex, iss)) return;
-		if (n->dialogIndex != 9999)
-			n->addAIFunc(false);
-
-        if (!getVal(n->loc.x, iss)) return;
-        if (!getVal(n->loc.y, iss)) return;
-	}
-
-	for(auto &b : build){
-        if (!getVal(b->loc.x, iss)) return;
-        if (!getVal(b->loc.y, iss)) return;
-	}
-
-    bool alive = true;
-	for(auto &m : mob){
-        if (!getVal(m->loc.x, iss)) return;
-        if (!getVal(m->loc.y, iss)) return;
-		if (!getVal(alive, iss)) return;
-		if (!alive)
-            m->die();
-	}
-
-	while (std::getline(iss,line)) {
-		if(line == "dOnE")
-			break;
-	}
-
-	delete[] filedata;
+	currentXMLDoc.SaveFile(currentXML.c_str(), false);
 }
 
 /**
@@ -1893,18 +1810,6 @@ World *loadWorldFromPtr(World *ptr)
  * Loads a world from the given XML file.
  */
 
-static std::string currentXMLRaw;
-XMLDocument currentXMLDoc;
-
-const XMLDocument& loadWorldXML(void)
-{
-	static XMLDocument xml;
-	if (xml.Parse(currentXMLRaw.data()) != XML_NO_ERROR)
-		UserError("XML Error: Failed to parse file (not your fault though..?)");
-
-	return xml;
-}
-
 World *
 loadWorldFromXMLNoSave(std::string path) {
 	XMLDocument *_currentXMLDoc;
@@ -2196,12 +2101,6 @@ loadWorldFromXMLNoSave(std::string path) {
 	if (!loadedLeft && !loadedRight) {
 		currentXML = _currentXML;
 		currentXMLRaw = _currentXMLRaw;
-		
-		std::ifstream dat ((_currentXML + ".dat").data());
-		if (dat.good()) {
-			dat.close();
-			tmp->load();
-		}
 	} else {
 		delete _currentXMLDoc;
 	}

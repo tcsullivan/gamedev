@@ -16,6 +16,7 @@
 #include <quest.hpp>
 #include <inventory.hpp>
 #include <texture.hpp>
+#include <save_util.hpp>
 
 // local library includes
 #include <tinyxml2.h>
@@ -241,6 +242,7 @@ public:
 
 	// constructs the entity with an XML thing-thang
 	virtual void createFromXML(XMLElement *e, World *w=nullptr) =0;
+	virtual void saveToXML(void) =0;
 
 	// a common constructor, clears variables
 	Entity(void);
@@ -259,6 +261,7 @@ public:
 	void save(void);
 	void sspawn(float x,float y);
 	void createFromXML(XMLElement *e, World *w);
+	void saveToXML(void);
 };
 
 class Structures : public Entity {
@@ -273,6 +276,7 @@ public:
 
 	unsigned int spawn(BUILD_SUB, float, float);
 	void createFromXML(XMLElement *e, World *w);
+	void saveToXML(void);
 };
 
 
@@ -293,9 +297,10 @@ public:
 
 	void addAIFunc(bool preload);
 
-	virtual void interact();
-	virtual void wander(int);
+	void interact();
+	void wander(int);
 	void createFromXML(XMLElement *e, World *w);
+	void saveToXML(void);
 };
 
 class Merchant : public NPC {
@@ -317,6 +322,7 @@ public:
 	~Merchant();
 
 	void wander(int);
+	void saveToXML(void);
 };
 
 class Object : public Entity{
@@ -338,6 +344,7 @@ public:
 		return (name == o.name) && (loc == o.loc);
 	}
 	void createFromXML(XMLElement *e, World *w);
+	void saveToXML(void);
 };
 
 /**

@@ -195,6 +195,9 @@ void Player::createFromXML(XMLElement *e, World *w=nullptr)
 	(void)w;
 }
 
+void Player::saveToXML(void)
+{}
+
 NPC::NPC() : Entity()
 {
 	width = HLINES(10);
@@ -229,14 +232,12 @@ void NPC::createFromXML(XMLElement *e, World *w=nullptr)
 {
 	std::string npcname;
 	bool dialog;
-	float spawnx, Xhealth;
 	unsigned int flooor;
 
+	xmle = e;
+
     // spawn at coordinates if desired
-	if (e->QueryFloatAttribute("x", &spawnx) == XML_NO_ERROR)
-		spawn(spawnx, 100);
-	else
-		spawn(0, 100);
+	E_LOAD_COORDS(100);
 
     // name override
 	if (!(npcname = e->StrAttribute("name")).empty())
@@ -254,11 +255,18 @@ void NPC::createFromXML(XMLElement *e, World *w=nullptr)
         Indoorp(w)->moveToFloor(this, flooor);
 
     // custom health value
-    if (e->QueryFloatAttribute("health", &Xhealth) == XML_NO_ERROR) {
-        health = maxHealth = Xhealth;
-	}
+	E_LOAD_HEALTH;
 
-	xmle = e;
+	// dialog index
+	if (e->QueryUnsignedAttribute("dindex", &flooor) == XML_NO_ERROR)
+		dialogIndex = flooor;
+}
+
+void NPC::saveToXML(void)
+{
+	E_SAVE_HEALTH;
+	E_SAVE_COORDS;
+	xmle->SetAttribute("dindex", dialogIndex);
 }
 
 Merchant::Merchant() : NPC()
@@ -294,6 +302,8 @@ Merchant::~Merchant()
 {
 }
 
+void Merchant::saveToXML(void){}
+
 Structures::Structures() : Entity()
 {
 	canMove = false;
@@ -308,13 +318,25 @@ void Structures::createFromXML(XMLElement *e, World *w)
 {
 	float spawnx;
 
+	if (e->QueryBoolAttribute("alive", &alive) == XML_NO_ERROR && !alive) {
+		die();
+		return;
+	}
+
 	inWorld = w;
 	inside = e->StrAttribute("inside");
 	textureLoc = e->StrAttribute("texture");
 
 	spawn(static_cast<BUILD_SUB>(e->UnsignedAttribute("type")),
-	      e->QueryFloatAttribute("x", &spawnx) == XML_NO_ERROR ? spawnx : (randGet() % w->getTheWidth() / 2.0f),
+	      e->QueryFloatAttribute("spawnx", &spawnx) == XML_NO_ERROR ? spawnx : (randGet() % w->getTheWidth() / 2.0f),
 	      100);
+
+	xmle = e;
+}
+
+void Structures::saveToXML(void)
+{
+	xmle->SetAttribute("alive", alive);
 }
 
 Object::Object()
@@ -345,6 +367,9 @@ void Object::createFromXML(XMLElement *e, World *w=nullptr)
 	(void)e;
 	(void)w;
 }
+
+void Object::saveToXML(void)
+{}
 
 void Object::reloadTexture(void)
 {

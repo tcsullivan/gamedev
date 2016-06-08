@@ -401,9 +401,6 @@ public:
 	// saves the world's data to an XML file
 	void save(void);
 
-	// attempts to load world data from an XML file
-	void load(void);
-
 	// plays/pauses the world's music, according to if a new world is being entered
 	void bgmPlay(World *prev) const;
 

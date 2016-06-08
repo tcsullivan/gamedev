@@ -8,6 +8,7 @@
 #include <entities.hpp>
 #include <gametime.hpp>
 #include <ui.hpp>
+#include <save_util.hpp>
 
 // local library headers
 #include <tinyxml2.h>
@@ -60,6 +61,7 @@ public:
 	void onHit(unsigned int);
     bool bindTex(void);
     void createFromXML(XMLElement *e, World *w) final;
+	void saveToXML(void) final;
 };
 
 class Door : public Mob {
@@ -70,6 +72,7 @@ public:
 	void onHit(unsigned int);
     bool bindTex(void);
     void createFromXML(XMLElement *e, World *w) final;
+	void saveToXML(void) final;
 };
 
 class Cat : public Mob {
@@ -80,6 +83,7 @@ public:
 	void onHit(unsigned int);
     bool bindTex(void);
 	void createFromXML(XMLElement *e, World *w) final;
+	void saveToXML(void) final;
 };
 
 class Rabbit : public Mob {
@@ -90,6 +94,7 @@ public:
 	void onHit(unsigned int);
     bool bindTex(void);
     void createFromXML(XMLElement *e, World *w) final;
+	void saveToXML(void) final;
 };
 
 class Bird : public Mob {
@@ -102,6 +107,7 @@ public:
 	void onHit(unsigned int);
     bool bindTex(void);
     void createFromXML(XMLElement *e, World *w) final;
+	void saveToXML(void) final;
 };
 
 class Trigger : public Mob {
@@ -115,6 +121,7 @@ public:
 	void onHit(unsigned int);
     bool bindTex(void);
     void createFromXML(XMLElement *e, World *w) final;
+	void saveToXML(void) final;
 };
 
 #endif // MOB_H_
