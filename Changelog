@@ -1018,3 +1018,20 @@
 	- fixed grass squishing
 	- player sits on cat better
 	- world shading is good-er
+
+5/31/2016:
+==========
+
+	- fixed name generation-er
+	- move random dialogs to file
+	- entitys can modify their XMLs
+	- 'alive' XML attribute works
+	- lighting's pretty neat
+
+6/3/2016:
+=========
+
+	- majorly improved particle handling, made CoolArray
+	- found bugs in quest handling...
+	- making lights and stars n stuff goood
+	- story??? art??? music???

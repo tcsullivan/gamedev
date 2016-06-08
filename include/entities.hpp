@@ -17,6 +17,10 @@
 #include <inventory.hpp>
 #include <texture.hpp>
 
+// local library includes
+#include <tinyxml2.h>
+using namespace tinyxml2;
+
 /* ----------------------------------------------------------------------------
 ** Structures section
 ** --------------------------------------------------------------------------*/
@@ -103,64 +107,6 @@ extern const unsigned int NPC_INV_SIZE;
 class World;
 
 /**
- * The particle class, handles a single particle.
- */
-class Particles{
-public:
-	// the location of the particle
-	vec2 loc;
-	float zOffset;
-
-	// the width of the particle, in pixels
-	float width;
-
-	// the height of the particle, in pixels
-	float height;
-
-	// the velocity of the particle, in pixels
-	vec2 vel;
-
-	// the color of the particle
-	Color color;
-
-	// TODO
-	vec2 index;
-
-	// the amount of milliseconds left for the particle to live
-	float duration;
-
-	// when true, the particle will move
-	bool canMove;
-
-	// TODO
-	bool fountain;
-
-	// when true, the particle will be affected by gravity
-	bool gravity;
-
-	// when true, draws the particle behind structures
-	bool behind;
-
-	// when true, the particle will bounce on impact with ground
-	bool bounce;
-
-	// creates a particle with the desired characteristics
-	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d);
-
-	// allows the particle to be destroyed
-	~Particles(void){}
-
-	// draws the particle
-	void draw(GLfloat*& p) const;
-
-	// updates a particle
-	void update(float _gravity, float ground_y);
-
-	// returns true if the particle should be killed
-	bool kill(float delta);
-};
-
-/**
  * The entity class.
  * This class contains common functions and variables for all types of
  * entities, i.e. a common structure.
@@ -187,6 +133,10 @@ protected:
 
 	// the max cooldown display
 	float maxHitDuration;
+
+	// the entity's XML element, for saving/loading stuff
+	XMLElement *xmle;
+
 public:
 	// contains the entity's coordinates, in pixels
 	vec2 loc;
@@ -235,7 +185,7 @@ public:
 	int	subtype;
 
 	// the entity's name, randomly generated on spawn
-	char *name;
+	std::string name;
 
 	// the entity's gender
 	GENDER  gender;
@@ -289,6 +239,9 @@ public:
 	// returns true if the coordinate is within the entity
 	bool isInside(vec2 coord) const;
 
+	// constructs the entity with an XML thing-thang
+	virtual void createFromXML(XMLElement *e, World *w=nullptr) =0;
+
 	// a common constructor, clears variables
 	Entity(void);
 
@@ -296,7 +249,7 @@ public:
 	virtual ~Entity(){}
 };
 
-class Player : public Entity{
+class Player : public Entity {
 public:
 	Entity *ride;
 	QuestHandler qh;
@@ -305,9 +258,10 @@ public:
 	~Player();
 	void save(void);
 	void sspawn(float x,float y);
+	void createFromXML(XMLElement *e, World *w);
 };
 
-class Structures : public Entity{
+class Structures : public Entity {
 public:
 	BUILD_SUB bsubtype;
 	World *inWorld;
@@ -318,6 +272,7 @@ public:
 	~Structures();
 
 	unsigned int spawn(BUILD_SUB, float, float);
+	void createFromXML(XMLElement *e, World *w);
 };
 
 
@@ -340,6 +295,7 @@ public:
 
 	virtual void interact();
 	virtual void wander(int);
+	void createFromXML(XMLElement *e, World *w);
 };
 
 class Merchant : public NPC {
@@ -379,8 +335,9 @@ public:
 	void interact(void);
 
 	bool operator==(const Object &o) {
-		return !strcmp(name, o.name) && (loc == o.loc);
+		return (name == o.name) && (loc == o.loc);
 	}
+	void createFromXML(XMLElement *e, World *w);
 };
 
 /**
@@ -422,6 +379,70 @@ public:
 	{
 		flame = true;
 	}
+	
+	void createFromXML(XMLElement *e);
+};
+
+/**
+ * The particle class, handles a single particle.
+ */
+class Particles{
+public:
+	// the location of the particle
+	vec2 loc;
+	float zOffset;
+
+	// the width of the particle, in pixels
+	float width;
+
+	// the height of the particle, in pixels
+	float height;
+
+	// the velocity of the particle, in pixels
+	vec2 vel;
+
+	// the color of the particle
+	Color color;
+
+	// TODO
+	vec2 index;
+
+	// the amount of milliseconds left for the particle to live
+	float duration;
+
+	// when true, the particle will move
+	bool canMove;
+
+	// TODO
+	bool fountain;
+
+	// when true, the particle will be affected by gravity
+	bool gravity;
+
+	// when true, draws the particle behind structures
+	bool behind;
+
+	// when true, the particle will bounce on impact with ground
+	bool bounce;
+
+	Structures *stu;
+
+	Particles(void){}
+
+	// creates a particle with the desired characteristics
+	Particles(float x, float y, float w, float h, float vx, float vy, Color c, float d);
+
+	// allows the particle to be destroyed
+	~Particles(void){}
+
+	// draws the particle
+	void draw(GLfloat*& p) const;
+
+	// updates a particle
+	void update(float _gravity, float ground_y);
+
+	// returns true if the particle should be killed
+	bool timeUp(void);
 };
 
 #include <mob.hpp>

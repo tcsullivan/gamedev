@@ -15,6 +15,7 @@ extern World *currentWorld;		// main.cpp
 extern unsigned int loops;		// main.cpp
 
 extern std::string xmlFolder;
+extern XMLDocument currentXMLDoc;
 
 // a dynamic array of pointers to the NPC's that are being assigned the preloads
 std::vector<NPC *> aipreload;
@@ -24,52 +25,17 @@ const unsigned int PLAYER_INV_SIZE = 43;
 // the size of an NPC's inventory
 const unsigned int NPC_INV_SIZE = 3;
 
-static const unsigned int RAND_DIALOG_COUNT = 14;
-const char *randomDialog[RAND_DIALOG_COUNT] = {
-	"What a beautiful day it is.",
-	"Have you ever went fast? I have.",
-	"I heard if you complete a quest, you'll get a special reward.",
-	"How much wood could a woodchuck chuck if a woodchuck could chuck wood?",
-	"I don\'t think anyone has ever been able to climb up that hill.",
-	"If you ever see a hole in the ground, watch out; it could mean the end for you.",
-	"Did you know this game has over 5000 lines of code? I didn\'t. I didn't even know I was in a game until now...",
-	"HELP MY CAPS LOCK IS STUCK",
-	"You know, if anyone ever asked me who I wanted to be when I grow up, I would say Abby Ross.",
-	"I want to have the wallpaper in our house changed. It doesn\'t really fit the environment.",
-	"Frig.",
-	"The sine of theta equals the opposite over the hdaypotenuese.",
-	"Did you know the developers spelt brazier as brazzier.",
-	"What's a bagel? I don't know because I'm mormon"
-};
+static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
 
-void randGetomName(Entity *e)
+void getRandomName(Entity *e)
 {
-	unsigned int tempNum,max=0;
-	char *bufs;
-
-	std::ifstream names ("assets/names_en-us",std::ios::in);
-
-	names.seekg(0,names.beg);
-
-	bufs = new char[32];
-
-	for(;!names.eof();max++)
-		names.getline(bufs,32);
-
-	tempNum = rand() % max;
-	names.seekg(0,names.beg);
-
-	for(unsigned int i=0;i<tempNum;i++)
-		names.getline(bufs,32);
-
-	names.close();
+	auto names = readFileA("assets/names_en-us");
+	auto name = names[randGet() % names.size()];
 
 	// gender is a binary construct
-	e->gender = (bufs[0] == 'm') ? MALE : FEMALE;
+	e->gender = (name[0] == 'm') ? MALE : FEMALE;
 
-	strcpy(e->name, bufs + 1);
-
-	delete[] bufs;
+	e->name = &name[1];
 }
 
 Entity::Entity(void)
@@ -101,7 +67,6 @@ Entity::Entity(void)
 	hitDuration = maxHitDuration = 0;
 
 	inv = nullptr;
-	name = nullptr;
 }
 
 // spawns the entity you pass to it based off of coords and global entity settings
@@ -114,11 +79,10 @@ void Entity::spawn(float x, float y)
 		health = maxHealth = 1;
 
 	// generate a name
-	name = new char[32];
 	if (type == MOBT)
-		strncpy(name, "mob", 3);
+		name = "mob";
 	else
-		randGetomName(this);
+		getRandomName(this);
 
 	setCooldown(0);
 }
@@ -168,6 +132,11 @@ void Entity::die(void)
 {
 	alive = false;
 	health = 0;
+
+	/*if (xmle) {
+		xmle->SetAttribute("alive", false);
+		currentXMLDoc.SaveFile(currentXML.c_str(), false);
+	}*/
 }
 
 bool Entity::isAlive(void) const
@@ -218,7 +187,12 @@ Player::Player() : Entity()
 Player::~Player()
 {
 	delete inv;
-	delete[] name;
+}
+
+void Player::createFromXML(XMLElement *e, World *w=nullptr)
+{
+	(void)e;
+	(void)w;
 }
 
 NPC::NPC() : Entity()
@@ -237,7 +211,7 @@ NPC::NPC() : Entity()
 	tex = TextureIterator({"assets/NPC.png"});
 	inv = new Inventory(NPC_INV_SIZE);
 
-	randDialog = rand() % RAND_DIALOG_COUNT - 1;
+	randDialog = randGet() % randomDialog.size();
 	dialogIndex = 0;
 	dialogCount = 0;
 
@@ -249,7 +223,42 @@ NPC::NPC() : Entity()
 NPC::~NPC()
 {
 	delete inv;
-	delete[] name;
+}
+
+void NPC::createFromXML(XMLElement *e, World *w=nullptr)
+{
+	std::string npcname;
+	bool dialog;
+	float spawnx, Xhealth;
+	unsigned int flooor;
+
+    // spawn at coordinates if desired
+	if (e->QueryFloatAttribute("x", &spawnx) == XML_NO_ERROR)
+		spawn(spawnx, 100);
+	else
+		spawn(0, 100);
+
+    // name override
+	if (!(npcname = e->StrAttribute("name")).empty())
+		name = npcname;
+
+    // dialog enabling
+	dialog = false;
+	if (e->QueryBoolAttribute("hasDialog", &dialog) == XML_NO_ERROR && dialog)
+		addAIFunc(false);
+	else
+        dialogIndex = 9999;
+
+
+    if (/*Indoor && */e->QueryUnsignedAttribute("floor", &flooor) == XML_NO_ERROR)
+        Indoorp(w)->moveToFloor(this, flooor);
+
+    // custom health value
+    if (e->QueryFloatAttribute("health", &Xhealth) == XML_NO_ERROR) {
+        health = maxHealth = Xhealth;
+	}
+
+	xmle = e;
 }
 
 Merchant::Merchant() : NPC()
@@ -283,8 +292,6 @@ Merchant::Merchant() : NPC()
 
 Merchant::~Merchant()
 {
-	//delete inv;
-	delete[] name;
 }
 
 Structures::Structures() : Entity()
@@ -295,7 +302,19 @@ Structures::Structures() : Entity()
 
 Structures::~Structures()
 {
-	delete[] name;
+}
+
+void Structures::createFromXML(XMLElement *e, World *w)
+{
+	float spawnx;
+
+	inWorld = w;
+	inside = e->StrAttribute("inside");
+	textureLoc = e->StrAttribute("texture");
+
+	spawn(static_cast<BUILD_SUB>(e->UnsignedAttribute("type")),
+	      e->QueryFloatAttribute("x", &spawnx) == XML_NO_ERROR ? spawnx : (randGet() % w->getTheWidth() / 2.0f),
+	      100);
 }
 
 Object::Object()
@@ -319,7 +338,12 @@ Object::Object(std::string in, std::string pd)
 
 Object::~Object()
 {
-	delete[] name;
+}
+
+void Object::createFromXML(XMLElement *e, World *w=nullptr)
+{	
+	(void)e;
+	(void)w;
 }
 
 void Object::reloadTexture(void)
@@ -773,7 +797,7 @@ void Merchant::wander(int timeRun) {
 
 void Merchant::interact() {
 	std::thread([this]{
-		ui::merchantBox(name, trade[currTrade], ":Accept:Good-Bye", false, toSay->c_str());
+		ui::merchantBox(name.c_str(), trade[currTrade], ":Accept:Good-Bye", false, toSay->c_str());
 		ui::waitForDialog();
 
 		// handle normal dialog options
@@ -917,11 +941,12 @@ Particles::Particles(float x, float y, float w, float h, float vx, float vy, Col
 	bounce = false;
 	index = Texture::getIndex(c);
 	zOffset = ((rand()%20)-10)/1000.0f;
+	stu = nullptr;
 }
 
 void Particles::draw(GLfloat*& p) const
 {
-	vec2 tc = vec2(0.25f * this->index.x, 0.125f * (8.0f - this->index.y));
+	vec2 tc = vec2(0.25f * index.x, 0.125f * (8.0f - index.y));
 
     float z = 0.9;
 	if (behind)
@@ -980,6 +1005,8 @@ void Particles::draw(GLfloat*& p) const
 
 void Particles::update(float _gravity, float ground_y)
 {
+	auto delta = game::time::getDeltaTime();
+
 	// handle ground collision
 	if (loc.y < ground_y) {
 		loc.y = ground_y;
@@ -996,13 +1023,16 @@ void Particles::update(float _gravity, float ground_y)
 
 	// handle gravity
 	else if (gravity && vel.y > -1.0f) {
-		vel.y -= _gravity * game::time::getDeltaTime();
+		vel.y -= _gravity * delta;
 	}
+
+	// handle lifetime
+	duration -= delta;
 }
 
-bool Particles::kill(float delta)
+bool Particles::timeUp(void)
 {
-	return (duration -= delta) <= 0;
+	return !(duration > 0);
 }
 
 void Player::save(void) {

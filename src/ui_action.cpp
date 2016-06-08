@@ -124,7 +124,7 @@ void actionAttack(void)
             ui::toggleWhiteFast();
         }
     } else {
-        ui::dialogBox(player->name, "", false, "%s doesn't appear to be in the mood for fighting...", m->name);
+        ui::dialogBox(player->name, "", false, "%s doesn't appear to be in the mood for fighting...", m->name.c_str());
     }
 
     ACTION_EPILOUGE;

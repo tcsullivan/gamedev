@@ -1152,7 +1152,7 @@ EXIT:
 			toggleBlackFast();
 			player->canMove = true;
 		};
-
+		
 		while(SDL_PollEvent(&e)) {
 			switch(e.type) {
 
@@ -1408,7 +1408,9 @@ EXIT:
 					if (debug)
 						posFlag ^= true;
 					else {
-						currentWorld->addStructure(FIRE_PIT, player->loc.x, player->loc.y, "", "");
+						auto s = new Structures();
+						s->spawn(FIRE_PIT, player->loc.x, player->loc.y);
+						currentWorld->addStructure(s);
 						currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 400.0f, {1.0f,1.0f,1.0f});
 						//currentWorld->getLastLight()->follow(currentWorld->build.back());
 						currentWorld->getLastLight()->makeFlame();

@@ -25,7 +25,7 @@ using namespace tinyxml2;
 ** --------------------------------------------------------------------------*/
 
 // the game's window title name
-constexpr const char *GAME_NAME = "Independent Study v0.7 alpha - NOW WITH lights and snow and stuff";
+constexpr const char *GAME_NAME = "Independent Study v0.8 alpha - NOW WITH decent shaders";
 
 // SDL's window object
 SDL_Window *window = NULL;
@@ -92,6 +92,15 @@ GLuint mouseTex;
 
 // the center of the screen
 vec2 offset;
+
+/*
+ * fps contains the game's current FPS, debugY contains the player's
+ * y coordinates, updated at a certain interval. These are used in
+ * the debug menu (see below).
+ */
+
+static unsigned int fps=0;
+static float debugY=0;
 
 // handles all logic operations
 void logic(void);
@@ -229,33 +238,38 @@ int main(int argc, char *argv[]){
 	// load mouse texture, and other inventory textures
 	mouseTex = Texture::loadTexture("assets/mouse.png");
 
-	// read in all XML file names in the folder
-	std::vector<std::string> xmlFiles;
+	// spawn the player
+	player = new Player();
+	player->sspawn(0,100);
+
+	// get a world
 	if (xmlFolder.empty())
 		xmlFolder = "xml/";
-	if (getdir(std::string("./" + xmlFolder).c_str(), xmlFiles))
-		UserError("Error reading XML files!!!");
 
-	// alphabetically sort files
-	strVectorSortAlpha(&xmlFiles);
+	if (currentWorld == nullptr) {
+		// read in all XML file names in the folder
+		std::vector<std::string> xmlFiles;
+		if (getdir(std::string("./" + xmlFolder).c_str(), xmlFiles))
+			UserError("Error reading XML files!!!");
 
-	// load the first valid XML file for the world
-	for (const auto &xf : xmlFiles) {
-		if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
-			// read it in
-			std::cout << "File to load: " << xf << '\n';
-			currentWorld = loadWorldFromXML(xf);
-			break;
+		// alphabetically sort files
+		strVectorSortAlpha(&xmlFiles);
+
+		// load the first valid XML file for the world
+		for (const auto &xf : xmlFiles) {
+			if (xf[0] != '.' && strcmp(&xf[xf.size() - 3], "dat")){
+				// read it in
+				std::cout << "File to load: " << xf << '\n';
+				currentWorld = loadWorldFromXML(xf);
+				break;
+			}
 		}
 	}
 
 	// make sure the world was made
-	if (currentWorld == NULL)
+	if (currentWorld == nullptr)
 		UserError("Plot twist: The world never existed...?");
 
-	// spawn the player
-	player = new Player();
-	player->sspawn(0,100);
 	ui::menu::init();
 	currentWorld->bgmPlay(nullptr);
 
@@ -268,12 +282,26 @@ int main(int argc, char *argv[]){
 	// the main loop, in all of its gloriousness..
 	gameRunning = true;
 	std::thread([&]{
-		while (gameRunning)
+		while (gameRunning) {
 			mainLoop();
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
 	}).detach();
 
-	while (gameRunning)
+	// the debug loop, gets debug screen values
+	std::thread([&]{
+		while (gameRunning) {	
+			fps = 1000 / game::time::getDeltaTime();
+			debugY = player->loc.y;
+
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+		}
+	}).detach();
+
+	while (gameRunning) {
 		render();
+		ui::handleEvents();
+	}
 
 	// put away the brice for later
 	game::briceSave();
@@ -297,41 +325,21 @@ int main(int argc, char *argv[]){
     return 0; // Calls everything passed to atexit
 }
 
-/*
- * fps contains the game's current FPS, debugY contains the player's
- * y coordinates, updated at a certain interval. These are used in
- * the debug menu (see below).
- */
-
-static unsigned int fps=0;
-static float debugY=0;
-
 void mainLoop(void){
-	static unsigned int debugDiv=0;			// A divisor used to update the debug menu if it's open
-
 	game::time::mainLoopHandler();
 
 	if (currentMenu) {
 		return;
 	} else {
 		// handle keypresses - currentWorld could change here
-		ui::handleEvents();
+		//ui::handleEvents();
 
 		if (game::time::tickHasPassed())
 			logic();
 
 		currentWorld->update(player, game::time::getDeltaTime(), game::time::getTickCount());
 		currentWorld->detect(player);
-
-		if (++debugDiv == 20) {
-			debugDiv=0;
-
-			fps = 1000 / game::time::getDeltaTime();
-			debugY = player->loc.y;
-		}
 	}
-
-	SDL_Delay(1);
 }
 
 void render() {
@@ -352,10 +360,10 @@ void render() {
 	offset.y = std::max(player->loc.y + player->height / 2, SCREEN_HEIGHT / 2.0f);
 
 	// "setup"
-	glm::mat4 projection = glm::ortho(	static_cast<float>(floor(offset.x-SCREEN_WIDTH/2)), 	//left
-										static_cast<float>(floor(offset.x+SCREEN_WIDTH/2)), 	//right
-										static_cast<float>(floor(offset.y-SCREEN_HEIGHT/2)), 	//bottom
-										static_cast<float>(floor(offset.y+SCREEN_HEIGHT/2)), 	//top
+	glm::mat4 projection = glm::ortho(	floor(offset.x-SCREEN_WIDTH/2), 	//left
+										floor(offset.x+SCREEN_WIDTH/2), 	//right
+										floor(offset.y-SCREEN_HEIGHT/2), 	//bottom
+										floor(offset.y+SCREEN_HEIGHT/2), 	//top
 										10.0f,								//near
 										-10.0f);							//far
 

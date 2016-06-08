@@ -20,6 +20,7 @@ using Drop = std::tuple<std::string, unsigned int, float>;
 
 class Mob : public Entity {
 protected:
+	XMLElement *xmle;
 	std::forward_list<Drop> drop;
 
     unsigned int actCounter;
@@ -41,7 +42,6 @@ public:
 	virtual void onDeath(void);
 
     virtual bool bindTex(void) =0;
-    virtual void createFromXML(const XMLElement *e) =0;
 };
 
 constexpr Mob *Mobp(Entity *e) {
@@ -59,7 +59,7 @@ public:
     void act(void);
 	void onHit(unsigned int);
     bool bindTex(void);
-    void createFromXML(const XMLElement *e);
+    void createFromXML(XMLElement *e, World *w) final;
 };
 
 class Door : public Mob {
@@ -69,7 +69,7 @@ public:
     void act(void);
 	void onHit(unsigned int);
     bool bindTex(void);
-    void createFromXML(const XMLElement *e);
+    void createFromXML(XMLElement *e, World *w) final;
 };
 
 class Cat : public Mob {
@@ -79,7 +79,7 @@ public:
     void act(void);
 	void onHit(unsigned int);
     bool bindTex(void);
-    void createFromXML(const XMLElement *e);
+	void createFromXML(XMLElement *e, World *w) final;
 };
 
 class Rabbit : public Mob {
@@ -89,7 +89,7 @@ public:
     void act(void);
 	void onHit(unsigned int);
     bool bindTex(void);
-    void createFromXML(const XMLElement *e);
+    void createFromXML(XMLElement *e, World *w) final;
 };
 
 class Bird : public Mob {
@@ -101,7 +101,7 @@ public:
     void act(void);
 	void onHit(unsigned int);
     bool bindTex(void);
-    void createFromXML(const XMLElement *e);
+    void createFromXML(XMLElement *e, World *w) final;
 };
 
 class Trigger : public Mob {
@@ -114,7 +114,7 @@ public:
     void act(void);
 	void onHit(unsigned int);
     bool bindTex(void);
-    void createFromXML(const XMLElement *e);
+    void createFromXML(XMLElement *e, World *w) final;
 };
 
 #endif // MOB_H_
