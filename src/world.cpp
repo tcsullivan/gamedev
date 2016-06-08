@@ -271,7 +271,25 @@ void World::drawBackgrounds(void)
                             0.0f, 0.0f,
                             0.0f, 1.0f,};
 
-    vec2 bg_tex_coord[] = { vec2(0.0f, 0.0f),
+	// TODO scroll backdrop
+	GLfloat bgOff = game::time::getTickCount()/24000.0f;
+	
+	GLfloat topS = .125f + bgOff;
+	GLfloat bottomS = 0.0f + bgOff;
+
+	if (topS < 0.0f) topS += 1.0f;
+	if (bottomS < 0.0f) bottomS += 1.0f;
+	if(bgOff < 0)std::cout << bottomS << "," << topS << std::endl;
+
+	GLfloat scrolling_tex_coord[] = {0.0f,  bottomS,
+									 1.0f,  bottomS,
+									 1.0f,  bottomS,
+									 
+									 1.0f,  bottomS,
+									 0.0f,  bottomS,
+									 0.0f,  bottomS};
+   
+   	vec2 bg_tex_coord[] = { vec2(0.0f, 0.0f),
                             vec2(1.0f, 0.0f),
                             vec2(1.0f, 1.0f),
 
@@ -279,13 +297,13 @@ void World::drawBackgrounds(void)
                             vec2(0.0f, 1.0f),
                             vec2(0.0f, 0.0f)};
 
-    GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f,
+    GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f,
+                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f,
                                 offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f,
 
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f,
-                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f,
-                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f};
+                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
+                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f,
+                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f};
 
     GLfloat fron_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f,
                                 offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.8f,
@@ -296,25 +314,32 @@ void World::drawBackgrounds(void)
                                 offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f};
     
 	glUseProgram(worldShader);
+	glUniform1f(worldShader_uniform_light_impact, 0.0f);
+	glUniform4f(worldShader_uniform_ambient, 1.0, 1.0, 1.0, 1.0);
 
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
     bgTex(0);
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, back_tex_coord);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
+	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, back_tex_coord);
+    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, scrolling_tex_coord);
     glDrawArrays(GL_TRIANGLES, 0 , 6);
 
 	bgTex++;
-	glUniform4f(worldShader_uniform_color, .8, .8, .8, 1.3 - static_cast<float>(alpha)/255.0f);
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, fron_tex_coord);
+	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
+	
+	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, fron_tex_coord);
     glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
     glDrawArrays(GL_TRIANGLES, 0 , 6);
 
-		
-	static GLuint starTex = Texture::genColor(Color(255, 255, 255));
-	constexpr const static float stardim = 2;
+	// TODO make stars dynamic
+	//static GLuint starTex = Texture::genColor(Color(255, 255, 255));
+	static GLuint starTex = Texture::loadTexture("assets/style/classic/bg/star.png");
+	const static float stardim = 24;
 	GLfloat star_coord[star.size() * 5 * 6 + 1];
     GLfloat *si = &star_coord[0];		
 
@@ -325,72 +350,77 @@ void World::drawBackgrounds(void)
 		for (auto &s : star) {
 			*(si++) = s.x + xcoord;
 			*(si++) = s.y,
-			*(si++) = 9.8;
+			*(si++) = 9.7f;
 
 			*(si++) = 0.0;
 			*(si++) = 0.0;
 			
 			*(si++) = s.x + xcoord + stardim;
 			*(si++) = s.y,
-			*(si++) = 9.8;
+			*(si++) = 9.7f;
 			
 			*(si++) = 1.0;
 			*(si++) = 0.0;
 			
 			*(si++) = s.x + xcoord + stardim;
 			*(si++) = s.y + stardim,
-			*(si++) = 9.8;
+			*(si++) = 9.7f;
 			
 			*(si++) = 1.0;
 			*(si++) = 1.0;
 			
 			*(si++) = s.x + xcoord + stardim;
 			*(si++) = s.y + stardim,
-			*(si++) = 9.8;
+			*(si++) = 9.7f;
 			
 			*(si++) = 1.0;
 			*(si++) = 1.0;
 			
 			*(si++) = s.x + xcoord;
 			*(si++) = s.y + stardim,
-			*(si++) = 9.8;
+			*(si++) = 9.7f;
 			
 			*(si++) = 0.0;
 			*(si++) = 1.0;
 			
 			*(si++) = s.x + xcoord;
 			*(si++) = s.y,
-			*(si++) = 9.8;
+			*(si++) = 9.7f;
 			
 			*(si++) = 0.0;
 			*(si++) = 0.0;
 		}
 		glBindTexture(GL_TEXTURE_2D, starTex);
-		glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, (255.0f - (randGet() % 200 - 100)) / 255.0f);
-	
+		//glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, (255.0f - (randGet() % 200 - 100)) / 255.0f);
+		glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
+
 		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[0]);
 		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[3]);
 		glDrawArrays(GL_TRIANGLES, 0, star.size() * 6);
+		
 	}
-    glDisableVertexAttribArray(worldShader_attribute_coord);
+    
+	glDisableVertexAttribArray(worldShader_attribute_coord);
     glDisableVertexAttribArray(worldShader_attribute_tex);
 
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
+	glUniform4f(worldShader_uniform_ambient, ambient.red, ambient.green, ambient.blue, 1.0);
     glUseProgram(0);
 
 
     std::vector<vec3> bg_items;
 
 	bgTex++;
+	dim2 mountainDim = bgTex.getTextureDim();
     auto xcoord = width / 2 * -1 + offset.x * 0.85f;
-	for (unsigned int i = 0; i <= worldData.size() * HLINE / 1920; i++) {
-        bg_items.push_back(vec3(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM, 8.0f));
-        bg_items.push_back(vec3(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM, 8.0f));
-        bg_items.push_back(vec3(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + 1080, 8.0f));
+	for (unsigned int i = 0; i <= worldData.size() * HLINE / mountainDim.x; i++) {
+        bg_items.push_back(vec3(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f));
+        bg_items.push_back(vec3(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f));
+        bg_items.push_back(vec3(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f));
 
-        bg_items.push_back(vec3(1920 * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + 1080, 8.0f));
-        bg_items.push_back(vec3(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM + 1080, 8.0f));
-        bg_items.push_back(vec3(1920 * i       + xcoord, GROUND_HEIGHT_MINIMUM, 8.0f));
+        bg_items.push_back(vec3(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f));
+        bg_items.push_back(vec3(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f));
+        bg_items.push_back(vec3(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f));
 	}
 
     std::vector<GLfloat> bg_i;
@@ -410,6 +440,7 @@ void World::drawBackgrounds(void)
     }
 
     glUseProgram(worldShader);
+	glUniform1f(worldShader_uniform_light_impact, 0.01);
 
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
@@ -427,15 +458,16 @@ void World::drawBackgrounds(void)
 	for (unsigned int i = 0; i < 4; i++) {
         std::vector<vec3>c;
 		bgTex++;
-        auto xcoord = offset.x * bgDraw[i][2];
-		for (int j = worldStart; j <= -worldStart; j += 600) {
-            c.push_back(vec3(j       + xcoord, GROUND_HEIGHT_MINIMUM, 7-(i*.1)));
-            c.push_back(vec3(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM, 7-(i*.1)));
-            c.push_back(vec3(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM + 400, 7-(i*.1)));
+        dim2 dim = bgTex.getTextureDim();
+		auto xcoord = offset.x * bgDraw[i][2];
+		for (int j = worldStart; j <= -worldStart; j += dim.x) {
+            c.push_back(vec3(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1)));
+            c.push_back(vec3(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1)));
+            c.push_back(vec3(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1)));
 
-            c.push_back(vec3(j + 600 + xcoord, GROUND_HEIGHT_MINIMUM + 400, 7-(i*.1)));
-            c.push_back(vec3(j       + xcoord, GROUND_HEIGHT_MINIMUM + 400, 7-(i*.1)));
-            c.push_back(vec3(j       + xcoord, GROUND_HEIGHT_MINIMUM, 7-(i*.1)));
+            c.push_back(vec3(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1)));
+            c.push_back(vec3(j         + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1)));
+            c.push_back(vec3(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1)));
 		}
 
         bg_i.clear();
@@ -455,6 +487,7 @@ void World::drawBackgrounds(void)
         }
 
         glUseProgram(worldShader);
+		glUniform1f(worldShader_uniform_light_impact, 0.075f + (0.2f*i));
 
         glEnableVertexAttribArray(worldShader_attribute_coord);
         glEnableVertexAttribArray(worldShader_attribute_tex);
@@ -479,10 +512,18 @@ void World::draw(Player *p)
 
 	drawBackgrounds();
 
-
-    for (auto &l : light) {
-        if (l.belongsTo) {
-            l.loc.x = l.following->loc.x + SCREEN_WIDTH / 2;
+	uint ls = light.size();
+	
+	GLfloat *lightCoords = new GLfloat[light.size() * 4];
+	GLfloat *lightColors = new GLfloat[light.size() * 4];
+	
+	uint lpIndex = 0;
+	uint lcIndex = 0;
+		
+	for (uint i = 0; i < ls; i++) {
+       	auto &l = light[i];
+ 	   	if (l.belongsTo) {
+            l.loc.x = l.following->loc.x;
             l.loc.y = l.following->loc.y;
         }
         if (l.flame) {
@@ -492,7 +533,25 @@ void World::draw(Player *p)
         } else {
             l.fireFlicker = 1;
         }
-    }
+
+		lightCoords[lpIndex++] = l.loc.x;
+		lightCoords[lpIndex++] = l.loc.y;
+		lightCoords[lpIndex++] = 0.0;
+		lightCoords[lpIndex++] = l.radius; 
+    
+		lightColors[lcIndex++] = l.color.red;
+		lightColors[lcIndex++] = l.color.green;
+		lightColors[lcIndex++] = l.color.blue;
+		lightColors[lcIndex++] = 1.0;
+	}
+
+	glUseProgram(worldShader);
+	
+	glUniform4fv(worldShader_uniform_light, ls, lightCoords);
+	glUniform4fv(worldShader_uniform_light_color, ls, lightColors);
+	glUniform1i(worldShader_uniform_light_amt, ls);
+
+	glUseProgram(0);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -549,6 +608,7 @@ void World::draw(Player *p)
     }
 
     glUseProgram(worldShader);
+	glUniform1f(worldShader_uniform_light_impact, 0.45f);
 
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
@@ -633,6 +693,7 @@ void World::draw(Player *p)
     }
 
     glUseProgram(worldShader);
+	glUniform1f(worldShader_uniform_light_impact, 1.0f);
 
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
@@ -1418,10 +1479,10 @@ addParticle(float x, float y, float w, float h, float vx, float vy, Color color,
 }
 
 void World::
-addLight(vec2 loc, Color color)
+addLight(vec2 loc, float radius, Color color)
 {
 	if (light.size() < 64)
-        light.emplace_back(loc, color, 1);
+        light.emplace_back(loc, radius, color);
 }
 
 void World::

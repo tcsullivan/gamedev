@@ -154,9 +154,9 @@ void Cat::onHit(unsigned int _health)
 
 bool Cat::bindTex(void)
 {
-    glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);
     tex(0);
-    return true;
+	return true;
 }
 
 void Cat::createFromXML(XMLElement *e, World *w=nullptr)

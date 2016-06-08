@@ -185,6 +185,18 @@ public:
 	Food* clone();
 };
 
+class ItemLight : public Item {
+private:
+	// the color of the light
+	Color color;
+public:
+	// turn on/off the light
+	// TODO
+	int useItem();
+
+	ItemLight* clone();
+};
+
 /**
  *	Currency class. Well, it's used for currency
  */

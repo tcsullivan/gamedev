@@ -238,6 +238,7 @@ extern GLint worldShader_uniform_light_color;
 extern GLint worldShader_uniform_light_impact;
 extern GLint worldShader_uniform_light_amt;
 
+extern Color ambient;
 /**
  *	Prints a formatted debug message to the console, along with the callee's file and line
  *	number.

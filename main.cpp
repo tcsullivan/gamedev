@@ -81,6 +81,9 @@ GLint worldShader_uniform_light_color;
 GLint worldShader_uniform_light_impact;
 GLint worldShader_uniform_light_amt;
 
+// the ambient light of the current world
+Color ambient;
+
 // keeps a simple palette of colors for single-color draws
 GLuint colorIndex;
 
@@ -405,6 +408,7 @@ void render() {
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	// TODO add depth
     glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_CULL_FACE);
 
 	glUseProgram(textShader);
 	glUniformMatrix4fv(textShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(ortho));
@@ -414,9 +418,15 @@ void render() {
 	glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 	
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
-	glUniform4f(worldShader_uniform_ambient, 1.0, 1.0, 1.0, 1.0);
-	glUniform1i(worldShader_uniform_light_amt, 0);
+	glUniform4f(worldShader_uniform_ambient, ambient.red, ambient.green, ambient.blue, 1.0);
 	glUniform1f(worldShader_uniform_light_impact, 1.0);
+	
+	/*static GLfloat l[]  = {460.0, 100.0, 0.0, 300.0};
+	static GLfloat lc[] = {1.0, 1.0, 1.0, 1.0};
+	glUniform4fv(worldShader_uniform_light, 1, l); 
+	glUniform4fv(worldShader_uniform_light_color, 1, lc);
+	glUniform1i(worldShader_uniform_light_amt, 1);
+	*/
 	/**************************
 	**** RENDER STUFF HERE ****
 	**************************/
@@ -502,44 +512,44 @@ void render() {
 	if (currentMenu)
 		ui::menu::draw();
 
-		glUseProgram(textShader);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mouseTex);
-		glUniform1i(textShader_uniform_texture, 0);
+	glUseProgram(textShader);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mouseTex);
+	glUniform1i(textShader_uniform_texture, 0);
 
-		glEnableVertexAttribArray(textShader_attribute_tex);
-		glEnableVertexAttribArray(textShader_attribute_coord);
+	glEnableVertexAttribArray(textShader_attribute_tex);
+	glEnableVertexAttribArray(textShader_attribute_coord);
 
-		glDisable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
 
-		GLfloat mouseCoords[] = {
-			ui::mouse.x			,ui::mouse.y, 	      1.0, //bottom left
-			ui::mouse.x+15		,ui::mouse.y, 		  1.0, //bottom right
-			ui::mouse.x+15		,ui::mouse.y-15,	  1.0, //top right
+	GLfloat mouseCoords[] = {
+		ui::mouse.x			,ui::mouse.y, 	      -9.9, //bottom left
+		ui::mouse.x+15		,ui::mouse.y, 		  -9.9, //bottom right
+		ui::mouse.x+15		,ui::mouse.y-15,	  -9.9, //top right
 
-			ui::mouse.x+15		,ui::mouse.y-15, 	  1.0, //top right
-			ui::mouse.x 		,ui::mouse.y-15, 	  1.0, //top left
-			ui::mouse.x			,ui::mouse.y, 		  1.0, //bottom left
-		};
+		ui::mouse.x+15		,ui::mouse.y-15, 	  -9.9, //top right
+		ui::mouse.x 		,ui::mouse.y-15, 	  -9.9, //top left
+		ui::mouse.x			,ui::mouse.y, 		  -9.9, //bottom left
+	};
 
-		GLfloat mouseTex[] = {
-			0.0f, 0.0f, //bottom left
-			1.0f, 0.0f, //bottom right
-			1.0f, 1.0f, //top right
+	GLfloat mouseTex[] = {
+		0.0f, 0.0f, //bottom left
+		1.0f, 0.0f, //bottom right
+		1.0f, 1.0f, //top right
 
-			1.0f, 1.0f, //top right
-			0.0f, 1.0f, //top left
-			0.0f, 0.0f, //bottom left
-		};
+		1.0f, 1.0f, //top right
+		0.0f, 1.0f, //top left
+		0.0f, 0.0f, //bottom left
+	};
 
-		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, mouseCoords);
-		glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, mouseTex);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+	glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, mouseCoords);
+	glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, mouseTex);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		glDisableVertexAttribArray(textShader_attribute_coord);
-		glDisableVertexAttribArray(textShader_attribute_tex);
+	glDisableVertexAttribArray(textShader_attribute_coord);
+	glDisableVertexAttribArray(textShader_attribute_tex);
 
-		SDL_GL_SwapWindow(window);
+	SDL_GL_SwapWindow(window);
 }
 
 void logic(){
@@ -601,6 +611,13 @@ void logic(){
 
 	// calculate the world shading value
 	worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
+
+	float ws = 75 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));	
+	
+	float ambRG = std::clamp(.5f + (-ws / 100.0f), 0.01f, .9f);
+	float ambB =	std::clamp(.5f + (-ws / 80.0f), 0.03f, .9f);
+		
+	ambient = Color(ambRG, ambRG, ambB, 1.0f);
 
 	// update fades
 	ui::fadeUpdate();

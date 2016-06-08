@@ -7,11 +7,11 @@ uniform mat4 transform;
 
 varying vec2 texCoord;
 varying vec4 color;
-varying vec3 fragCoord;
+varying vec4 fragCoord;
 
 void main(){
 	color = tex_color;
     texCoord = tex_coord;
-    gl_Position = ortho * transform * vec4(coord2d.xyz, 1.0);
-	fragCoord = vec3(gl_Position.xyz);
+    fragCoord = vec4(coord2d.xyz, 1.0);
+	gl_Position = ortho * transform * fragCoord;
 }
