@@ -16,7 +16,7 @@ public:
 		_capacity = 0;
 	}
 
-	CoolArray(size_t n, const T& value) {
+	CoolArray(size_t n, const T& value=0) {
 		buffer = new T[n];
 		_size = n;
 		_capacity = n;

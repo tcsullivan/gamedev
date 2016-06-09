@@ -33,6 +33,12 @@ namespace game {
 		}
 	}
 
+	void briceClear(void) {
+		std::ofstream out ("brice.dat", std::ios::out);
+		out.close();
+		brice.clear();
+	}
+
 	void briceSave(void) {
 		std::ofstream out ("brice.dat", std::ios::out | std::ios::binary);
 		std::string data = std::to_string(brice.size()) + '\n';

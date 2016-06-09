@@ -350,10 +350,19 @@ void Trigger::act(void)
             xml.LoadFile(currentXML.c_str());
             exml = xml.FirstChildElement("Trigger");
 
-            while(exml->StrAttribute("id") != id)
+            while(exml && exml->StrAttribute("id") != id)
                 exml = exml->NextSiblingElement();
 
             player->vel.x = 0;
+
+			if (exml == nullptr) {
+				auto id = xmle->StrAttribute("cid");
+				if (!id.empty()) {
+					game::setValue(id, xmle->StrAttribute("cvalue"));
+					game::briceUpdate();
+				}
+				return;
+			}
 
             ui::toggleBlackFast();
             ui::waitForCover();

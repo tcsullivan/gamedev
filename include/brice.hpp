@@ -11,6 +11,7 @@ namespace game {
 	
 	bool setValue(const std::string& id, const std::string& value);
 
+	void briceClear(void);
 	void briceSave(void);
 	void briceLoad(void);
 

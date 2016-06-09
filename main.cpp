@@ -260,18 +260,19 @@ int main(int argc, char *argv[])
 		for (const auto &xf : xmlFiles) {
 			if (xf[0] != '.') {
 				XMLDocument xmld;
-				xmld.LoadFile(xf.c_str());
+				auto file = xmlFolder + xf;
+				xmld.LoadFile(file.c_str());
 
 				auto xmle = xmld.FirstChildElement("World");
 
-				if (xmle == nullptr)
+				if (xmle == nullptr) {
 					xmle = xmld.FirstChildElement("IndoorWorld");
 
-				if (xmle == nullptr)
-					continue;
+					if (xmle == nullptr)
+						continue;
+				}
 
 				xmle = xmle->FirstChildElement();
-					std::cout << xmle->Name() << '\n';
 				while (xmle) {
 					xmle->DeleteAttribute("x");
 					xmle->DeleteAttribute("y");
@@ -280,9 +281,11 @@ int main(int argc, char *argv[])
 					xmle->DeleteAttribute("dindex");
 					xmle = xmle->NextSiblingElement();
 				}
-				xmld.SaveFile(xf.c_str(), false);
+				xmld.SaveFile(file.c_str(), false);
 			}
 		}
+
+		game::briceClear();
 	}
 
 	if (currentWorld == nullptr) {

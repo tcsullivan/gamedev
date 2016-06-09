@@ -1,37 +1,26 @@
 <?xml version="1.0"?>
 <IndoorWorld>
-	<style background="1" bgm="assets/music/theme_jazz.wav" />
-	<link outside="playerSpawnHill1.xml"/>
-
-	<floor width="300" />
-	<floor width="200" start="100" />
-
-	<npc name="Bob" hasDialog="true" floor="2" />
-
+    <style background="1" bgm="assets/music/theme_jazz.wav"/>
+    <link outside="playerSpawnHill1.xml"/>
+    <floor width="300"/>
+    <floor width="200" start="100"/>
+    <npc name="Bob" hasDialog="true" floor="2"/>
 </IndoorWorld>
 
 <Dialog name="Bob">
-	<text id="0" nextid="1" pause="true">
+    <text id="0" nextid="1" pause="true">
 		Hey. Have a Dank MayMay :)
-		<give id="Dank MayMay" count="1" />
-	</text>
-
-	<text id="1" nextid="2">
+		                                <give id="Dank MayMay" count="1"/></text>
+    <text id="1" nextid="2">
 		What? You want another Dank MayMay?
 	</text>
-
-	<text id="2" nextid="3" pause="true">
+    <text id="2" nextid="3" pause="true">
 		K.
-		<give id="Dank MayMay" count="1" />
-	</text>
-
-	<text id="3" nextid="4">
+		                                <give id="Dank MayMay" count="1"/></text>
+    <text id="3" nextid="4">
 		Well... I'm out of Dank MayMays.
 	</text>
-
-	<text id="4">
+    <text id="4">
 		Have a sword though.
-		<give id="Wood Sword"  count="1"/>
-	</text>
-
+		                                <give id="Wood Sword" count="1"/></text>
 </Dialog>

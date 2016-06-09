@@ -1,11 +1,8 @@
 <?xml version="1.0"?>
 <World>
-	<style background="0" bgm="assets/music/embark.wav" folder="assets/style/rustic/"/>
-	<generation type="Random" width="1000" />
-	<structure type="5" inside="playerSpawnHill1_Building1.xml"/>
-
-	<npc name="Swag" x="0" />
-
-	<link left="playerSpawnHill1.xml" />
-
+    <style background="0" bgm="assets/music/embark.wav" folder="assets/style/rustic/"/>
+    <generation type="Random" width="1000"/>
+    <structure type="5" inside="playerSpawnHill1_Building1.xml"/>
+    <npc name="Swag"/>
+    <link left="playerSpawnHill1.xml"/>
 </World>
