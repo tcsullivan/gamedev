@@ -17,6 +17,7 @@
 #include <inventory.hpp>
 #include <texture.hpp>
 #include <save_util.hpp>
+#include <coolarray.hpp>
 
 // local library includes
 #include <tinyxml2.h>

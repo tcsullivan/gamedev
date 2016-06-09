@@ -9,6 +9,7 @@
 #include <sstream>
 #include <fstream>
 #include <memory>
+#include <mutex>
 
 // local game headers
 #include <ui.hpp>
@@ -29,6 +30,9 @@ extern World       *currentWorldToLeft;		// main.cpp
 extern World       *currentWorldToRight;	// main.cpp
 extern bool         inBattle;               // ui.cpp?
 extern std::string  xmlFolder;
+
+// particle mutex
+std::mutex partMutex;
 
 // externally referenced in main.cpp
 int worldShade = 0;
@@ -776,22 +780,23 @@ void World::draw(Player *p)
     glEnableVertexAttribArray(worldShader_attribute_coord);
     glEnableVertexAttribArray(worldShader_attribute_tex);
 
-    uint ps = particles.size();
+	partMutex.lock();
+	uint ps = particles.size();
     uint pss = ps * 6 * 5;	
 	uint pc = 0;
 	
 	std::vector<GLfloat> partVec(pss);
-	GLfloat *pIndex = &partVec[0];
-  
-	for (const auto &p : particles) {
+	auto *pIndex = &partVec[0];
+	for (uint i = 0; i < ps; i++) {
         pc += 30;
 		if (pc > pss) {
 			// TODO resize the vector or something better than breaking
-			//std::cout << "Whoops:" << pc << "," << partVec.size() << std::endl;
+			std::cout << "Whoops:" << pc << "," << partVec.size() << std::endl;
 			break;
 		}
-		p.draw(pIndex);
+		particles[i].draw(pIndex);
     }
+	partMutex.unlock();
 
     glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
     glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[3]);
@@ -802,7 +807,7 @@ void World::draw(Player *p)
 
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 
-    glUseProgram(0);
+    glUseProgram(0);    
 }
 
 /**
@@ -936,6 +941,8 @@ detect(Player *p)
     singleDetect(e);
 		//std::thread(&World::singleDetect, this, e).detach();
 
+	// qwertyuiop
+	partMutex.lock();
     // handle particles
 	for (auto &part : particles) {
 		// get particle's current world line
@@ -983,6 +990,7 @@ detect(Player *p)
 			break;
 		}
 	}
+	partMutex.unlock();
 
 	// draws the village welcome message if the player enters the village bounds
 	for (auto &v : village) {
@@ -1033,15 +1041,16 @@ update(Player *p, unsigned int delta, unsigned int ticks)
             e->loc.y += e->vel.y * delta;
         }
 	}
-    // iterate through particles
+	partMutex.lock();
+	// iterate through particles
     particles.remove_if([](const Particles &part) {
 		return part.duration <= 0;
     });
 
     for (auto &pa : particles) {
 		if (pa.canMove) { // causes overhead
-			pa.loc.y += pa.vel.y * delta;
-			pa.loc.x += pa.vel.x * delta;
+			pa.loc.y += pa.vel.y * game::time::getDeltaTime();
+			pa.loc.x += pa.vel.x * game::time::getDeltaTime();
 
 			if (pa.stu != nullptr) {
 				if (pa.loc.x >= pa.stu->loc.x && pa.loc.x <= pa.stu->loc.x + pa.stu->width &&
@@ -1050,7 +1059,7 @@ update(Player *p, unsigned int delta, unsigned int ticks)
 			}
 		}
 	}
-
+    partMutex.unlock();
     // handle music fades
 	if (!Mix_PlayingMusic())
 		Mix_FadeInMusic(bgmObj, -1, 2000);
