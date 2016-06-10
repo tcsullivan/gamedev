@@ -1256,6 +1256,8 @@ EXIT:
 						if (fadeEnable)
 							break;
 						player->vel.x = -PLAYER_SPEED_CONSTANT;
+						if (std::stoi(game::getValue("Slow")) == 1)
+							player->vel.x /= 2.0f;
 						player->left = left = true;
 						player->right = right = false;
 						if (currentWorldToLeft) {
@@ -1270,6 +1272,8 @@ EXIT:
 						if (fadeEnable)
 							break;
 						player->vel.x = PLAYER_SPEED_CONSTANT;
+						if (std::stoi(game::getValue("Slow")) == 1)
+							player->vel.x /= 2.0f;
 						player->right = right = true;
 						player->left = left = false;
 						if (currentWorldToRight) {

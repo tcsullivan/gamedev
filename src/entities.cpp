@@ -257,6 +257,10 @@ void NPC::createFromXML(XMLElement *e, World *w=nullptr)
     // custom health value
 	E_LOAD_HEALTH;
 
+	// movemenet
+	if (e->QueryBoolAttribute("canMove", &dialog) == XML_NO_ERROR)
+		canMove = dialog;
+
 	// dialog index
 	if (e->QueryUnsignedAttribute("dindex", &flooor) == XML_NO_ERROR)
 		dialogIndex = flooor;
@@ -591,8 +595,10 @@ wander(int timeRun)
 			vel.x = HLINES(-0.018);
 		else if (loc.x < targetx - HLINES(5))
 			vel.x = HLINES(0.018);
-		else
+		else {
 			targetx = 0.9112001f;
+			vel.x = 0;
+		}
 	} else if (ticksToUse == 0) {
 		ticksToUse = timeRun;
 
@@ -628,6 +634,7 @@ void NPC::interact() { //have the npc's interact back to the player
 		XMLElement *exml,*oxml;
 
 		static unsigned int oldidx = 9999;
+		const char *ptr;
 		std::string nname;
 		unsigned int idx;
 		bool stop;
@@ -704,8 +711,11 @@ COMMONAIFUNC:
 				moveTo(std::stoi(oxml->GetText()));
 
 			// asdlfkj
-			auto ptr = exml->GetText() - 1;
-			while (isspace(*++ptr));
+			if (exml->GetText() == nullptr)
+				goto OTHERSTUFF;
+
+			ptr = exml->GetText() - 1;
+			while (*++ptr && isspace(*ptr));
 
 			// handle dialog options
 			if ((oxml = exml->FirstChildElement("option"))) {
@@ -735,6 +745,8 @@ COMMONAIFUNC:
 				ui::dialogBox(name, "", false, ptr);
 				ui::waitForDialog();
 			}
+
+OTHERSTUFF:
 
 			// trigger other npcs if desired
 			if (!(nname = exml->StrAttribute("call")).empty()) {
@@ -1062,7 +1074,7 @@ bool Particles::timeUp(void)
 
 void Player::save(void) {
 	std::string data;
-	std::ofstream out ("xml/main.dat",std::ios::out | std::ios::binary);
+	std::ofstream out (xmlFolder + ".main.dat", std::ios::out | std::ios::binary);
 	std::cout<<"Saving player data..."<<std::endl;
 	data.append(std::to_string((int)loc.x) + "\n");
 	data.append(std::to_string((int)loc.y) + "\n");
@@ -1088,7 +1100,7 @@ void Player::save(void) {
 void Player::sspawn(float x,float y) {
 	unsigned int i;
 	int count;
-	std::ifstream in (std::string(xmlFolder + "main.dat"),std::ios::in | std::ios::binary);
+	std::ifstream in (xmlFolder + ".main.dat", std::ios::in | std::ios::binary);
 	spawn(x,y);
 
 	if (in.good()) {

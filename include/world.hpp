@@ -27,8 +27,7 @@ enum class WorldBGType : unsigned int {
  * Weather is set by the world somewhere.
  */
 enum class WorldWeather : unsigned char {
-	Sunny = 0,	/**< Sunny/daytime */
-	Dark,		/**< Nighttime */
+	None = 0,	/**< None (sunny) */
 	Rain,		/**< Rain */
 	Snowy		/**< Snow */
 };
@@ -265,6 +264,7 @@ protected:
 	 * @see addStructure()
 	 * @see getStructurePos()
 	 */
+	std::vector<Structures *> build;
 
 	/**
 	 * A vector of all villages in the world.
@@ -291,7 +291,6 @@ protected:
 
 public:
 
-	std::vector<Structures *> build;
 	/**
 	 * A vector of pointers to all entities from the other vectors.
 	 * This is used to mass-manage entities, or operate on entities
@@ -349,7 +348,7 @@ public:
 	/**
 	 * Updates entity positions, time of day, and music.
 	 */
-	void update(Player *p, unsigned int delta, unsigned int ticks);
+	void update(Player *p, unsigned int delta);
 
 	/**
 	 * Gets the width of the world, presumably in pixels.
@@ -416,6 +415,9 @@ public:
 	// gets the string that represents the current weather
 	std::string getWeatherStr(void) const;
 	const WorldWeather& getWeatherId(void) const;
+
+	// sets the weatherrrr
+	void setWeather(const std::string& w);
 
 	// sets / gets pathnames of XML files for worlds to the left and right
 	std::string setToLeft(std::string file);

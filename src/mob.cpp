@@ -331,6 +331,7 @@ Trigger::Trigger(void) : Mob()
     height = 2000;
     //tex = TextureIterator();
     triggered = false;
+	notext = false;
 }
 
 void Trigger::act(void)
@@ -355,28 +356,38 @@ void Trigger::act(void)
 
             player->vel.x = 0;
 
-			if (exml == nullptr) {
+			if (notext) {
+				for (auto &n : currentWorld->npc) {
+					if (n->name == exml->GetText()) {
+						n->interact();
+						break;
+					}
+				}
+			} else {
+
+			/*if (exml == nullptr) {
 				auto id = xmle->StrAttribute("cid");
 				if (!id.empty()) {
 					game::setValue(id, xmle->StrAttribute("cvalue"));
 					game::briceUpdate();
 				}
 				return;
+			}*/
+
+	            ui::toggleBlackFast();
+	            ui::waitForCover();
+
+    	        std::string text = exml->GetText();
+	            char *pch = strtok(&text[0], "\n");
+
+	            while (pch) {
+	                ui::importantText(pch);
+	                ui::waitForDialog();
+	                pch = strtok(NULL, "\n");
+	            }
+
+    	        ui::toggleBlackFast();
 			}
-
-            ui::toggleBlackFast();
-            ui::waitForCover();
-
-            std::string text = exml->GetText();
-            char *pch = strtok(&text[0], "\n");
-
-            while (pch) {
-                ui::importantText(pch);
-                ui::waitForDialog();
-                pch = strtok(NULL, "\n");
-            }
-
-            ui::toggleBlackFast();
 
             triggered = true;
             running = false;
@@ -397,10 +408,17 @@ bool Trigger::bindTex(void)
 void Trigger::createFromXML(XMLElement *e, World *w=nullptr)
 {
 	(void)w;
-    float Xlocx;
-    if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)
-        loc.x = Xlocx;
-    id = e->StrAttribute("id");
+	float Xlocx;
+
+	if (e->QueryFloatAttribute("spawnx", &Xlocx) == XML_NO_ERROR)
+		loc.x = Xlocx;
+
+	if (e->QueryBoolAttribute("notext", &notext) != XML_NO_ERROR)
+		notext = false;
+
+	id = e->StrAttribute("id");
+
+	xmle = e;
 }
 
 void Trigger::saveToXML(void)

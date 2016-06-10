@@ -23,10 +23,12 @@ void main()
 		for (int i = 0; i < lightSize; i++) {
 			vec2 loc = light[i].xy;
 			float dist = length(loc - fragCoord.xy);
-			float attenuation = clamp(1.0f - dist*dist/(light[i].w*light[i].w), 0.0f, 1.0f);
-			attenuation *= attenuation;
+			if (dist < light[i].w) {
+				float attenuation = clamp(1.0f - dist*dist/(light[i].w*light[i].w), 0.0f, 1.0f);
+				attenuation *= attenuation;
 
-			shadeColor += (vec4(attenuation, attenuation, attenuation, 0.0f) * vec4(lightColor[i])) * lightImpact;		
+				shadeColor += (vec4(attenuation, attenuation, attenuation, 0.0f) * vec4(lightColor[i])) * lightImpact;
+			}
 		}
 	}
 	shadeColor += ambientLight;

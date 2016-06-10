@@ -35,8 +35,10 @@ namespace game {
 
 	void briceClear(void) {
 		std::ofstream out ("brice.dat", std::ios::out);
+		const std::string defaultt = "1\nSlow\n1\n";
+		out.write(defaultt.data(), defaultt.size());
 		out.close();
-		brice.clear();
+		briceLoad();
 	}
 
 	void briceSave(void) {

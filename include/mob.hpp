@@ -115,6 +115,8 @@ private:
     std::string id;
     bool triggered;
 public:
+	bool notext;
+
     Trigger(void);
 
     void act(void);

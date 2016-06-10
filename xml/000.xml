@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<World>
+    <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
+    <generation type="Random" width="500"/>
+    <link right="playerSpawnHill2.xml"/>
+    <hill peakx="0" peaky="1000" width="50"/>
+    <weather>Rainy</weather>
+    <time>3400</time>
+    <spawnx>-880</spawnx>
+    <trigger spawnx="-850" id="first" notext="1"/>
+    <npc name="Guy" hasDialog="true" spawnx="0" canMove="false" health="1" x="-582.05096" y="65.998985" dindex="9999"/>
+</World>
+
+<Trigger id="first">Guy</Trigger>
+
+<Dialog name="Guy">
+    <text id="0">
+        <gotox>-600</gotox>
+    </text>
+</Dialog>

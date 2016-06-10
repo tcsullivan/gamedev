@@ -20,6 +20,8 @@ using namespace tinyxml2;
 #include <ui.hpp>
 #include <gametime.hpp>
 
+#include <fstream>
+
 /* ----------------------------------------------------------------------------
 ** Variables section
 ** --------------------------------------------------------------------------*/
@@ -118,7 +120,7 @@ void mainLoop(void);
 int main(int argc, char *argv[])
 {
 	static SDL_GLContext mainGLContext = NULL;
-	static bool worldReset = false;
+	static bool worldReset = false, worldDontReallyRun = false;
 
 	// handle command line arguments
 	if (argc > 1) {
@@ -129,6 +131,8 @@ int main(int argc, char *argv[])
 		for (const auto &s : args) {
 			if (s == "--reset" || s == "-r")
 				worldReset = true;
+			else if (s == "--dontrun" || s == "-d")
+				worldDontReallyRun = true;
 		}
 	}
 
@@ -286,7 +290,13 @@ int main(int argc, char *argv[])
 		}
 
 		game::briceClear();
+
+		std::ofstream pdat ("xml/.main.dat", std::ios::out);
+		pdat.close();
 	}
+
+	if (worldDontReallyRun)
+		return 0;
 
 	if (currentWorld == nullptr) {
 		
@@ -372,7 +382,7 @@ void mainLoop(void){
 		if (game::time::tickHasPassed())
 			logic();
 
-		currentWorld->update(player, game::time::getDeltaTime(), game::time::getTickCount());
+		currentWorld->update(player, game::time::getDeltaTime());
 		currentWorld->detect(player);
 	}
 }

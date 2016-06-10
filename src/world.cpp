@@ -31,6 +31,12 @@ extern World       *currentWorldToRight;	// main.cpp
 extern bool         inBattle;               // ui.cpp?
 extern std::string  xmlFolder;
 
+static const std::array<std::string, 3> WorldWeatherString {
+	"None",
+	"Rainy",
+	"Snowy"
+};
+
 // particle mutex
 std::mutex partMutex;
 
@@ -220,7 +226,7 @@ generate(int width)
 		s.y = (randGet() % game::SCREEN_HEIGHT) + 100;
 	}
 
-	weather = WorldWeather::Sunny;
+	weather = WorldWeather::None;
 }
 
 /**
@@ -1010,16 +1016,8 @@ detect(Player *p)
  * Also handles music fading, although that could probably be placed elsewhere.
  */
 void World::
-update(Player *p, unsigned int delta, unsigned int ticks)
+update(Player *p, unsigned int delta)
 {
-	// update day/night time
-	if (!(ticks % DAY_CYCLE) || ticks == 0) {
-		if (weather == WorldWeather::Sunny)
-			weather = WorldWeather::Dark;
-		else if (weather == WorldWeather::Dark)
-			weather = WorldWeather::Sunny;
-	}
-
     // update player coords
 	p->loc.y += p->vel.y			 * delta;
 	p->loc.x +=(p->vel.x * p->speed) * delta;
@@ -1230,26 +1228,23 @@ void World::setStyle(std::string pre)
  */
 std::string World::getWeatherStr(void) const
 {
-	switch (weather) {
-	case WorldWeather::Sunny:
-		return "Sunny";
-		break;
-	case WorldWeather::Dark:
-		return "Dark";
-		break;
-	case WorldWeather::Rain:
-		return "Rainy";
-		break;
-	case WorldWeather::Snowy:
-		return "Snowy";
-		break;
-	}
-	return "???";
+	return WorldWeatherString[static_cast<int>(weather)];
 }
 
 const WorldWeather& World::getWeatherId(void) const
 {
 	return weather;
+}
+
+void World::setWeather(const std::string &s)
+{
+	for (unsigned int i = WorldWeatherString.size(); i--;) {
+		if (WorldWeatherString[i] == s) {
+			weather = static_cast<WorldWeather>(i);
+			return;
+		}
+	} 
+	weather = WorldWeather::None;
 }
 
 /**
@@ -2008,6 +2003,16 @@ loadWorldFromXMLNoSave(std::string path) {
             }
 		}
 
+		// weather tags
+		else if (name == "weather") {
+			tmp->setWeather(wxml->GetText());
+		}
+
+		// set spawn x for player
+		else if (name == "spawnx") {
+			player->loc.x = std::stoi(wxml->GetText());
+		}
+
         // mob creation
         else if (name == "rabbit") {
             newEntity = new Rabbit();
@@ -2054,8 +2059,6 @@ loadWorldFromXMLNoSave(std::string path) {
 		if (newEntity != nullptr) {
 			bool alive = true;
 			if (wxml->QueryBoolAttribute("alive", &alive) != XML_NO_ERROR || alive) {
-				newEntity->createFromXML(wxml, tmp);
-
 				switch (newEntity->type) {
 				case NPCT:
 					tmp->addNPC(dynamic_cast<NPC *>(newEntity));
@@ -2069,6 +2072,8 @@ loadWorldFromXMLNoSave(std::string path) {
 				default:
 					break;
 				}
+
+				newEntity->createFromXML(wxml, tmp);
 			}
 		}
 
