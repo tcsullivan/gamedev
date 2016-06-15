@@ -33,7 +33,7 @@ constexpr const char *GAME_NAME = "Independent Study v0.8 alpha - NOW WITH decen
 SDL_Window *window = NULL;
 
 // main loop runs based on this variable's value
-bool gameRunning = false;
+bool gameRunning = true;
 
 // world objects for the current world and the two that are adjacent
 World *currentWorld        = NULL,
@@ -325,7 +325,6 @@ int main(int argc, char *argv[])
 	arena->setBGM("assets/music/embark.wav");
 
 	// the main loop, in all of its gloriousness..
-	gameRunning = true;
 	std::thread([&]{
 		while (gameRunning) {
 			mainLoop();

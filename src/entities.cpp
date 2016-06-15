@@ -7,6 +7,7 @@
 #include <ui.hpp>
 #include <world.hpp>
 #include <gametime.hpp>
+#include <brice.hpp>
 
 extern std::istream *names;
 
@@ -638,6 +639,8 @@ void NPC::interact() { //have the npc's interact back to the player
 		std::string nname;
 		unsigned int idx;
 		bool stop;
+		float tgt = 0.12345678f;
+		bool pmove = true, advance = false;
 
 		loc.y += 5;
 
@@ -707,8 +710,20 @@ COMMONAIFUNC:
 			}
 
 			// handle movement directs
-			if ((oxml = exml->FirstChildElement("gotox")))
-				moveTo(std::stoi(oxml->GetText()));
+			if ((oxml = exml->FirstChildElement("gotox"))) {
+				moveTo((tgt = std::stoi(oxml->GetText())));
+				if (oxml->QueryBoolAttribute("playerMove", &pmove) != XML_NO_ERROR)
+					pmove = true;
+				if (oxml->QueryBoolAttribute("advance", &advance) != XML_NO_ERROR)
+					advance = false;
+			}
+
+			// handle attribute setting
+			if ((oxml = exml->FirstChildElement("set"))) {
+				do game::setValue(oxml->StrAttribute("id"), oxml->StrAttribute("value"));
+				while ((oxml = oxml->NextSiblingElement()));
+				game::briceUpdate();
+			}
 
 			// asdlfkj
 			if (exml->GetText() == nullptr)
@@ -760,6 +775,20 @@ OTHERSTUFF:
 				}
 			}
 
+			if (tgt != 0.12345678f) {
+				stop = canMove;
+				canMove = true;
+				while (targetx != 0.9112001f) {
+					if (!pmove)
+						player->speed = 0;
+				}
+				if (!pmove) {
+					pmove = true;
+					player->speed = 1;
+				}
+				canMove = stop;
+			}
+
 			// handle potential following dialogs
 			if ((idx = exml->UnsignedAttribute("nextid"))) {
 				dialogIndex = idx;
@@ -780,6 +809,10 @@ OTHERSTUFF:
 					goto COMMONAIFUNC;
 				}
 			}
+
+			// advance if desired
+			if (advance)
+				goto COMMONAIFUNC;
 
 			// stop talking
 			else {

@@ -797,7 +797,7 @@ void World::draw(Player *p)
         pc += 30;
 		if (pc > pss) {
 			// TODO resize the vector or something better than breaking
-			std::cout << "Whoops:" << pc << "," << partVec.size() << std::endl;
+			//std::cout << "Whoops:" << pc << "," << partVec.size() << std::endl;
 			break;
 		}
 		particles[i].draw(pIndex);
@@ -1150,12 +1150,11 @@ getStructurePos(int index)
 /**
  * Saves world data to a file.
  */
-void World::save(void)
+void World::save(const std::string& s)
 {
 	for (const auto &e : entity)
 		e->saveToXML();
-
-	currentXMLDoc.SaveFile(currentXML.c_str(), false);
+	currentXMLDoc.SaveFile((xmlFolder + (s.empty() ? currentXML : s)).c_str(), false);
 }
 
 /**
@@ -1285,7 +1284,6 @@ std::string World::getToRight(void) const
 WorldSwitchInfo World::goWorldLeft(Player *p)
 {
 	World *tmp;
-
     // check if player is at world edge
 	if (!toLeft.empty() && p->loc.x < worldStart + HLINES(15)) {
         // load world (`toLeft` conditional confirms existance)
@@ -1305,7 +1303,6 @@ WorldSwitchInfo World::goWorldLeft(Player *p)
 WorldSwitchInfo World::goWorldRight(Player *p)
 {
 	World *tmp;
-
 	if (!toRight.empty() && p->loc.x + p->width > -worldStart - HLINES(15)) {
         tmp = loadWorldFromPtr(currentWorldToRight);
         return std::make_pair(tmp, vec2 {tmp->worldStart + (float)HLINES(15.0), GROUND_HEIGHT_MINIMUM} );
@@ -1851,24 +1848,28 @@ static bool loadedRight = false;
 
 World *loadWorldFromXML(std::string path) {
 	if (!currentXML.empty())
-		currentWorld->save();
+		currentWorld->save(path);
 
 	return loadWorldFromXMLNoSave(path);
 }
 
 World *loadWorldFromPtr(World *ptr)
 {
-    World *tmp = ptr;
+	currentWorld->save(); // save the current world to the current xml path
+	
+	if (ptr->getToLeft() == currentXML) {
+		currentWorldToLeft = currentWorld;
+		loadedRight = true;
+		currentWorldToRight = loadWorldFromXMLNoSave(ptr->getToRight());
+		loadedRight = false;
+	} else if (ptr->getToRight() == currentXML) {
+		currentWorldToRight = currentWorld;
+		loadedLeft = true;
+		currentWorldToLeft = loadWorldFromXMLNoSave(ptr->getToLeft());
+		loadedLeft = false;
+	}
 
-    loadedLeft = true;
-    currentWorldToLeft = loadWorldFromXML(tmp->getToLeft());
-    loadedLeft = false;
-
-    loadedRight = true;
-    currentWorldToRight = loadWorldFromXML(tmp->getToRight());
-    loadedRight = false;
-
-    return tmp;
+    return ptr;
 }
 
 /**
@@ -2009,7 +2010,7 @@ loadWorldFromXMLNoSave(std::string path) {
 		}
 
 		// set spawn x for player
-		else if (name == "spawnx") {
+		else if (name == "spawnx" && !(loadedLeft | loadedRight)) {
 			player->loc.x = std::stoi(wxml->GetText());
 		}
 
@@ -2044,7 +2045,7 @@ loadWorldFromXMLNoSave(std::string path) {
 		}
 		
 		// time setting
-		else if (name == "time") {
+		else if (name == "time" && !(loadedLeft | loadedRight)) {
             game::time::setTickCount(std::stoi(wxml->GetText()));
         }
 		

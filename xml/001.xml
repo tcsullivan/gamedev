@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<World>
+    <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
+    <generation type="Random" width="600"/>
+    <link left="000.xml"/>
+    <weather>Rainy</weather>
+</World>

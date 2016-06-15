@@ -397,8 +397,8 @@ public:
 	 */
 	std::string getSTextureLocation(unsigned int index) const;
 
-	// saves the world's data to an XML file
-	void save(void);
+	// saves the world's data to an XML file, either the one provided or the current path
+	void save(const std::string& s="");
 
 	// plays/pauses the world's music, according to if a new world is being entered
 	void bgmPlay(World *prev) const;

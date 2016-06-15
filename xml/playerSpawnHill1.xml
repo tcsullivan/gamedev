@@ -3,70 +3,24 @@
     <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
     <generation type="Random" width="500"/>
     <link right="playerSpawnHill2.xml"/>
-    <time>12000</time>
     <hill peakx="0" peaky="1000" width="50"/>
-    <rabbit spawnx="300" aggressive="false" maxHealth="100"/>
-    <bird spawny="500" maxHealth="1"/>
-    <cat/>
-    <!--<trigger x="-300" id="Test"/>-->
-    <npc name="Ralph" hasDialog="true" spawnx="300"/>
-    <npc name="Johnny" hasDialog="false" spawnx="300"/>
-    <npc name="Big Dave" hasDialog="true" spawnx="300"/>
-    <page spawnx="-200" id="assets/pages/gootaGoFast.png" cid="canSprint" cvalue="1"/>
-    <page spawnx="-500" id="assets/pages/gootaJump.png" cid="canJump" cvalue="1"/>
-    <village name="Big Dave&apos;s bagel emporium! The greatest place on earth!">
-        <structure type="0" spawnx="-300" inside="playerSpawnHill1_Building1.xml" alive="1"/>
-        <structure type="5" spawnx="-500" alive="1"/>
-        <stall type="market" texture="assets/style/classic/stall.png" alive="1">
-            <text>
-                <greet>Welcome to Smithy's! What would you like to purchase today?</greet>
-                <accept>Thanks!</accept>
-                <deny>Come back with more money to get this item!</deny>
-                <leave>Have a great day, and watch out for my rabbit Mr. Cuddles, he might try to attack you.</leave>
-            </text>
-            <trade quantity="420" item="Dank MayMay" quantity1="1" item1="Wood Sword"/>
-            <trade quantity="666" item="Wood Sword" quantity1="420" item1="Dank MayMay"/>
-        </stall>
-    </village>
+    <weather>Rainy</weather>
+    <time>3400</time>
+    <spawnx>-880</spawnx>
+    <trigger spawnx="-850" id="first" notext="1"/>
+    <npc name="Guy" hasDialog="true" spawnx="0" canMove="false"/>
 </World>
 
-<Trigger id="Test">It was a dark and stormy night...
-Except it was the middle of the day.
-And it wasn't stormy.
-...</Trigger>
+<Trigger id="first">Guy</Trigger>
 
-<Dialog name="Ralph">
+<Dialog name="Guy">
     <text id="0" nextid="1">
-		Hello there! My name is Ralph.
-		                                                                                                                                                                                                                                                                                <gotox>300</gotox>
+        <gotox>-600</gotox>
     </text>
-    <text id="1" nextid="2" call="Johnny" callid="0" pause="true">
-		You should go talk to my friend Johnny. He's a pretty chill dude.
-	</text>
-    <text id="2">
-		Niice.
-		                                                                                                                                                                                                                                                                                <quest check="Your First Quest" fail="3"/></text>
-    <text id="3">
-		Go check out Johnny. He's cool.
-	</text>
-</Dialog>
-
-<Dialog name="Johnny">
-    <text id="0" nextid="1" pause="true">
-		Sup bro! Have a quest. To complete it, just go talk to Ralph again.
-		                                                                                                                                                                                                                                                                                <quest assign="Your First Quest">
-			Dank MayMay,2
-			Wood Sword,1
-		</quest>
+    <text id="1">
+		...
+		                                                                                                                                                                                                                                                                                                                                                                                                                                                                <gotox>1000</gotox>
+        <set id="Slow" value="0"/>
+        <set id="canSprint" value="1"/>
     </text>
-    <text id="1" nextid="1" pause="true">
-		Broooooooooooooo...
-	</text>
-</Dialog>
-
-<Dialog name="Big Dave">
-    <text id="0" stop="true">
-		Hey friend! It's dangerous out there, here take these!
-		Wait, promise you'll stop by my stand in the local market!
-		                                                                                                                                                                                                                                                                                <give id="Wood Sword" count="1"/>        <give id="Hunters Bow" count="1"/>        <give id="Crude Arrow" count="110"/>        <give id="Fried Chicken" count="1"/>        <give id="Mossy Torch" count="1"/></text>
 </Dialog>

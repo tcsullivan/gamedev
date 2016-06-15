@@ -160,7 +160,7 @@ public:
 	bool near;
 
 	// when true, the entity can move
-	bool canMove;
+	int canMove;
 
 	// tells direction entity is facing
 	bool right, left;
