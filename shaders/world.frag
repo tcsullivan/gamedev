@@ -26,7 +26,6 @@ void main()
 			if (dist < light[i].w) {
 				float attenuation = clamp(1.0f - dist*dist/(light[i].w*light[i].w), 0.0f, 1.0f);
 				attenuation *= attenuation;
-
 				shadeColor += (vec4(attenuation, attenuation, attenuation, 0.0f) * vec4(lightColor[i])) * lightImpact;
 			}
 		}

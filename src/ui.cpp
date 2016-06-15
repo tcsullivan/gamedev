@@ -731,6 +731,163 @@ namespace ui {
         glUseProgram(0);
 	}
 
+	void drawNiceBox(vec2 c1, vec2 c2, float z) {
+		// the textures for the box corners
+		static GLuint box_corner =	 	Texture::loadTexture("assets/ui/button_corners.png");
+		static GLuint box_side_top = 	Texture::loadTexture("assets/ui/button_top_bot_borders.png");
+		static GLuint box_side = 		Texture::loadTexture("assets/ui/button_side_borders.png");
+
+		// the dimensions of the corner textures
+		static dim2 box_corner_dim_t = 	Texture::imageDim("assets/ui/button_corners.png");
+		static vec2 box_corner_dim = vec2(box_corner_dim_t.x / 2.0, box_corner_dim_t.y / 2.0);
+		
+		// the amount of bytes to skip in the OpenGL arrays (see below)
+		auto stride = 5 * sizeof(GLfloat);
+	
+		// we always want to make sure c1 is lower left and c2 is upper right
+		if (c1.x > c2.x) std::swap(c1.x, c2.y);
+		if (c1.y > c2.y) std::swap(c1.y, c2.y);
+	
+		// if the box is too small, we will not be able to draw it	
+		if (c2.x - c1.x < (box_corner_dim_t.x)) return;
+		if (c2.y - c1.y < (box_corner_dim_t.y)) return;
+
+
+		GLfloat box_ul[] = {c1.x, 						c2.y - box_corner_dim.y, z,	0.0f, 0.5f,
+                          	c1.x + box_corner_dim.x, 	c2.y - box_corner_dim.y, z,	0.5f, 0.5f,
+                          	c1.x + box_corner_dim.x,	c2.y, 					 z,	0.5f, 1.0f,
+
+                          	c1.x + box_corner_dim.x,	c2.y, 					 z, 0.5f, 1.0f,
+                       	  	c1.x, 						c2.y, 					 z, 0.0f, 1.0f,
+                          	c1.x, 						c2.y - box_corner_dim.y, z,	0.0f, 0.5f};
+
+		GLfloat box_ll[] = {c1.x, 						c1.y, 					 z,	0.0f, 0.0f,
+                          	c1.x + box_corner_dim.x, 	c1.y,					 z,	0.5f, 0.0f,
+                          	c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z,	0.5f, 0.5f,
+
+                          	c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
+                       	  	c1.x, 						c1.y + box_corner_dim.y, z, 0.0f, 0.5f,
+                          	c1.x, 						c1.y,					 z,	0.0f, 0.0f};
+
+		GLfloat box_ur[] = {c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z,	0.5f, 0.5f,
+                          	c2.x, 						c2.y - box_corner_dim.y, z,	1.0f, 0.5f,
+                          	c2.x,						c2.y, 					 z,	1.0f, 1.0f,
+
+                          	c2.x,						c2.y, 					 z, 1.0f, 1.0f,
+                       	  	c2.x - box_corner_dim.x, 	c2.y, 					 z, 0.5f, 1.0f,
+                          	c2.x - box_corner_dim.x, 	c2.y - box_corner_dim.y, z,	0.5f, 0.5f};
+
+		GLfloat box_lr[] = {c2.x - box_corner_dim.x, 	c1.y, 					 z,	0.5f, 0.0f,
+                          	c2.x, 						c1.y,					 z,	1.0f, 0.0f,
+                          	c2.x,						c1.y + box_corner_dim.y, z,	1.0f, 0.5f,
+
+                          	c2.x,						c1.y + box_corner_dim.y, z, 1.0f, 0.5f,
+                       	  	c2.x - box_corner_dim.x, 	c1.y + box_corner_dim.y, z, 0.0f, 0.5f,
+                          	c2.x - box_corner_dim.x, 	c1.y,					 z,	0.5f, 0.0f};
+
+		GLfloat box_l[] =  {c1.x,						c1.y + box_corner_dim.y, z, 0.0f, 0.0f,
+							c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.0f,
+							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 1.0f,
+
+							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 1.0f,
+							c1.x,						c2.y - box_corner_dim.y, z, 0.0f, 1.0f,
+							c1.x,						c1.y + box_corner_dim.y, z, 0.0f, 0.0f};
+
+		GLfloat box_r[] =  {c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.0f,
+							c2.x,						c1.y + box_corner_dim.y, z, 1.0f, 0.0f,
+							c2.x,						c2.y - box_corner_dim.y, z, 1.0f, 1.0f,
+
+							c2.x,						c2.y - box_corner_dim.y, z, 1.0f, 1.0f,
+							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 1.0f,
+							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.0f};
+
+        GLfloat box_b[] =  {c1.x + box_corner_dim.x,	c1.y,					 z,	0.0f, 0.0f,
+							c2.x - box_corner_dim.x,	c1.y,					 z, 1.0f, 0.0f,
+							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z,	1.0f, 0.5f,
+
+							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z,	1.0f, 0.5f,
+							c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.0f, 0.5f,
+							c1.x + box_corner_dim.x,	c1.y,					 z, 0.0f, 0.0f};
+
+        GLfloat box_t[] =  {c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z,	0.0f, 0.5f,
+							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 1.0f, 0.5f,
+							c2.x - box_corner_dim.x,	c2.y, 					 z,	1.0f, 1.0f,
+
+							c2.x - box_corner_dim.x,	c2.y,					 z,	1.0f, 1.0f,
+							c1.x + box_corner_dim.x,	c2.y,					 z, 0.0f, 1.0f,
+							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.0f, 0.5f};
+
+		GLfloat box_f[] =  {c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
+							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
+							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 0.5f,
+
+							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 0.5f,
+							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 0.5f,
+							c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f};
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, box_corner);
+		glUniform1f(textShader_uniform_texture, 0);
+		glUseProgram(textShader);
+
+		glEnableVertexAttribArray(textShader_attribute_coord);
+        glEnableVertexAttribArray(textShader_attribute_tex);
+
+		// draw upper left corner
+        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ul[0]);
+        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ul[3]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		// lower left corner
+        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ll[0]);
+        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ll[3]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        
+		// upper right corner
+		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ur[0]);
+        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ur[3]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        
+		// lower right corner
+		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_lr[0]);
+        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_lr[3]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		// draw the middle of the box
+		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_f[0]);
+        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_f[3]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+		
+		glBindTexture(GL_TEXTURE_2D, box_side);
+
+		// draw the left edge of the box
+		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_l[0]);
+        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_l[3]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		// draw right edge of the box
+		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_r[0]);
+        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_r[3]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+		
+		glBindTexture(GL_TEXTURE_2D, box_side_top);
+
+		// draw bottom of the box
+		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_b[0]);
+        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_b[3]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		// draw top of the box
+		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_t[0]);
+        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_t[3]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glDisableVertexAttribArray(textShader_attribute_coord);
+        glDisableVertexAttribArray(textShader_attribute_tex);
+
+		glUseProgram(0);
+	}
+	
 	void draw(void){
 		unsigned char i;
 		float x,y,tmp;
@@ -800,8 +957,7 @@ namespace ui {
 				x = offset.x - SCREEN_WIDTH / 6;
 				y = (offset.y + SCREEN_HEIGHT / 2) - HLINES(8);
 
-				drawBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH / 3, y - SCREEN_HEIGHT * 0.6f});
-
+				drawNiceBox(vec2(x, y), vec2(x + (SCREEN_WIDTH / 3.0f), y - (SCREEN_HEIGHT * 0.6f)), -7.0f);
 				// draw typeOut'd text
 				putString(x + game::HLINE, y - fontSize - game::HLINE, (rtext = typeOut(dialogBoxText)));
 
@@ -934,7 +1090,7 @@ namespace ui {
 				x = offset.x - SCREEN_WIDTH / 2  + HLINES(8);
 				y = offset.y + SCREEN_HEIGHT / 2 - HLINES(8);
 
-				drawBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH - HLINES(16), y - SCREEN_HEIGHT / 4});
+				drawNiceBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH - HLINES(16), y - SCREEN_HEIGHT / 4}, -7.0);
 
 				rtext = typeOut(dialogBoxText);
 				putString(x + game::HLINE, y - fontSize - game::HLINE, rtext);
