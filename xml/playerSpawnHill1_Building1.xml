@@ -10,7 +10,7 @@
 <Dialog name="Bob">
     <text id="0" nextid="1" pause="true">
 		Hey. Have a Dank MayMay :)
-		                                                                                                                                                                                                                                                                        <give id="Dank MayMay" count="1"/></text>
+		                                                                                                                                <give id="Dank MayMay" count="1"/></text>
     <text id="1" nextid="2">
 		What? You want another Dank MayMay?
 	</text>
