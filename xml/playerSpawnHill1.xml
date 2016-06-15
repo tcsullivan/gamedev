@@ -19,7 +19,7 @@
     </text>
     <text id="1">
 		...
-		                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <gotox>1000</gotox>
+		                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <gotox>1000</gotox>
         <set id="Slow" value="0"/>
         <set id="canSprint" value="1"/>
     </text>

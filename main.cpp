@@ -264,8 +264,8 @@ int main(int argc, char *argv[])
 		for (const auto &xf : xmlFiles) {
 			if (xf[0] != '.') {
 				XMLDocument xmld;
-				auto file = xmlFolder + xf;
-				xmld.LoadFile(file.c_str());
+				auto file = (xmlFolder + xf).c_str();
+				xmld.LoadFile(file);
 
 				auto xmle = xmld.FirstChildElement("World");
 
@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
 					xmle->DeleteAttribute("dindex");
 					xmle = xmle->NextSiblingElement();
 				}
-				xmld.SaveFile(file.c_str(), false);
+				xmld.SaveFile(file, false);
 			}
 		}
 

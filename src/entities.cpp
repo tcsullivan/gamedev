@@ -631,7 +631,7 @@ extern int commonAIFunc(NPC *speaker);
 void NPC::interact() { //have the npc's interact back to the player
 	std::thread([this]{
 		std::vector<XMLElement *> dopt;
-		XMLDocument xml;
+		XMLDocument *xml; 
 		XMLElement *exml,*oxml;
 
 		static unsigned int oldidx = 9999;
@@ -644,22 +644,27 @@ void NPC::interact() { //have the npc's interact back to the player
 
 		loc.y += 5;
 
-		canMove=false;
-		left = (player->loc.x < loc.x);
-		right = !left;
+		// freeze the npc, face the player
+		canMove = false;
+		left    = (player->loc.x < loc.x);
+		right   = !left;
 
+		// if there's actual scripted stuff to do, do it
 		if (dialogCount && dialogIndex != 9999) {
 			// load the XML file and find the dialog tags
-			if (outnabout == 0)
-				xml.LoadFile(currentXML.c_str());
-			else if (outnabout < 0)
-				xml.LoadFile((xmlFolder + currentWorld->getToLeft()).c_str());
-			else
-				xml.LoadFile((xmlFolder + currentWorld->getToRight()).c_str());
+			if (outnabout == 0) {
+				xml = &currentXMLDoc;
+			} else if (outnabout < 0) {
+				xml = new XMLDocument();
+				xml->LoadFile((xmlFolder + currentWorld->getToLeft()).c_str());
+			} else {
+				xml = new XMLDocument();
+				xml->LoadFile((xmlFolder + currentWorld->getToRight()).c_str());
+			}
 COMMONAIFUNC:
 			idx = 0;
 			stop = false;
-			exml = xml.FirstChildElement("Dialog");
+			exml = xml->FirstChildElement("Dialog");
 
 			// search for the dialog block associated with this npc
 			while (exml->StrAttribute("name") != name)
@@ -726,10 +731,11 @@ COMMONAIFUNC:
 			}
 
 			// asdlfkj
-			if (exml->GetText() == nullptr)
+			auto txml = exml->FirstChildElement("content");
+			if (txml == nullptr)
 				goto OTHERSTUFF;
 
-			ptr = exml->GetText() - 1;
+			ptr = txml->GetText() - 1;
 			while (*++ptr && isspace(*ptr));
 
 			// handle dialog options
