@@ -18,8 +18,10 @@
         <gotox playerMove="0" advance="1">-600</gotox>
     </text>
     <text id="1">
-        ...
-                                                                                                                                                                                                                                                                                                        <gotox>700</gotox>
+        <gotox>700</gotox>
         <set id="Slow" value="0"/>
+        <content>
+		...
+	</content>
     </text>
 </Dialog>

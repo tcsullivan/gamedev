@@ -1052,3 +1052,13 @@
 	- worked on better inventory / general ui
 
 	~ more than 10800 lines of code (just counting .hpp's and .cpp's)
+
+6/15/2016:
+==========
+
+	- fixed major indentation problem with tinyxml
+	- windows build actually works first try..???
+	- everybody's pushed and merged and stuff
+	- item rendering stuff
+		"I'm also trying to make it so that other entities can use items.. if that makes sense."
+			- Andy
