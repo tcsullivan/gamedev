@@ -1,14 +1,12 @@
-/** @file common.h
- * @brief Common items needed by most other files.
- *
- * This file contains headers, variables and functions that are needed in
- * most other files included in this project.
- */
-
 #ifndef COMMON_H
 #define COMMON_H
 
-// holy moly
+/**
+ * @file common.h
+ * @brief Common items needed by most other files.
+ */
+
+// standard library includes
 #include <iostream>
 #include <string>
 #include <vector>
@@ -17,14 +15,14 @@
 #include <list>
 #include <iterator>
 
+// alternative windows thread library
 #ifndef __WIN32__
-#	include <thread>
+#include <thread>
 #else
-#	include <win32thread.hpp>
+#include <win32thread.hpp>
 #endif // __WIN32__
 
-#include <shader_utils.hpp>
-
+// local library includes
 #define GLEW_STATIC
 #include <GL/glew.h>
 
@@ -33,110 +31,115 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 
+#include <shader_utils.hpp>
+
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/noise.hpp>
 
+// game library includes
 #include <config.hpp>
 
+
+
+// windows stuff
 #ifdef __WIN32__
 typedef unsigned int uint;
 #undef near
 #endif
 
-// the number of ticks that should occur in one second
-const unsigned int TICKS_PER_SEC = 20;
-
-// the number of milliseconds inbetween each tick
-const float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
-
-// segfault-debugging output
+// Enables special message printing in the case of segfault debugging (unnecessary?)
 //#define SEGFAULT
 
 #ifdef SEGFAULT
-#define C(x) std::cout << x << std::endl
+#define C(x) std::cout << x << '\n'
 #else
 #define C(x)
 #endif
 
-// printf's a message to the console with file/line info
+/**
+ * Prints a formatted string to the terminal with file and line number, for debugging
+ */
 #define DEBUG_printf(message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__)
 
-extern GLuint colorIndex;	// Texture.cpp?
-
 /**
- *	This separates xml strings with
+ * Creates a coordinate of integers.
  */
-std::vector<std::string> StringTokenizer(const std::string& str, char delim);
-
-/**
- * This structure contains a set of coordinates for ease of coding.
- */
-
 typedef struct {
-	int x;
-	int y;
+	int x; /**< The x coordinate */ 
+	int y; /**< The y coordinate */
 } ivec2;
 
+/**
+ * A pair of x and y for dimensions (i.e. width and height).
+ */
 typedef ivec2 dim2;
 
+/**
+ * Creates a coordinate out of floating point integers.
+ */
 class vec2 {
 public:
-	float x;
-	float y;
+	float x; /**< The x coordinate */
+	float y; /**< The y coordinate */
 
-	vec2 ()
-	{
+	/**
+	 * Constructs an empty vec2.
+	 */
+	vec2(){
 		x = y = 0.0f;
 	}
 
-	vec2 (float _x, float _y)
-	{
+	/**
+	 * Constructs a vec2 with the specified coordinates.
+	 */
+	vec2(float _x, float _y) {
 		x = _x;
 		y = _y;
 	}
 
-	bool operator==(const vec2 &v) {
+	bool operator==(const vec2 &v) const {
 		return (x == v.x) && (y == v.y);
 	}
+
 	template<typename T>
 	const vec2 operator=(const T &n) {
 		x = y = n;
 		return *this;
 	}
+
 	template<typename T>
 	const vec2 operator+(const T &n) {
 		return vec2 (x + n, y + n);
 	}
 };
 
+/**
+ * A structure for three-dimensional points.
+ */
 class vec3{
 public:
-	float x;
-	float y;
-	float z;
+	float x; /**< The x coordinate */
+	float y; /**< The y coordinate */
+	float z; /**< The z coordinate */
 
-	vec3 ()
-	{
+	vec3() {
 		x = y = z = 0.0f;
 	}
 
-	vec3 (float _x, float _y, float _z)
-	{
+	vec3(float _x, float _y, float _z) {
 		x = _x;
 		y = _y;
 		z = _z;
 	}
 
-	vec3 (float _x, float _y)
-	{
+	vec3(float _x, float _y) {
 		x = _x;
 		y = _y;
 		z = 1.0f;
 	}
-
 };
 
 /**
@@ -144,38 +147,42 @@ public:
  */
 
 typedef struct {
-	vec2 start;
-	vec2 end;
+	vec2 start; /**< The start coordinate of the ray */
+	vec2 end;   /**< The end coordinate of the ray */
 } Ray;
 
+/**
+ * Keeps track of an RGBA color.
+ */
 class Color{
 public:
-	float red;
-	float green;
-	float blue;
-	float alpha;
-    Color()
-	{
-		red = green = blue = alpha = 0;
+	float red;   /**< The amount of red, 0-255 or 0.0-1.0 depending on usage */
+	float green; /**< The amount of green */
+	float blue;  /**< The amount of blue */
+	float alpha; /**< Transparency */
+
+    Color() {
+		red = green = blue = alpha = 0.0f;
 	}
-	Color(float r, float g ,float b)
-	{
+
+	Color(float r, float g ,float b) {
 		red = r;
 		green = g;
 		blue = b;
         alpha = 255;
 	}
-    Color(float r, float g, float b, float a)
-    {
+
+    Color(float r, float g, float b, float a) {
         red = r;
         green = g;
         blue = b;
         alpha = a;
     }
+
 	Color operator-=(float a) {
-		red-=a;
-		green-=a;
-		blue-=a;
+		red -= a;
+		green -= a;
+		blue -= a;
 		return{red+a,green+a,blue+a};
 	}
 	Color operator+=(float a) {
@@ -186,31 +193,72 @@ public:
 	}
 };
 
-/*
+extern GLuint colorIndex;
+
+/**
+ * The amount of game ticks that should occur each second.
+ */
+constexpr const unsigned int TICKS_PER_SEC = 20;
+
+/**
+ * The amount of milliseconds it takes for a game tick to fire.
+ */
+constexpr const float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
+
+/**
+ * Separates a string into tokens using the given delimiter.
+ *
+ * @param  the string to parse
+ * @param  the delimiting character
+ * @return a vector of the tokens
+ */
+std::vector<std::string> StringTokenizer(const std::string& str, char delim);
+
+/**
  * A function used to tell the program what shader, attributes, and uniforms
- * we want to draw our rectangles to. See below |
- *                                             \|/
+ * we want to draw our rectangles to.
+ *
+ * @see drawRect
+ * @param the shader
+ * @param the 'texture uniform'
+ * @param the 'coord attribute'
+ * @param the 'texture coord attribute'
  */
 void useShader(GLuint *sh, GLint *tu, GLint *ca, GLint *ta);
 
-/*
- * A function to draw a colored box for opengl
- * To use it, the lower left hand and upper right hand coords are passed along
+/**
+ * A function to draw a colored box for OpenGL.
+ * To use it, the lower left hand and upper right hand coords are given.
+ *
+ * @param the lower left coordinate
+ * @param the upper right coordinate
+ * @param the z coordinate
  */
 void drawRect(vec2 ll, vec2 ur, float z);
 
-// gets the length of `n` HLINEs
+/**
+ * Returns a measurement in HLINEs
+ *
+ * @param the number of HLINEs, integer or decimal
+ * @return the number in HLINEs
+ */
 template<typename T>
 inline T HLINES(const T &n)
 {
 	return (static_cast<T>(game::HLINE) * n);
 }
 
-// random number generator initializer (TODO decide how to random gen. numbers)
-#define randInit    srand
+/**
+ * A generically-named function to start the random number generator.
+ * This currently redirects to the library's default, but allows for
+ * a custom generator to be easily implemented.
+ */
+#define randInit srand
 
-// gets random number
-#define randGet     rand
+/**
+ * Gets a random number (is a function).
+ */
+#define randGet rand
 
 // defines pi for calculations that need it.
 constexpr const float PI = 3.1415926535f;
