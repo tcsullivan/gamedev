@@ -137,6 +137,7 @@ public:
  * drawing.
  */
 class World {
+friend class ItemLight;
 protected:
 
 	/**

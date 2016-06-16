@@ -1093,7 +1093,7 @@ namespace ui {
 				drawNiceBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH - HLINES(16), y - SCREEN_HEIGHT / 4}, -7.0);
 
 				rtext = typeOut(dialogBoxText);
-				putString(x + game::HLINE, y - fontSize - game::HLINE, rtext);
+				putString(x + (2*game::HLINE), y - fontSize - game::HLINE, rtext);
 
 				for(i=0;i<dialogOptText.size();i++) {
 					setFontColor(255,255,255);

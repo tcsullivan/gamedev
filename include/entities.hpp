@@ -109,6 +109,60 @@ extern const unsigned int NPC_INV_SIZE;
 class World;
 
 /**
+ * The light structure, used to store light coordinates and color.
+ */
+
+class Light{
+public:
+	vec2 loc;		/**< Light location */
+	Color color;	/**< Light color */
+	float radius;   /**< Light radius */
+
+	bool belongsTo;
+	Entity *following;
+
+	bool flame;
+	float fireFlicker;
+	vec2 fireLoc;
+	Light()
+	{
+		loc = vec2(0,0);
+		color = Color(1.0, 1.0, 1.0);
+		radius = 0;
+
+		belongsTo = false;
+		following = nullptr;
+
+		flame = false;	
+	}
+
+	Light(vec2 l, float r, Color c)
+	{
+		loc = l;
+		color = c;
+		radius = r;
+
+		belongsTo = false;
+		following = nullptr;
+
+		flame = false;
+	}
+
+	void follow(Entity *f)
+	{
+		following = f;
+		belongsTo = true;
+	}
+
+	void makeFlame(void)
+	{
+		flame = true;
+	}
+	
+	void createFromXML(XMLElement *e);
+};
+
+/**
  * The entity class.
  * This class contains common functions and variables for all types of
  * entities, i.e. a common structure.
@@ -173,6 +227,9 @@ public:
 
 	// the entity's inventory
 	Inventory *inv;
+
+	// the entity's light
+	Light light;
 
 	// the entity's health
 	float health;
@@ -346,49 +403,6 @@ public:
 	}
 	void createFromXML(XMLElement *e, World *w);
 	void saveToXML(void);
-};
-
-/**
- * The light structure, used to store light coordinates and color.
- */
-
-class Light{
-public:
-	vec2 loc;		/**< Light location */
-	Color color;	/**< Light color */
-	float radius;   /**< Light radius */
-
-	bool belongsTo;
-	Entity *following;
-
-	bool flame;
-	float fireFlicker;
-	vec2 fireLoc;
-
-	Light(vec2 l, float r, Color c)
-	{
-		loc = l;
-		color = c;
-		radius = r;
-
-		belongsTo = false;
-		following = nullptr;
-
-		flame = false;
-	}
-
-	void follow(Entity *f)
-	{
-		following = f;
-		belongsTo = true;
-	}
-
-	void makeFlame(void)
-	{
-		flame = true;
-	}
-	
-	void createFromXML(XMLElement *e);
 };
 
 /**

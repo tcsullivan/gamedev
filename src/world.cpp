@@ -524,12 +524,12 @@ void World::draw(Player *p)
 
 	uint ls = light.size();
 	
-	GLfloat *lightCoords = new GLfloat[light.size() * 4];
-	GLfloat *lightColors = new GLfloat[light.size() * 4];
-	
+	GLfloat *lightCoords = new GLfloat[ls * 4];
+	GLfloat *lightColors = new GLfloat[ls * 4];
+
 	uint lpIndex = 0;
 	uint lcIndex = 0;
-		
+
 	for (uint i = 0; i < ls; i++) {
        	auto &l = light[i];
  	   	if (l.belongsTo) {
@@ -1482,7 +1482,7 @@ addParticle(float x, float y, float w, float h, float vx, float vy, Color color,
 void World::
 addLight(vec2 loc, float radius, Color color)
 {
-	if (light.size() < 64)
+	if (light.size() < 128)
         light.emplace_back(loc, radius, color);
 }
 
