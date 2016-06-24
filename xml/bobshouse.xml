@@ -4,10 +4,10 @@
     <generation type="Random" width="1600"/>
     <time>6000</time>
     <spawnx>-300</spawnx>
-    <npc name="Sanc" hasDialog="true" health="1" x="607.58258" y="68.099052" dindex="9999"/>
-    <npc name="Bob" hasDialog="true" spawnx="30" health="1" x="-117.91962" y="63.499046" dindex="9999"/>
-    <structure type="1" spawnx="300" alive="1"/>
-    <structure inside="bobshouse.xml" type="1" spawnx="10" alive="1"/>
+    <npc name="Sanc" hasDialog="true"/>
+    <npc name="Bob" hasDialog="true" spawnx="30"/>
+    <structure type="1" spawnx="300"/>
+    <structure inside="bobshouse.xml" type="1" spawnx="10"/>
 </World>
 
 <Dialog name="Bob">

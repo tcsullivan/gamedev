@@ -178,7 +178,7 @@ namespace ui {
 	unsigned char dialogOptChosen = 0;
 	unsigned char merchOptChosen = 0;
 
-	unsigned int textWrapLimit = 110;
+	unsigned int textWrapLimit = 0;
 
 	/*
 	 *	Current font size. Changing this WILL NOT change the font size, see setFontSize() for
@@ -363,24 +363,19 @@ namespace ui {
 	*/
 
 	float putString(const float x, const float y, std::string s) {
-		unsigned int i=0;
+		unsigned int i = 0, nl = 1;
 		vec2 add, o = {x, y};
 
 		/*
-		 *	Loop on each character:
-		*/
+		 * Loop on each character:
+		 */
 
-		do{
-			if (i && ((i / 110.0) == (i / 110))) {
-				o.y -= fontSize * 1.05f;
-				o.x = x;
-				if (s[i] == ' ')
-					i++;
-			}
+		do {
+			if (dialogBoxExists && o.x > textWrapLimit * nl + x) {
 
-			if (i && (i / (float)textWrapLimit == i / textWrapLimit)) {
  				o.y -= fontSize * 1.05f;
  				o.x = x;
+				++nl;
 
 				// skip a space if it's there since we just newline'd
   				if (s[i] == ' ')
@@ -408,8 +403,7 @@ namespace ui {
 				o.y += add.y;
 				break;
 			}
-
-		}while(s[++i]);
+		} while (s[++i]);
 
 		return o.x;	// i.e. the string width
 	}
@@ -537,7 +531,8 @@ namespace ui {
 		va_list dialogArgs;
 		std::unique_ptr<char[]> printfbuf (new char[512]);
 
-		textWrapLimit = 110;
+		textWrapLimit = game::SCREEN_WIDTH - HLINES(20);
+		std::cout << textWrapLimit << '\n';	
 		dialogPassive = passive;
 
 		// add speaker prefix
@@ -1093,7 +1088,7 @@ namespace ui {
 				drawNiceBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH - HLINES(16), y - SCREEN_HEIGHT / 4}, -7.0);
 
 				rtext = typeOut(dialogBoxText);
-				putString(x + (2*game::HLINE), y - fontSize - game::HLINE, rtext);
+				putString(x + HLINES(2), y - fontSize - game::HLINE, rtext);
 
 				for(i=0;i<dialogOptText.size();i++) {
 					setFontColor(255,255,255);

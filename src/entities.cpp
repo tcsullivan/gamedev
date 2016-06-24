@@ -679,7 +679,6 @@ COMMONAIFUNC:
 					break;
 			} while ((exml = exml->NextSiblingElement()));
 
-			std::cout << "b\n";
 			// handle quest tags
 			if ((oxml = exml->FirstChildElement("quest"))) {
 				std::string qname;
@@ -733,7 +732,6 @@ COMMONAIFUNC:
 				game::briceUpdate();
 			}
 
-			std::cout << "a\n";
 			// asdlfkj
 			auto txml = exml->FirstChildElement("content");
 			if (txml == nullptr)
