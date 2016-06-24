@@ -1447,7 +1447,7 @@ EXIT:
 								if (thing.first != currentWorld)
 									worldSwitch(thing);
 							}).detach();
-						} else {
+						} else if (!fadeIntensity) {
 							std::thread([&](void){
 								auto thing = currentWorld->goInsideStructure(player);
 								if (thing.first != currentWorld)

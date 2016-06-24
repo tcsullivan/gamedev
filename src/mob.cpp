@@ -301,8 +301,8 @@ bool Bird::bindTex(void)
 void Bird::createFromXML(XMLElement *e, World *w=nullptr)
 {
 	(void)w;
-    float Xlocx, Xhealth;
-	
+    float Xlocx;
+
 	xmle = e;
 
 	if (e->QueryFloatAttribute("x", &Xlocx) == XML_NO_ERROR)

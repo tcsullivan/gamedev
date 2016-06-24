@@ -121,18 +121,19 @@ int main(int argc, char *argv[])
 {
 	static SDL_GLContext mainGLContext = NULL;
 	static bool worldReset = false, worldDontReallyRun = false;
+	std::string worldActuallyUseThisXMLFile;
 
 	// handle command line arguments
 	if (argc > 1) {
-		std::vector<std::string> args (argc, "");
-		for (int i = 1; i < argc; i++)
-			args[i] = argv[i];
+		for (int i = 1; i < argc; i++) {
+			std::string s = argv[i];
 
-		for (const auto &s : args) {
 			if (s == "--reset" || s == "-r")
 				worldReset = true;
 			else if (s == "--dontrun" || s == "-d")
 				worldDontReallyRun = true;
+			else if (s == "--xml" || s == "-x")
+				worldActuallyUseThisXMLFile = argv[i + 1];
 		}
 	}
 
@@ -298,8 +299,11 @@ int main(int argc, char *argv[])
 	if (worldDontReallyRun)
 		return 0;
 
-	if (currentWorld == nullptr) {
-		
+	if (!worldActuallyUseThisXMLFile.empty()) {
+		delete currentWorld;
+		currentWorld = loadWorldFromXML(worldActuallyUseThisXMLFile);
+	} else if (currentWorld == nullptr) {
+
 		// load the first valid XML file for the world
 		for (const auto &xf : xmlFiles) {
 			if (xf[0] != '.') {
@@ -334,7 +338,7 @@ int main(int argc, char *argv[])
 
 	// the debug loop, gets debug screen values
 	std::thread([&]{
-		while (gameRunning) {	
+		while (gameRunning) {
 			fps = 1000 / game::time::getDeltaTime();
 			debugY = player->loc.y;
 
@@ -408,8 +412,8 @@ void render() {
 										floor(offset.x+SCREEN_WIDTH/2), 	//right
 										floor(offset.y-SCREEN_HEIGHT/2), 	//bottom
 										floor(offset.y+SCREEN_HEIGHT/2), 	//top
-										10.0f,								//near
-										-10.0f);							//far
+										10.0,								//near
+										-10.0);								//far
 
 	glm::mat4 view = glm::lookAt(glm::vec3(0,0,0.0f),  //pos
 								 glm::vec3(0,0,-10.0f), //looking at
@@ -428,14 +432,14 @@ void render() {
     glUseProgram(worldShader);
 	glUniformMatrix4fv(worldShader_uniform_ortho, 1, GL_FALSE, glm::value_ptr(ortho));
 	glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-	
+
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 	glUniform4f(worldShader_uniform_ambient, ambient.red, ambient.green, ambient.blue, 1.0);
 	glUniform1f(worldShader_uniform_light_impact, 1.0);
-	
+
 	/*static GLfloat l[]  = {460.0, 100.0, 0.0, 300.0};
 	static GLfloat lc[] = {1.0, 1.0, 1.0, 1.0};
-	glUniform4fv(worldShader_uniform_light, 1, l); 
+	glUniform4fv(worldShader_uniform_light, 1, l);
 	glUniform4fv(worldShader_uniform_light_color, 1, lc);
 	glUniform1i(worldShader_uniform_light_amt, 1);
 	*/
@@ -505,10 +509,10 @@ void render() {
 				*(tp++) = 1.0;
 			}
 		}
-		
+
 		glEnableVertexAttribArray(worldShader_attribute_coord);
 		glEnableVertexAttribArray(worldShader_attribute_coord);
-		
+
 		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[0]);
 		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[3]);
 		glDrawArrays(GL_LINES, 0, es * 2);
@@ -516,7 +520,7 @@ void render() {
 		glDisableVertexAttribArray(worldShader_attribute_tex);
 		glDisableVertexAttribArray(worldShader_attribute_tex);
 		glUseProgram(0);
-		
+
 	}
 
 
@@ -624,11 +628,11 @@ void logic(){
 	// calculate the world shading value
 	worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 
-	float ws = 75 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));	
-	
+	float ws = 75 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
+
 	float ambRG = std::clamp(.5f + (-ws / 100.0f), 0.01f, .9f);
 	float ambB =	std::clamp(.5f + (-ws / 80.0f), 0.03f, .9f);
-		
+
 	ambient = Color(ambRG, ambRG, ambB, 1.0f);
 
 	// update fades

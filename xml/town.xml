@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<World>
+    <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
+    <generation type="Random" width="1600"/>
+    <time>6000</time>
+    <spawnx>-300</spawnx>
+    <npc name="Sanc" hasDialog="true" health="1" x="648.92395" y="68.298882" dindex="9999"/>
+    <npc name="Bob" hasDialog="true" spawnx="30" health="1" x="-159.27541" y="65.598969" dindex="9999"/>
+    <structure type="1" spawnx="300" alive="1"/>
+    <structure inside="bobshouse.xml" type="1" spawnx="10" alive="1"/>
+</World>
+
+<Dialog name="Bob">
+    <text id="0" nextid="1" pause="true">
+        <content>
+			Hey there! The name's Bob. Good to see you've finally woken up from your nap by the cliff there... lol
+		</content>
+    </text>
+    <text id="1" pause="true">
+        <quest assign="Check out m&apos;swag, man!">
+			No description
+		</quest>
+        <content>
+			Looks like you've got yourself pretty empty handed... you know, I have a simple solution for that. Come on inside, I have somethin' to show you.
+		</content>
+    </text>
+</Dialog>
+
+<Dialog name="Sanc">
+    <text id="0">
+        <set id="Slow" value="0"/>
+        <set id="canSprint" value="1"/>
+    </text>
+</Dialog>

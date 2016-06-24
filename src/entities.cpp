@@ -181,7 +181,7 @@ Player::Player() : Entity()
 	dim2 tmpDim = Texture::imageDim(tex.getTexturePath(0));
 	width = HLINES(tmpDim.x/2);
 	height = HLINES(tmpDim.y/2);
-	
+
 	z = -2.0;
 }
 
@@ -311,6 +311,7 @@ void Merchant::saveToXML(void){}
 
 Structures::Structures() : Entity()
 {
+	type = STRUCTURET;
 	canMove = false;
 	health = maxHealth = 1;
 }
@@ -324,7 +325,7 @@ void Structures::createFromXML(XMLElement *e, World *w)
 	float spawnx;
 
 	if (e->QueryBoolAttribute("alive", &alive) == XML_NO_ERROR && !alive) {
-		die();
+		//die();
 		return;
 	}
 
@@ -368,7 +369,7 @@ Object::~Object()
 }
 
 void Object::createFromXML(XMLElement *e, World *w=nullptr)
-{	
+{
 	(void)e;
 	(void)w;
 }
@@ -631,7 +632,7 @@ extern int commonAIFunc(NPC *speaker);
 void NPC::interact() { //have the npc's interact back to the player
 	std::thread([this]{
 		std::vector<XMLElement *> dopt;
-		XMLDocument *xml; 
+		XMLDocument *xml;
 		XMLElement *exml,*oxml;
 
 		static unsigned int oldidx = 9999;
@@ -661,6 +662,7 @@ void NPC::interact() { //have the npc's interact back to the player
 				xml = new XMLDocument();
 				xml->LoadFile((xmlFolder + currentWorld->getToRight()).c_str());
 			}
+
 COMMONAIFUNC:
 			idx = 0;
 			stop = false;
@@ -677,6 +679,7 @@ COMMONAIFUNC:
 					break;
 			} while ((exml = exml->NextSiblingElement()));
 
+			std::cout << "b\n";
 			// handle quest tags
 			if ((oxml = exml->FirstChildElement("quest"))) {
 				std::string qname;
@@ -730,6 +733,7 @@ COMMONAIFUNC:
 				game::briceUpdate();
 			}
 
+			std::cout << "a\n";
 			// asdlfkj
 			auto txml = exml->FirstChildElement("content");
 			if (txml == nullptr)
@@ -817,8 +821,9 @@ OTHERSTUFF:
 			}
 
 			// advance if desired
-			if (advance)
+			else if (advance) {
 				goto COMMONAIFUNC;
+			}
 
 			// stop talking
 			else {

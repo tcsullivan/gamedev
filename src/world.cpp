@@ -283,7 +283,7 @@ void World::drawBackgrounds(void)
 
 	// TODO scroll backdrop
 	GLfloat bgOff = game::time::getTickCount()/24000.0f;
-	
+
 	GLfloat topS = .125f + bgOff;
 	GLfloat bottomS = 0.0f + bgOff;
 
@@ -294,11 +294,11 @@ void World::drawBackgrounds(void)
 	GLfloat scrolling_tex_coord[] = {0.0f,  bottomS,
 									 1.0f,  bottomS,
 									 1.0f,  bottomS,
-									 
+
 									 1.0f,  bottomS,
 									 0.0f,  bottomS,
 									 0.0f,  bottomS};
-   
+
    	vec2 bg_tex_coord[] = { vec2(0.0f, 0.0f),
                             vec2(1.0f, 0.0f),
                             vec2(1.0f, 1.0f),
@@ -322,7 +322,7 @@ void World::drawBackgrounds(void)
                                 offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
                                 offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.8f,
                                 offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f};
-    
+
 	glUseProgram(worldShader);
 	glUniform1f(worldShader_uniform_light_impact, 0.0f);
 	glUniform4f(worldShader_uniform_ambient, 1.0, 1.0, 1.0, 1.0);
@@ -341,7 +341,7 @@ void World::drawBackgrounds(void)
 
 	bgTex++;
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
-	
+
 	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, fron_tex_coord);
     glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
     glDrawArrays(GL_TRIANGLES, 0 , 6);
@@ -351,7 +351,7 @@ void World::drawBackgrounds(void)
 	static GLuint starTex = Texture::loadTexture("assets/style/classic/bg/star.png");
 	const static float stardim = 24;
 	GLfloat star_coord[star.size() * 5 * 6 + 1];
-    GLfloat *si = &star_coord[0];		
+    GLfloat *si = &star_coord[0];
 
 	if (worldShade > 0) {
 
@@ -364,39 +364,39 @@ void World::drawBackgrounds(void)
 
 			*(si++) = 0.0;
 			*(si++) = 0.0;
-			
+
 			*(si++) = s.x + xcoord + stardim;
 			*(si++) = s.y,
 			*(si++) = 9.7f;
-			
+
 			*(si++) = 1.0;
 			*(si++) = 0.0;
-			
+
 			*(si++) = s.x + xcoord + stardim;
 			*(si++) = s.y + stardim,
 			*(si++) = 9.7f;
-			
+
 			*(si++) = 1.0;
 			*(si++) = 1.0;
-			
+
 			*(si++) = s.x + xcoord + stardim;
 			*(si++) = s.y + stardim,
 			*(si++) = 9.7f;
-			
+
 			*(si++) = 1.0;
 			*(si++) = 1.0;
-			
+
 			*(si++) = s.x + xcoord;
 			*(si++) = s.y + stardim,
 			*(si++) = 9.7f;
-			
+
 			*(si++) = 0.0;
 			*(si++) = 1.0;
-			
+
 			*(si++) = s.x + xcoord;
 			*(si++) = s.y,
 			*(si++) = 9.7f;
-			
+
 			*(si++) = 0.0;
 			*(si++) = 0.0;
 		}
@@ -407,9 +407,9 @@ void World::drawBackgrounds(void)
 		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[0]);
 		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[3]);
 		glDrawArrays(GL_TRIANGLES, 0, star.size() * 6);
-		
+
 	}
-    
+
 	glDisableVertexAttribArray(worldShader_attribute_coord);
     glDisableVertexAttribArray(worldShader_attribute_tex);
 
@@ -523,7 +523,7 @@ void World::draw(Player *p)
 	drawBackgrounds();
 
 	uint ls = light.size();
-	
+
 	GLfloat *lightCoords = new GLfloat[ls * 4];
 	GLfloat *lightColors = new GLfloat[ls * 4];
 
@@ -547,8 +547,8 @@ void World::draw(Player *p)
 		lightCoords[lpIndex++] = l.loc.x;
 		lightCoords[lpIndex++] = l.loc.y;
 		lightCoords[lpIndex++] = 0.0;
-		lightCoords[lpIndex++] = l.radius; 
-    
+		lightCoords[lpIndex++] = l.radius;
+
 		lightColors[lcIndex++] = l.color.red;
 		lightColors[lcIndex++] = l.color.green;
 		lightColors[lcIndex++] = l.color.blue;
@@ -556,7 +556,7 @@ void World::draw(Player *p)
 	}
 
 	glUseProgram(worldShader);
-	
+
 	glUniform4fv(worldShader_uniform_light, ls, lightCoords);
 	glUniform4fv(worldShader_uniform_light_color, ls, lightColors);
 	glUniform1i(worldShader_uniform_light_amt, ls);
@@ -788,9 +788,9 @@ void World::draw(Player *p)
 
 	partMutex.lock();
 	uint ps = particles.size();
-    uint pss = ps * 6 * 5;	
+    uint pss = ps * 6 * 5;
 	uint pc = 0;
-	
+
 	std::vector<GLfloat> partVec(pss);
 	auto *pIndex = &partVec[0];
 	for (uint i = 0; i < ps; i++) {
@@ -813,7 +813,7 @@ void World::draw(Player *p)
 
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 
-    glUseProgram(0);    
+    glUseProgram(0);
 }
 
 /**
@@ -1242,7 +1242,7 @@ void World::setWeather(const std::string &s)
 			weather = static_cast<WorldWeather>(i);
 			return;
 		}
-	} 
+	}
 	weather = WorldWeather::None;
 }
 
@@ -1375,14 +1375,13 @@ WorldSwitchInfo World::goInsideStructure(Player *p)
         auto d = std::find_if(std::begin(build), std::end(build), [p](const Structures *s) {
             return ((p->loc.x > s->loc.x) && (p->loc.x + p->width < s->loc.x + s->width));
         });
-        auto b = *d;
 
-        if ((d == std::end(build)) || b->inside.empty())
+        if ((d == std::end(build)) || (*d)->inside.empty())
             return std::make_pair(this, vec2 {0, 0});
 
         // +size cuts folder prefix
 		inside.push_back(&currentXML[xmlFolder.size()]);
-		tmp = loadWorldFromXML(b->inside);
+		tmp = loadWorldFromXML((*d)->inside);
 
 		return std::make_pair(tmp, vec2 {0, 100});
 	}
@@ -1675,7 +1674,7 @@ draw(Player *p)
         glUniform1fv(glGetUniformLocation(shaderProgram, "fireFlicker"), light.size(), flameArray);
 	}
 */
-	
+
 	glUseProgram(worldShader);
 
 	glActiveTexture(GL_TEXTURE0);
@@ -1690,7 +1689,7 @@ draw(Player *p)
 	GLfloat backTile[] = {worldStart - SCREEN_WIDTH / 2,  	0, 									9.9,
 						  -worldStart + SCREEN_WIDTH / 2, 	0, 									9.9,
 						  -worldStart + SCREEN_WIDTH / 2, 	static_cast<float>(SCREEN_HEIGHT), 	9.9,
-						  
+
 						  -worldStart + SCREEN_WIDTH / 2, 	static_cast<float>(SCREEN_HEIGHT), 	9.9,
 						  worldStart - SCREEN_WIDTH / 2,	static_cast<float>(SCREEN_HEIGHT), 	9.9,
 						  worldStart - SCREEN_WIDTH / 2,	0,									9.9};
@@ -1732,34 +1731,31 @@ draw(Player *p)
         i = 0;
     	for (const auto &h : floor[fl]) {
     		x = worldStart + fstart[fl] * HLINE + HLINES(i);
-    		
+
 			f.emplace_back(x);
     		f.emplace_back(h);
 			f.emplace_back(-3);
 			f.emplace_back(0);
 			f.emplace_back(0);
-    		
+
 			f.emplace_back(x + HLINE);
 			f.emplace_back(h);
 			f.emplace_back(-3);
  		   	f.emplace_back(1);
 			f.emplace_back(0);
-			
-			f.emplace_back(x + HLINE);
-			f.emplace_back(h - INDOOR_FLOOR_THICKNESS);
-			f.emplace_back(-3);
- 		   	f.emplace_back(1);
-			f.emplace_back(1);
-
 
 			f.emplace_back(x + HLINE);
 			f.emplace_back(h - INDOOR_FLOOR_THICKNESS);
 			f.emplace_back(-3);
  		   	f.emplace_back(1);
 			f.emplace_back(1);
-			
-			f.emplace_back(x);
-        	f.emplace_back(h - INDOOR_FLOOR_THICKNESS);
+
+			f.emplace_back(x + HLINE);
+			f.emplace_back(h - INDOOR_FLOOR_THICKNESS);
+			f.emplace_back(-3);
+ 		   	f.emplace_back(1);
+			f.emplace_back(1);
+
 			f.emplace_back(-3);
 			f.emplace_back(0);
  		   	f.emplace_back(1);
@@ -1773,7 +1769,7 @@ draw(Player *p)
 			i++;
     	}
     }
-	
+
 	glEnableVertexAttribArray(worldShader_attribute_coord);
 	glEnableVertexAttribArray(worldShader_attribute_tex);
 
@@ -1789,7 +1785,7 @@ draw(Player *p)
 	/*
 	 *	Draw all entities.
 	*/
-    
+
 	// TODO draw particles
 	// glBindTexture(GL_TEXTURE_2D, colorIndex);
 
@@ -1856,7 +1852,7 @@ World *loadWorldFromXML(std::string path) {
 World *loadWorldFromPtr(World *ptr)
 {
 	currentWorld->save(); // save the current world to the current xml path
-	
+
 	if (ptr->getToLeft() == currentXML) {
 		currentWorldToLeft = currentWorld;
 		loadedRight = true;
@@ -1995,7 +1991,7 @@ loadWorldFromXMLNoSave(std::string path) {
         else if (name == "generation") {
             // random gen.
 			if (!Indoor && wxml->StrAttribute("type") == "Random")
-				tmp->generate(wxml->UnsignedAttribute("width"));
+				tmp->generate(wxml->UnsignedAttribute("width") / game::HLINE);
             else {
                 if (Indoor)
                     UserError("XML Error: <generation> tags can't be in <IndoorWorld> tags (in " + _currentXML + ")!");
@@ -2043,12 +2039,12 @@ loadWorldFromXMLNoSave(std::string path) {
 		else if (name == "hill") {
 			tmp->addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
 		}
-		
+
 		// time setting
 		else if (name == "time" && !(loadedLeft | loadedRight)) {
             game::time::setTickCount(std::stoi(wxml->GetText()));
         }
-		
+
 		// floor adding
 		else if (Indoor && name == "floor") {
             if (wxml->QueryFloatAttribute("start",&spawnx) == XML_NO_ERROR)
@@ -2058,8 +2054,8 @@ loadWorldFromXMLNoSave(std::string path) {
         }
 
 		if (newEntity != nullptr) {
-			bool alive = true;
-			if (wxml->QueryBoolAttribute("alive", &alive) != XML_NO_ERROR || alive) {
+			//bool alive = true;
+			//if (wxml->QueryBoolAttribute("alive", &alive) != XML_NO_ERROR || alive) {
 				switch (newEntity->type) {
 				case NPCT:
 					tmp->addNPC(dynamic_cast<NPC *>(newEntity));
@@ -2075,7 +2071,7 @@ loadWorldFromXMLNoSave(std::string path) {
 				}
 
 				newEntity->createFromXML(wxml, tmp);
-			}
+			//}
 		}
 
         spawnx = 0;
