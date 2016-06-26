@@ -47,8 +47,9 @@ public:
 		position = std::begin(textures);
 	}
 	TextureIterator(const std::vector<std::string> &l) {
-		for (const auto &s : l)
+		for (const auto &s : l) {
 			textures.emplace_back(Texture::loadTexture(s), s);
+		}
 		position = std::begin(textures);
 	}
 	void operator++(int) noexcept {

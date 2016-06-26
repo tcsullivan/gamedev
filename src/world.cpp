@@ -1154,7 +1154,7 @@ void World::save(const std::string& s)
 {
 	for (const auto &e : entity)
 		e->saveToXML();
-	currentXMLDoc.SaveFile((xmlFolder + (s.empty() ? currentXML : s)).c_str(), false);
+	currentXMLDoc.SaveFile((s.empty() ? currentXML : xmlFolder + s).c_str(), false);
 }
 
 /**
@@ -1844,7 +1844,7 @@ static bool loadedRight = false;
 
 World *loadWorldFromXML(std::string path) {
 	if (!currentXML.empty())
-		currentWorld->save(path);
+		currentWorld->save();
 
 	return loadWorldFromXMLNoSave(path);
 }
@@ -1994,7 +1994,7 @@ loadWorldFromXMLNoSave(std::string path) {
 				tmp->generate(wxml->UnsignedAttribute("width") / game::HLINE);
             else {
                 if (Indoor)
-                    UserError("XML Error: <generation> tags can't be in <IndoorWorld> tags (in " + _currentXML + ")!");
+                    UserError("XML Error: <generation> tags can't be in <IndoorWorld> tags, use <floor> instead (in " + _currentXML + ")!");
                 else
                     UserError("XML Error: Invalid <generation> tag in " + _currentXML + "!");
             }

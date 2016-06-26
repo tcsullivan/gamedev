@@ -1,34 +1,7 @@
 <?xml version="1.0"?>
-<World>
-    <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
-    <generation type="Random" width="1600"/>
-    <time>6000</time>
-    <spawnx>-300</spawnx>
-    <npc name="Sanc" hasDialog="true"/>
-    <npc name="Bob" hasDialog="true" spawnx="30"/>
-    <structure type="1" spawnx="300"/>
-    <structure inside="bobshouse.xml" type="1" spawnx="10"/>
-</World>
-
-<Dialog name="Bob">
-    <text id="0" nextid="1" pause="true">
-        <content>
-			Hey there! The name's Bob. Good to see you've finally woken up from your nap by the cliff there... lol
-		</content>
-    </text>
-    <text id="1" pause="true">
-        <quest assign="Check out m&apos;swag, man!">
-			No description
-		</quest>
-        <content>
-			Looks like you've got yourself pretty empty handed... you know, I have a simple solution for that. Come on inside, I have somethin' to show you.
-		</content>
-    </text>
-</Dialog>
-
-<Dialog name="Sanc">
-    <text id="0">
-        <set id="Slow" value="0"/>
-        <set id="canSprint" value="1"/>
-    </text>
-</Dialog>
+<IndoorWorld>
+	<style background="1" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
+	<floor width="1600"/>
+	<link outside="town.xml"/>
+	<npc name="Bob" hasDialog="false" spawnx="30"/>
+</IndoorWorld>

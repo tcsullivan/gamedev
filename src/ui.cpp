@@ -629,6 +629,11 @@ namespace ui {
 		while (fadeIntensity < 255);
 		fadeIntensity = 255;
 	}
+	
+	void waitForUncover(void) {
+		while (fadeIntensity > 0);
+		fadeIntensity = 0;
+	}
 
 	void waitForNothing(unsigned int ms) {
 		unsigned int target = millis() + ms;
@@ -1301,6 +1306,7 @@ EXIT:
 			wsi.first->bgmPlay(currentWorld);
 			std::tie(currentWorld, player->loc) = wsi;
 			toggleBlackFast();
+			waitForUncover();
 			player->canMove = true;
 		};
 		

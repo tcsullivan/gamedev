@@ -470,7 +470,7 @@ void render() {
 
 	if(ui::debug){
 		ui::putText(offset.x-SCREEN_WIDTH/2, (offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-					"fps: %d\ngrounded:%d\nresolution: %ux%u\nentity cnt: %d\nloc: (%+.2f, %+.2f)\nticks: %u\nvolume: %f\nweather: %s",
+					"fps: %d\ngrounded:%d\nresolution: %ux%u\nentity cnt: %d\nloc: (%+.2f, %+.2f)\nticks: %u\nvolume: %f\nweather: %s\nxml: %s",
 					fps,
 					player->ground,
 					SCREEN_WIDTH,				// Window dimensions
@@ -480,7 +480,8 @@ void render() {
 					debugY,						// The player's y coordinate
 					game::time::getTickCount(),
 					game::config::VOLUME_MASTER,
-					currentWorld->getWeatherStr().c_str()
+					currentWorld->getWeatherStr().c_str(),
+					currentXML.c_str()
 					);
 
 		static GLuint tracerText = Texture::genColor(Color(100,100,255));
