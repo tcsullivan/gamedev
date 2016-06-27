@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 	}
 
 	// attempt to initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) != 0)
 		UserError(std::string("SDL was not able to initialize! Error: ") + SDL_GetError());
 	atexit(SDL_Quit);
 

@@ -19,6 +19,28 @@
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
+void makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(
+		unsigned size, void *coordAddr, void *texAddr, unsigned triCount
+	)
+{
+	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, size, coordAddr);
+	glVertexAttribPointer(worldShader_attribute_tex  , 2, GL_FLOAT, GL_FALSE, size, texAddr  );
+	glDrawArrays(GL_TRIANGLES, 0, triCount);
+}
+
+void makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(
+		unsigned size, void *coordAddr, void *texAddr, unsigned triCount
+	)
+{
+	glEnableVertexAttribArray(worldShader_attribute_coord);
+	glEnableVertexAttribArray(worldShader_attribute_tex);
+
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(size, coordAddr, texAddr, triCount);
+
+	glDisableVertexAttribArray(worldShader_attribute_tex);
+	glDisableVertexAttribArray(worldShader_attribute_coord);
+}
+
 /* ----------------------------------------------------------------------------
 ** Variables section
 ** --------------------------------------------------------------------------*/
@@ -335,16 +357,14 @@ void World::drawBackgrounds(void)
 
     bgTex(0);
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
-	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, back_tex_coord);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, scrolling_tex_coord);
-    glDrawArrays(GL_TRIANGLES, 0 , 6);
+
+
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, back_tex_coord, scrolling_tex_coord, 6);
 
 	bgTex++;
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
 
-	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, fron_tex_coord);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
-    glDrawArrays(GL_TRIANGLES, 0 , 6);
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
 
 	// TODO make stars dynamic
 	//static GLuint starTex = Texture::genColor(Color(255, 255, 255));
@@ -404,10 +424,7 @@ void World::drawBackgrounds(void)
 		//glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, (255.0f - (randGet() % 200 - 100)) / 255.0f);
 		glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
 
-		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[0]);
-		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[3]);
-		glDrawArrays(GL_TRIANGLES, 0, star.size() * 6);
-
+		makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(5 * sizeof(GLfloat), &star_coord[0], &star_coord[3], star.size() * 6);
 	}
 
 	glDisableVertexAttribArray(worldShader_attribute_coord);
@@ -452,15 +469,7 @@ void World::drawBackgrounds(void)
     glUseProgram(worldShader);
 	glUniform1f(worldShader_uniform_light_impact, 0.01);
 
-    glEnableVertexAttribArray(worldShader_attribute_coord);
-    glEnableVertexAttribArray(worldShader_attribute_tex);
-
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, &bg_i[0]);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, &bg_tx[0]);
-    glDrawArrays(GL_TRIANGLES, 0 , bg_items.size());
-
-    glDisableVertexAttribArray(worldShader_attribute_tex);
-	glDisableVertexAttribArray(worldShader_attribute_coord);
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, &bg_i[0], &bg_tx[0], bg_items.size());
 
     glUseProgram(0);
 
@@ -499,15 +508,7 @@ void World::drawBackgrounds(void)
         glUseProgram(worldShader);
 		glUniform1f(worldShader_uniform_light_impact, 0.075f + (0.2f*i));
 
-        glEnableVertexAttribArray(worldShader_attribute_coord);
-        glEnableVertexAttribArray(worldShader_attribute_tex);
-
-        glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, &bg_i[0]);
-        glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, &bg_tx[0]);
-        glDrawArrays(GL_TRIANGLES, 0 , c.size());
-
-        glDisableVertexAttribArray(worldShader_attribute_tex);
-    	glDisableVertexAttribArray(worldShader_attribute_coord);
+		makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, &bg_i[0], &bg_tx[0], c.size());
 
         glUseProgram(0);
 	}
@@ -620,15 +621,7 @@ void World::draw(Player *p)
     glUseProgram(worldShader);
 	glUniform1f(worldShader_uniform_light_impact, 0.45f);
 
-    glEnableVertexAttribArray(worldShader_attribute_coord);
-    glEnableVertexAttribArray(worldShader_attribute_tex);
-
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, &dirtc[0]);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, &dirtt[0]);
-    glDrawArrays(GL_TRIANGLES, 0 , c.size());
-
-    glDisableVertexAttribArray(worldShader_attribute_tex);
-	glDisableVertexAttribArray(worldShader_attribute_coord);
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, &dirtc[0], &dirtt[0], c.size());
 
     glUseProgram(0);
 
@@ -705,56 +698,17 @@ void World::draw(Player *p)
     glUseProgram(worldShader);
 	glUniform1f(worldShader_uniform_light_impact, 1.0f);
 
-    glEnableVertexAttribArray(worldShader_attribute_coord);
-    glEnableVertexAttribArray(worldShader_attribute_tex);
-
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, &grassc[0]);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, &grasst[0]);
-    glDrawArrays(GL_TRIANGLES, 0 , c.size());
-
-    glDisableVertexAttribArray(worldShader_attribute_tex);
-    glDisableVertexAttribArray(worldShader_attribute_coord);
-
-    glUseProgram(0);
-
-
-	//glUseProgram(0);
-	//glDisable(GL_TEXTURE_2D);
-
-	// draw particles
-
-    glBindTexture(GL_TEXTURE_2D, colorIndex);
-    glUniform1i(worldShader_uniform_texture, 0);
-    glUseProgram(worldShader);
-
-    glEnableVertexAttribArray(worldShader_attribute_coord);
-    glEnableVertexAttribArray(worldShader_attribute_tex);
-
-	/*GLfloat *pIndexT = &partVec[0];
-
-    for (auto &p : particles) {
-        if (!p.behind)
-            p.draw(pIndexT);
-    }
-
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[3]);
-    glDrawArrays(GL_TRIANGLES, 0, ps * 6);
-*/
-    glDisableVertexAttribArray(worldShader_attribute_tex);
-    glDisableVertexAttribArray(worldShader_attribute_coord);
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, &grassc[0], &grasst[0], c.size());
 
     glUseProgram(0);
 
 	// draw the buildings
-	for (auto &b : build) {
+	for (auto &b : build)
         b->draw();
-    }
 
     // draw remaining entities
-	for (auto &n : npc) {
+	for (auto &n : npc)
         n->draw();
-    }
 
 	for (auto &m : mob)
 		m->draw();
@@ -783,9 +737,6 @@ void World::draw(Player *p)
 
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, .8);
 
-    glEnableVertexAttribArray(worldShader_attribute_coord);
-    glEnableVertexAttribArray(worldShader_attribute_tex);
-
 	partMutex.lock();
 	uint ps = particles.size();
     uint pss = ps * 6 * 5;
@@ -804,12 +755,7 @@ void World::draw(Player *p)
     }
 	partMutex.unlock();
 
-    glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[0]);
-    glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &partVec[3]);
-    glDrawArrays(GL_TRIANGLES, 0, ps * 6);
-
-    glDisableVertexAttribArray(worldShader_attribute_tex);
-    glDisableVertexAttribArray(worldShader_attribute_coord);
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(5 * sizeof(GLfloat), &partVec[0], &partVec[3], ps * 6);
 
 	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
 
@@ -1702,15 +1648,7 @@ draw(Player *p)
 							  0, 0,
 							  0, 1};
 
-	glEnableVertexAttribArray(worldShader_attribute_coord);
-	glEnableVertexAttribArray(worldShader_attribute_tex);
-
-	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, backTile);
-	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, backTile_tex);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glDisableVertexAttribArray(worldShader_attribute_coord);
-	glDisableVertexAttribArray(worldShader_attribute_tex);
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, backTile, backTile_tex, 6);
 
 	glUseProgram(0);
 
@@ -1770,15 +1708,7 @@ draw(Player *p)
     	}
     }
 
-	glEnableVertexAttribArray(worldShader_attribute_coord);
-	glEnableVertexAttribArray(worldShader_attribute_tex);
-
-	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &f[0]);
-	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &f[3]);
-	glDrawArrays(GL_TRIANGLES, 0, floor.size() * 6);
-
-	glDisableVertexAttribArray(worldShader_attribute_coord);
-	glDisableVertexAttribArray(worldShader_attribute_tex);
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(5 * sizeof(GLfloat), &f[0], &f[3], floor.size() * 6);
 
 	glUseProgram(0);
 
