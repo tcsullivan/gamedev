@@ -566,6 +566,7 @@ World *loadWorldFromXML(std::string path);
  * previous world if one was loaded.
  */
 World *loadWorldFromXMLNoSave(std::string path);
+World *loadWorldFromXMLNoTakeover(std::string path);
 
 /**
  * Loads a world using a pointer to the current world (used for loading adjacent

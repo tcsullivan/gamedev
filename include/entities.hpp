@@ -325,7 +325,7 @@ public:
 class Structures : public Entity {
 public:
 	BUILD_SUB bsubtype;
-	World *inWorld;
+	World *inWorld, *insideWorld;
 	std::string inside;
 	std::string textureLoc;
 

@@ -320,6 +320,8 @@ Structures::~Structures()
 {
 }
 
+extern std::string currentXMLRaw;
+
 void Structures::createFromXML(XMLElement *e, World *w)
 {
 	float spawnx;
@@ -331,6 +333,12 @@ void Structures::createFromXML(XMLElement *e, World *w)
 
 	inWorld = w;
 	inside = e->StrAttribute("inside");
+
+	// edge
+	if (!inside.empty()) {
+		insideWorld = loadWorldFromXMLNoTakeover(inside);
+	}
+
 	textureLoc = e->StrAttribute("texture");
 
 	spawn(static_cast<BUILD_SUB>(e->UnsignedAttribute("type")),
