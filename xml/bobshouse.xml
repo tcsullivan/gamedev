@@ -3,5 +3,5 @@
     <style background="1" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
     <floor width="1600"/>
     <link outside="town.xml"/>
-    <npc name="Bob" hasDialog="false" spawnx="30"/>
+    <npc name="Bob" hasDialog="false" spawnx="30" health="1" x="-229.27991" y="0" dindex="9999"/>
 </IndoorWorld>

@@ -386,9 +386,8 @@ public:
 };
 
 class Object : public Entity{
-private:
-	std::string iname;
 public:
+	std::string iname;
 	std::string pickupDialog;
 	bool questObject = false;
 

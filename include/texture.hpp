@@ -46,6 +46,9 @@ public:
 	TextureIterator(void) {
 		position = std::begin(textures);
 	}
+	~TextureIterator(void) {
+		textures.clear();
+	}
 	TextureIterator(const std::vector<std::string> &l) {
 		for (const auto &s : l)
 			textures.emplace_back(Texture::loadTexture(s), s);

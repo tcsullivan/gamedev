@@ -1533,6 +1533,13 @@ EXIT:
 					action::disable();
 
 					heyOhLetsGo = 0;
+				} else if (SDL_KEY == SDLK_q) {
+					auto item = player->inv->getCurrentItem();
+					if (item != nullptr) {
+						if (player->inv->takeItem(item->name, 1) == 0)
+							currentWorld->addObject(item->name, "o shit waddup",
+							                        player->loc.x + player->width / 2, player->loc.y + player->height / 2);
+					}
 				} else switch (SDL_KEY) {
 				case SDLK_F3:
 					debug ^= true;

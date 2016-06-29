@@ -219,13 +219,16 @@ public:
 /***********************************************************************************
  *						OLD STUFF THAT NEEDS TO GET UPDATED				   		   *
  **********************************************************************************/
+
+using InventorySlot = std::pair<Item *, unsigned int>;
+
 class Inventory {
 private:
 	unsigned int size; //how many slots our inventory has
 	unsigned int sel; //what item is currently selected
 	int os = 0;
 public:
-	std::vector<std::pair<Item*, uint>> Items;
+	std::vector<InventorySlot> Items;
 
 	bool invOpen = false; //is the inventory open
 	bool invOpening = false; //is the opening animation playing
@@ -253,6 +256,8 @@ public:
 	void setSelectionDown();
 
 	void draw(void);	// Draws a text list of items in this inventory (should only be called for the player for now)
+
+	const Item* getCurrentItem(void);
 };
 
 void initInventorySprites(void);

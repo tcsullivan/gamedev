@@ -265,8 +265,8 @@ int main(int argc, char *argv[])
 		for (const auto &xf : xmlFiles) {
 			if (xf[0] != '.') {
 				XMLDocument xmld;
-				auto file = (xmlFolder + xf).c_str();
-				xmld.LoadFile(file);
+				auto file = xmlFolder + xf;
+				xmld.LoadFile(file.c_str());
 
 				auto xmle = xmld.FirstChildElement("World");
 
@@ -286,7 +286,8 @@ int main(int argc, char *argv[])
 					xmle->DeleteAttribute("dindex");
 					xmle = xmle->NextSiblingElement();
 				}
-				xmld.SaveFile(file, false);
+
+				xmld.SaveFile(file.c_str(), false);
 			}
 		}
 
@@ -327,6 +328,10 @@ int main(int argc, char *argv[])
 	arena->setStyle("");
 	arena->setBackground(WorldBGType::Forest);
 	arena->setBGM("assets/music/embark.wav");
+
+
+	player->inv->addItem("Wood Sword", 10);
+
 
 	// the main loop, in all of its gloriousness..
 	std::thread([&]{

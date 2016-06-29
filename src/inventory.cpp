@@ -727,3 +727,11 @@ bool Inventory::detectCollision(vec2 one, vec2 two) {
 	(void)two;
 	return false;
 }
+
+const Item* Inventory::getCurrentItem(void)
+{
+	if (Items.size() > 0)
+		return Items[sel].first;
+	else
+		return nullptr;
+}

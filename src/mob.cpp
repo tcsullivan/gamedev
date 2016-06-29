@@ -432,11 +432,26 @@ Chest::Chest(void) : Mob()
     width = HLINES(10);
     height = HLINES(5);
     tex = TextureIterator({"assets/chest.png"});
+	inv = new Inventory(1);
 }
 
 void Chest::act(void)
 {
-	//die();
+	if (isInside(ui::mouse) && player->isNear(this)) {
+		if ((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) && !ui::dialogBoxExists)
+			for (auto &i : inv->Items) {
+				player->inv->addItem(i.first->name, i.second);
+				inv->takeItem(i.first->name, i.second);
+			}
+	}
+
+	for (auto &e : currentWorld->entity) {
+		if (e->type == OBJECTT && e->isNear(this)) {
+			auto o = dynamic_cast<Object *>(e);
+			inv->addItem(o->iname, 1);
+			e->health = 0;
+		}
+	}
 }
 
 void Chest::onHit(unsigned int _health)

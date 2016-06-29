@@ -188,6 +188,7 @@ Player::Player() : Entity()
 Player::~Player()
 {
 	delete inv;
+	delete &tex;
 }
 
 void Player::createFromXML(XMLElement *e, World *w=nullptr)
@@ -716,7 +717,7 @@ COMMONAIFUNC:
 			// handle give tags
 			if ((oxml = exml->FirstChildElement("give"))) {
 				do player->inv->addItem(oxml->Attribute("id"), oxml->UnsignedAttribute("count"));
-				while ((oxml = oxml->NextSiblingElement()));
+				while ((oxml = oxml->NextSiblingElement("give")));
 			}
 
 			// handle take tags

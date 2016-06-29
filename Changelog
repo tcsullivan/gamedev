@@ -1071,3 +1071,11 @@ Late June (6/16/2016 - 6/27/2016)
 		- redid forest trees, mountains, houses
 	- fixed major issue with entering structures
 	- exploring more ideas for soundtracks
+
+6/29/2016:
+==========
+
+	- added chests
+	- added q to drop items, as objects
+	- chests snag dropped objects, right click to reclaim
+	- control setting is good, needs saving though

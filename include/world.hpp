@@ -66,7 +66,7 @@ extern std::string currentXML;
 /**
  * Defines how many game ticks it takes to go from day to night or vice versa.
  */
-constexpr const unsigned int DAY_CYCLE = 12000;
+constexpr const unsigned int DAY_CYCLE = 10000;
 
 /**
  * Defines the velocity of player when moved by the keyboard

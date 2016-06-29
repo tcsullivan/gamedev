@@ -780,26 +780,26 @@ singleDetect(Entity *e)
 			if (entity[i] == e) {
 				switch (e->type) {
 				case STRUCTURET:
-					killed = "structure";
+					killed = " structure";
                     build.erase(std::find(std::begin(build), std::end(build), e));
                     break;
                 case NPCT:
-					killed = "NPC";
+					killed = "n NPC";
 					npc.erase(std::find(std::begin(npc), std::end(npc), e));
 					break;
 				case MOBT:
-					killed = "mob";
+					killed = " mob";
 					mob.erase(std::find(std::begin(mob), std::end(mob), e));
 					break;
 				case OBJECTT:
-					killed = "object";
+					killed = "n object";
                     object.erase(std::find(std::begin(object), std::end(object), *Objectp(e)));
 					break;
 				default:
 					break;
 				}
 
-				std::cout << "Killed a " << killed << "...\n";
+				std::cout << "Killed a" << killed << "...\n";
 				entity.erase(entity.begin() + i);
 				return;
 			}
@@ -1823,7 +1823,9 @@ loadWorldFromXMLNoSave(std::string path) {
         return nullptr;
 
     _currentXML = xmlFolder + path;
-	_currentXMLRaw = readFile(_currentXML.c_str());
+	const char *worthless = readFile(_currentXML.c_str());
+	_currentXMLRaw = worthless;
+	delete[] worthless;
 
 	// create a temporary XMLDocument if this isn't the main world
 	if (!loadedLeft && !loadedRight)
