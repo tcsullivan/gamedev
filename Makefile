@@ -14,7 +14,7 @@ endif
 
 CXXFLAGS = -g -m$(TARGET_BITS) -std=c++14 -fext-numeric-literals
 CXXINC   = -Iinclude -Iinclude/freetype
-CXXWARN  = -Wall -Wextra -Werror #-pedantic-errors
+CXXWARN  = -Wall -Wextra -Werror
 
 CXXSRCDIR = src
 CXXOUTDIR = out

@@ -336,7 +336,8 @@ void Structures::createFromXML(XMLElement *e, World *w)
 
 	// edge
 	if (!inside.empty()) {
-		insideWorld = loadWorldFromXMLNoTakeover(inside);
+		insideWorld = dynamic_cast<IndoorWorld *>(loadWorldFromXMLNoTakeover(inside));
+		insideWorld->outside = inWorld;
 	}
 
 	textureLoc = e->StrAttribute("texture");

@@ -424,6 +424,48 @@ void Trigger::createFromXML(XMLElement *e, World *w=nullptr)
 void Trigger::saveToXML(void)
 {}
 
+Chest::Chest(void) : Mob()
+{
+    ridable = false;
+    aggressive = false;
+    maxHealth = health = 100;
+    width = HLINES(10);
+    height = HLINES(5);
+    tex = TextureIterator({"assets/chest.png"});
+}
+
+void Chest::act(void)
+{
+	//die();
+}
+
+void Chest::onHit(unsigned int _health)
+{
+	(void)_health;
+	die();
+}
+
+bool Chest::bindTex(void)
+{
+    glActiveTexture(GL_TEXTURE0);
+    tex(0);
+    return true;
+}
+
+void Chest::createFromXML(XMLElement *e, World *w)
+{
+	(void)w;
+	loc = vec2 { 0, 100 };
+	xmle = e;
+}
+
+void Chest::saveToXML(void)
+{
+	xmle->SetAttribute("alive", alive);
+}
+
+
+
 Mob::~Mob()
 {
 	delete inv;

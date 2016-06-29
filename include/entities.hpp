@@ -107,6 +107,7 @@ extern const unsigned int NPC_INV_SIZE;
 
 // a prototype of the world class, necessary for some function prototypes
 class World;
+class IndoorWorld;
 
 /**
  * The light structure, used to store light coordinates and color.
@@ -325,7 +326,8 @@ public:
 class Structures : public Entity {
 public:
 	BUILD_SUB bsubtype;
-	World *inWorld, *insideWorld;
+	World *inWorld;
+	IndoorWorld *insideWorld;
 	std::string inside;
 	std::string textureLoc;
 

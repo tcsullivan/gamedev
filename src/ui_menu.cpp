@@ -6,6 +6,7 @@ extern Menu *currentMenu;
 
 static Menu pauseMenu;
 static Menu optionsMenu;
+static Menu controlsMenu;
 
 void Menu::gotoParent(void)
 {
@@ -17,13 +18,27 @@ void Menu::gotoParent(void)
 	}
 }
 
-void Menu::gotoChild(void)
-{
-	currentMenu = child;
-}
-
 inline void segFault() {
 	(*((int *)NULL))++;
+}
+
+void setControlF(unsigned int index)
+{
+	SDL_Event e;
+	do SDL_WaitEvent(&e);
+	while (e.type != SDL_KEYDOWN);
+	setControl(index, e.key.keysym.sym);
+}
+
+void setLeftKey(void) {
+	SDL_Event e;
+
+	std::cout << "Waiting...\n";
+	do SDL_WaitEvent(&e);
+	while (e.type != SDL_KEYDOWN);
+	std::cout << "Good.\n";
+
+	setControl(2, e.key.keysym.sym);
 }
 
 namespace ui {
@@ -37,11 +52,12 @@ namespace ui {
             temp.button.color = c;
             temp.button.text = t;
             temp.button.func = f;
+			temp.child = nullptr;
 
             return temp;
         }
 
-        menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t) {
+        menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t, Menu *_child) {
             menuItem temp;
 
             temp.member = -1;
@@ -50,6 +66,7 @@ namespace ui {
             temp.button.color = c;
             temp.button.text = t;
             temp.button.func = NULL;
+			temp.child = _child;
 
             return temp;
         }
@@ -63,6 +80,7 @@ namespace ui {
             temp.button.color = c;
             temp.button.text = t;
             temp.button.func = NULL;
+			temp.child = nullptr;
 
             return temp;
         }
@@ -79,21 +97,29 @@ namespace ui {
             temp.slider.text = t;
             temp.slider.var = v;
             temp.slider.sliderLoc = *v;
+			temp.child = nullptr;
 
             return temp;
         }
 
 		void init(void) {
-			pauseMenu.items.push_back(ui::menu::createParentButton({-256/2,0},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
-			pauseMenu.items.push_back(ui::menu::createChildButton({-256/2,-100},{256,75},{0.0f,0.0f,0.0f}, "Options"));
-			pauseMenu.items.push_back(ui::menu::createButton({-256/2,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
-			pauseMenu.items.push_back(ui::menu::createButton({-256/2,-300},{256,75},{0.0f,0.0f,0.0f}, "Segfault", segFault));
-			pauseMenu.child = &optionsMenu;
+			// Create the main pause menu
+			pauseMenu.items.push_back(ui::menu::createParentButton({-128,0},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
+			pauseMenu.items.push_back(ui::menu::createChildButton({-128,-100},{256,75},{0.0f,0.0f,0.0f}, "Options", &optionsMenu));
+			pauseMenu.items.push_back(ui::menu::createChildButton({-128,-200},{256,75},{0.0f,0.0f,0.0f}, "Controls", &controlsMenu));
+			pauseMenu.items.push_back(ui::menu::createButton({-128,-300},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
+			pauseMenu.items.push_back(ui::menu::createButton({-128,-400},{256,75},{0.0f,0.0f,0.0f}, "Segfault", segFault));
 
+			// Create the options (sound) menu
 			optionsMenu.items.push_back(ui::menu::createSlider({0-static_cast<float>(game::SCREEN_WIDTH)/4,0-(512/2)}, {50,512}, {0.0f, 0.0f, 0.0f}, 0, 100, "Master", &game::config::VOLUME_MASTER));
 			optionsMenu.items.push_back(ui::menu::createSlider({-200,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "Music", &game::config::VOLUME_MUSIC));
 			optionsMenu.items.push_back(ui::menu::createSlider({-200,000}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "SFX", &game::config::VOLUME_SFX));
 			optionsMenu.parent = &pauseMenu;
+
+			// Create the controls menu
+			controlsMenu.items.push_back(ui::menu::createButton({-300,200}, {-200, 100}, {0.0f, 0.0f, 0.0f}, "Left", [](){ setControlF(2);}));
+			controlsMenu.items.push_back(ui::menu::createButton({-300,50}, {-200, 100}, {0.0f, 0.0f, 0.0f}, "Right", [](){ setControlF(3);}));
+			controlsMenu.parent = &pauseMenu;
 		}
 
 		void toggle(void) {
@@ -208,7 +234,7 @@ namespace ui {
                                         m.button.func();
                                         break;
                                     case -1:
-                                        currentMenu->gotoChild();
+                                        currentMenu = m.child;
                                         break;
                                     case -2:
                                         currentMenu->gotoParent();

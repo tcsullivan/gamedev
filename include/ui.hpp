@@ -40,6 +40,8 @@
 ** The UI namespace
 ** --------------------------------------------------------------------------*/
 
+void setControl(unsigned int index, SDL_Keycode key);
+
 namespace ui {
 
 	// the pixel-coordinates of the mouse

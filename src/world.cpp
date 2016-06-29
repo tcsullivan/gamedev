@@ -1314,7 +1314,7 @@ WorldSwitchInfo World::goInsideStructure(Player *p)
 
         // +size cuts folder prefix
 		inside.push_back(&currentXML[xmlFolder.size()]);
-		tmp = loadWorldFromXML((*d)->inside);
+		tmp = (*d)->insideWorld;
 
 		return std::make_pair(tmp, vec2 {0, 100});
 	}
@@ -1322,7 +1322,7 @@ WorldSwitchInfo World::goInsideStructure(Player *p)
 	// exit the building
 	else {
         std::string current = &currentXML[xmlFolder.size()];
-		tmp = loadWorldFromXML(inside.back());
+		tmp = dynamic_cast<IndoorWorld *>(currentWorld)->outside; //loadWorldFromXML(inside.back());
         inside.clear();
 
         Structures *b = nullptr;
@@ -1646,56 +1646,59 @@ draw(Player *p)
 	// TODO make floor texture
 
 	static GLuint floorTex = Texture::genColor(Color(150, 100, 50));
-
-	glUseProgram(worldShader);
 	glBindTexture(GL_TEXTURE_2D, floorTex);
 
-	std::vector<GLfloat>f;
+	std::vector<GLfloat> fc;
+	std::vector<GLfloat> ft;
 
 	for (fl = 0; fl < floor.size(); fl++) {
         i = 0;
     	for (const auto &h : floor[fl]) {
-    		x = worldStart + fstart[fl] * HLINE + HLINES(i);
+    		x = worldStart + HLINES(fstart[fl] + i);
 
-			f.emplace_back(x);
-    		f.emplace_back(h);
-			f.emplace_back(-3);
-			f.emplace_back(0);
-			f.emplace_back(0);
+			fc.emplace_back(x);
+    		fc.emplace_back(h);
+			fc.emplace_back(-3);
+			ft.emplace_back(0);
+			ft.emplace_back(0);
 
-			f.emplace_back(x + HLINE);
-			f.emplace_back(h);
-			f.emplace_back(-3);
- 		   	f.emplace_back(1);
-			f.emplace_back(0);
+			fc.emplace_back(x + HLINE);
+			fc.emplace_back(h);
+			fc.emplace_back(-3);
+ 		   	ft.emplace_back(1);
+			ft.emplace_back(0);
 
-			f.emplace_back(x + HLINE);
-			f.emplace_back(h - INDOOR_FLOOR_THICKNESS);
-			f.emplace_back(-3);
- 		   	f.emplace_back(1);
-			f.emplace_back(1);
+			fc.emplace_back(x + HLINE);
+			fc.emplace_back(h - INDOOR_FLOOR_THICKNESS);
+			fc.emplace_back(-3);
+ 		   	ft.emplace_back(1);
+			ft.emplace_back(1);
 
-			f.emplace_back(x + HLINE);
-			f.emplace_back(h - INDOOR_FLOOR_THICKNESS);
-			f.emplace_back(-3);
- 		   	f.emplace_back(1);
-			f.emplace_back(1);
+			fc.emplace_back(x + HLINE);
+			fc.emplace_back(h - INDOOR_FLOOR_THICKNESS);
+			fc.emplace_back(-3);
+ 		   	ft.emplace_back(1);
+			ft.emplace_back(1);
 
-			f.emplace_back(-3);
-			f.emplace_back(0);
- 		   	f.emplace_back(1);
+			fc.emplace_back(x);
+			fc.emplace_back(h - INDOOR_FLOOR_THICKNESS);
+			fc.emplace_back(-3);
+			ft.emplace_back(0);
+ 		   	ft.emplace_back(1);
 
-			f.emplace_back(x);
-    		f.emplace_back(h);
-			f.emplace_back(-3);
-			f.emplace_back(0);
-			f.emplace_back(0);
+			fc.emplace_back(x);
+    		fc.emplace_back(h);
+			fc.emplace_back(-3);
+			ft.emplace_back(0);
+			ft.emplace_back(0);
 
 			i++;
     	}
     }
 
-	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(5 * sizeof(GLfloat), &f[0], &f[3], floor.size() * 6);
+	glUseProgram(worldShader);
+
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, &fc[0], &ft[0], floor.size() * 6);
 
 	glUseProgram(0);
 
@@ -1889,12 +1892,15 @@ loadWorldFromXMLNoSave(std::string path) {
 			}
 
 			// tells what world is outside, if in a structure
-			else if (Indoor && (ptr = wxml->Attribute("outside")))
-				inside.push_back(ptr);
+			else if (Indoor && (ptr = wxml->Attribute("outside"))) {
+//				if (!loadedLeft && !loadedRight)
+//					inside.push_back(ptr);
+			}
 
             // error, invalid link tag
-            else
+            else {
                 UserError("XML Error: Invalid <link> tag in " + _currentXML + "!");
+			}
 
 		}
 
@@ -1949,7 +1955,9 @@ loadWorldFromXMLNoSave(std::string path) {
             newEntity = new Page();
         } else if (name == "cat") {
             newEntity = new Cat();
-        }
+        } else if (name == "chest") {
+			newEntity = new Chest();
+		}
 
         // npc creation
         else if (name == "npc") {
@@ -2001,7 +2009,6 @@ loadWorldFromXMLNoSave(std::string path) {
 				newEntity->createFromXML(wxml, tmp);
 				std::swap(currentXML, _currentXML);
 				std::swap(currentXMLRaw, _currentXMLRaw);
-				std::cout << currentXML << '\n';
 			//}
 		}
 

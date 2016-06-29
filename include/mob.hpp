@@ -126,4 +126,15 @@ public:
 	void saveToXML(void) final;
 };
 
+class Chest : public Mob {
+public:
+	Chest(void);
+
+	void act(void);
+	void onHit(unsigned int);
+	bool bindTex(void);
+	void createFromXML(XMLElement *e, World *w) final;
+	void saveToXML(void) final;
+};
+
 #endif // MOB_H_

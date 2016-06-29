@@ -495,6 +495,8 @@ private:
 
 public:
 
+	World *outside;
+
 	// creates an IndoorWorld object
 	IndoorWorld(void);
 

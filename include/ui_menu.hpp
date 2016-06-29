@@ -7,9 +7,12 @@
 
 typedef void (*menuFunc)(void);
 
+class Menu;
+
 class menuItem {
 public:
 	int member;
+	Menu *child;
 	union {
 		struct {
 			vec2 loc;
@@ -46,25 +49,21 @@ public:
 class Menu {
 public:
 	std::vector<menuItem> items;
-	Menu *parent, *child;
+	Menu *parent;
 
 	~Menu()
 	{
 		items.clear();
-		//delete child;
-		//delete parent;
-		child = NULL;
 		parent = NULL;
 	}
 
-	void gotoChild(void);
 	void gotoParent(void);
 };
 
 namespace ui {
     namespace menu {
         menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f);
-        menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t);
+        menuItem createChildButton(vec2 l, dim2 d, Color c, const char* ti, Menu *_child);
         menuItem createParentButton(vec2 l, dim2 d, Color c, const char* t);
         menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v);
 

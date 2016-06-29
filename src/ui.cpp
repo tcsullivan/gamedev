@@ -28,6 +28,16 @@ extern std::vector<NPC *> aipreload;
  */
 extern bool gameRunning;
 
+
+static SDL_Keycode controlMap[] = {
+	SDLK_w, SDLK_s, SDLK_a, SDLK_d
+};
+
+void setControl(unsigned int index, SDL_Keycode key)
+{
+	controlMap[index] = key;
+}
+
 /**
  *	Freetype variables
  */
@@ -1402,46 +1412,7 @@ EXIT:
 
 				// only let other keys be handled if dialog allows it
 				} else if (!dialogBoxExists || dialogPassive) {
-					switch(SDL_KEY) {
-					case SDLK_DELETE:
-						gameRunning = false;
-						break;
-					case SDLK_t:
-						game::time::tick(50);
-						break;
-					case SDLK_a:
-						if (fadeEnable)
-							break;
-						player->vel.x = -PLAYER_SPEED_CONSTANT;
-						if (std::stoi(game::getValue("Slow")) == 1)
-							player->vel.x /= 2.0f;
-						player->left = left = true;
-						player->right = right = false;
-						if (currentWorldToLeft) {
-							std::thread([&](void){
-								auto thing = currentWorld->goWorldLeft(player);
-								if (thing.first != currentWorld)
-									worldSwitch(thing);
-							}).detach();
-						}
-						break;
-					case SDLK_d:
-						if (fadeEnable)
-							break;
-						player->vel.x = PLAYER_SPEED_CONSTANT;
-						if (std::stoi(game::getValue("Slow")) == 1)
-							player->vel.x /= 2.0f;
-						player->right = right = true;
-						player->left = left = false;
-						if (currentWorldToRight) {
-							std::thread([&](void){
-								auto thing = currentWorld->goWorldRight(player);
-								if (thing.first != currentWorld)
-									worldSwitch(thing);
-							}).detach();
-						}
-						break;
-					case SDLK_w:
+					if (SDL_KEY == controlMap[0]) {
 						if (inBattle) {
 							std::thread([&](void){
 								auto thing = dynamic_cast<Arena *>(currentWorld)->exitArena(player);
@@ -1455,6 +1426,43 @@ EXIT:
 									worldSwitch(thing);
 							}).detach();
 						}
+					} else if (SDL_KEY == controlMap[1]) {
+					} else if (SDL_KEY == controlMap[2]) {
+						if (!fadeEnable) {
+							player->vel.x = -PLAYER_SPEED_CONSTANT;
+							if (std::stoi(game::getValue("Slow")) == 1)
+								player->vel.x /= 2.0f;
+							player->left = left = true;
+							player->right = right = false;
+							if (currentWorldToLeft) {
+								std::thread([&](void){
+									auto thing = currentWorld->goWorldLeft(player);
+									if (thing.first != currentWorld)
+										worldSwitch(thing);
+								}).detach();
+							}
+						}
+					} else if (SDL_KEY == controlMap[3]) {
+						if (!fadeEnable) {
+							player->vel.x = PLAYER_SPEED_CONSTANT;
+							if (std::stoi(game::getValue("Slow")) == 1)
+								player->vel.x /= 2.0f;
+							player->right = right = true;
+							player->left = left = false;
+							if (currentWorldToRight) {
+								std::thread([&](void){
+									auto thing = currentWorld->goWorldRight(player);
+									if (thing.first != currentWorld)
+										worldSwitch(thing);
+								}).detach();
+							}
+						}
+					} else switch(SDL_KEY) {
+					case SDLK_DELETE:
+						gameRunning = false;
+						break;
+					case SDLK_t:
+						game::time::tick(50);
 						break;
 					case SDLK_LSHIFT:
 						if (game::canSprint) {
@@ -1501,8 +1509,11 @@ EXIT:
 					ui::menu::toggle();
 					player->save();
 					return;
-				}
-				switch (SDL_KEY) {
+				} else if (SDL_KEY == controlMap[2]) {
+					left = false;
+				} else if (SDL_KEY == controlMap[3]) {
+					right = false;
+				} else switch (SDL_KEY) {
 				case SDLK_F3:
 					debug ^= true;
 					break;
@@ -1525,12 +1536,6 @@ EXIT:
 						player->loc.y -= INDOOR_FLOOR_HEIGHT;
 						player->ground = false;
 					}
-					break;
-				case SDLK_a:
-					left = false;
-					break;
-				case SDLK_d:
-					right = false;
 					break;
 				case SDLK_LSHIFT:
 					if (player->speed == 4)
