@@ -22,23 +22,14 @@ inline void segFault() {
 	(*((int *)NULL))++;
 }
 
-void setControlF(unsigned int index)
+void setControlF(unsigned int index, menuItem &m)
 {
 	SDL_Event e;
 	do SDL_WaitEvent(&e);
 	while (e.type != SDL_KEYDOWN);
 	setControl(index, e.key.keysym.sym);
-}
-
-void setLeftKey(void) {
-	SDL_Event e;
-
-	std::cout << "Waiting...\n";
-	do SDL_WaitEvent(&e);
-	while (e.type != SDL_KEYDOWN);
-	std::cout << "Good.\n";
-
-	setControl(2, e.key.keysym.sym);
+	m.button.text.pop_back();
+	m.button.text.push_back(e.key.keysym.sym);
 }
 
 namespace ui {
@@ -117,8 +108,18 @@ namespace ui {
 			optionsMenu.parent = &pauseMenu;
 
 			// Create the controls menu
-			controlsMenu.items.push_back(ui::menu::createButton({-300,200}, {-200, 100}, {0.0f, 0.0f, 0.0f}, "Left", [](){ setControlF(2);}));
-			controlsMenu.items.push_back(ui::menu::createButton({-300,50}, {-200, 100}, {0.0f, 0.0f, 0.0f}, "Right", [](){ setControlF(3);}));
+			controlsMenu.items.push_back(ui::menu::createButton({-450,300}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Left:  ", nullptr));
+			controlsMenu.items.back().button.func = [](){ setControlF(2, controlsMenu.items[0]); };
+			controlsMenu.items.push_back(ui::menu::createButton({-450,200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Right:  ", nullptr));
+			controlsMenu.items.back().button.func = [](){ setControlF(3, controlsMenu.items[1]); };
+			controlsMenu.items.push_back(ui::menu::createButton({-450,100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Up:  ", nullptr));
+			controlsMenu.items.back().button.func = [](){ setControlF(0, controlsMenu.items[2]); };
+			controlsMenu.items.push_back(ui::menu::createButton({-450,0}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Sprint:  ", nullptr));
+			controlsMenu.items.back().button.func = [](){ setControlF(4, controlsMenu.items[3]); };
+			controlsMenu.items.push_back(ui::menu::createButton({-450,-100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Creep:  ", nullptr));
+			controlsMenu.items.back().button.func = [](){ setControlF(5, controlsMenu.items[4]); };
+			controlsMenu.items.push_back(ui::menu::createButton({-450,-200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Inventory:  ", nullptr));
+			controlsMenu.items.back().button.func = [](){ setControlF(6, controlsMenu.items[5]); };
 			controlsMenu.parent = &pauseMenu;
 		}
 
@@ -248,7 +249,7 @@ namespace ui {
                 }else if (m.member == 1) {
                     //combining slider text with variable amount
                     char outSV[32];
-                    sprintf(outSV, "%s: %.1f",m.slider.text, *m.slider.var);
+                    sprintf(outSV, "%s: %.1f",m.slider.text.c_str(), *m.slider.var);
 
                     float sliderW, sliderH;
 

@@ -13,13 +13,13 @@ class menuItem {
 public:
 	int member;
 	Menu *child;
-	union {
+	//union {
 		struct {
 			vec2 loc;
 			dim2 dim;
 			Color color;
 
-			const char *text;
+			std::string text;
 			menuFunc func;
 		} button;
 		struct {
@@ -31,10 +31,10 @@ public:
 			float maxValue;
             float sliderLoc;
 
-			const char *text;
+			std::string text;
 			float *var;
 		} slider;
-	};
+	//};
 	menuItem(){}
 	~menuItem(){
 		//button.text = NULL;

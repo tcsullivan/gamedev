@@ -30,7 +30,7 @@ extern bool gameRunning;
 
 
 static SDL_Keycode controlMap[] = {
-	SDLK_w, SDLK_s, SDLK_a, SDLK_d
+	SDLK_w, SDLK_s, SDLK_a, SDLK_d, SDLK_LSHIFT, SDLK_LCTRL, SDLK_e
 };
 
 void setControl(unsigned int index, SDL_Keycode key)
@@ -1426,7 +1426,6 @@ EXIT:
 									worldSwitch(thing);
 							}).detach();
 						}
-					} else if (SDL_KEY == controlMap[1]) {
 					} else if (SDL_KEY == controlMap[2]) {
 						if (!fadeEnable) {
 							player->vel.x = -PLAYER_SPEED_CONSTANT;
@@ -1457,14 +1456,7 @@ EXIT:
 								}).detach();
 							}
 						}
-					} else switch(SDL_KEY) {
-					case SDLK_DELETE:
-						gameRunning = false;
-						break;
-					case SDLK_t:
-						game::time::tick(50);
-						break;
-					case SDLK_LSHIFT:
+					} else if (SDL_KEY == controlMap[4]) {
 						if (game::canSprint) {
 							if (debug) {
 								Mix_PlayChannel(1, sanic, -1);
@@ -1473,11 +1465,9 @@ EXIT:
 								player->speed = 2.0f;
 							}
 						}
-						break;
-					case SDLK_LCTRL:
+					} else if (SDL_KEY == controlMap[5]) {
 						player->speed = .5;
-						break;
-					case SDLK_e:
+					} else if (SDL_KEY == controlMap[6]) {
 						edown = true;
 
 						// start hover counter?
@@ -1493,7 +1483,12 @@ EXIT:
 							// enable action ui
 							action::enable();
 						}
-
+					} else switch(SDL_KEY) {
+					case SDLK_DELETE:
+						gameRunning = false;
+						break;
+					case SDLK_t:
+						game::time::tick(50);
 						break;
 					default:
 						break;
@@ -1513,6 +1508,31 @@ EXIT:
 					left = false;
 				} else if (SDL_KEY == controlMap[3]) {
 					right = false;
+				} else if (SDL_KEY == controlMap[4]) {
+					if (player->speed == 4)
+						Mix_FadeOutChannel(1, 2000);
+
+					player->speed = 1;
+				} else if (SDL_KEY == controlMap[5]) {
+					player->speed = 1;
+				} else if (SDL_KEY == controlMap[6]) {
+					edown = false;
+
+					if (player->inv->invHover) {
+						player->inv->invHover = false;
+					} else {
+						if (!player->inv->selected)
+							player->inv->invOpening ^= true;
+						else
+							player->inv->selected = false;
+
+						player->inv->mouseSel = false;
+					}
+
+					// disable action ui
+					action::disable();
+
+					heyOhLetsGo = 0;
 				} else switch (SDL_KEY) {
 				case SDLK_F3:
 					debug ^= true;
@@ -1537,31 +1557,6 @@ EXIT:
 						player->ground = false;
 					}
 					break;
-				case SDLK_LSHIFT:
-					if (player->speed == 4)
-						Mix_FadeOutChannel(1,2000);
-
-					// fall through
-				case SDLK_LCTRL:
-					player->speed = 1;
-					break;
-				case SDLK_e:
-					edown=false;
-					if (player->inv->invHover) {
-						player->inv->invHover = false;
-					} else {
-						if (!player->inv->selected)
-							player->inv->invOpening ^= true;
-						else
-							player->inv->selected = false;
-						player->inv->mouseSel = false;
-					}
-
-					// disable action ui
-					action::disable();
-
-					heyOhLetsGo = 0;
-					break;
 				case SDLK_l:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});
 					currentWorld->getLastLight()->follow(player);
@@ -1576,10 +1571,10 @@ EXIT:
 					else {
 						auto s = new Structures();
 						s->spawn(FIRE_PIT, player->loc.x, player->loc.y);
-						currentWorld->addStructure(s);
-						currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 400.0f, {1.0f,1.0f,1.0f});
+						//currentWorld->addStructure(s);
+						//currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 400.0f, {1.0f,1.0f,1.0f});
 						//currentWorld->getLastLight()->follow(currentWorld->build.back());
-						currentWorld->getLastLight()->makeFlame();
+						//currentWorld->getLastLight()->makeFlame();
 					}
 					break;
 				case SDLK_F12:
