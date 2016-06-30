@@ -413,20 +413,21 @@ void render() {
 	offset.y = std::max(player->loc.y + player->height / 2, SCREEN_HEIGHT / 2.0f);
 
 	// "setup"
-	glm::mat4 projection = glm::ortho(	floor(offset.x-SCREEN_WIDTH/2), 	//left
-										floor(offset.x+SCREEN_WIDTH/2), 	//right
-										floor(offset.y-SCREEN_HEIGHT/2), 	//bottom
-										floor(offset.y+SCREEN_HEIGHT/2), 	//top
-										10.0,								//near
-										-10.0);								//far
+	glm::mat4 projection = glm::ortho(floor(offset.x - SCREEN_WIDTH / 2),          // left
+	                                  floor(offset.x + SCREEN_WIDTH / 2),          // right
+	                                  floor(offset.y - SCREEN_HEIGHT / 2),         // bottom
+	                                  floor(offset.y + SCREEN_HEIGHT / 2),         // top
+	                                  static_cast<decltype(floor(10.0f))>(10.0),   // near
+	                                  static_cast<decltype(floor(10.0f))>(-10.0)); // far
 
-	glm::mat4 view = glm::lookAt(glm::vec3(0,0,0.0f),  //pos
-								 glm::vec3(0,0,-10.0f), //looking at
-								 glm::vec3(0,1.0f,0)); //up vector
+	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f),   // pos
+								 glm::vec3(0.0f, 0.0f, -10.0f), // looking at
+								 glm::vec3(0.0f, 1.0f, 0.0f));  // up vector
 
 	glm::mat4 ortho = projection * view;
 
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	// TODO add depth
     glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
