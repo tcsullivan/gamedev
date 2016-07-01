@@ -1566,8 +1566,8 @@ EXIT:
 					break;
 				case SDLK_l:
 					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});
-					currentWorld->getLastLight()->follow(player);
-					currentWorld->getLastLight()->makeFlame();
+					currentWorld->getLastLight().follow(player);
+					currentWorld->getLastLight().makeFlame();
 					break;
 				case SDLK_f:
 					currentWorld->addLight({player->loc.x, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});

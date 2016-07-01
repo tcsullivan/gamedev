@@ -357,9 +357,9 @@ void Trigger::act(void)
             player->vel.x = 0;
 
 			if (notext) {
-				for (auto &n : currentWorld->npc) {
-					if (n->name == exml->GetText()) {
-						n->interact();
+				for (auto &e : currentWorld->entity) {
+					if (e->type == NPCT && e->name == exml->GetText()) {
+						e->interact();
 						break;
 					}
 				}

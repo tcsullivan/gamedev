@@ -176,18 +176,6 @@ void clearPointerVector(T &vec)
 void World::
 deleteEntities(void)
 {
-    // free mobs
-    clearPointerVector(mob);
-
-    // free npcs
-	merchant.clear(); // TODO
-    clearPointerVector(npc);
-
-    // free structures
-    clearPointerVector(build);
-
-    // free objects
-	object.clear();
     // free particles
 	particles.clear();
     // clear light array
@@ -195,7 +183,7 @@ deleteEntities(void)
     // free villages
 	village.clear();
     // clear entity array
-	entity.clear();
+	clearPointerVector(entity);
 }
 
 /**
@@ -689,20 +677,6 @@ void World::draw(Player *p)
 
     glUseProgram(0);
 
-	// draw the buildings
-	for (auto &b : build)
-        b->draw();
-
-    // draw remaining entities
-	for (auto &n : npc)
-        n->draw();
-
-	for (auto &m : mob)
-		m->draw();
-
-	for (auto &o : object)
-		o.draw();
-
 	// flatten grass under the player if the player is on the ground
 	if (p->ground) {
 		pOffset = (p->loc.x + p->width / 2 - worldStart) / HLINE;
@@ -713,6 +687,10 @@ void World::draw(Player *p)
 		for (auto &wd : worldData)
 			wd.grassUnpressed = true;
 	}
+
+	// draw the entities
+	for (auto &e : entity)
+		e->draw();
 
     // draw the player
 	p->draw();
@@ -781,19 +759,15 @@ singleDetect(Entity *e)
 				switch (e->type) {
 				case STRUCTURET:
 					killed = " structure";
-                    build.erase(std::find(std::begin(build), std::end(build), e));
                     break;
                 case NPCT:
 					killed = "n NPC";
-					npc.erase(std::find(std::begin(npc), std::end(npc), e));
 					break;
 				case MOBT:
 					killed = " mob";
-					mob.erase(std::find(std::begin(mob), std::end(mob), e));
 					break;
 				case OBJECTT:
 					killed = "n object";
-                    object.erase(std::find(std::begin(object), std::end(object), *Objectp(e)));
 					break;
 				default:
 					break;
@@ -877,7 +851,7 @@ detect(Player *p)
 
     // handle other entities
 	for (auto &e : entity)
-    singleDetect(e);
+ 	   singleDetect(e);
 		//std::thread(&World::singleDetect, this, e).detach();
 
 	// qwertyuiop
@@ -892,41 +866,44 @@ detect(Player *p)
 	}
 
 	// handle particle creation
-	for (auto &b : build) {
-		switch (b->bsubtype) {
-		case FOUNTAIN:
-			for (unsigned int r = (randGet() % 25) + 11; r--;) {
-				addParticle(randGet() % HLINES(3) + b->loc.x + b->width / 2,	// x
-							b->loc.y + b->height,								// y
-							HLINES(1.25),										// width
-							HLINES(1.25),										// height
-							randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
-							randGet() % 1 ? (8 + randGet() % 6) * .05 : (4 + randGet() % 6) * .05,							// vel.y
-							{ 0, 0, 255 },										// RGB color
-							2500												// duration (ms)
-							);
-				particles.back().fountain = true;
-				particles.back().stu = b;
+	for (auto &e : entity) {
+		if (e->type == STRUCTURET) {
+			auto b = dynamic_cast<Structures *>(e);
+			switch (b->bsubtype) {
+			case FOUNTAIN:
+				for (unsigned int r = (randGet() % 25) + 11; r--;) {
+					addParticle(randGet() % HLINES(3) + b->loc.x + b->width / 2,	// x
+								b->loc.y + b->height,								// y
+								HLINES(1.25),										// width
+								HLINES(1.25),										// height
+								randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
+								randGet() % 1 ? (8 + randGet() % 6) * .05 : (4 + randGet() % 6) * .05,							// vel.y
+								{ 0, 0, 255 },										// RGB color
+								2500												// duration (ms)
+								);
+					particles.back().fountain = true;
+					particles.back().stu = b;
+				}
+				break;
+			case FIRE_PIT:
+				for(unsigned int r = (randGet() % 20) + 11; r--;) {
+					addParticle(randGet() % (int)(b->width / 2) + b->loc.x + b->width / 4,	// x
+								b->loc.y + HLINES(3),										// y
+								game::HLINE,       											// width
+								game::HLINE,												// height
+								randGet() % 3 * .01 * (randGet() % 2 == 0 ? -1 : 1),		// vel.x
+								(4 + randGet() % 6) * .005,									// vel.y
+								{ 255, 0, 0 },												// RGB color
+								400															// duration (ms)
+								);
+					particles.back().gravity = false;
+					particles.back().behind  = true;
+					particles.back().stu = b;
+				}
+				break;
+			default:
+				break;
 			}
-			break;
-		case FIRE_PIT:
-			for(unsigned int r = (randGet() % 20) + 11; r--;) {
-				addParticle(randGet() % (int)(b->width / 2) + b->loc.x + b->width / 4,	// x
-							b->loc.y + HLINES(3),										// y
-							game::HLINE,       											// width
-							game::HLINE,												// height
-							randGet() % 3 * .01 * (randGet() % 2 == 0 ? -1 : 1),		// vel.x
-							(4 + randGet() % 6) * .005,									// vel.y
-							{ 255, 0, 0 },												// RGB color
-							400															// duration (ms)
-							);
-				particles.back().gravity = false;
-				particles.back().behind  = true;
-				particles.back().stu = b;
-			}
-			break;
-		default:
-			break;
 		}
 	}
 	partMutex.unlock();
@@ -972,6 +949,7 @@ update(Player *p, unsigned int delta)
             e->loc.y += e->vel.y * delta;
         }
 	}
+
 	partMutex.lock();
 	// iterate through particles
     particles.remove_if([](const Particles &part) {
@@ -991,6 +969,15 @@ update(Player *p, unsigned int delta)
 		}
 	}
     partMutex.unlock();
+
+	// add entities if need be
+	if (!entityPending.empty()) {
+		while (entityPending.size() > 0) {
+			entity.push_back(entityPending.back());
+			entityPending.pop_back();
+		}
+	}
+
     // handle music fades
 	if (!Mix_PlayingMusic())
 		Mix_FadeInMusic(bgmObj, -1, 2000);
@@ -1015,26 +1002,31 @@ getWorldStart(void) const
  * Get a pointer to the most recently created light.
  * Meant to be non-constant.
  */
-Light *World::
+Light& World::
 getLastLight(void)
 {
-    return &light.back();
+    return light.back();
 }
 
 /**
  * Get a pointer to the most recently created mob.
  * Meant to be non-constant.
  */
-Mob *World::
+Mob* World::
 getLastMob(void)
 {
-    return mob.back();
+	for (auto e = entity.rbegin(); e != entity.rend(); ++e) {
+		if ((*e)->type == MOBT)
+			return dynamic_cast<Mob *>(*e);
+	}
+
+    return nullptr;
 }
 
 /**
  * Get the interactable entity that is closest to the entity provided.
  */
-Entity *World::
+Entity* World::
 getNearInteractable(Entity &e)
 {
     auto n = std::find_if(std::begin(entity), std::end(entity), [&](Entity *&a) {
@@ -1045,14 +1037,14 @@ getNearInteractable(Entity &e)
     return n == std::end(entity) ? nullptr : *n;
 }
 
-Mob *World::
+Mob* World::
 getNearMob(Entity &e)
 {
-    auto n = std::find_if(std::begin(mob), std::end(mob), [&](Mob *&a) {
-        return e.isNear(a) && (e.left ? (a->loc.x < e.loc.x + e.width / 2) : (a->loc.x + a->width > e.loc.x + e.width / 2));
+    auto n = std::find_if(std::begin(entity), std::end(entity), [&](Entity *a) {
+        return (a->type == MOBT && e.isNear(a) && (e.left ? (a->loc.x < e.loc.x + e.width / 2) : (a->loc.x + a->width > e.loc.x + e.width / 2)));
     });
 
-    return n == std::end(mob) ? nullptr : *n;
+    return (n == std::end(entity)) ? nullptr : dynamic_cast<Mob *>(*n);
 }
 
 
@@ -1071,13 +1063,26 @@ getSTextureLocation(unsigned int index) const
 vec2 World::
 getStructurePos(int index)
 {
-	if (build.empty() || (unsigned)index >= build.size())
+    if (index < 0) {
+		for (auto e = entity.rbegin(); e != entity.rend(); ++e) {
+			if ((*e)->type == STRUCTURET)
+				return (*e)->loc;
+		}
+
 		return vec2 {0, 0};
+	}
 
-    if (index < 0)
-        return build.back()->loc;
+	int nth = 0;
+	for (const auto &e : entity) {
+		if (e->type == STRUCTURET) {
+			if (index == nth)
+				return e->loc;
+			else
+				++nth;
+		}
+	}
 
-    return build[index]->loc;
+    return vec2 {0, 0};
 }
 
 /**
@@ -1247,13 +1252,11 @@ WorldSwitchInfo World::goWorldRight(Player *p)
 void World::adoptNPC(NPC *e)
 {
 	entity.push_back(e);
-	npc.push_back(e);
 }
 
-void World::adoptMob(Mob *e)
+void World::adoptMob(Mob* e)
 {
 	entity.push_back(e);
-	mob.push_back(e);
 }
 
 /**
@@ -1265,7 +1268,6 @@ bool World::goWorldLeft(NPC *e)
 	if (!toLeft.empty() && e->loc.x < worldStart + HLINES(15)) {
 		currentWorldToLeft->adoptNPC(e);
 
-		npc.erase(std::find(std::begin(npc), std::end(npc), e));
 		entity.erase(std::find(std::begin(entity), std::end(entity), e));
 
         e->loc.x = currentWorldToLeft->worldStart + currentWorldToLeft->getTheWidth() - HLINES(15);
@@ -1283,7 +1285,6 @@ bool World::goWorldRight(NPC *e)
 	if (!toRight.empty() && e->loc.x + e->width > -worldStart - HLINES(15)) {
 		currentWorldToRight->adoptNPC(e);
 
-		npc.erase(std::find(std::begin(npc), std::end(npc), e));
 		entity.erase(std::find(std::begin(entity), std::end(entity), e));
 
 		e->loc.x = currentWorldToRight->worldStart + HLINES(15);
@@ -1305,16 +1306,16 @@ WorldSwitchInfo World::goInsideStructure(Player *p)
 
 	// enter a building
 	if (inside.empty()) {
-        auto d = std::find_if(std::begin(build), std::end(build), [p](const Structures *s) {
+        auto d = std::find_if(std::begin(entity), std::end(entity), [p](const Entity *s) {
             return ((p->loc.x > s->loc.x) && (p->loc.x + p->width < s->loc.x + s->width));
         });
 
-        if ((d == std::end(build)) || (*d)->inside.empty())
+        if ((d == std::end(entity)) || dynamic_cast<Structures *>(*d)->inside.empty())
             return std::make_pair(this, vec2 {0, 0});
 
         // +size cuts folder prefix
 		inside.push_back(&currentXML[xmlFolder.size()]);
-		tmp = (*d)->insideWorld;
+		tmp = dynamic_cast<Structures *>(*d)->insideWorld;
 
 		return std::make_pair(tmp, vec2 {0, 100});
 	}
@@ -1326,9 +1327,9 @@ WorldSwitchInfo World::goInsideStructure(Player *p)
         inside.clear();
 
         Structures *b = nullptr;
-        for (auto &s : tmp->build) {
-            if (s->inside == current) {
-                b = s;
+        for (auto &s : tmp->entity) {
+            if (s->type == STRUCTURET && dynamic_cast<Structures *>(s)->inside == current) {
+                b = dynamic_cast<Structures *>(s);
                 break;
             }
         }
@@ -1336,7 +1337,7 @@ WorldSwitchInfo World::goInsideStructure(Player *p)
         if (b == nullptr)
             return std::make_pair(this, vec2 {0, 0});
 
-        return std::make_pair(tmp, vec2 {b->loc.x + (b->width / 2), 0});
+		return std::make_pair(tmp, vec2 {b->loc.x + (b->width / 2), 0});
 	}
 
 	return std::make_pair(this, vec2 {0, 0});
@@ -1345,8 +1346,7 @@ WorldSwitchInfo World::goInsideStructure(Player *p)
 void World::
 addStructure(Structures *s)
 {
-	build.push_back(s);
-	entity.push_back(build.back());
+	entityPending.push_back(s);
 }
 
 Village *World::
@@ -1358,41 +1358,39 @@ addVillage(std::string name, World *world)
 
 void World::addMob(Mob *m, vec2 coord)
 {
-    mob.push_back(m);
-    mob.back()->spawn(coord.x, coord.y);
+	m->spawn(coord.x, coord.y);
 
-	entity.push_back(mob.back());
+	entityPending.push_back(m);
 }
 
 void World::
 addNPC(NPC *n)
 {
-	npc.push_back(n);
-	entity.push_back(npc.back());
+	entityPending.push_back(n);
 }
 
 void World::
 addMerchant(float x, float y, bool housed)
 {
-	merchant.push_back(new Merchant());
-	merchant.back()->spawn(x, y);
+	Merchant *tmp = new Merchant();
+	
+	tmp->spawn(x, y);
 
     if (housed) {
-        merchant.back()->inside = build.back();
-    	merchant.back()->z = build.back()->z+.1;
+        tmp->inside = dynamic_cast<Structures *>(*std::find_if(entity.rbegin(), entity.rend(), [&](Entity *e){ return (e->type == STRUCTURET); }));
+    	tmp->z = tmp->inside->z + 0.1f;
 	}
 
-	npc.push_back(merchant.back());
-	entity.push_back(npc.back());
+	entityPending.push_back(tmp);
 }
 
 void World::
 addObject(std::string in, std::string p, float x, float y)
 {
-	object.emplace_back(in, p);
-	object.back().spawn(x, y);
+	Object *tmp = new Object(in, p);
+	tmp->spawn(x, y);
 
-	entity.push_back(&object.back());
+	entityPending.push_back(tmp);
 }
 
 void World::
@@ -1737,8 +1735,7 @@ void Arena::fight(World *leave, const Player *p, Mob *m)
 {
     inBattle = true;
 
-    mob.push_back((mmob = m));
-    entity.push_back(mmob);
+    entity.push_back((mmob = m));
 	mmob->aggressive = false;
 
     arenaNest.emplace_back(leave, p->loc);
@@ -1747,8 +1744,8 @@ void Arena::fight(World *leave, const Player *p, Mob *m)
 WorldSwitchInfo Arena::exitArena(Player *p)
 {
 	if (!mmob->isAlive() &&
-        p->loc.x + p->width / 2 > mob[0]->loc.x &&
-	    p->loc.x + p->width / 2 < mob[0]->loc.x + HLINES(12)) {
+        p->loc.x + p->width / 2 > mmob->loc.x &&
+	    p->loc.x + p->width / 2 < mmob->loc.x + HLINES(12)) {
         auto ret = arenaNest.back();
         arenaNest.pop_back();
         inBattle = !(arenaNest.empty());
@@ -2060,6 +2057,11 @@ loadWorldFromXMLNoSave(std::string path) {
             // loop through buy/sell/trade tags
             XMLElement *sxml = vil->FirstChildElement();
             std::string tag;
+
+			Merchant *merch = dynamic_cast<Merchant *>(*std::find_if(tmp->entity.rbegin(), tmp->entity.rend(), [&](Entity *e) {
+				return (e->type == MERCHT);
+			}));
+
             while (sxml) {
                 tag = sxml->Name();
 
@@ -2068,10 +2070,10 @@ loadWorldFromXMLNoSave(std::string path) {
                 } else if (tag == "sell") { //converts price so the player can sell
                     // TODO
                 } else if (tag == "trade") { //doesn't have to convert anything, we just trade multiple items
-                	tmp->merchant.back()->trade.push_back(Trade(sxml->IntAttribute("quantity"),
-																sxml->StrAttribute("item"),
-																sxml->IntAttribute("quantity1"),
-																sxml->StrAttribute("item1")));
+                	merch->trade.push_back(Trade(sxml->IntAttribute("quantity"),
+										   sxml->StrAttribute("item"),
+										   sxml->IntAttribute("quantity1"),
+										   sxml->StrAttribute("item1")));
 				} else if (tag == "text") { //this is what the merchant says
                     XMLElement *txml = sxml->FirstChildElement();
                     std::string textOption;
@@ -2081,14 +2083,14 @@ loadWorldFromXMLNoSave(std::string path) {
                         const char* buf = txml->GetText();
 
                         if (textOption == "greet") { //when you talk to him
-                            tmp->merchant.back()->text[0] = std::string(buf, strlen(buf));
-                            tmp->merchant.back()->toSay = &tmp->merchant.back()->text[0];
+                            merch->text[0] = std::string(buf, strlen(buf));
+                            merch->toSay = &merch->text[0];
                         } else if (textOption == "accept") { //when he accepts the trade
-                            tmp->merchant.back()->text[1] = std::string(buf, strlen(buf));
+                            merch->text[1] = std::string(buf, strlen(buf));
                         } else if (textOption == "deny") { //when you don't have enough money
-                            tmp->merchant.back()->text[2] = std::string(buf, strlen(buf));
+                            merch->text[2] = std::string(buf, strlen(buf));
                         } else if (textOption == "leave") { //when you leave the merchant
-                            tmp->merchant.back()->text[3] = std::string(buf, strlen(buf));
+                            merch->text[3] = std::string(buf, strlen(buf));
                         }
                         txml = txml->NextSiblingElement();
                     }

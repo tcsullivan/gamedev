@@ -237,22 +237,6 @@ protected:
 	std::vector<Light>        light;
 
 	/**
-	 * A vector of all mobs in the world.
-	 *
-	 * @see addMob()
-	 * @see getLastMob()
-	 * @see getNearMob()
-	 */
-	std::vector<Mob *>        mob;
-
-	/**
-	 * A vector of all objects in the world.
-	 *
-	 * @see addObject()
-	 */
-	std::vector<Object>	      object;
-
-	/**
 	 * A vector of all particles in the world.
 	 *
 	 * @see addParticle()
@@ -260,19 +244,13 @@ protected:
 	CoolArray<Particles>    particles;
 
 	/**
-	 * A vector of all structures in the world.
-	 *
-	 * @see addStructure()
-	 * @see getStructurePos()
-	 */
-	std::vector<Structures *> build;
-
-	/**
 	 * A vector of all villages in the world.
 	 *
 	 * @see addVillage()
 	 */
 	std::vector<Village>      village;
+
+	std::vector<Entity *> entityPending;
 
 	/**
 	 * Handles death, gravity, etc. for a single entity
@@ -300,20 +278,6 @@ public:
 	 * @see getNearInteractable()
 	 */
 	std::vector<Entity *> entity;
-
-	/**
-	 * A vector of all NPCs in the world.
-	 *
-	 * @see addNPC()
-	 */
-	std::vector<NPC	*>      npc;
-
-	/**
-	 * A vector of all merchants in the world.
-	 *
-	 * @see addMerchant()
-	 */
-	std::vector<Merchant *> merchant;
 
 	/**
 	 * Constructs the world, resets variables.
@@ -369,24 +333,24 @@ public:
 	 * This is used to update properties of the light outside of the
 	 * world class.
 	 */
-	Light *getLastLight(void);
+	Light& getLastLight(void);
 
 	/**
 	 * Gets a pointer ot the most recently created mob.
 	 * This is used to update properties of the mob outside of the
 	 * world class.
 	 */
-	Mob *getLastMob(void);
+	Mob* getLastMob(void);
 
 	/**
 	 * Finds the entity nearest to the provided one.
 	 */
-	Entity *getNearInteractable(Entity &e);
+	Entity* getNearInteractable(Entity &e);
 
 	/**
 	 * Finds the mob nearest to the given entity.
 	 */
-	Mob *getNearMob(Entity &e);
+	Mob* getNearMob(Entity &e);
 
 	/**
 	 * Gets the coordinates of the `index`th structure.

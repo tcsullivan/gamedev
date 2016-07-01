@@ -783,9 +783,9 @@ OTHERSTUFF:
 
 			// trigger other npcs if desired
 			if (!(nname = exml->StrAttribute("call")).empty()) {
-				NPC *n = *std::find_if(std::begin(currentWorld->npc), std::end(currentWorld->npc), [nname](NPC *npc) {
-					return (npc->name == nname);
-				});
+				NPC *n = dynamic_cast<NPC *>(*std::find_if(std::begin(currentWorld->entity), std::end(currentWorld->entity), [nname](Entity *e) {
+					return (e->type == NPCT && e->name == nname);
+				}));
 
 				if (exml->QueryUnsignedAttribute("callid", &idx) == XML_NO_ERROR) {
 					n->dialogIndex = idx;

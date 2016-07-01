@@ -21,6 +21,7 @@ using namespace tinyxml2;
 #include <gametime.hpp>
 
 #include <fstream>
+#include <mutex>
 
 /* ----------------------------------------------------------------------------
 ** Variables section
