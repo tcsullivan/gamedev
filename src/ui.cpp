@@ -543,7 +543,6 @@ namespace ui {
 		std::unique_ptr<char[]> printfbuf (new char[512]);
 
 		textWrapLimit = game::SCREEN_WIDTH - HLINES(20);
-		std::cout << textWrapLimit << '\n';	
 		dialogPassive = passive;
 
 		// add speaker prefix

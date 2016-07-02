@@ -697,7 +697,7 @@ COMMONAIFUNC:
 				do {
 					// assign quest
 					if (!(qname = oxml->StrAttribute("assign")).empty())
-						player->qh.assign(qname, "None", std::string(oxml->GetText())); // TODO add descriptions
+						player->qh.assign(qname, oxml->StrAttribute("desc"), (oxml->GetText() == nullptr) ? "" : oxml->GetText());
 
 					// check / finish quest
 					else if (!(qname = oxml->StrAttribute("check")).empty()) {
@@ -1038,11 +1038,7 @@ void Particles::draw(GLfloat*& p) const
 {
 	vec2 tc = vec2(0.25f * index.x, 0.125f * (8.0f - index.y));
 
-    float z = 0.9;
-	if (behind)
-		z = 2.0;
-
-	z += zOffset;
+	float z = (behind ? 2.0f : 0.9f) + zOffset;
 
 	// lower left
     *(p++) = loc.x;

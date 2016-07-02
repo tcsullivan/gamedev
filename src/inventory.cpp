@@ -342,12 +342,8 @@ void Inventory::draw(void) {
 		return sum / v.size();
 	};
 
-	ui::fontTransInv = 255 * (averagef(dfp) / range);
-	if (ui::fontTransInv > 255)
-		ui::fontTransInv = 255;
-	else if (ui::fontTransInv < 0)
-		ui::fontTransInv = 0;
-
+	ui::fontTransInv = std::clamp(255 * (averagef(dfp) / range), 0ul, 255ul);
+	
 	if (invOpening) {
 		for (auto &d : dfp) {
 			if (!a || dfp[a - 1] > 50)

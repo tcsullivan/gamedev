@@ -16,7 +16,13 @@ public:
 		_capacity = 0;
 	}
 
-	CoolArray(size_t n, const T& value=0) {
+	CoolArray(size_t n) {
+		buffer = new T[n];
+		_size = 0;
+		_capacity = n;
+	}
+
+	CoolArray(size_t n, const T& value) {
 		buffer = new T[n];
 		_size = n;
 		_capacity = n;
@@ -39,6 +45,11 @@ public:
 		buffer = new T[_size];
 		_capacity = _size;
 		std::copy(a.begin(), a.end(), buffer);
+	}
+
+	void operator+=(std::initializer_list<T> n) {
+		for (const auto &e : n)
+			push_back(e);
 	}
 
 	template<class Func>
@@ -73,12 +84,20 @@ public:
 		_capacity = 0;
 	}
 
+	void reset(void) {
+		_size = 0;
+	}
+
 	size_t size(void) const {
 		return _size;
 	}
 
 	size_t capacity(void) const {
 		return _capacity;
+	}
+
+	T* data(void) {
+		return buffer;
 	}
 
 	T& front(void) {

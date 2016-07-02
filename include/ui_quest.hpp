@@ -13,8 +13,12 @@ namespace ui {
 		}
 
 		void draw(void) {
+			static unsigned int textWrap = 40;
+
 			if (!_toggle)
 				return;
+
+			std::swap(textWrap, ui::textWrapLimit);
 
 			float top_y = offset.y + 200;
 			ui::drawNiceBox(vec2 {offset.x - 200, top_y },
@@ -31,6 +35,8 @@ namespace ui {
 				ui::putText(x + 40, y, q.desc.c_str());
 				y -= 40; 
 			}
+
+			std::swap(textWrap, ui::textWrapLimit);
 		}
 	}
 }
