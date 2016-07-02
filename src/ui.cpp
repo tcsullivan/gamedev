@@ -1,5 +1,6 @@
 #include <ui.hpp>
 
+#include <ui_quest.hpp>
 #include <brice.hpp>
 #include <world.hpp>
 #include <gametime.hpp>
@@ -909,6 +910,9 @@ namespace ui {
 		// will return if not toggled
 		action::draw(vec2 {player->loc.x + player->width / 2, player->loc.y + player->height + game::HLINE});
 
+		// will return if not toggled
+		quest::draw();
+
 		if (pageTexReady) {
 
             GLfloat page_loc[] = {offset.x - 300, SCREEN_HEIGHT - 100, -6.0,
@@ -1540,6 +1544,8 @@ EXIT:
 							currentWorld->addObject(item->name, "o shit waddup",
 							                        player->loc.x + player->width / 2, player->loc.y + player->height / 2);
 					}
+				} else if (SDL_KEY == SDLK_h) {
+					quest::toggle();
 				} else switch (SDL_KEY) {
 				case SDLK_F3:
 					debug ^= true;

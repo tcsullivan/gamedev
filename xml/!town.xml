@@ -4,8 +4,8 @@
     <generation type="Random" width="1600"/>
     <time>6000</time>
     <spawnx>-300</spawnx>
-    <npc name="Sanc" hasDialog="true" health="1" x="220.66983" y="63.798996" dindex="0"/>
-    <npc name="Bob" hasDialog="true" spawnx="30" health="1" x="-118.29799" y="62.499027" dindex="9999"/>
+    <npc name="Sanc" hasDialog="true"/>
+    <npc name="Bob" hasDialog="true" spawnx="30"/>
     <structure type="1" spawnx="300" alive="1"/>
     <structure inside="bobshouse.xml" type="1" spawnx="10" alive="1"/>
     <chest alive="1"/>
@@ -19,10 +19,8 @@
 		</content>
     </text>
     <text id="1" pause="true" alive="1">
-        <quest assign="Check out m&apos;swag, man!" health="1" x="-197.83293" y="71.963989" dindex="0">
-			No description
-		</quest>
-        <content health="1" x="-206.1515" y="70.798996" dindex="0">
+        <quest assign="Check out m&apos;swag, man!" desc="Go inside Bob&apos;s house and check out the stuff he has."/>
+        <content>
 			Looks like you've got yourself pretty empty handed... you know, I have a simple solution for that. Come on inside, I have somethin' to show you.
 		</content>
     </text>

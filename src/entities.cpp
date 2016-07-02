@@ -711,7 +711,7 @@ COMMONAIFUNC:
 							goto COMMONAIFUNC;
 						}
 					}
-				} while((oxml = oxml->NextSiblingElement()));
+				} while((oxml = oxml->NextSiblingElement("quest")));
 			}
 
 			// handle give tags
@@ -743,6 +743,7 @@ COMMONAIFUNC:
 			}
 
 			// asdlfkj
+
 			auto txml = exml->FirstChildElement("content");
 			if (txml == nullptr)
 				goto OTHERSTUFF;
