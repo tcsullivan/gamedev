@@ -63,12 +63,7 @@ void initControls(Menu *m)
 	for (const auto &l : cfg) {
 		z = static_cast<SDL_Keycode>(std::stoi(l));
 		setControl(i, z);
-		std::cout<<"1\n";
-		auto fs = sym2str(z);
-		std::cout<<"2 " << i << "\n";
-		std::cout<<m->items[i].button.text<<'\n';
-		m->items[i++].button.text += fs;
-		std::cout<<"3\n";
+		m->items[i++].button.text += sym2str(z);
 	}
 }
 
@@ -175,12 +170,12 @@ namespace ui {
 			optionsMenu.parent = &pauseMenu;
 
 			// Create the controls menu
-			controlsMenu.items.push_back(ui::menu::createButton({-450,300}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Left: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(1, controlsMenu.items[0]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Right: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(2, controlsMenu.items[1]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Up: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(0, controlsMenu.items[2]); };
+			controlsMenu.items.push_back(ui::menu::createButton({-450,300}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Up: ", nullptr));
+			controlsMenu.items.back().button.func = [](){ setControlF(0, controlsMenu.items[0]); };
+			controlsMenu.items.push_back(ui::menu::createButton({-450,200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Left: ", nullptr));
+			controlsMenu.items.back().button.func = [](){ setControlF(1, controlsMenu.items[1]); };
+			controlsMenu.items.push_back(ui::menu::createButton({-450,100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Right: ", nullptr));
+			controlsMenu.items.back().button.func = [](){ setControlF(2, controlsMenu.items[2]); };
 			controlsMenu.items.push_back(ui::menu::createButton({-450,0}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Sprint: ", nullptr));
 			controlsMenu.items.back().button.func = [](){ setControlF(3, controlsMenu.items[3]); };
 			controlsMenu.items.push_back(ui::menu::createButton({-450,-100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Creep: ", nullptr));
