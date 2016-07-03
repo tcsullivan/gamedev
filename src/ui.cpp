@@ -30,8 +30,8 @@ extern std::vector<NPC *> aipreload;
 extern bool gameRunning;
 
 
-static std::array<SDL_Keycode, 7> controlMap = {
-	SDLK_w, SDLK_s, SDLK_a, SDLK_d, SDLK_LSHIFT, SDLK_LCTRL, SDLK_e
+static std::array<SDL_Keycode, 6> controlMap = {
+	SDLK_w, SDLK_a, SDLK_d, SDLK_LSHIFT, SDLK_LCTRL, SDLK_e
 };
 
 void setControl(unsigned int index, SDL_Keycode key)
@@ -1437,7 +1437,7 @@ EXIT:
 									worldSwitch(thing);
 							}).detach();
 						}
-					} else if (SDL_KEY == controlMap[2]) {
+					} else if (SDL_KEY == controlMap[1]) {
 						if (!fadeEnable) {
 							player->vel.x = -PLAYER_SPEED_CONSTANT;
 							if (std::stoi(game::getValue("Slow")) == 1)
@@ -1452,7 +1452,7 @@ EXIT:
 								}).detach();
 							}
 						}
-					} else if (SDL_KEY == controlMap[3]) {
+					} else if (SDL_KEY == controlMap[2]) {
 						if (!fadeEnable) {
 							player->vel.x = PLAYER_SPEED_CONSTANT;
 							if (std::stoi(game::getValue("Slow")) == 1)
@@ -1467,7 +1467,7 @@ EXIT:
 								}).detach();
 							}
 						}
-					} else if (SDL_KEY == controlMap[4]) {
+					} else if (SDL_KEY == controlMap[3]) {
 						if (game::canSprint) {
 							if (debug) {
 								Mix_PlayChannel(1, sanic, -1);
@@ -1476,9 +1476,9 @@ EXIT:
 								player->speed = 2.0f;
 							}
 						}
-					} else if (SDL_KEY == controlMap[5]) {
+					} else if (SDL_KEY == controlMap[4]) {
 						player->speed = .5;
-					} else if (SDL_KEY == controlMap[6]) {
+					} else if (SDL_KEY == controlMap[5]) {
 						edown = true;
 
 						// start hover counter?
@@ -1515,18 +1515,18 @@ EXIT:
 					ui::menu::toggle();
 					player->save();
 					return;
-				} else if (SDL_KEY == controlMap[2]) {
+				} else if (SDL_KEY == controlMap[1]) {
 					left = false;
-				} else if (SDL_KEY == controlMap[3]) {
+				} else if (SDL_KEY == controlMap[2]) {
 					right = false;
-				} else if (SDL_KEY == controlMap[4]) {
+				} else if (SDL_KEY == controlMap[3]) {
 					if (player->speed == 4)
 						Mix_FadeOutChannel(1, 2000);
 
 					player->speed = 1;
-				} else if (SDL_KEY == controlMap[5]) {
+				} else if (SDL_KEY == controlMap[4]) {
 					player->speed = 1;
-				} else if (SDL_KEY == controlMap[6]) {
+				} else if (SDL_KEY == controlMap[5]) {
 					edown = false;
 
 					if (player->inv->invHover) {

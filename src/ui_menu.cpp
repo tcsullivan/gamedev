@@ -48,7 +48,7 @@ std::string sym2str(const SDL_Keycode& c)
 	case SDLK_LCTRL  : s = "LCONTROL"; break;
 	case SDLK_RCTRL  : s = "RCONTROL"; break;
 	case SDLK_TAB    : s = "TAB"     ; break;
-	default          : s = "SHIT"    ; break;
+	default          : s += static_cast<char>(c); break;
 	}
 
 	return s;
@@ -61,10 +61,14 @@ void initControls(Menu *m)
 	SDL_Keycode z;
 
 	for (const auto &l : cfg) {
-		
 		z = static_cast<SDL_Keycode>(std::stoi(l));
 		setControl(i, z);
-		m->items[i++].button.text += sym2str(z);
+		std::cout<<"1\n";
+		auto fs = sym2str(z);
+		std::cout<<"2 " << i << "\n";
+		std::cout<<m->items[i].button.text<<'\n';
+		m->items[i++].button.text += fs;
+		std::cout<<"3\n";
 	}
 }
 
@@ -172,17 +176,17 @@ namespace ui {
 
 			// Create the controls menu
 			controlsMenu.items.push_back(ui::menu::createButton({-450,300}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Left: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(2, controlsMenu.items[0]); };
+			controlsMenu.items.back().button.func = [](){ setControlF(1, controlsMenu.items[0]); };
 			controlsMenu.items.push_back(ui::menu::createButton({-450,200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Right: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(3, controlsMenu.items[1]); };
+			controlsMenu.items.back().button.func = [](){ setControlF(2, controlsMenu.items[1]); };
 			controlsMenu.items.push_back(ui::menu::createButton({-450,100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Up: ", nullptr));
 			controlsMenu.items.back().button.func = [](){ setControlF(0, controlsMenu.items[2]); };
 			controlsMenu.items.push_back(ui::menu::createButton({-450,0}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Sprint: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(4, controlsMenu.items[3]); };
+			controlsMenu.items.back().button.func = [](){ setControlF(3, controlsMenu.items[3]); };
 			controlsMenu.items.push_back(ui::menu::createButton({-450,-100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Creep: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(5, controlsMenu.items[4]); };
+			controlsMenu.items.back().button.func = [](){ setControlF(4, controlsMenu.items[4]); };
 			controlsMenu.items.push_back(ui::menu::createButton({-450,-200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Inventory: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(6, controlsMenu.items[5]); };
+			controlsMenu.items.back().button.func = [](){ setControlF(5, controlsMenu.items[5]); };
 			controlsMenu.parent = &pauseMenu;
 			initControls(&controlsMenu);
 		}
