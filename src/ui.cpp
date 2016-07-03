@@ -30,13 +30,21 @@ extern std::vector<NPC *> aipreload;
 extern bool gameRunning;
 
 
-static SDL_Keycode controlMap[] = {
+static std::array<SDL_Keycode, 7> controlMap = {
 	SDLK_w, SDLK_s, SDLK_a, SDLK_d, SDLK_LSHIFT, SDLK_LCTRL, SDLK_e
 };
 
 void setControl(unsigned int index, SDL_Keycode key)
 {
 	controlMap[index] = key;
+}
+
+SDL_Keycode getControl(unsigned int index)
+{
+	if (index >= controlMap.size())
+		return 0;
+
+	return controlMap[index];
 }
 
 /**

@@ -41,6 +41,7 @@
 ** --------------------------------------------------------------------------*/
 
 void setControl(unsigned int index, SDL_Keycode key);
+SDL_Keycode getControl(unsigned int index);
 
 namespace ui {
 

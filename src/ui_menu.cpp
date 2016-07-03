@@ -1,5 +1,7 @@
 #include <ui_menu.hpp>
 
+#include <fstream>
+
 extern bool gameRunning;
 
 extern Menu *currentMenu;
@@ -22,14 +24,75 @@ inline void segFault() {
 	(*((int *)NULL))++;
 }
 
+std::string& deleteWord(std::string& s)
+{
+	while (s.back() != ' ')
+		s.pop_back();
+
+	return s;
+}
+
+std::string sym2str(const SDL_Keycode& c)
+{
+	std::string s = "";
+
+	switch (c) {
+	case SDLK_UP     : s = "UP"      ; break;
+	case SDLK_DOWN   : s = "DOWN"    ; break;
+	case SDLK_LEFT   : s = "LEFT"    ; break;
+	case SDLK_RIGHT  : s = "RIGHT"   ; break;
+	case SDLK_LSHIFT : s = "LSHIFT"  ; break;
+	case SDLK_RSHIFT : s = "RSHIFT"  ; break;
+	case SDLK_LALT   : s = "LALT"    ; break;
+	case SDLK_RALT   : s = "RALT"    ; break;
+	case SDLK_LCTRL  : s = "LCONTROL"; break;
+	case SDLK_RCTRL  : s = "RCONTROL"; break;
+	case SDLK_TAB    : s = "TAB"     ; break;
+	default          : s = "SHIT"    ; break;
+	}
+
+	return s;
+}
+
+void initControls(Menu *m)
+{
+	auto cfg = readFileA("config/controls.dat");
+	unsigned i = 0;
+	SDL_Keycode z;
+
+	for (const auto &l : cfg) {
+		
+		z = static_cast<SDL_Keycode>(std::stoi(l));
+		setControl(i, z);
+		m->items[i++].button.text += sym2str(z);
+	}
+}
+
+void saveControls(void)
+{
+	std::ofstream out ("config/controls.dat");
+	SDL_Keycode q = 1;
+	unsigned int i = 0;
+
+	while ((q = getControl(i++)) != 0) {
+		auto d = std::to_string(q) + '\n';
+		out.write(d.data(), d.size());
+	}
+
+	out.close();
+}
 void setControlF(unsigned int index, menuItem &m)
 {
 	SDL_Event e;
+
 	do SDL_WaitEvent(&e);
 	while (e.type != SDL_KEYDOWN);
+
 	setControl(index, e.key.keysym.sym);
-	m.button.text.pop_back();
-	m.button.text.push_back(e.key.keysym.sym);
+	deleteWord(m.button.text);
+
+	m.button.text += sym2str(e.key.keysym.sym);
+	saveControls();
 }
 
 namespace ui {
@@ -108,19 +171,20 @@ namespace ui {
 			optionsMenu.parent = &pauseMenu;
 
 			// Create the controls menu
-			controlsMenu.items.push_back(ui::menu::createButton({-450,300}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Left:  ", nullptr));
+			controlsMenu.items.push_back(ui::menu::createButton({-450,300}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Left: ", nullptr));
 			controlsMenu.items.back().button.func = [](){ setControlF(2, controlsMenu.items[0]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Right:  ", nullptr));
+			controlsMenu.items.push_back(ui::menu::createButton({-450,200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Right: ", nullptr));
 			controlsMenu.items.back().button.func = [](){ setControlF(3, controlsMenu.items[1]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Up:  ", nullptr));
+			controlsMenu.items.push_back(ui::menu::createButton({-450,100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Up: ", nullptr));
 			controlsMenu.items.back().button.func = [](){ setControlF(0, controlsMenu.items[2]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,0}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Sprint:  ", nullptr));
+			controlsMenu.items.push_back(ui::menu::createButton({-450,0}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Sprint: ", nullptr));
 			controlsMenu.items.back().button.func = [](){ setControlF(4, controlsMenu.items[3]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,-100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Creep:  ", nullptr));
+			controlsMenu.items.push_back(ui::menu::createButton({-450,-100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Creep: ", nullptr));
 			controlsMenu.items.back().button.func = [](){ setControlF(5, controlsMenu.items[4]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,-200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Inventory:  ", nullptr));
+			controlsMenu.items.push_back(ui::menu::createButton({-450,-200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Inventory: ", nullptr));
 			controlsMenu.items.back().button.func = [](){ setControlF(6, controlsMenu.items[5]); };
 			controlsMenu.parent = &pauseMenu;
+			initControls(&controlsMenu);
 		}
 
 		void toggle(void) {
