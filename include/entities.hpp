@@ -303,6 +303,18 @@ public:
 	virtual void createFromXML(XMLElement *e, World *w=nullptr) =0;
 	virtual void saveToXML(void) =0;
 
+/*	Entity 
+
+	**
+	 * Forces the given entity to follow this one.
+	 *
+	void lead(Entity *e, unsigned int how);
+
+	**
+	 * Attempts to break free from any following.
+	 *
+	void unfollow(void);*/
+
 	// a common constructor, clears variables
 	Entity(void);
 

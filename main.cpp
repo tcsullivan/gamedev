@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
 	arena->setBGM("assets/music/embark.wav");
 
 
-	player->inv->addItem("Wood Sword", 10);
+	player->inv->addItem("Hunters Bow", 1);
 
 
 	// the main loop, in all of its gloriousness..

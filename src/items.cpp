@@ -104,25 +104,42 @@ int Arrow::useItem()
 
 int Bow::useItem()
 {
-	float rot = atan(sqrt(pow(ui::mouse.y-(player->loc.y + player->height),2)/pow(ui::mouse.x-player->loc.x,2)));
-	float speed = 1.0;
-	float vx = speed * cos(rot);
-	float vy = speed * sin(rot);
+	if (inUse())
+		return -1;
 
-	ui::mouse.x < player->loc.x ? vx *= -1 : vx *= 1;
-	ui::mouse.y < player->loc.y + player->height ? vy *= -1 : vy *= 1;
+	std::thread([this](void) {
+		setUse(true);
 
-	currentWorld->addParticle(	player->loc.x,					// x
-								player->loc.y + player->height,	// y
-								HLINES(3),						// width
-								HLINES(3),						// height
-								vx,								// vel.x
-								vy,								// vel.y
-								{ 139, 69, 19 },				// RGB color
-								2500							// duration (ms)
-							);
+		static Particles* part = nullptr;
 
+		if (part == nullptr) {
+			float rot = atan(sqrt(pow(ui::mouse.y-(player->loc.y + player->height),2)/pow(ui::mouse.x-player->loc.x,2)));
+			float speed = 1.0;
+			float vx = speed * cos(rot);
+			float vy = speed * sin(rot);
 
+			vx *= (ui::mouse.x < player->loc.x) ? -1 : 1;
+			vy *= (ui::mouse.y < player->loc.y + player->height) ? -1 : 1;
+
+			currentWorld->addParticle(player->loc.x,					// x
+									  player->loc.y + player->height,	// y
+									  HLINES(3),						// width
+									  HLINES(3),						// height
+									  vx,								// vel.x
+									  vy,								// vel.y
+									  {139, 69, 19},					// RGB color
+									  2500								// duration (ms)
+									  );
+			part = &currentWorld->particles.back();
+		} else {
+			if (part->vel.x < 0.05 && part->vel.y < 0.05) {
+				part->duration = 0;
+				part = nullptr;
+			}
+		}
+
+		setUse(false);
+	}).detach();
 
 	return 0;
 }

@@ -241,7 +241,7 @@ protected:
 	 *
 	 * @see addParticle()
 	 */
-	CoolArray<Particles>    particles;
+	//CoolArray<Particles>    particles;
 
 	/**
 	 * A vector of all villages in the world.
@@ -270,6 +270,8 @@ protected:
 
 public:
 
+	CoolArray<Particles>    particles;
+	
 	/**
 	 * A vector of pointers to all entities from the other vectors.
 	 * This is used to mass-manage entities, or operate on entities
