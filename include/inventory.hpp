@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include <texture.hpp>
+#include <events.hpp>
 
 #define DEBUG
 
@@ -267,5 +268,15 @@ const char *getItemTexturePath(std::string name);
 GLuint getItemTexture(std::string name);
 float getItemWidth(std::string name);
 float getItemHeight(std::string name);
+
+#include <entityx/entityx.h>
+
+class InventorySystem : public entityx::System<InventorySystem>, public entityx::Receiver<InventorySystem> {
+public:
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+
+	void configure(entityx::EventManager &em);
+	void receive(const MouseScrollEvent &mse);
+};
 
 #endif // INVENTORY_H

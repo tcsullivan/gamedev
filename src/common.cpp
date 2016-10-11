@@ -34,50 +34,6 @@ std::vector<std::string> StringTokenizer(const std::string& str, char delim)
 	return tokens;
 }
 
-static GLuint *Gshader;
-static GLint *tex_uni;
-static GLint *coord_attrib;
-static GLint *tex_attrib;
-
-void useShader(GLuint *sh, GLint *tu, GLint *ca, GLint *ta)
-{
-    Gshader = sh;
-    tex_uni = tu;
-    coord_attrib = ca;
-    tex_attrib = ta;
-}
-
-void drawRect(vec2 ll, vec2 ur, float z)
-{
-    GLfloat verts[] = {ll.x, ll.y, z,
-                       ur.x, ll.y, z,
-                       ur.x, ur.y, z,
-                       
-                       ur.x, ur.y, z,
-                       ll.x, ur.y, z,
-                       ll.x, ll.y, z};
-   
-    GLfloat tex[] = {0.0, 1.0,
-                     1.0, 1.0,
-                     1.0, 0.0,
-
-                     1.0, 0.0,
-                     0.0, 0.0,
-                     0.0, 1.0};
-
-    glUniform1i(*tex_uni, 0);
-
-    glEnableVertexAttribArray(*coord_attrib);
-    glEnableVertexAttribArray(*tex_attrib);
-
-    glVertexAttribPointer(*coord_attrib, 3, GL_FLOAT, GL_FALSE, 0, verts);
-    glVertexAttribPointer(*tex_attrib, 2, GL_FLOAT, GL_FALSE, 0, tex);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-
-    glDisableVertexAttribArray(*tex_attrib);  
-    glDisableVertexAttribArray(*coord_attrib);
-}
-
 void DEBUG_prints(const char* file, int line, const char *s,...)
 {
 	va_list args;
@@ -118,7 +74,7 @@ int getdir(std::string dir, std::vector<std::string> &files)
 #else
 	HANDLE dirh;
 	WIN32_FIND_DATA file_data;
-	
+
 	if ((dirh = FindFirstFile((dir + "/*").c_str(), &file_data)) == INVALID_HANDLE_VALUE)
         return -1; /* No files found */
 
@@ -132,7 +88,7 @@ int getdir(std::string dir, std::vector<std::string> &files)
 
         if (is_directory)
             continue;
-		
+
         files.push_back(file_name);
     } while (FindNextFile(dirh, &file_data));
 

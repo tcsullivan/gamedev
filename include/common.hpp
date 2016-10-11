@@ -50,15 +50,6 @@ typedef unsigned int uint;
 #undef near
 #endif
 
-// Enables special message printing in the case of segfault debugging (unnecessary?)
-//#define SEGFAULT
-
-#ifdef SEGFAULT
-#define C(x) std::cout << x << '\n'
-#else
-#define C(x)
-#endif
-
 /**
  * Prints a formatted string to the terminal with file and line number, for debugging
  */
@@ -68,7 +59,7 @@ typedef unsigned int uint;
  * Creates a coordinate of integers.
  */
 typedef struct {
-	int x; /**< The x coordinate */ 
+	int x; /**< The x coordinate */
 	int y; /**< The y coordinate */
 } ivec2;
 
@@ -213,18 +204,6 @@ constexpr const float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
  * @return a vector of the tokens
  */
 std::vector<std::string> StringTokenizer(const std::string& str, char delim);
-
-/**
- * A function used to tell the program what shader, attributes, and uniforms
- * we want to draw our rectangles to.
- *
- * @see drawRect
- * @param the shader
- * @param the 'texture uniform'
- * @param the 'coord attribute'
- * @param the 'texture coord attribute'
- */
-void useShader(GLuint *sh, GLint *tu, GLint *ca, GLint *ta);
 
 /**
  * A function to draw a colored box for OpenGL.

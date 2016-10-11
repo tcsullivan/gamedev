@@ -134,7 +134,7 @@ public:
 		belongsTo = false;
 		following = nullptr;
 
-		flame = false;	
+		flame = false;
 	}
 
 	Light(vec2 l, float r, Color c)
@@ -159,7 +159,7 @@ public:
 	{
 		flame = true;
 	}
-	
+
 	void createFromXML(XMLElement *e);
 };
 
@@ -303,7 +303,7 @@ public:
 	virtual void createFromXML(XMLElement *e, World *w=nullptr) =0;
 	virtual void saveToXML(void) =0;
 
-/*	Entity 
+/*	Entity
 
 	**
 	 * Forces the given entity to follow this one.
@@ -497,6 +497,26 @@ constexpr Structures *Structurep(Entity *e) {
 constexpr Merchant *Merchantp(Entity *e) {
 	return (Merchant *)e;
 }
+
+#include <entityx/entityx.h>
+#include <events.hpp>
+
+class PlayerSystem : public entityx::System<PlayerSystem>, public entityx::Receiver<PlayerSystem> {
+private:
+	Player **m_Player;
+	bool m_MoveLeft, m_MoveRight;
+
+public:
+	PlayerSystem(Player **p)
+		: m_Player(p), m_MoveLeft(false), m_MoveRight(false) {}
+
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+
+	void configure(entityx::EventManager &ev);
+	void receive(const KeyDownEvent &kde);
+	void receive(const KeyUpEvent &kue);
+};
+
 
 #endif // ENTITIES_H
 

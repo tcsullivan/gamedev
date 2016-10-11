@@ -1079,3 +1079,17 @@ Late June (6/16/2016 - 6/27/2016)
 	- added q to drop items, as objects
 	- chests snag dropped objects, right click to reclaim
 	- control setting is good, needs saving though
+
+
+
+
+10/10/2016:
+===========
+
+	THE REVIVAL
+
+	- began to implement EntityX
+	- things will actually start to work
+	- created render.cpp, moved shader management to there
+	- this game will be kinda decent now???
+	- input bugs, because we're awful

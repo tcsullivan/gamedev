@@ -5,7 +5,7 @@ CXX = g++
 
 ifeq ($(TARGET_OS),linux)
 	LIBS = -lpthread -lGL -lGLEW -lfreetype \
-	       -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2main
+	       -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2main -lentityx
 endif
 ifeq ($(TARGET_OS),win32)
 	LIBS = -lopengl32 -lglew32 -lmingw32 \

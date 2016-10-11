@@ -9,6 +9,8 @@
 #include <gametime.hpp>
 #include <brice.hpp>
 
+#include <render.hpp>
+
 extern std::istream *names;
 
 extern Player *player;			// main.cpp
@@ -27,6 +29,159 @@ const unsigned int PLAYER_INV_SIZE = 43;
 const unsigned int NPC_INV_SIZE = 3;
 
 static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
+
+
+void PlayerSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
+{
+	(void)en;
+	(void)ev;
+	(void)dt;
+
+	if (!m_MoveLeft && !m_MoveRight)
+		(*m_Player)->vel.x = 0;
+}
+
+void PlayerSystem::configure(entityx::EventManager &ev)
+{
+	ev.subscribe<KeyDownEvent>(*this);
+	ev.subscribe<KeyUpEvent>(*this);
+}
+
+extern std::array<SDL_Keycode, 6> controlMap;
+extern World  *currentWorldToLeft;
+extern World  *currentWorldToRight;
+extern bool gameRunning;
+extern bool inBattle;
+
+void PlayerSystem::receive(const KeyUpEvent &kue)
+{
+	auto p = *m_Player;
+	auto kc = kue.keycode;
+
+	if (kc == SDLK_ESCAPE) {
+		ui::menu::toggle();
+		p->save();
+	} else if (kc == controlMap[1]) {
+		m_MoveLeft = false;
+	} else if (kc == controlMap[2]) {
+		m_MoveRight = false;
+	} else if (kc == controlMap[3] || kc == controlMap[4]) {
+		player->speed = 1;
+	} else if (kc == controlMap[5]) {
+		if (p->inv->invHover) {
+			p->inv->invHover = false;
+		} else {
+			if (!p->inv->selected)
+				p->inv->invOpening ^= true;
+			else
+				p->inv->selected = false;
+
+			p->inv->mouseSel = false;
+		}
+
+		// disable action ui
+		ui::action::disable();
+	}
+}
+
+void PlayerSystem::receive(const KeyDownEvent &kde)
+{
+	auto p = *m_Player;
+	auto kc = kde.keycode;
+
+	auto worldSwitch = [&](const WorldSwitchInfo& wsi){
+		p->canMove = false;
+		ui::toggleBlackFast();
+		ui::waitForCover();
+		wsi.first->bgmPlay(currentWorld);
+		std::tie(currentWorld, p->loc) = wsi;
+		ui::toggleBlackFast();
+		ui::waitForUncover();
+		p->canMove = true;
+	};
+
+	if ((kc == SDLK_SPACE) && (game::canJump & p->ground)) {
+		p->loc.y += HLINES(2);
+		p->vel.y = .4;
+		p->ground = false;
+	}
+
+	if (!ui::dialogBoxExists || ui::dialogPassive) {
+		if (kc == controlMap[0]) {
+			if (inBattle) {
+				std::thread([&](void){
+					auto thing = dynamic_cast<Arena *>(currentWorld)->exitArena(p);
+					if (thing.first != currentWorld)
+						worldSwitch(thing);
+				}).detach();
+			} else if (!ui::fadeIntensity) {
+				std::thread([&](void){
+					auto thing = currentWorld->goInsideStructure(p);
+					if (thing.first != currentWorld)
+						worldSwitch(thing);
+				}).detach();
+			}
+		} else if (kc == controlMap[1]) {
+			if (!ui::fadeEnable) {
+				p->vel.x = -PLAYER_SPEED_CONSTANT;
+				if (std::stoi(game::getValue("Slow")) == 1)
+					p->vel.x /= 2.0f;
+				p->left = m_MoveLeft = true;
+				p->right = m_MoveRight = false;
+				if (currentWorldToLeft) {
+					std::thread([&](void){
+						auto thing = currentWorld->goWorldLeft(p);
+						if (thing.first != currentWorld)
+							worldSwitch(thing);
+					}).detach();
+				}
+			}
+		} else if (kc == controlMap[2]) {
+			if (!ui::fadeEnable) {
+				p->vel.x = PLAYER_SPEED_CONSTANT;
+				if (std::stoi(game::getValue("Slow")) == 1)
+					p->vel.x /= 2.0f;
+				p->right = m_MoveRight = true;
+				p->left = m_MoveLeft = false;
+				if (currentWorldToRight) {
+					std::thread([&](void){
+						auto thing = currentWorld->goWorldRight(p);
+						if (thing.first != currentWorld)
+							worldSwitch(thing);
+					}).detach();
+				}
+			}
+		} else if (kc == controlMap[3]) {
+			if (game::canSprint)
+				p->speed = 2.0f;
+		} else if (kc == controlMap[4]) {
+			p->speed = .5;
+		} else if (kc == controlMap[5]) {
+			static int heyOhLetsGo = 0;
+
+			//edown = true;
+
+			// start hover counter?
+			if (!heyOhLetsGo) {
+				heyOhLetsGo = game::time::getTickCount();
+				p->inv->mouseSel = false;
+			}
+
+			// run hover thing
+			if (game::time::getTickCount() - heyOhLetsGo >= 2 && !(p->inv->invOpen) && !(p->inv->selected)) {
+				p->inv->invHover = true;
+
+				// enable action ui
+				ui::action::enable();
+			}
+		}
+	} else if (kc == SDLK_DELETE) {
+		gameRunning = false;
+	} else if (kc == SDLK_t) {
+		game::time::tick(50);
+	}
+}
+
 
 void getRandomName(Entity *e)
 {
@@ -417,21 +572,17 @@ void NPC::drawThingy(void) const
 		// TODO use texture made for this
 		static GLuint thingyColor = Texture::genColor(Color(236, 238, 15));
 
-		glUseProgram(worldShader);
-
-		glEnableVertexAttribArray(worldShader_attribute_coord);
-		glEnableVertexAttribArray(worldShader_attribute_tex);
+		Render::worldShader.use();
+		Render::worldShader.enable();
 
 		glBindTexture(GL_TEXTURE_2D, thingyColor);
 
-		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
-		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
+		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		glDisableVertexAttribArray(worldShader_attribute_coord);
-		glDisableVertexAttribArray(worldShader_attribute_tex);
-
-		glUseProgram(0);
+		Render::worldShader.disable();
+		Render::worldShader.unuse();
 	}
 }
 
@@ -514,25 +665,24 @@ void Entity::draw(void)
 		break;
 	}
 
-	glUseProgram(worldShader);
+	Render::worldShader.use();
 	// make the entity hit flash red
 	if (maxHitDuration-hitDuration) {
 		float flashAmt = 1-(hitDuration/maxHitDuration);
-		glUniform4f(worldShader_uniform_color, 1.0, flashAmt, flashAmt, 1.0);
+		glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, flashAmt, flashAmt, 1.0);
 	}
 
-	glUniform1i(worldShader_uniform_texture, 0);
-	glEnableVertexAttribArray(worldShader_attribute_coord);
-	glEnableVertexAttribArray(worldShader_attribute_tex);
+	glUniform1i(Render::worldShader.uniform[WU_texture], 0);
+	Render::worldShader.enable();
 
-	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
 	if (left)
-		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coordL);
+		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coordL);
 	else
-		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
+		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
+	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 NOPE:
 if (near && type != MOBT)
 	ui::putStringCentered(loc.x+width/2,loc.y-ui::fontSize-game::HLINE/2,name);
@@ -540,7 +690,7 @@ if (health != maxHealth) {
 
 	static GLuint frontH = Texture::genColor(Color(255,0,0));
 	static GLuint backH =  Texture::genColor(Color(150,0,0));
-	glUniform1i(worldShader_uniform_texture, 0);
+	glUniform1i(Render::worldShader.uniform[WU_texture], 0);
 
 	GLfloat coord_back[] = {
 		loc.x, 			loc.y + height, 			      z + 0.1f,
@@ -571,20 +721,18 @@ if (health != maxHealth) {
 					  0.0, 1.0,
 					  0.0, 0.0,
 	};
-	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coord_back);
-	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coord_back);
+	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glBindTexture(GL_TEXTURE_2D, frontH);
-	glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, coord_front);
-	glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coord_front);
+	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-glDisableVertexAttribArray(worldShader_attribute_coord);
-glDisableVertexAttribArray(worldShader_attribute_tex);
-
-glUseProgram(0);
+Render::worldShader.disable();
+Render::worldShader.unuse();
 }
 
 /**

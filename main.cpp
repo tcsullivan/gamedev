@@ -8,6 +8,11 @@
 
 #include <brice.hpp>
 
+#include <entityx/entityx.h>
+
+#include <window.hpp>
+#include <render.hpp>
+
 // local library includes
 #include <tinyxml2.h>
 using namespace tinyxml2;
@@ -26,12 +31,6 @@ using namespace tinyxml2;
 /* ----------------------------------------------------------------------------
 ** Variables section
 ** --------------------------------------------------------------------------*/
-
-// the game's window title name
-constexpr const char *GAME_NAME = "Independent Study v0.8 alpha - NOW WITH decent shaders";
-
-// SDL's window object
-SDL_Window *window = NULL;
 
 // main loop runs based on this variable's value
 bool gameRunning = true;
@@ -52,37 +51,6 @@ Menu *currentMenu;
 
 // the player object
 Player *player;
-
-/**
- * These are the source and index variables for our shader
- * used to draw text and ui elements
- */
-
-GLuint textShader;
-GLint textShader_attribute_coord;
-GLint textShader_attribute_tex;
-GLint textShader_uniform_texture;
-GLint textShader_uniform_transform;
-GLint textShader_uniform_color;
-
-/**
- * These are the source and index variables for the world
- * shader which is used to draw the world items and shade them
- */
-
-GLuint worldShader;
-GLint worldShader_attribute_coord;
-GLint worldShader_attribute_tex;
-GLint worldShader_uniform_texture;
-GLint worldShader_uniform_texture_normal;
-GLint worldShader_uniform_transform;
-GLint worldShader_uniform_ortho;
-GLint worldShader_uniform_color;
-GLint worldShader_uniform_ambient;
-GLint worldShader_uniform_light;
-GLint worldShader_uniform_light_color;
-GLint worldShader_uniform_light_impact;
-GLint worldShader_uniform_light_amt;
 
 // the ambient light of the current world
 Color ambient;
@@ -118,9 +86,38 @@ void mainLoop(void);
 ** MAIN ************************************************************************
 ********************************************************************************/
 
+class Engine : public entityx::EntityX {
+public:
+	explicit Engine(void) {}
+
+	void init(void) {
+		game::config::read();
+		systems.add<WindowSystem>();
+		systems.add<InputSystem>();
+		systems.add<InventorySystem>();
+		systems.add<PlayerSystem>(&player);
+
+		systems.configure();
+	}
+
+	void render(entityx::TimeDelta dt) {
+		systems.update<WindowSystem>(dt);
+	}
+
+	void update(entityx::TimeDelta dt) {
+		systems.update<InputSystem>(dt);
+		systems.update<InventorySystem>(dt);
+		systems.update<PlayerSystem>(dt);
+
+		currentWorld->update(player, dt);
+		currentWorld->detect(player);
+	}
+};
+
+Engine engine;
+
 int main(int argc, char *argv[])
 {
-	static SDL_GLContext mainGLContext = NULL;
 	static bool worldReset = false, worldDontReallyRun = false;
 	std::string worldActuallyUseThisXMLFile;
 
@@ -138,43 +135,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// attempt to initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) != 0)
-		UserError(std::string("SDL was not able to initialize! Error: ") + SDL_GetError());
-	atexit(SDL_Quit);
-
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-
-	// attempt to initialize SDL_image
-	if (!(IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) & (IMG_INIT_PNG | IMG_INIT_JPG)))
-		UserError(std::string("Could not init image libraries! Error: ") + IMG_GetError());
-	atexit(IMG_Quit);
-
-	// attempt to initialize SDL_mixer
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
-		UserError(std::string("SDL_mixer could not initialize! Error: ") + Mix_GetError());
-	Mix_AllocateChannels(8);
-	atexit(Mix_Quit);
-
-	// update values by reading the config file (config/settings.xml)
-	game::config::read();
-
-	// create the SDL window object
-	window = SDL_CreateWindow(GAME_NAME,
-							  SDL_WINDOWPOS_UNDEFINED,	// Spawn the window at random (undefined) x and y coordinates
-							  SDL_WINDOWPOS_UNDEFINED,	//
-							  game::SCREEN_WIDTH,
-							  game::SCREEN_HEIGHT,
-							  SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | (game::FULLSCREEN ? SDL_WINDOW_FULLSCREEN : 0)
-							  );
-
-    if (window == NULL)
-		UserError(std::string("The window failed to generate! SDL_Error: ") + SDL_GetError());
-
-    // create the OpenGL object that SDL provides
-    if ((mainGLContext = SDL_GL_CreateContext(window)) == NULL)
-		UserError(std::string("The OpenGL context failed to initialize! SDL_Error: ") + SDL_GetError());
+	engine.init();
 
 	// initialize GLEW
 #ifndef __WIN32__
@@ -203,38 +164,8 @@ int main(int argc, char *argv[])
 	// initialize shaders
 	std::cout << "Initializing shaders!\n";
 
-	/**
-	 *	Creating the text shader and its attributes/uniforms
-	 */
-	textShader = 							create_program("shaders/new.vert", "shaders/new.frag");
-
-	textShader_attribute_coord = 			get_attrib(textShader, "coord2d");
-	textShader_attribute_tex = 				get_attrib(textShader, "tex_coord");
-
-	textShader_uniform_texture = 			get_uniform(textShader, "sampler");
-	textShader_uniform_transform = 			get_uniform(textShader, "ortho");
-    textShader_uniform_color = 				get_uniform(textShader, "tex_color");
-
-	/**
-	 *	Creating the world's shader and its attributes/uniforms
-	 */
-	worldShader = 							create_program("shaders/world.vert", "shaders/world.frag");
-
-	worldShader_attribute_coord = 			get_attrib(worldShader, "coord2d");
-	worldShader_attribute_tex = 			get_attrib(worldShader, "tex_coord");
-
-	worldShader_uniform_texture = 			get_uniform(worldShader, "texture");
-	worldShader_uniform_texture_normal =	get_uniform(worldShader, "normalTex");
-	worldShader_uniform_transform = 		get_uniform(worldShader, "transform");
-	worldShader_uniform_ortho = 			get_uniform(worldShader, "ortho");
-	worldShader_uniform_color = 			get_uniform(worldShader, "tex_color");
-	worldShader_uniform_ambient =			get_uniform(worldShader, "ambientLight");
-	worldShader_uniform_light = 			get_uniform(worldShader, "light");
-	worldShader_uniform_light_color = 		get_uniform(worldShader, "lightColor");
-	worldShader_uniform_light_impact = 		get_uniform(worldShader, "lightImpact");
-	worldShader_uniform_light_amt = 		get_uniform(worldShader, "lightSize");
-
-	//glEnable(GL_MULTISAMPLE);
+	// create shaders
+	Render::initShaders();
 
 	// load up some fresh hot brice
 	game::briceLoad();
@@ -246,7 +177,6 @@ int main(int argc, char *argv[])
 	// load mouse texture, and other inventory textures
 	mouseTex = Texture::loadTexture("assets/mouse.png");
 
-	// spawn the player
 	player = new Player();
 	player->sspawn(0,100);
 
@@ -353,6 +283,7 @@ int main(int argc, char *argv[])
 	}).detach();
 
 	while (gameRunning) {
+		engine.render(0);
 		render();
 		ui::handleEvents();
 	}
@@ -367,9 +298,6 @@ int main(int argc, char *argv[])
     destroyInventory();
 	ui::destroyFonts();
     Texture::freeTextures();
-
-    SDL_GL_DeleteContext(mainGLContext);
-    SDL_DestroyWindow(window);
 
 	// close up the game stuff
 	currentWorld->save();
@@ -391,8 +319,7 @@ void mainLoop(void){
 		if (game::time::tickHasPassed())
 			logic();
 
-		currentWorld->update(player, game::time::getDeltaTime());
-		currentWorld->detect(player);
+		engine.update(game::time::getDeltaTime());
 	}
 }
 
@@ -433,16 +360,16 @@ void render() {
     glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
 
-	glUseProgram(textShader);
-	glUniformMatrix4fv(textShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(ortho));
-    glUniform4f(textShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
-    glUseProgram(worldShader);
-	glUniformMatrix4fv(worldShader_uniform_ortho, 1, GL_FALSE, glm::value_ptr(ortho));
-	glUniformMatrix4fv(worldShader_uniform_transform, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+	Render::textShader.use();
+	glUniformMatrix4fv(Render::textShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(ortho));
+    glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+    Render::worldShader.use();
+	glUniformMatrix4fv(Render::worldShader.uniform[WU_ortho], 1, GL_FALSE, glm::value_ptr(ortho));
+	glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 
-	glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
-	glUniform4f(worldShader_uniform_ambient, ambient.red, ambient.green, ambient.blue, 1.0);
-	glUniform1f(worldShader_uniform_light_impact, 1.0);
+	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+	glUniform4f(Render::worldShader.uniform[WU_ambient], ambient.red, ambient.green, ambient.blue, 1.0);
+	glUniform1f(Render::worldShader.uniform[WU_light_impact], 1.0);
 
 	/*static GLfloat l[]  = {460.0, 100.0, 0.0, 300.0};
 	static GLfloat lc[] = {1.0, 1.0, 1.0, 1.0};
@@ -497,7 +424,7 @@ void render() {
 		GLfloat tpoint[es * 2 * 5];
 		GLfloat *tp = &tpoint[0];
 
-		glUseProgram(textShader);
+		Render::textShader.use();
 		glBindTexture(GL_TEXTURE_2D, tracerText);
 
 		if (ui::posFlag) {
@@ -518,16 +445,14 @@ void render() {
 			}
 		}
 
-		glEnableVertexAttribArray(worldShader_attribute_coord);
-		glEnableVertexAttribArray(worldShader_attribute_coord);
+		Render::worldShader.enable();
 
-		glVertexAttribPointer(worldShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[0]);
-		glVertexAttribPointer(worldShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[3]);
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[0]);
+		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[3]);
 		glDrawArrays(GL_LINES, 0, es * 2);
 
-		glDisableVertexAttribArray(worldShader_attribute_tex);
-		glDisableVertexAttribArray(worldShader_attribute_tex);
-		glUseProgram(0);
+		Render::worldShader.disable();
+		Render::worldShader.unuse();
 
 	}
 
@@ -536,13 +461,12 @@ void render() {
 	if (currentMenu)
 		ui::menu::draw();
 
-	glUseProgram(textShader);
+	Render::textShader.use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mouseTex);
-	glUniform1i(textShader_uniform_texture, 0);
+	glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
-	glEnableVertexAttribArray(textShader_attribute_tex);
-	glEnableVertexAttribArray(textShader_attribute_coord);
+	Render::textShader.enable();
 
 	glDisable(GL_DEPTH_TEST);
 
@@ -566,14 +490,11 @@ void render() {
 		0.0f, 0.0f, //bottom left
 	};
 
-	glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, mouseCoords);
-	glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, mouseTex);
+	glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, mouseCoords);
+	glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, mouseTex);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	glDisableVertexAttribArray(textShader_attribute_coord);
-	glDisableVertexAttribArray(textShader_attribute_tex);
-
-	SDL_GL_SwapWindow(window);
+	Render::textShader.disable();
 }
 
 void logic(){

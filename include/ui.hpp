@@ -43,7 +43,17 @@
 void setControl(unsigned int index, SDL_Keycode key);
 SDL_Keycode getControl(unsigned int index);
 
+#include <entityx/entityx.h>
+
+class InputSystem : public entityx::System<InputSystem> {
+public:
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+};
+
 namespace ui {
+
+	extern bool fadeEnable;
+	extern int fadeIntensity;
 
 	// the pixel-coordinates of the mouse
 	extern vec2 mouse;
@@ -155,6 +165,7 @@ namespace ui {
 	void toggleWhite(void);
 	void toggleWhiteFast(void);
 	void waitForCover(void);
+	void waitForUncover(void);
 
 }
 

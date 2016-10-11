@@ -5,6 +5,9 @@
 #include <world.hpp>
 #include <gametime.hpp>
 
+#include <render.hpp>
+#include <events.hpp>
+
 extern Menu* currentMenu;
 
 extern SDL_Window *window;
@@ -30,7 +33,7 @@ extern std::vector<NPC *> aipreload;
 extern bool gameRunning;
 
 
-static std::array<SDL_Keycode, 6> controlMap = {
+std::array<SDL_Keycode, 6> controlMap = {
 	SDLK_w, SDLK_a, SDLK_d, SDLK_LSHIFT, SDLK_LCTRL, SDLK_e
 };
 
@@ -93,10 +96,8 @@ extern void mainLoop(void);
  * Fade effect flags
  */
 
-static bool fadeEnable = false;
 static bool fadeWhite  = false;
 static bool fadeFast   = false;
-static int fadeIntensity = 0;
 
 bool inBattle = false;
 Mix_Chunk *battleStart;
@@ -162,6 +163,9 @@ void loadFontSize(unsigned int size, std::vector<GLuint> &tex, std::vector<FT_In
 }
 
 namespace ui {
+
+	bool fadeEnable = false;
+	int fadeIntensity = 0;
 
 	/*
 	 *	Mouse coordinates.
@@ -324,14 +328,12 @@ namespace ui {
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D,(*ftex)[c-33]);
-		glUniform1i(textShader_uniform_texture, 0);
+		glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
 		//glDisable(GL_DEPTH_TEST);
 
-		glUseProgram(textShader);
-
-		glEnableVertexAttribArray(textShader_attribute_coord);
-		glEnableVertexAttribArray(textShader_attribute_tex);
+		Render::textShader.use();
+		Render::textShader.enable();
 
 		GLfloat tex_coord[] = {
 			0.0, 1.0,				//bottom left
@@ -354,22 +356,20 @@ namespace ui {
 			c1.x, 		c1.y	 -c2.y, fontZ	//bottom left
 		};
 
-        glUniform4f(textShader_uniform_color,
+        glUniform4f(Render::textShader.uniform[WU_tex_color],
                     static_cast<float>(fontColor[0]/255),
                     static_cast<float>(fontColor[1]/255),
                     static_cast<float>(fontColor[2]/255),
                     static_cast<float>(fontColor[3]/255));
 
-		glVertexAttribPointer(textShader_attribute_coord, 	3, GL_FLOAT, GL_FALSE, 0, text_vert);
-		glVertexAttribPointer(textShader_attribute_tex,  	2, GL_FLOAT, GL_FALSE, 0, tex_coord);
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, text_vert);
+		glVertexAttribPointer(Render::textShader.tex,  	2, GL_FLOAT, GL_FALSE, 0, tex_coord);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        glUniform4f(textShader_uniform_color, 1.0, 1.0, 1.0, 1.0);
+        glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 
-		glDisableVertexAttribArray(textShader_attribute_tex);
-		glDisableVertexAttribArray(textShader_attribute_coord);
-
-		glUseProgram(0);
+		Render::textShader.disable();
+		Render::textShader.unuse();
 
 		//glEnable(GL_DEPTH_TEST);
 
@@ -538,7 +538,7 @@ namespace ui {
 		va_list args;
 		std::unique_ptr<char[]> buf (new char[512]);
 		memset(buf.get(), 0, 512 * sizeof(char));
-		
+
 		va_start(args, str);
 		vsnprintf(buf.get(), 512, str, args);
 		va_end(args);
@@ -647,7 +647,7 @@ namespace ui {
 		while (fadeIntensity < 255);
 		fadeIntensity = 255;
 	}
-	
+
 	void waitForUncover(void) {
 		while (fadeIntensity > 0);
 		fadeIntensity = 0;
@@ -726,27 +726,24 @@ namespace ui {
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, boxT);
-        glUniform1i(textShader_uniform_texture, 0);
-        glUseProgram(textShader);
+        glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
-        glEnableVertexAttribArray(textShader_attribute_coord);
-        glEnableVertexAttribArray(textShader_attribute_tex);
+        Render::textShader.use();
+		Render::textShader.enable();
 
-        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, box);
-        glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
+        glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, box);
+        glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
         glDrawArrays(GL_TRIANGLES, 0 ,6);
 
         glBindTexture(GL_TEXTURE_2D, lineT);
-        glUniform1i(textShader_uniform_texture, 0);
+        glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
-        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, line_strip);
-        glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
+        glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, line_strip);
+        glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
         glDrawArrays(GL_LINE_STRIP, 0 ,8);
 
-        glDisableVertexAttribArray(textShader_attribute_coord);
-        glDisableVertexAttribArray(textShader_attribute_tex);
-
-        glUseProgram(0);
+        Render::textShader.disable();
+		Render::textShader.unuse();
 	}
 
 	void drawNiceBox(vec2 c1, vec2 c2, float z) {
@@ -758,15 +755,15 @@ namespace ui {
 		// the dimensions of the corner textures
 		static dim2 box_corner_dim_t = 	Texture::imageDim("assets/ui/button_corners.png");
 		static vec2 box_corner_dim = vec2(box_corner_dim_t.x / 2.0, box_corner_dim_t.y / 2.0);
-		
+
 		// the amount of bytes to skip in the OpenGL arrays (see below)
 		auto stride = 5 * sizeof(GLfloat);
-	
+
 		// we always want to make sure c1 is lower left and c2 is upper right
 		if (c1.x > c2.x) std::swap(c1.x, c2.y);
 		if (c1.y > c2.y) std::swap(c1.y, c2.y);
-	
-		// if the box is too small, we will not be able to draw it	
+
+		// if the box is too small, we will not be able to draw it
 		if (c2.x - c1.x < (box_corner_dim_t.x)) return;
 		if (c2.y - c1.y < (box_corner_dim_t.y)) return;
 
@@ -845,67 +842,64 @@ namespace ui {
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, box_corner);
-		glUniform1f(textShader_uniform_texture, 0);
-		glUseProgram(textShader);
+		glUniform1f(Render::textShader.uniform[WU_texture], 0);
 
-		glEnableVertexAttribArray(textShader_attribute_coord);
-        glEnableVertexAttribArray(textShader_attribute_tex);
+		Render::textShader.use();
+		Render::textShader.enable();
 
 		// draw upper left corner
-        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ul[0]);
-        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ul[3]);
+        glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ul[0]);
+        glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ul[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// lower left corner
-        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ll[0]);
-        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ll[3]);
+        glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ll[0]);
+        glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ll[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-        
+
 		// upper right corner
-		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ur[0]);
-        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ur[3]);
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ur[0]);
+        glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ur[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-        
+
 		// lower right corner
-		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_lr[0]);
-        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_lr[3]);
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_lr[0]);
+        glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_lr[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// draw the middle of the box
-		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_f[0]);
-        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_f[3]);
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_f[0]);
+        glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_f[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-		
+
 		glBindTexture(GL_TEXTURE_2D, box_side);
 
 		// draw the left edge of the box
-		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_l[0]);
-        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_l[3]);
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_l[0]);
+        glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_l[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// draw right edge of the box
-		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_r[0]);
-        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_r[3]);
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_r[0]);
+        glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_r[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-		
+
 		glBindTexture(GL_TEXTURE_2D, box_side_top);
 
 		// draw bottom of the box
-		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_b[0]);
-        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_b[3]);
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_b[0]);
+        glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_b[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// draw top of the box
-		glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, stride, &box_t[0]);
-        glVertexAttribPointer(textShader_attribute_tex,   2, GL_FLOAT, GL_FALSE, stride, &box_t[3]);
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_t[0]);
+        glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_t[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        glDisableVertexAttribArray(textShader_attribute_coord);
-        glDisableVertexAttribArray(textShader_attribute_tex);
-
-		glUseProgram(0);
+        Render::textShader.disable();
+		Render::textShader.unuse();
 	}
-	
+
 	void draw(void){
 		unsigned char i;
 		float x,y,tmp;
@@ -940,20 +934,17 @@ namespace ui {
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, pageTex);
-            glUniform1i(textShader_uniform_texture, 0);
-            glUseProgram(textShader);
+            glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
-            glEnableVertexAttribArray(textShader_attribute_coord);
-            glEnableVertexAttribArray(textShader_attribute_tex);
+			Render::textShader.use();
+			Render::textShader.enable();
 
-            glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, page_loc);
-            glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, page_tex);
+            glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, page_loc);
+            glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, page_tex);
             glDrawArrays(GL_TRIANGLES, 0 ,6);
 
-            glDisableVertexAttribArray(textShader_attribute_coord);
-            glDisableVertexAttribArray(textShader_attribute_tex);
-
-            glUseProgram(0);
+            Render::textShader.disable();
+			Render::textShader.unuse();
 
 		} else if (dialogBoxExists) {
 			rtext = typeOut(dialogBoxText);
@@ -1020,26 +1011,23 @@ namespace ui {
 
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[1]));
-                glUniform1i(textShader_uniform_texture, 0);
-                glUseProgram(textShader);
+                glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
-                glEnableVertexAttribArray(textShader_attribute_coord);
-                glEnableVertexAttribArray(textShader_attribute_tex);
+				Render::textShader.use();
+				Render::textShader.enable();
 
-                glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, left_item);
-                glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
+                glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, left_item);
+                glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
                 glDrawArrays(GL_TRIANGLES, 0 ,6);
 
                 glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[0]));
 
-                glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, right_item);
-                glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
+                glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, right_item);
+                glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
                 glDrawArrays(GL_TRIANGLES, 0 ,6);
 
-                glDisableVertexAttribArray(textShader_attribute_coord);
-                glDisableVertexAttribArray(textShader_attribute_tex);
-
-                glUseProgram(0);
+                Render::textShader.disable();
+				Render::textShader.unuse();
 
 				merchArrowLoc[0].x = offset.x - (SCREEN_WIDTH / 8.5) - 16;
 				merchArrowLoc[1].x = offset.x + (SCREEN_WIDTH / 8.5) + 16;
@@ -1068,20 +1056,17 @@ namespace ui {
                                        merchArrowLoc[i].z, merchArrowLoc[i].y - 8,  -7.1,
                                        merchArrowLoc[i].z, merchArrowLoc[i].y + 8,  -7.1};
 
-                    glUniform1i(textShader_uniform_texture, 0);
-                    glUseProgram(textShader);
+                    glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
-                    glEnableVertexAttribArray(textShader_attribute_coord);
-                    glEnableVertexAttribArray(textShader_attribute_tex);
+					Render::textShader.use();
+					Render::textShader.enable();
 
-                    glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, tri_c);
-                    glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tri_t);
+                    glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, tri_c);
+                    glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tri_t);
                     glDrawArrays(GL_TRIANGLES, 0 ,6);
 
-                    glDisableVertexAttribArray(textShader_attribute_coord);
-                    glDisableVertexAttribArray(textShader_attribute_tex);
-
-                    glUseProgram(0);
+                    Render::textShader.disable();
+					Render::textShader.unuse();
 				}
 
 
@@ -1175,28 +1160,25 @@ namespace ui {
                                    hub.x + 150, hub.y + 12, -7.1};
 
 
-                glUniform1i(textShader_uniform_texture, 0);
-                glUseProgram(textShader);
+                glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
-                glEnableVertexAttribArray(textShader_attribute_coord);
-                glEnableVertexAttribArray(textShader_attribute_tex);
+				Render::textShader.use();
+				Render::textShader.enable();
 
                 glBindTexture(GL_TEXTURE_2D, frontHealth);
 
-                glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, front);
-                glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+                glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, front);
+                glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
                 glBindTexture(GL_TEXTURE_2D, backHealth);
 
-                glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, back);
-                glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+                glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, back);
+                glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-                glDisableVertexAttribArray(textShader_attribute_coord);
-                glDisableVertexAttribArray(textShader_attribute_tex);
-
-                glUseProgram(0);
+                Render::textShader.disable();
+				Render::textShader.unuse();
             }
 
 			/*
@@ -1300,331 +1282,6 @@ EXIT:
 	}
 
 	void handleEvents(void) {
-		static bool left=true,right=false;
-		static int heyOhLetsGo = 0;
-		static int mouseWheelUpCount = 0, mouseWheelDownCount = 0;
-
-		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
-		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
-
-		auto indoor = dynamic_cast<IndoorWorld *>(currentWorld);
-		Mob *m; // ;lkjfdsa
-		Entity *en; // used for interaction
-
-		SDL_Event e;
-
-		// update mouse coords
-		mouse.x = premouse.x + offset.x - (SCREEN_WIDTH / 2);
-		mouse.y = (offset.y + SCREEN_HEIGHT / 2) - premouse.y;
-
-		static vec2 fr;
-		static Entity *ig;
-
-		auto worldSwitch = [&](const WorldSwitchInfo& wsi){
-			player->canMove = false;
-			toggleBlackFast();
-			waitForCover();
-			wsi.first->bgmPlay(currentWorld);
-			std::tie(currentWorld, player->loc) = wsi;
-			toggleBlackFast();
-			waitForUncover();
-			player->canMove = true;
-		};
-		
-		while(SDL_PollEvent(&e)) {
-			switch(e.type) {
-
-			// escape - quit game
-			case SDL_QUIT:
-				gameRunning = false;
-				break;
-
-			// mouse movement - update mouse vector
-			case SDL_MOUSEMOTION:
-				premouse.x=e.motion.x;
-				premouse.y=e.motion.y;
-				break;
-
-			case SDL_MOUSEBUTTONUP:
-				if (ig) {
-					ig->vel.x = (fr.x - mouse.x) / 50.0f;
-					ig->vel.y = (fr.y - mouse.y) / 50.0f;
-                    //ig->forcedMove = true; // kills vel.x too quickly
-					ig = NULL;
-				}
-				break;
-
-			// mouse clicks
-			case SDL_MOUSEBUTTONDOWN:
-
-				// run actions?
-				if ((action::make = e.button.button & SDL_BUTTON_RIGHT))
-					/*player->inv->invHover =*/ edown = false;
-
-				textToDraw.clear();
-
-				if (dialogBoxExists || pageTexReady) {
-					// right click advances dialog
-					if ((e.button.button & SDL_BUTTON_RIGHT))
-						dialogAdvance();
-				} else {
-					// left click uses item
-					if (e.button.button & SDL_BUTTON_LEFT) {
-						if ((en = currentWorld->getNearMob(*player)) != nullptr) {
-							player->inv->currentAddInteract(en);
-						}
-							player->inv->useCurrent();
-					}
-
-				}
-
-				if(mouse.x > player->loc.x && mouse.x < player->loc.x + player->width &&
-				   mouse.y > player->loc.y && mouse.y < player->loc.y + player->height) {
-					player->vel.y = .05;
-					fr = mouse;
-					ig = player;
-				} else {
-					for (auto &e : currentWorld->entity) {
-						if (mouse.x > e->loc.x && mouse.x < e->loc.x + e->width &&
-							mouse.y > e->loc.y && mouse.y < e->loc.y + e->height) {
-							e->vel.y = .05;
-							fr = mouse;
-							ig = e;
-							break;
-						}
-					}
-				}
-
-				break;
-			case SDL_MOUSEWHEEL:
-				if (e.wheel.y < 0) {
-					if (mouseWheelUpCount++ && mouseWheelUpCount%5==0) {
-						player->inv->setSelectionUp();
-						mouseWheelUpCount = 0;
-					}
-				}else{
-					if (mouseWheelDownCount-- && mouseWheelDownCount%5==0) {
-						player->inv->setSelectionDown();
-						mouseWheelDownCount = 0;
-					}
-				}
-				break;
-			// key presses
-			case SDL_KEYDOWN:
-
-				// space - make player jump
-				if (SDL_KEY == SDLK_SPACE && game::canJump) {
-					if (player->ground) {
-						player->loc.y += HLINES(2);
-						player->vel.y = .4;
-						player->ground = false;
-					}
-					break;
-
-				// only let other keys be handled if dialog allows it
-				} else if (!dialogBoxExists || dialogPassive) {
-					if (SDL_KEY == controlMap[0]) {
-						if (inBattle) {
-							std::thread([&](void){
-								auto thing = dynamic_cast<Arena *>(currentWorld)->exitArena(player);
-								if (thing.first != currentWorld)
-									worldSwitch(thing);
-							}).detach();
-						} else if (!fadeIntensity) {
-							std::thread([&](void){
-								auto thing = currentWorld->goInsideStructure(player);
-								if (thing.first != currentWorld)
-									worldSwitch(thing);
-							}).detach();
-						}
-					} else if (SDL_KEY == controlMap[1]) {
-						if (!fadeEnable) {
-							player->vel.x = -PLAYER_SPEED_CONSTANT;
-							if (std::stoi(game::getValue("Slow")) == 1)
-								player->vel.x /= 2.0f;
-							player->left = left = true;
-							player->right = right = false;
-							if (currentWorldToLeft) {
-								std::thread([&](void){
-									auto thing = currentWorld->goWorldLeft(player);
-									if (thing.first != currentWorld)
-										worldSwitch(thing);
-								}).detach();
-							}
-						}
-					} else if (SDL_KEY == controlMap[2]) {
-						if (!fadeEnable) {
-							player->vel.x = PLAYER_SPEED_CONSTANT;
-							if (std::stoi(game::getValue("Slow")) == 1)
-								player->vel.x /= 2.0f;
-							player->right = right = true;
-							player->left = left = false;
-							if (currentWorldToRight) {
-								std::thread([&](void){
-									auto thing = currentWorld->goWorldRight(player);
-									if (thing.first != currentWorld)
-										worldSwitch(thing);
-								}).detach();
-							}
-						}
-					} else if (SDL_KEY == controlMap[3]) {
-						if (game::canSprint) {
-							if (debug) {
-								Mix_PlayChannel(1, sanic, -1);
-								player->speed = 4.0f;
-							} else {
-								player->speed = 2.0f;
-							}
-						}
-					} else if (SDL_KEY == controlMap[4]) {
-						player->speed = .5;
-					} else if (SDL_KEY == controlMap[5]) {
-						edown = true;
-
-						// start hover counter?
-						if (!heyOhLetsGo) {
-							heyOhLetsGo = game::time::getTickCount();
-							player->inv->mouseSel = false;
-						}
-
-						// run hover thing
-						if (game::time::getTickCount() - heyOhLetsGo >= 2 && !(player->inv->invOpen) && !(player->inv->selected)) {
-							player->inv->invHover = true;
-
-							// enable action ui
-							action::enable();
-						}
-					} else switch(SDL_KEY) {
-					case SDLK_DELETE:
-						gameRunning = false;
-						break;
-					case SDLK_t:
-						game::time::tick(50);
-						break;
-					default:
-						break;
-					}
-				}
-				break;
-			/*
-			 *	KEYUP
-			*/
-
-			case SDL_KEYUP:
-				if (SDL_KEY == SDLK_ESCAPE) {
-					ui::menu::toggle();
-					player->save();
-					return;
-				} else if (SDL_KEY == controlMap[1]) {
-					left = false;
-				} else if (SDL_KEY == controlMap[2]) {
-					right = false;
-				} else if (SDL_KEY == controlMap[3]) {
-					if (player->speed == 4)
-						Mix_FadeOutChannel(1, 2000);
-
-					player->speed = 1;
-				} else if (SDL_KEY == controlMap[4]) {
-					player->speed = 1;
-				} else if (SDL_KEY == controlMap[5]) {
-					edown = false;
-
-					if (player->inv->invHover) {
-						player->inv->invHover = false;
-					} else {
-						if (!player->inv->selected)
-							player->inv->invOpening ^= true;
-						else
-							player->inv->selected = false;
-
-						player->inv->mouseSel = false;
-					}
-
-					// disable action ui
-					action::disable();
-
-					heyOhLetsGo = 0;
-				} else if (SDL_KEY == SDLK_q) {
-					auto item = player->inv->getCurrentItem();
-					if (item != nullptr) {
-						if (player->inv->takeItem(item->name, 1) == 0)
-							currentWorld->addObject(item->name, "o shit waddup",
-							                        player->loc.x + player->width / 2, player->loc.y + player->height / 2);
-					}
-				} else if (SDL_KEY == SDLK_h) {
-					quest::toggle();
-				} else switch (SDL_KEY) {
-				case SDLK_F3:
-					debug ^= true;
-					break;
-				case SDLK_BACKSLASH:
-					dialogBoxExists = false;
-					break;
-				case SDLK_x:
-					m = currentWorld->getNearMob(*player);
-					if (m != nullptr)
-						m->ride(player);
-					break;
-				case SDLK_i:
-					if (indoor && indoor->isFloorAbove(player)) {
-						player->loc.y += INDOOR_FLOOR_HEIGHT;
-						player->ground = false;
-					}
-					break;
-				case SDLK_k:
-					if (indoor && indoor->isFloorBelow(player)) {
-						player->loc.y -= INDOOR_FLOOR_HEIGHT;
-						player->ground = false;
-					}
-					break;
-				case SDLK_l:
-					currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});
-					currentWorld->getLastLight().follow(player);
-					currentWorld->getLastLight().makeFlame();
-					break;
-				case SDLK_f:
-					currentWorld->addLight({player->loc.x, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});
-					break;
-				case SDLK_b:
-					if (debug)
-						posFlag ^= true;
-					else {
-						auto s = new Structures();
-						s->spawn(FIRE_PIT, player->loc.x, player->loc.y);
-						//currentWorld->addStructure(s);
-						//currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 400.0f, {1.0f,1.0f,1.0f});
-						//currentWorld->getLastLight()->follow(currentWorld->build.back());
-						//currentWorld->getLastLight()->makeFlame();
-					}
-					break;
-				case SDLK_F12:
-					// Make the BYTE array, factor of 3 because it's RBG.
-					static GLubyte* pixels;
-					pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
-					glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-					takeScreenshot(pixels);
-
-					std::cout << "Took screenshot" << std::endl;
-					break;
-				case SDLK_UP:
-					player->inv->setSelectionUp();
-					break;
-				case SDLK_DOWN:
-					player->inv->setSelectionDown();
-					break;
-				default:
-					break;
-				}
-
-				if (!left&&!right)
-					player->vel.x=0;
-
-				break;
-			default:
-				break;
-			}
-		}
-
 		// Flush preloaded AI functions if necessary
 		if (!dialogBoxExists) {
 			while (!aipreload.empty()) {
@@ -1637,7 +1294,7 @@ EXIT:
 	void drawFade(void) {
 		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
-		
+
 		if (!fadeIntensity) {
 			if (fontSize != 16)
 				setFontSize(16);
@@ -1658,22 +1315,20 @@ EXIT:
                               offset.x + SCREEN_WIDTH / 2, offset.y - SCREEN_HEIGHT / 2, 	 -7.9,
                               offset.x - SCREEN_WIDTH / 2 - 1, offset.y + SCREEN_HEIGHT / 2, -7.9,
                               offset.x + SCREEN_WIDTH / 2, offset.y + SCREEN_HEIGHT / 2, 	 -7.9};
-		
+
 		setFontZ(-8.2);
-        glUniform1i(textShader_uniform_texture, 0);
-        glUseProgram(textShader);
+        glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
-        glEnableVertexAttribArray(textShader_attribute_coord);
-        glEnableVertexAttribArray(textShader_attribute_tex);
+		Render::textShader.use();
+		Render::textShader.enable();
 
-        glVertexAttribPointer(textShader_attribute_coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
-        glVertexAttribPointer(textShader_attribute_tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+        glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
+        glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        glDisableVertexAttribArray(textShader_attribute_coord);
-        glDisableVertexAttribArray(textShader_attribute_tex);
+		Render::textShader.disable();
+		Render::textShader.unuse();
 
-        glUseProgram(0);
 		setFontZ(-8.0);
 
     }
@@ -1786,5 +1441,190 @@ EXIT:
 		delete[] pixels;
 
 		fclose(bmp);
+	}
+}
+
+using namespace ui;
+
+void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
+{
+	(void)en;
+	(void)ev;
+	(void)dt;
+
+
+	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+
+	auto indoor = dynamic_cast<IndoorWorld *>(currentWorld);
+	Mob *m; // ;lkjfdsa
+	Entity *ent; // used for interaction
+
+	SDL_Event e;
+
+	// update mouse coords
+	mouse.x = premouse.x + offset.x - (SCREEN_WIDTH / 2);
+	mouse.y = (offset.y + SCREEN_HEIGHT / 2) - premouse.y;
+
+	static vec2 fr;
+	static Entity *ig;
+
+	while(SDL_PollEvent(&e)) {
+		switch(e.type) {
+
+		// escape - quit game
+		case SDL_QUIT:
+			gameRunning = false;
+			break;
+
+		// mouse movement - update mouse vector
+		case SDL_MOUSEMOTION:
+			premouse.x=e.motion.x;
+			premouse.y=e.motion.y;
+			break;
+
+		case SDL_MOUSEBUTTONUP:
+			if (ig) {
+				ig->vel.x = (fr.x - mouse.x) / 50.0f;
+				ig->vel.y = (fr.y - mouse.y) / 50.0f;
+				//ig->forcedMove = true; // kills vel.x too quickly
+				ig = NULL;
+			}
+			break;
+
+		// mouse clicks
+		case SDL_MOUSEBUTTONDOWN:
+
+			// run actions?
+			if ((action::make = e.button.button & SDL_BUTTON_RIGHT))
+				/*player->inv->invHover =*/ edown = false;
+
+			textToDraw.clear();
+
+			if (dialogBoxExists || pageTexReady) {
+				// right click advances dialog
+				if ((e.button.button & SDL_BUTTON_RIGHT))
+					dialogAdvance();
+			} else {
+				// left click uses item
+				if (e.button.button & SDL_BUTTON_LEFT) {
+					if ((ent = currentWorld->getNearMob(*player)) != nullptr) {
+						player->inv->currentAddInteract(ent);
+					}
+						player->inv->useCurrent();
+				}
+
+			}
+
+			if(mouse.x > player->loc.x && mouse.x < player->loc.x + player->width &&
+			   mouse.y > player->loc.y && mouse.y < player->loc.y + player->height) {
+				player->vel.y = .05;
+				fr = mouse;
+				ig = player;
+			} else {
+				for (auto &e : currentWorld->entity) {
+					if (mouse.x > e->loc.x && mouse.x < e->loc.x + e->width &&
+						mouse.y > e->loc.y && mouse.y < e->loc.y + e->height) {
+						e->vel.y = .05;
+						fr = mouse;
+						ig = e;
+						break;
+					}
+				}
+			}
+
+			break;
+
+		case SDL_MOUSEWHEEL:
+			ev.emit<MouseScrollEvent>(e.wheel.y);
+			break;
+
+		// key presses
+		case SDL_KEYDOWN:
+			ev.emit<KeyDownEvent>(SDL_KEY);
+			break;
+		/*
+		 *	KEYUP
+		*/
+
+		case SDL_KEYUP:
+			ev.emit<KeyUpEvent>(SDL_KEY);
+
+			if (SDL_KEY == SDLK_q) {
+				auto item = player->inv->getCurrentItem();
+				if (item != nullptr) {
+					if (player->inv->takeItem(item->name, 1) == 0)
+						currentWorld->addObject(item->name, "o shit waddup",
+												player->loc.x + player->width / 2, player->loc.y + player->height / 2);
+				}
+			} else if (SDL_KEY == SDLK_h) {
+				quest::toggle();
+			} else switch (SDL_KEY) {
+			case SDLK_F3:
+				debug ^= true;
+				break;
+			case SDLK_BACKSLASH:
+				dialogBoxExists = false;
+				break;
+			case SDLK_x:
+				m = currentWorld->getNearMob(*player);
+				if (m != nullptr)
+					m->ride(player);
+				break;
+			case SDLK_i:
+				if (indoor && indoor->isFloorAbove(player)) {
+					player->loc.y += INDOOR_FLOOR_HEIGHT;
+					player->ground = false;
+				}
+				break;
+			case SDLK_k:
+				if (indoor && indoor->isFloorBelow(player)) {
+					player->loc.y -= INDOOR_FLOOR_HEIGHT;
+					player->ground = false;
+				}
+				break;
+			case SDLK_l:
+				currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});
+				currentWorld->getLastLight().follow(player);
+				currentWorld->getLastLight().makeFlame();
+				break;
+			case SDLK_f:
+				currentWorld->addLight({player->loc.x, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});
+				break;
+			case SDLK_b:
+				if (debug)
+					posFlag ^= true;
+				else {
+					auto s = new Structures();
+					s->spawn(FIRE_PIT, player->loc.x, player->loc.y);
+					//currentWorld->addStructure(s);
+					//currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 400.0f, {1.0f,1.0f,1.0f});
+					//currentWorld->getLastLight()->follow(currentWorld->build.back());
+					//currentWorld->getLastLight()->makeFlame();
+				}
+				break;
+			case SDLK_F12:
+				// Make the BYTE array, factor of 3 because it's RBG.
+				static GLubyte* pixels;
+				pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
+				glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+				takeScreenshot(pixels);
+
+				std::cout << "Took screenshot" << std::endl;
+				break;
+			case SDLK_UP:
+				player->inv->setSelectionUp();
+				break;
+			case SDLK_DOWN:
+				player->inv->setSelectionDown();
+				break;
+			default:
+				break;
+			}
+
+			break;
+		default:
+			break;
+		}
 	}
 }
