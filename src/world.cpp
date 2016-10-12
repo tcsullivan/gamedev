@@ -16,6 +16,7 @@
 #include <gametime.hpp>
 
 #include <render.hpp>
+#include <engine.hpp>
 
 // local library headers
 #include <tinyxml2.h>
@@ -52,12 +53,6 @@ extern World       *currentWorldToLeft;		// main.cpp
 extern World       *currentWorldToRight;	// main.cpp
 extern bool         inBattle;               // ui.cpp?
 extern std::string  xmlFolder;
-
-static const std::array<std::string, 3> WorldWeatherString {
-	"None",
-	"Rainy",
-	"Snowy"
-};
 
 // particle mutex
 std::mutex partMutex;
@@ -232,8 +227,6 @@ generate(int width)
 		s.x = (randGet() % (static_cast<int>(-worldStart) * 2)) + worldStart;
 		s.y = (randGet() % game::SCREEN_HEIGHT) + 100;
 	}
-
-	weather = WorldWeather::None;
 }
 
 static Color ambient;
@@ -254,24 +247,23 @@ void World::drawBackgrounds(void)
     // used for alpha values of background textures
     int alpha;
 
+	switch (game::engine.getSystem<WorldSystem>()->getWeatherId()) {
+	case WorldWeather::Snowy:
+		alpha = 150;
+		break;
+	case WorldWeather::Rain:
+		alpha = 0;
+		break;
+	default:
+		alpha = 255 - worldShade * 4;
+		break;
+	}
+
 	// shade value for GLSL
 	float shadeAmbient = std::max(0.0f, static_cast<float>(-worldShade) / 50 + 0.5f); // 0 to 1.5f
 
 	if (shadeAmbient > 0.9f)
 		shadeAmbient = 1;
-
-	// the sunny wallpaper is faded with the night depending on tickCount
-    switch (weather) {
-    case WorldWeather::Snowy:
-        alpha = 150;
-        break;
-    case WorldWeather::Rain:
-        alpha = 0;
-        break;
-    default:
-        alpha = 255 - worldShade * 4;
-        break;
-    }
 
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(Render::worldShader.uniform[WU_texture], 0);
@@ -1198,30 +1190,6 @@ void World::setStyle(std::string pre)
 /**
  * Pretty self-explanatory.
  */
-std::string World::getWeatherStr(void) const
-{
-	return WorldWeatherString[static_cast<int>(weather)];
-}
-
-const WorldWeather& World::getWeatherId(void) const
-{
-	return weather;
-}
-
-void World::setWeather(const std::string &s)
-{
-	for (unsigned int i = WorldWeatherString.size(); i--;) {
-		if (WorldWeatherString[i] == s) {
-			weather = static_cast<WorldWeather>(i);
-			return;
-		}
-	}
-	weather = WorldWeather::None;
-}
-
-/**
- * Pretty self-explanatory.
- */
 std::string World::setToLeft(std::string file)
 {
     return (toLeft = file);
@@ -1976,7 +1944,7 @@ loadWorldFromXMLNoSave(std::string path) {
 
 		// weather tags
 		else if (name == "weather") {
-			tmp->setWeather(wxml->GetText());
+			game::engine.getSystem<WorldSystem>()->setWeather(wxml->GetText());
 		}
 
 		// set spawn x for player
@@ -2166,9 +2134,38 @@ loadWorldFromXMLNoSave(std::string path) {
 }
 
 Village::Village(std::string meme, World *w)
+	: name(meme)
 {
-	name = meme;
 	start.x = w->getTheWidth() / 2.0f;
 	end.x = -start.x;
 	in = false;
+}
+
+
+
+WorldSystem::WorldSystem(void)
+	: weather(WorldWeather::None) {}
+
+void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
+{
+	(void)en;
+	(void)ev;
+	(void)dt;
+}
+
+void WorldSystem::receive(const BGMToggleEvent &bte)
+{
+
+}
+
+void WorldSystem::setWeather(const std::string &s)
+{
+	for (unsigned int i = 3; i--;) {
+		if (WorldWeatherString[i] == s) {
+			weather = static_cast<WorldWeather>(i);
+			return;
+		}
+	}
+
+	weather = WorldWeather::None;
 }

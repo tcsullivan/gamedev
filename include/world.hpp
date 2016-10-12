@@ -49,7 +49,7 @@ typedef struct {
  * This pair contains a pointer to the new world, and the new set of
  * coordinates the player should be at in that world.
  */
-typedef std::pair<World *, vec2> WorldSwitchInfo;
+using WorldSwitchInfo = std::pair<World *, vec2>;
 
 /**
  * Alters how bright world elements are drawn.
@@ -130,6 +130,42 @@ public:
 	~Village(void){}
 };
 
+
+#include <entityx/entityx.h>
+
+constexpr const char* WorldWeatherString[3] = {
+	"None",
+	"Rainy",
+	"Snowy"
+};
+
+class WorldSystem : public entityx::System<WorldSystem>, public entityx::Receiver<WorldSystem> {
+private:
+	WorldWeather weather;
+
+	Mix_Music *bgmObj;
+
+public:
+	explicit WorldSystem(void);
+
+	void configure(entityx::EventManager &ev) {
+		ev.subscribe<BGMToggleEvent>(*this);
+	}
+
+	void receive(const BGMToggleEvent &bte);
+
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+
+	inline const std::string getWeatherStr(void) const
+	{ return WorldWeatherString[static_cast<int>(weather)]; }
+
+	inline const WorldWeather& getWeatherId(void) const
+	{ return weather; }
+
+	void setWeather(const std::string &s);
+};
+
+
 /**
  * The world class.
  * This class handles entity creation, management, and deletion. Most
@@ -137,21 +173,15 @@ public:
  * drawing.
  */
 class World {
-friend class ItemLight;
+//friend class ItemLight;
 protected:
 
 	/**
 	 * An array of all the world's ground data, populated through
 	 * World::generate().
-	 *
 	 * @see generate()
 	 */
 	std::vector<WorldData> worldData;
-
-	/**
-	 * Contains the current state of weather in the world.
-	 */
-	WorldWeather weather;
 
 	/**
 	 * Contains the size of the 'worldData' array.
@@ -174,11 +204,6 @@ protected:
 	 * @see setBackground()
 	 */
 	WorldBGType bgType;
-
-	/**
-	 * SDL_Mixer's object for the loaded BGM.
-	 */
-	Mix_Music *bgmObj;
 
 	/**
 	 * The filename of the world's BGM file.

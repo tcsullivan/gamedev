@@ -81,61 +81,6 @@ void mainLoop(void);
 ** MAIN ************************************************************************
 ********************************************************************************/
 
-namespace game {
-	entityx::EventManager events;
-	entityx::EntityManager entities (events);
-}
-
-class Engine : public entityx::Receiver<Engine> {
-private:
-	bool gameRunning;
-
-public:
-	entityx::SystemManager systems;
-
-	explicit Engine(void)
-		: gameRunning(true), systems(game::entities, game::events) {}
-
-	void init(void) {
-		game::config::read();
-		game::events.subscribe<GameEndEvent>(*this);
-
-		systems.add<WindowSystem>();
-		systems.add<InputSystem>();
-		systems.add<InventorySystem>();
-		systems.add<PlayerSystem>(&player);
-
-		systems.configure();
-	}
-
-	void render(entityx::TimeDelta dt) {
-		systems.update<WindowSystem>(dt);
-	}
-
-	void update(entityx::TimeDelta dt) {
-		systems.update<InputSystem>(dt);
-		systems.update<InventorySystem>(dt);
-		systems.update<PlayerSystem>(dt);
-
-		currentWorld->update(player, dt);
-		currentWorld->detect(player);
-	}
-
-	void configure(entityx::EventManager &ev) {
-		(void)ev;
-	}
-
-	void receive(const GameEndEvent &gee) {
-		gameRunning = !(gee.really);
-	}
-
-	inline bool shouldRun(void) const {
-		return gameRunning;
-	}
-};
-
-Engine engine;
-
 int main(int argc, char *argv[])
 {
 	static bool worldReset = false, worldDontReallyRun = false;
@@ -155,7 +100,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	engine.init();
+	game::engine.init();
 
 	// initialize GLEW
 #ifndef __WIN32__
@@ -282,7 +227,7 @@ int main(int argc, char *argv[])
 
 	// the main loop, in all of its gloriousness..
 	std::thread([&]{
-		while (engine.shouldRun()) {
+		while (game::engine.shouldRun()) {
 			mainLoop();
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
@@ -290,7 +235,7 @@ int main(int argc, char *argv[])
 
 	// the debug loop, gets debug screen values
 	std::thread([&]{
-		while (engine.shouldRun()) {
+		while (game::engine.shouldRun()) {
 			fps = 1000 / game::time::getDeltaTime();
 			debugY = player->loc.y;
 
@@ -298,8 +243,8 @@ int main(int argc, char *argv[])
 		}
 	}).detach();
 
-	while (engine.shouldRun()) {
-		engine.render(0);
+	while (game::engine.shouldRun()) {
+		game::engine.render(0);
 		render();
 	}
 
@@ -341,7 +286,7 @@ void mainLoop(void){
 		if (game::time::tickHasPassed())
 			logic();
 
-		engine.update(game::time::getDeltaTime());
+		game::engine.update(game::time::getDeltaTime());
 	}
 }
 
@@ -415,7 +360,7 @@ void render() {
 					debugY,						// The player's y coordinate
 					game::time::getTickCount(),
 					game::config::VOLUME_MASTER,
-					currentWorld->getWeatherStr().c_str(),
+					game::engine.getSystem<WorldSystem>()->getWeatherStr().c_str(),
 					currentXML.c_str()
 					);
 
@@ -532,7 +477,7 @@ void logic(){
 	ui::fadeUpdate();
 
 	// create weather particles if necessary
-	auto weather = currentWorld->getWeatherId();
+	auto weather = game::engine.getSystem<WorldSystem>()->getWeatherId();
 	if (weather == WorldWeather::Rain) {
 		for (unsigned int r = (randGet() % 25) + 11; r--;) {
 			currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),

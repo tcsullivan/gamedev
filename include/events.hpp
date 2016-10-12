@@ -7,7 +7,9 @@
 
 #include <SDL2/SDL.h>
 
- struct MouseScrollEvent {
+#include <string>
+
+struct MouseScrollEvent {
  	MouseScrollEvent(int sd = 0)
  		: scrollDistance(sd) {}
 
@@ -34,5 +36,12 @@ struct GameEndEvent {
 
     bool really;
 };
+
+struct BGMToggleEvent {
+    BGMToggleEvent(std::string f)
+        : file(f) {}
+
+    std::string file;
+}
 
 #endif // EVENTS_HPP_
