@@ -93,7 +93,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 		p->canMove = false;
 		ui::toggleBlackFast();
 		ui::waitForCover();
-		wsi.first->bgmPlay(currentWorld);
+		game::events.emit<BGMToggleEvent>(wsi.first->bgm, wsi.first);
 		std::tie(currentWorld, player->loc) = wsi; // using p causes segfault
 		ui::toggleBlackFast();
 		ui::waitForUncover();

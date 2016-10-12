@@ -144,9 +144,11 @@ private:
 	WorldWeather weather;
 
 	Mix_Music *bgmObj;
+	std::string bgmObjFile;
 
 public:
 	explicit WorldSystem(void);
+	~WorldSystem(void);
 
 	void configure(entityx::EventManager &ev) {
 		ev.subscribe<BGMToggleEvent>(*this);
@@ -204,13 +206,6 @@ protected:
 	 * @see setBackground()
 	 */
 	WorldBGType bgType;
-
-	/**
-	 * The filename of the world's BGM file.
-	 *
-	 * @see setBGM()
-	 */
-	std::string bgm;
 
 	/**
 	 * The path to the XML file of the world to the left.
@@ -294,6 +289,12 @@ protected:
 	void drawBackgrounds();
 
 public:
+	/**
+	 * The filename of the world's BGM file.
+	 *
+	 * @see setBGM()
+	 */
+	std::string bgm;
 
 	CoolArray<Particles>    particles;
 
@@ -395,12 +396,6 @@ public:
 
 	// saves the world's data to an XML file, either the one provided or the current path
 	void save(const std::string& s="");
-
-	// plays/pauses the world's music, according to if a new world is being entered
-	void bgmPlay(World *prev) const;
-
-	// sets and loads the specified BGM
-	void setBGM(std::string path);
 
 	// sets the world's background theme
 	void setBackground(WorldBGType bgt);

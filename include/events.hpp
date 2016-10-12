@@ -9,6 +9,8 @@
 
 #include <string>
 
+class World;
+
 struct MouseScrollEvent {
  	MouseScrollEvent(int sd = 0)
  		: scrollDistance(sd) {}
@@ -38,10 +40,11 @@ struct GameEndEvent {
 };
 
 struct BGMToggleEvent {
-    BGMToggleEvent(std::string f)
-        : file(f) {}
+    BGMToggleEvent(std::string f = "", World *w = nullptr)
+        : file(f), world(w) {}
 
     std::string file;
-}
+	World *world;
+};
 
 #endif // EVENTS_HPP_

@@ -217,13 +217,13 @@ int main(int argc, char *argv[])
 		UserError("Plot twist: The world never existed...?");
 
 	ui::menu::init();
-	currentWorld->bgmPlay(nullptr);
+	game::events.emit<BGMToggleEvent>(currentWorld->bgm);
 
 	// spawn the arena
 	arena = new Arena();
 	arena->setStyle("");
 	arena->setBackground(WorldBGType::Forest);
-	arena->setBGM("assets/music/embark.wav");
+	arena->bgm = "assets/music/embark.wav";
 
 	// the main loop, in all of its gloriousness..
 	std::thread([&]{

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <IndoorWorld>
-    <style background="1" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
+    <style background="1" bgm="assets/music/theme_jazz.wav" folder="assets/style/classic/"/>
     <floor width="1600"/>
     <link outside="town.xml"/>
     <npc name="Bob" hasDialog="false" spawnx="30"/>

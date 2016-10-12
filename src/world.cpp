@@ -131,7 +131,6 @@ XMLDocument currentXMLDoc;
 World::
 World(void)
 {
-    bgmObj = nullptr;
 	worldStart = 0;
 	lineCount = 0;
 }
@@ -144,10 +143,6 @@ World(void)
 World::
 ~World(void)
 {
-    // SDL2_mixer's object
-	if (bgmObj != nullptr)
-		Mix_FreeMusic(bgmObj);
-
 	deleteEntities();
 }
 
@@ -1004,10 +999,6 @@ update(Player *p, unsigned int delta)
 			entityPending.pop_back();
 		}
 	}
-
-    // handle music fades
-	if (!Mix_PlayingMusic())
-		Mix_FadeInMusic(bgmObj, -1, 2000);
 }
 
 /**
@@ -1120,29 +1111,6 @@ void World::save(const std::string& s)
 	for (const auto &e : entity)
 		e->saveToXML();
 	currentXMLDoc.SaveFile((s.empty() ? currentXML : xmlFolder + s).c_str(), false);
-}
-
-/**
- * Toggle play/stop of the background music.
- * If new music is to be played a crossfade will occur, otherwise... uhm.
- */
-void World::bgmPlay(World *prev) const
-{
-	if (prev == nullptr || bgm != prev->bgm) {
-		Mix_FadeOutMusic(800);
-		Mix_PlayMusic(bgmObj, -1);
-	}
-}
-
-/**
- * Set the world's BGM.
- * This will load a sound file to be played while the player is in this world.
- * If no file is found, no music should play.
- */
-void World::setBGM(std::string path)
-{
-	if (!path.empty())
-		bgmObj = Mix_LoadMUS((bgm = path).c_str());
 }
 
 /**
@@ -1926,7 +1894,7 @@ loadWorldFromXMLNoSave(std::string path) {
 			tmp->setBackground(static_cast<WorldBGType>(bgt));
 
             // set BGM file
-            tmp->setBGM(wxml->StrAttribute("bgm"));
+            tmp->bgm = wxml->StrAttribute("bgm");
 		}
 
         // world generation (for outdoor areas)
@@ -2144,18 +2112,40 @@ Village::Village(std::string meme, World *w)
 
 
 WorldSystem::WorldSystem(void)
-	: weather(WorldWeather::None) {}
+	: weather(WorldWeather::None), bgmObj(nullptr) {}
+
+WorldSystem::~WorldSystem(void)
+{
+    // SDL2_mixer's object
+	if (bgmObj != nullptr)
+		Mix_FreeMusic(bgmObj);
+}
 
 void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
 	(void)en;
 	(void)ev;
 	(void)dt;
+
+    // fade in music if not playing
+	if (bgmObj != nullptr && !Mix_PlayingMusic())
+		Mix_FadeInMusic(bgmObj, -1, 2000);
 }
 
 void WorldSystem::receive(const BGMToggleEvent &bte)
 {
+	std::cout << bgmObjFile << '|' << (int)(bte.world == nullptr) << '|' << bte.file << '\n';
 
+	if (bte.world == nullptr || bgmObjFile != bte.file) {
+		Mix_FadeOutMusic(800);
+
+		if (bgmObj != nullptr)
+			Mix_FreeMusic(bgmObj);
+
+		bgmObjFile = bte.file;
+		bgmObj = Mix_LoadMUS(bgmObjFile.c_str());
+		Mix_PlayMusic(bgmObj, -1);
+	}
 }
 
 void WorldSystem::setWeather(const std::string &s)
