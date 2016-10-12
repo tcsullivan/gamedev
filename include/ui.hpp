@@ -149,13 +149,6 @@ namespace ui {
 
 	void quitGame();
 
-
-
-	/*
-	 *	Handle keyboard/mouse events.
-	*/
-	void handleEvents(void);
-
 	/*
 	 *	Toggle the black overlay thing.
 	*/

@@ -236,11 +236,8 @@ generate(int width)
 	weather = WorldWeather::None;
 }
 
-/**
- * The world draw function.
- * This function will draw the background layers, entities, and player to the
- * screen.
- */
+static Color ambient;
+
 void World::drawBackgrounds(void)
 {
     auto SCREEN_WIDTH = game::SCREEN_WIDTH;
@@ -514,6 +511,22 @@ void World::draw(Player *p)
 
 	uint lpIndex = 0;
 	uint lcIndex = 0;
+
+	static bool ambientUpdaterStarted = false;
+	if (!ambientUpdaterStarted) {
+		ambientUpdaterStarted = true;
+		std::thread([&](void) {
+			while (true) {
+				float v = 75 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
+				float rg = std::clamp(.5f + (-v / 100.0f), 0.01f, .9f);
+				float b  = std::clamp(.5f + (-v / 80.0f), 0.03f, .9f);
+
+				ambient = Color(rg, rg, b, 1.0f);
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			}
+		}).detach();
+	}
 
 	for (uint i = 0; i < ls; i++) {
        	auto &l = light[i];

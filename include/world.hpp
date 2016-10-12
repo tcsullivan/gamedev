@@ -131,7 +131,7 @@ public:
 };
 
 /**
- * The world class. 
+ * The world class.
  * This class handles entity creation, management, and deletion. Most
  * world-related operations have to be done through this class, such as
  * drawing.
@@ -262,7 +262,7 @@ protected:
 	 * This function is only called in the world destructor.
 	 */
 	void deleteEntities(void);
-	
+
 	/**
 	 * Draws background textures.
 	 */
@@ -271,7 +271,7 @@ protected:
 public:
 
 	CoolArray<Particles>    particles;
-	
+
 	/**
 	 * A vector of pointers to all entities from the other vectors.
 	 * This is used to mass-manage entities, or operate on entities
@@ -329,6 +329,10 @@ public:
 	 * @see worldStart
 	 */
 	float getWorldStart(void) const;
+
+	inline unsigned int getEntityCount(void) const {
+		return entity.size();
+	}
 
 	/**
 	 * Gets a pointer to the most recently created light.
@@ -413,7 +417,7 @@ public:
 	 * Adopts an NPC from another world, taking its ownership.
 	 */
 	void adoptNPC(NPC *e);
-	
+
 	/**
 	 * Adopts a mob from another world, taking its ownership.
 	 */

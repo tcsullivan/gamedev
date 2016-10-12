@@ -1,5 +1,6 @@
 #include <ui_menu.hpp>
 
+#include <engine.hpp>
 #include <render.hpp>
 
 #include <fstream>
@@ -211,7 +212,7 @@ namespace ui {
             while(SDL_PollEvent(&e)) {
                 switch (e.type) {
                 case SDL_QUIT:
-                    gameRunning = false;
+                    game::endGame();
                     return;
                     break;
                 case SDL_MOUSEMOTION:

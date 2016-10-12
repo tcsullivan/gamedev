@@ -62,5 +62,4 @@ void drawRect(vec2 ll, vec2 ur, float z)
     currentShader->disable();
 }
 
-
 }

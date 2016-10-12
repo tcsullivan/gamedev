@@ -10,6 +10,7 @@
 #include <brice.hpp>
 
 #include <render.hpp>
+#include <engine.hpp>
 
 extern std::istream *names;
 
@@ -47,7 +48,6 @@ void PlayerSystem::configure(entityx::EventManager &ev)
 	ev.subscribe<KeyUpEvent>(*this);
 }
 
-extern std::array<SDL_Keycode, 6> controlMap;
 extern World  *currentWorldToLeft;
 extern World  *currentWorldToRight;
 extern bool gameRunning;
@@ -61,13 +61,13 @@ void PlayerSystem::receive(const KeyUpEvent &kue)
 	if (kc == SDLK_ESCAPE) {
 		ui::menu::toggle();
 		p->save();
-	} else if (kc == controlMap[1]) {
+	} else if (kc == getControl(1)) {
 		m_MoveLeft = false;
-	} else if (kc == controlMap[2]) {
+	} else if (kc == getControl(2)) {
 		m_MoveRight = false;
-	} else if (kc == controlMap[3] || kc == controlMap[4]) {
+	} else if (kc == getControl(3) || kc == getControl(4)) {
 		player->speed = 1;
-	} else if (kc == controlMap[5]) {
+	} else if (kc == getControl(5)) {
 		if (p->inv->invHover) {
 			p->inv->invHover = false;
 		} else {
@@ -94,10 +94,10 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 		ui::toggleBlackFast();
 		ui::waitForCover();
 		wsi.first->bgmPlay(currentWorld);
-		std::tie(currentWorld, p->loc) = wsi;
+		std::tie(currentWorld, player->loc) = wsi; // using p causes segfault
 		ui::toggleBlackFast();
 		ui::waitForUncover();
-		p->canMove = true;
+		player->canMove = true; // using p causes segfault
 	};
 
 	if ((kc == SDLK_SPACE) && (game::canJump & p->ground)) {
@@ -107,7 +107,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 	}
 
 	if (!ui::dialogBoxExists || ui::dialogPassive) {
-		if (kc == controlMap[0]) {
+		if (kc == getControl(0)) {
 			if (inBattle) {
 				std::thread([&](void){
 					auto thing = dynamic_cast<Arena *>(currentWorld)->exitArena(p);
@@ -121,7 +121,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 						worldSwitch(thing);
 				}).detach();
 			}
-		} else if (kc == controlMap[1]) {
+		} else if (kc == getControl(1)) {
 			if (!ui::fadeEnable) {
 				p->vel.x = -PLAYER_SPEED_CONSTANT;
 				if (std::stoi(game::getValue("Slow")) == 1)
@@ -136,7 +136,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 					}).detach();
 				}
 			}
-		} else if (kc == controlMap[2]) {
+		} else if (kc == getControl(2)) {
 			if (!ui::fadeEnable) {
 				p->vel.x = PLAYER_SPEED_CONSTANT;
 				if (std::stoi(game::getValue("Slow")) == 1)
@@ -151,12 +151,12 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 					}).detach();
 				}
 			}
-		} else if (kc == controlMap[3]) {
+		} else if (kc == getControl(3)) {
 			if (game::canSprint)
 				p->speed = 2.0f;
-		} else if (kc == controlMap[4]) {
+		} else if (kc == getControl(4)) {
 			p->speed = .5;
-		} else if (kc == controlMap[5]) {
+		} else if (kc == getControl(5)) {
 			static int heyOhLetsGo = 0;
 
 			//edown = true;
@@ -176,7 +176,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 			}
 		}
 	} else if (kc == SDLK_DELETE) {
-		gameRunning = false;
+		game::endGame();
 	} else if (kc == SDLK_t) {
 		game::time::tick(50);
 	}

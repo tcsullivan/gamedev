@@ -6,6 +6,7 @@
 #include <gametime.hpp>
 
 #include <render.hpp>
+#include <engine.hpp>
 #include <events.hpp>
 
 extern Menu* currentMenu;
@@ -20,12 +21,6 @@ extern Player *player;
 extern World  *currentWorld;
 extern World  *currentWorldToLeft;
 extern World  *currentWorldToRight;
-
-/**
- * In the case of dialog, some NPC quests can be preloaded so that they aren't assigned until
- * the dialog box closes. Reference variables for that here.
- */
-extern std::vector<NPC *> aipreload;
 
 /**
  * Pressing ESC or closing the window will set this to false.
@@ -1214,9 +1209,9 @@ namespace ui {
 	void quitGame() {
 		dialogBoxExists = false;
 		currentMenu = NULL;
-		gameRunning = false;
 		game::config::update();
 		game::config::save();
+		game::endGame();
 	}
 
 	void closeBox() {
@@ -1278,16 +1273,6 @@ EXIT:
 		if (dialogImportant) {
 			dialogImportant = false;
 			setFontSize(16);
-		}
-	}
-
-	void handleEvents(void) {
-		// Flush preloaded AI functions if necessary
-		if (!dialogBoxExists) {
-			while (!aipreload.empty()) {
-				aipreload.front()->addAIFunc(false);
-				aipreload.erase(std::begin(aipreload));
-			}
 		}
 	}
 
@@ -1474,7 +1459,7 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 		// escape - quit game
 		case SDL_QUIT:
-			gameRunning = false;
+			game::endGame();
 			break;
 
 		// mouse movement - update mouse vector

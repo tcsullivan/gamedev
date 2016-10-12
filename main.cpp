@@ -12,6 +12,7 @@
 
 #include <window.hpp>
 #include <render.hpp>
+#include <engine.hpp>
 
 // local library includes
 #include <tinyxml2.h>
@@ -32,9 +33,6 @@ using namespace tinyxml2;
 ** Variables section
 ** --------------------------------------------------------------------------*/
 
-// main loop runs based on this variable's value
-bool gameRunning = true;
-
 // world objects for the current world and the two that are adjacent
 World *currentWorld        = NULL,
 	  *currentWorldToLeft  = NULL,
@@ -51,9 +49,6 @@ Menu *currentMenu;
 
 // the player object
 Player *player;
-
-// the ambient light of the current world
-Color ambient;
 
 // keeps a simple palette of colors for single-color draws
 GLuint colorIndex;
@@ -86,12 +81,25 @@ void mainLoop(void);
 ** MAIN ************************************************************************
 ********************************************************************************/
 
-class Engine : public entityx::EntityX {
+namespace game {
+	entityx::EventManager events;
+	entityx::EntityManager entities (events);
+}
+
+class Engine : public entityx::Receiver<Engine> {
+private:
+	bool gameRunning;
+
 public:
-	explicit Engine(void) {}
+	entityx::SystemManager systems;
+
+	explicit Engine(void)
+		: gameRunning(true), systems(game::entities, game::events) {}
 
 	void init(void) {
 		game::config::read();
+		game::events.subscribe<GameEndEvent>(*this);
+
 		systems.add<WindowSystem>();
 		systems.add<InputSystem>();
 		systems.add<InventorySystem>();
@@ -111,6 +119,18 @@ public:
 
 		currentWorld->update(player, dt);
 		currentWorld->detect(player);
+	}
+
+	void configure(entityx::EventManager &ev) {
+		(void)ev;
+	}
+
+	void receive(const GameEndEvent &gee) {
+		gameRunning = !(gee.really);
+	}
+
+	inline bool shouldRun(void) const {
+		return gameRunning;
 	}
 };
 
@@ -260,13 +280,9 @@ int main(int argc, char *argv[])
 	arena->setBackground(WorldBGType::Forest);
 	arena->setBGM("assets/music/embark.wav");
 
-
-	player->inv->addItem("Hunters Bow", 1);
-
-
 	// the main loop, in all of its gloriousness..
 	std::thread([&]{
-		while (gameRunning) {
+		while (engine.shouldRun()) {
 			mainLoop();
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
@@ -274,7 +290,7 @@ int main(int argc, char *argv[])
 
 	// the debug loop, gets debug screen values
 	std::thread([&]{
-		while (gameRunning) {
+		while (engine.shouldRun()) {
 			fps = 1000 / game::time::getDeltaTime();
 			debugY = player->loc.y;
 
@@ -282,10 +298,9 @@ int main(int argc, char *argv[])
 		}
 	}).detach();
 
-	while (gameRunning) {
+	while (engine.shouldRun()) {
 		engine.render(0);
 		render();
-		ui::handleEvents();
 	}
 
 	// put away the brice for later
@@ -307,14 +322,21 @@ int main(int argc, char *argv[])
     return 0; // Calls everything passed to atexit
 }
 
+extern std::vector<NPC *> aipreload;
+
 void mainLoop(void){
 	game::time::mainLoopHandler();
 
 	if (currentMenu) {
 		return;
 	} else {
-		// handle keypresses - currentWorld could change here
-		//ui::handleEvents();
+		// Flush preloaded AI functions if necessary
+		if (!ui::dialogBoxExists) {
+			while (!aipreload.empty()) {
+				aipreload.front()->addAIFunc(false);
+				aipreload.erase(std::begin(aipreload));
+			}
+		}
 
 		if (game::time::tickHasPassed())
 			logic();
@@ -358,39 +380,21 @@ void render() {
 
 	// TODO add depth
     glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
 
 	Render::textShader.use();
-	glUniformMatrix4fv(Render::textShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(ortho));
-    glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+		glUniformMatrix4fv(Render::textShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(ortho));
+    	glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+	Render::textShader.unuse();
     Render::worldShader.use();
-	glUniformMatrix4fv(Render::worldShader.uniform[WU_ortho], 1, GL_FALSE, glm::value_ptr(ortho));
-	glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+		glUniformMatrix4fv(Render::worldShader.uniform[WU_ortho], 1, GL_FALSE, glm::value_ptr(ortho));
+		glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+	Render::worldShader.unuse();
 
-	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
-	glUniform4f(Render::worldShader.uniform[WU_ambient], ambient.red, ambient.green, ambient.blue, 1.0);
-	glUniform1f(Render::worldShader.uniform[WU_light_impact], 1.0);
-
-	/*static GLfloat l[]  = {460.0, 100.0, 0.0, 300.0};
-	static GLfloat lc[] = {1.0, 1.0, 1.0, 1.0};
-	glUniform4fv(worldShader_uniform_light, 1, l);
-	glUniform4fv(worldShader_uniform_light_color, 1, lc);
-	glUniform1i(worldShader_uniform_light_amt, 1);
-	*/
-	/**************************
-	**** RENDER STUFF HERE ****
-	**************************/
-
-	/**
-	 * Call the world's draw function, drawing the player, the world, the background, and entities. Also
-	 * draw the player's inventory if it exists.
-	 */
-	//player->near = true; // allow player's name to be drawn
+	// draw the world and player
 	currentWorld->draw(player);
 
 	// draw the player's inventory
 	player->inv->draw();
-
 
 	// draw the fade overlay
 	ui::drawFade();
@@ -398,11 +402,8 @@ void render() {
 	// draw ui elements
 	ui::draw();
 
-	/*
-	 * Draw the debug overlay if it has been enabled.
-	 */
-
-	if(ui::debug){
+	// draw the debug overlay if desired
+	if (ui::debug) {
 		ui::putText(offset.x-SCREEN_WIDTH/2, (offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
 					"fps: %d\ngrounded:%d\nresolution: %ux%u\nentity cnt: %d\nloc: (%+.2f, %+.2f)\nticks: %u\nvolume: %f\nweather: %s\nxml: %s",
 					fps,
@@ -418,16 +419,12 @@ void render() {
 					currentXML.c_str()
 					);
 
-		static GLuint tracerText = Texture::genColor(Color(100,100,255));
-
-		uint es = currentWorld->entity.size();
-		GLfloat tpoint[es * 2 * 5];
-		GLfloat *tp = &tpoint[0];
-
-		Render::textShader.use();
-		glBindTexture(GL_TEXTURE_2D, tracerText);
-
+		// draw tracer lines if desired
+		static const GLuint tracerText = Texture::genColor(Color(100,100,255));
 		if (ui::posFlag) {
+			GLfloat *tpoint = new GLfloat[currentWorld->getEntityCount() * 2 * 5];
+			auto tp = tpoint;
+
 			for (auto &e : currentWorld->entity) {
 				*(tp++) = player->loc.x + player->width / 2;
 				*(tp++) = player->loc.y + player->height / 2;
@@ -443,58 +440,32 @@ void render() {
 				*(tp++) = 1.0;
 				*(tp++) = 1.0;
 			}
+
+			Render::textShader.use();
+				glBindTexture(GL_TEXTURE_2D, tracerText);
+				Render::textShader.enable();
+				glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[0]);
+				glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[3]);
+				glDrawArrays(GL_LINES, 0, currentWorld->getEntityCount() * 2);
+				Render::textShader.disable();
+			Render::textShader.unuse();
+
+			delete[] tpoint;
 		}
-
-		Render::worldShader.enable();
-
-		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[0]);
-		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[3]);
-		glDrawArrays(GL_LINES, 0, es * 2);
-
-		Render::worldShader.disable();
-		Render::worldShader.unuse();
 
 	}
 
-
-
+	// draw the menu
 	if (currentMenu)
 		ui::menu::draw();
 
+	// draw the mouse
 	Render::textShader.use();
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mouseTex);
-	glUniform1i(Render::textShader.uniform[WU_texture], 0);
-
-	Render::textShader.enable();
-
-	glDisable(GL_DEPTH_TEST);
-
-	GLfloat mouseCoords[] = {
-		ui::mouse.x			,ui::mouse.y, 	      -9.9, //bottom left
-		ui::mouse.x+15		,ui::mouse.y, 		  -9.9, //bottom right
-		ui::mouse.x+15		,ui::mouse.y-15,	  -9.9, //top right
-
-		ui::mouse.x+15		,ui::mouse.y-15, 	  -9.9, //top right
-		ui::mouse.x 		,ui::mouse.y-15, 	  -9.9, //top left
-		ui::mouse.x			,ui::mouse.y, 		  -9.9, //bottom left
-	};
-
-	GLfloat mouseTex[] = {
-		0.0f, 0.0f, //bottom left
-		1.0f, 0.0f, //bottom right
-		1.0f, 1.0f, //top right
-
-		1.0f, 1.0f, //top right
-		0.0f, 1.0f, //top left
-		0.0f, 0.0f, //bottom left
-	};
-
-	glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, mouseCoords);
-	glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, mouseTex);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	Render::textShader.disable();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mouseTex);
+		Render::useShader(&Render::textShader);
+		Render::drawRect(ui::mouse, ui::mouse + 15, -9.9);
+	Render::textShader.unuse();
 }
 
 void logic(){
@@ -503,7 +474,7 @@ void logic(){
 
 	// exit the game if the player falls out of the world
 	if (player->loc.y < 0)
-		gameRunning = false;
+		game::endGame();
 
 	if (player->inv->usingi) {
 		for (auto &e : currentWorld->entity) {
@@ -556,13 +527,6 @@ void logic(){
 
 	// calculate the world shading value
 	worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
-
-	float ws = 75 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
-
-	float ambRG = std::clamp(.5f + (-ws / 100.0f), 0.01f, .9f);
-	float ambB =	std::clamp(.5f + (-ws / 80.0f), 0.03f, .9f);
-
-	ambient = Color(ambRG, ambRG, ambB, 1.0f);
 
 	// update fades
 	ui::fadeUpdate();
