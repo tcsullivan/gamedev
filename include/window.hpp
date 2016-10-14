@@ -12,7 +12,8 @@ private:
 
 public:
 	WindowSystem(void);
-	~WindowSystem(void);
+
+	void die(void);
 
     void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 };

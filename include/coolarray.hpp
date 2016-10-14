@@ -118,7 +118,7 @@ public:
 
 	void push_back(const T& x) {
 		if (_size >= _capacity)
-			reserve(_capacity + 5);
+			reserve(_capacity + 10);
 
 		buffer[_size++] = x;
 	}

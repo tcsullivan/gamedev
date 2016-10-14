@@ -226,270 +226,9 @@ generate(int width)
 
 static Color ambient;
 
-void World::drawBackgrounds(void)
-{
-    auto SCREEN_WIDTH = game::SCREEN_WIDTH;
-	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
-    auto HLINE = game::HLINE;
-
-    const ivec2 backgroundOffset = ivec2 {
-        static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2
-    };
-
-    // world width in pixels
-	int width = worldData.size() * HLINE;
-
-    // used for alpha values of background textures
-    int alpha;
-
-	switch (game::engine.getSystem<WorldSystem>()->getWeatherId()) {
-	case WorldWeather::Snowy:
-		alpha = 150;
-		break;
-	case WorldWeather::Rain:
-		alpha = 0;
-		break;
-	default:
-		alpha = 255 - worldShade * 4;
-		break;
-	}
-
-	// shade value for GLSL
-	float shadeAmbient = std::max(0.0f, static_cast<float>(-worldShade) / 50 + 0.5f); // 0 to 1.5f
-
-	if (shadeAmbient > 0.9f)
-		shadeAmbient = 1;
-
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(Render::worldShader.uniform[WU_texture], 0);
-
-    // draw background images.
-    GLfloat tex_coord[] = { 0.0f, 1.0f,
-                            1.0f, 1.0f,
-                            1.0f, 0.0f,
-
-                            1.0f, 0.0f,
-                            0.0f, 0.0f,
-                            0.0f, 1.0f,};
-
-	// TODO scroll backdrop
-	GLfloat bgOff = game::time::getTickCount()/24000.0f;
-
-	GLfloat topS = .125f + bgOff;
-	GLfloat bottomS = 0.0f + bgOff;
-
-	if (topS < 0.0f) topS += 1.0f;
-	if (bottomS < 0.0f) bottomS += 1.0f;
-	if(bgOff < 0)std::cout << bottomS << "," << topS << std::endl;
-
-	GLfloat scrolling_tex_coord[] = {0.0f,  bottomS,
-									 1.0f,  bottomS,
-									 1.0f,  bottomS,
-
-									 1.0f,  bottomS,
-									 0.0f,  bottomS,
-									 0.0f,  bottomS};
-
-   	vec2 bg_tex_coord[] = { vec2(0.0f, 0.0f),
-                            vec2(1.0f, 0.0f),
-                            vec2(1.0f, 1.0f),
-
-                            vec2(1.0f, 1.0f),
-                            vec2(0.0f, 1.0f),
-                            vec2(0.0f, 0.0f)};
-
-    GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f,
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f,
-                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
-
-                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
-                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f,
-                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f};
-
-    GLfloat fron_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f,
-                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.8f,
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
-
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
-                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.8f,
-                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f};
-
-	Render::worldShader.use();
-	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
-	glUniform4f(Render::worldShader.uniform[WU_ambient], 1.0, 1.0, 1.0, 1.0);
-
-    Render::worldShader.enable();
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    bgTex(0);
-	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
-
-
-	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, back_tex_coord, scrolling_tex_coord, 6);
-
-	bgTex++;
-	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
-
-	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
-
-	// TODO make stars dynamic
-	//static GLuint starTex = Texture::genColor(Color(255, 255, 255));
-	static GLuint starTex = Texture::loadTexture("assets/style/classic/bg/star.png");
-	const static float stardim = 24;
-	GLfloat star_coord[star.size() * 5 * 6 + 1];
-    GLfloat *si = &star_coord[0];
-
-	if (worldShade > 0) {
-
-		auto xcoord = offset.x * 0.9f;
-
-		for (auto &s : star) {
-			*(si++) = s.x + xcoord;
-			*(si++) = s.y,
-			*(si++) = 9.7f;
-
-			*(si++) = 0.0;
-			*(si++) = 0.0;
-
-			*(si++) = s.x + xcoord + stardim;
-			*(si++) = s.y,
-			*(si++) = 9.7f;
-
-			*(si++) = 1.0;
-			*(si++) = 0.0;
-
-			*(si++) = s.x + xcoord + stardim;
-			*(si++) = s.y + stardim,
-			*(si++) = 9.7f;
-
-			*(si++) = 1.0;
-			*(si++) = 1.0;
-
-			*(si++) = s.x + xcoord + stardim;
-			*(si++) = s.y + stardim,
-			*(si++) = 9.7f;
-
-			*(si++) = 1.0;
-			*(si++) = 1.0;
-
-			*(si++) = s.x + xcoord;
-			*(si++) = s.y + stardim,
-			*(si++) = 9.7f;
-
-			*(si++) = 0.0;
-			*(si++) = 1.0;
-
-			*(si++) = s.x + xcoord;
-			*(si++) = s.y,
-			*(si++) = 9.7f;
-
-			*(si++) = 0.0;
-			*(si++) = 0.0;
-		}
-		glBindTexture(GL_TEXTURE_2D, starTex);
-		//glUniform4f(worldShader_uniform_color, 1.0, 1.0, 1.0, (255.0f - (randGet() % 200 - 100)) / 255.0f);
-		glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
-
-		makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(5 * sizeof(GLfloat), &star_coord[0], &star_coord[3], star.size() * 6);
-	}
-
-	Render::worldShader.disable();
-
-	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
-	glUniform4f(Render::worldShader.uniform[WU_ambient], ambient.red, ambient.green, ambient.blue, 1.0);
-
-	Render::worldShader.unuse();
-
-
-    std::vector<vec3> bg_items;
-
-	bgTex++;
-	dim2 mountainDim = bgTex.getTextureDim();
-    auto xcoord = width / 2 * -1 + offset.x * 0.85f;
-	for (unsigned int i = 0; i <= worldData.size() * HLINE / mountainDim.x; i++) {
-        bg_items.push_back(vec3(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f));
-        bg_items.push_back(vec3(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f));
-        bg_items.push_back(vec3(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f));
-
-        bg_items.push_back(vec3(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f));
-        bg_items.push_back(vec3(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f));
-        bg_items.push_back(vec3(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f));
-	}
-
-    std::vector<GLfloat> bg_i;
-    std::vector<GLfloat> bg_tx;
-
-    for (auto &v : bg_items) {
-        bg_i.push_back(v.x);
-        bg_i.push_back(v.y);
-        bg_i.push_back(v.z);
-    }
-
-    for (uint i = 0; i < bg_items.size()/6; i++) {
-        for (auto &v : bg_tex_coord) {
-            bg_tx.push_back(v.x);
-            bg_tx.push_back(v.y);
-        }
-    }
-
-    Render::worldShader.use();
-	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.01);
-
-	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, &bg_i[0], &bg_tx[0], bg_items.size());
-
-    Render::worldShader.unuse();
-
-	// draw the remaining layers
-	for (unsigned int i = 0; i < 4; i++) {
-        std::vector<vec3>c;
-		bgTex++;
-        dim2 dim = bgTex.getTextureDim();
-		auto xcoord = offset.x * bgDraw[i][2];
-		for (int j = worldStart; j <= -worldStart; j += dim.x) {
-            c.push_back(vec3(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1)));
-            c.push_back(vec3(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1)));
-            c.push_back(vec3(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1)));
-
-            c.push_back(vec3(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1)));
-            c.push_back(vec3(j         + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1)));
-            c.push_back(vec3(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1)));
-		}
-
-        bg_i.clear();
-        bg_tx.clear();
-
-        for (auto &v : c) {
-            bg_i.push_back(v.x);
-            bg_i.push_back(v.y);
-            bg_i.push_back(v.z);
-        }
-
-        for (uint i = 0; i < c.size()/6; i++) {
-            for (auto &v : bg_tex_coord) {
-                bg_tx.push_back(v.x);
-                bg_tx.push_back(v.y);
-            }
-        }
-
-        Render::worldShader.use();
-		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.075f + (0.2f*i));
-
-		makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, &bg_i[0], &bg_tx[0], c.size());
-
-        Render::worldShader.unuse();
-	}
-}
-
 void World::draw(Player *p)
 {
-	int iStart, iEnd, pOffset;
-
-	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	auto HLINE = game::HLINE;
-
-	drawBackgrounds();
 
 	uint ls = light.size();
 
@@ -548,158 +287,12 @@ void World::draw(Player *p)
 
 	Render::worldShader.unuse();
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // get the line that the player is currently standing on
-    pOffset = (offset.x + p->width / 2 - worldStart) / HLINE;
-
-    // only draw world within player vision
-    iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS),
-	                    0, static_cast<int>(lineCount));
-	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / HLINE)),
-                      0, static_cast<int>(lineCount));
-
-    // draw the dirt
-    bgTex++;
-    std::vector<std::pair<vec2,vec3>> c;
-
-    for (int i = iStart; i < iEnd; i++) {
-        if (worldData[i].groundHeight <= 0) { // TODO holes (andy)
-            worldData[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
-            glColor4ub(0, 0, 0, 255);
-        } else {
-            safeSetColorA(150, 150, 150, 255);
-        }
-
-        int ty = worldData[i].groundHeight / 64 + worldData[i].groundColor;
-        // glTexCoord2i(0, 0);  glVertex2i(worldStart + i * HLINE         , worldData[i].groundHeight - GRASS_HEIGHT);
-        // glTexCoord2i(1, 0);  glVertex2i(worldStart + i * HLINE + HLINE , worldData[i].groundHeight - GRASS_HEIGHT);
-        // glTexCoord2i(1, ty); glVertex2i(worldStart + i * HLINE + HLINE, 0);
-        // glTexCoord2i(0, ty); glVertex2i(worldStart + i * HLINE	      , 0);
-
-		c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + HLINES(i),         worldData[i].groundHeight - GRASS_HEIGHT, -4.0f)));
-        c.push_back(std::make_pair(vec2(1, 0), vec3(worldStart + HLINES(i) + HLINE, worldData[i].groundHeight - GRASS_HEIGHT, -4.0f)));
-        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + HLINES(i) + HLINE, 0,                                        -4.0f)));
-
-        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + HLINES(i) + HLINE, 0,                                        -4.0f)));
-        c.push_back(std::make_pair(vec2(0, ty),vec3(worldStart + HLINES(i),         0,                                        -4.0f)));
-        c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + HLINES(i),         worldData[i].groundHeight - GRASS_HEIGHT, -4.0f)));
-
-        if (worldData[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1)
-            worldData[i].groundHeight = 0;
-    }
-
-    std::vector<GLfloat> dirtc;
-    std::vector<GLfloat> dirtt;
-
-    for (auto &v : c) {
-        dirtc.push_back(v.second.x);
-        dirtc.push_back(v.second.y);
-        dirtc.push_back(v.second.z);
-
-        dirtt.push_back(v.first.x);
-        dirtt.push_back(v.first.y);
-    }
-
-    Render::worldShader.use();
-	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.45f);
-
-    Render::worldShader.enable();
-
-    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, &dirtc[0]);
-    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, &dirtt[0]);
-    glDrawArrays(GL_TRIANGLES, 0 , c.size());
-
-    Render::worldShader.disable();
-	Render::worldShader.unuse();
-
-	//glEnd();
-
-	//glUseProgram(0);
-
-	// draw the grass
-	//glEnable(GL_TEXTURE_2D);
-	//glActiveTexture(GL_TEXTURE0);
-	bgTex++;
-	//glUseProgram(shaderProgram);
-	//glUniform1i(glGetUniformLocation(shaderProgram, "sampler"), 0);
-    safeSetColorA(255, 255, 255, 255);
-
-    c.clear();
-    std::vector<GLfloat> grassc;
-    std::vector<GLfloat> grasst;
-
-	for (int i = iStart; i < iEnd; i++) {
-        auto wd = worldData[i];
-        auto gh = wd.grassHeight;
-
-		// flatten the grass if the player is standing on it.
-	if (!wd.grassUnpressed) {
-		gh[0] /= 4;
-			gh[1] /= 4;
-		}
-
-		// actually draw the grass.
-        if (wd.groundHeight) {
-    		//glBegin(GL_QUADS);
-    			/*glTexCoord2i(0, 0); glVertex2i(worldStart + i * HLINE            , wd.groundHeight + gh[0]);
-    			glTexCoord2i(1, 0); glVertex2i(worldStart + i * HLINE + HLINE / 2, wd.groundHeight + gh[0]);
-    			glTexCoord2i(1, 1); glVertex2i(worldStart + i * HLINE + HLINE / 2, wd.groundHeight - GRASS_HEIGHT);
-    			glTexCoord2i(0, 1); glVertex2i(worldStart + i * HLINE		     , wd.groundHeight - GRASS_HEIGHT);
-                glTexCoord2i(0, 0); glVertex2i(worldStart + i * HLINE + HLINE / 2, wd.groundHeight + gh[1]);
-    			glTexCoord2i(1, 0); glVertex2i(worldStart + i * HLINE + HLINE    , wd.groundHeight + gh[1]);
-    			glTexCoord2i(1, 1); glVertex2i(worldStart + i * HLINE + HLINE    , wd.groundHeight - GRASS_HEIGHT);
-    			glTexCoord2i(0, 1); glVertex2i(worldStart + i * HLINE + HLINE / 2, wd.groundHeight - GRASS_HEIGHT);*/
-
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0], 		-3)));
-                c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[0], 		-3)));
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT, 	-3)));
-
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT,	-3)));
-                c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i)		     , wd.groundHeight - GRASS_HEIGHT,	-3)));
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0],			-3)));
-
-
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1],			-3)));
-                c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight + gh[1],			-3)));
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT,	-3)));
-
-                c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT,	-3)));
-                c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT,	-3)));
-                c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1],			-3)));
-
-            //glEnd();
-        }
-	}
-
-    for (auto &v : c) {
-        grassc.push_back(v.second.x);
-        grassc.push_back(v.second.y);
-        grassc.push_back(v.second.z);
-
-        grasst.push_back(v.first.x);
-        grasst.push_back(v.first.y);
-    }
-
-    Render::worldShader.use();
-	glUniform1f(Render::worldShader.uniform[WU_light_impact], 1.0f);
-
-    Render::worldShader.enable();
-
-    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, &grassc[0]);
-    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, &grasst[0]);
-    glDrawArrays(GL_TRIANGLES, 0 , c.size());
-
-    Render::worldShader.disable();
-	Render::worldShader.unuse();
-
 	for (auto &e :entity)
         e->draw();
 
 	// flatten grass under the player if the player is on the ground
 	if (p->ground) {
-		pOffset = (p->loc.x + p->width / 2 - worldStart) / HLINE;
+		int pOffset = (p->loc.x + p->width / 2 - worldStart) / HLINE;
 
 		for (unsigned int i = 0; i < worldData.size(); i++)
 			worldData[i].grassUnpressed = !(i < static_cast<unsigned int>(pOffset + 6) && i > static_cast<unsigned int>(pOffset - 6));
@@ -709,7 +302,7 @@ void World::draw(Player *p)
 	}
 
     // draw the player
-	p->draw();
+	//p->draw();
 
 	// draw particles like a MASTAH
     glBindTexture(GL_TEXTURE_2D, colorIndex);
@@ -731,7 +324,6 @@ void World::draw(Player *p)
         pc += 30;
 		if (pc > pss) {
 			// TODO resize the vector or something better than breaking
-			//std::cout << "Whoops:" << pc << "," << partVec.size() << std::endl;
 			break;
 		}
 		particles[i].draw(pIndex);
@@ -1120,18 +712,7 @@ void World::save(const std::string& s)
  */
 void World::setBackground(WorldBGType bgt)
 {
-    // load textures with a limit check
-	switch ((bgType = bgt)) {
-	case WorldBGType::Forest:
-		bgTex = TextureIterator(bgFiles);
-		break;
-	case WorldBGType::WoodHouse:
-		bgTex = TextureIterator(bgFilesIndoors);
-		break;
-    default:
-        UserError("Invalid world background type");
-        break;
-	}
+	bgType = bgt;
 }
 
 /**
@@ -1143,16 +724,10 @@ void World::setStyle(std::string pre)
 {
     // get folder prefix
 	std::string prefix = pre.empty() ? "assets/style/classic/" : pre;
+	styleFolder = prefix + "bg/";
 
     for (const auto &s : buildPaths)
         sTexLoc.push_back(prefix + s);
-
-    prefix += "bg/";
-
-    for (const auto &s : bgPaths[0])
-        bgFiles.push_back(prefix + s);
-    for (const auto &s : bgPaths[1])
-        bgFilesIndoors.push_back(prefix + s);
 }
 
 /**
@@ -1590,7 +1165,7 @@ draw(Player *p)
 	Render::worldShader.use();
 
 	glActiveTexture(GL_TEXTURE0);
-	bgTex(0);
+	//game::engine.getSystem<WorldSystem>bgTex(0);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //for the s direction
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); //for the t direction
@@ -1627,56 +1202,20 @@ draw(Player *p)
 	static GLuint floorTex = Texture::genColor(Color(150, 100, 50));
 	glBindTexture(GL_TEXTURE_2D, floorTex);
 
-	std::vector<GLfloat> fc;
-	std::vector<GLfloat> ft;
+	Render::worldShader.use();
+	Render::useShader(&Render::worldShader);
 
 	for (fl = 0; fl < floor.size(); fl++) {
         i = 0;
     	for (const auto &h : floor[fl]) {
     		x = worldStart + HLINES(fstart[fl] + i);
 
-			fc.emplace_back(x);
-    		fc.emplace_back(h);
-			fc.emplace_back(-3);
-			ft.emplace_back(0);
-			ft.emplace_back(0);
-
-			fc.emplace_back(x + HLINE);
-			fc.emplace_back(h);
-			fc.emplace_back(-3);
- 		   	ft.emplace_back(1);
-			ft.emplace_back(0);
-
-			fc.emplace_back(x + HLINE);
-			fc.emplace_back(h - INDOOR_FLOOR_THICKNESS);
-			fc.emplace_back(-3);
- 		   	ft.emplace_back(1);
-			ft.emplace_back(1);
-
-			fc.emplace_back(x + HLINE);
-			fc.emplace_back(h - INDOOR_FLOOR_THICKNESS);
-			fc.emplace_back(-3);
- 		   	ft.emplace_back(1);
-			ft.emplace_back(1);
-
-			fc.emplace_back(x);
-			fc.emplace_back(h - INDOOR_FLOOR_THICKNESS);
-			fc.emplace_back(-3);
-			ft.emplace_back(0);
- 		   	ft.emplace_back(1);
-
-			fc.emplace_back(x);
-    		fc.emplace_back(h);
-			fc.emplace_back(-3);
-			ft.emplace_back(0);
-			ft.emplace_back(0);
+			Render::drawRect(vec2 {(float)x, h}, vec2 {(float)(x + HLINE), h - INDOOR_FLOOR_THICKNESS}, -3.0f);
 
 			i++;
     	}
     }
 
-	Render::worldShader.use();
-	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, &fc[0], &ft[0], floor.size() * 6);
 	Render::worldShader.unuse();
 
 	/*
@@ -2132,10 +1671,366 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 		Mix_FadeInMusic(bgmObj, -1, 2000);
 }
 
+void WorldSystem::render(void)
+{
+	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
+	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+	const auto HLINE = game::HLINE;
+
+	const ivec2 backgroundOffset = ivec2 {
+        static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2
+    };
+
+	auto& worldData = currentWorld->worldData;
+	auto& star = currentWorld->star;
+	auto worldStart = currentWorld->worldStart;
+
+	int iStart, iEnd, pOffset;
+
+    // world width in pixels
+	int width = worldData.size() * HLINE;
+
+    // used for alpha values of background textures
+    int alpha;
+
+	switch (weather) {
+	case WorldWeather::Snowy:
+		alpha = 150;
+		break;
+	case WorldWeather::Rain:
+		alpha = 0;
+		break;
+	default:
+		alpha = 255 - worldShade * 4;
+		break;
+	}
+
+	// shade value for GLSL
+	float shadeAmbient = std::max(0.0f, static_cast<float>(-worldShade) / 50 + 0.5f); // 0 to 1.5f
+
+	if (shadeAmbient > 0.9f)
+		shadeAmbient = 1;
+
+    // draw background images.
+    GLfloat tex_coord[] = { 0.0f, 1.0f,
+                            1.0f, 1.0f,
+                            1.0f, 0.0f,
+
+                            1.0f, 0.0f,
+                            0.0f, 0.0f,
+                            0.0f, 1.0f,};
+
+	// TODO scroll backdrop
+	GLfloat bgOff = game::time::getTickCount()/24000.0f;
+
+	GLfloat topS = .125f + bgOff;
+	GLfloat bottomS = 0.0f + bgOff;
+
+	if (topS < 0.0f) topS += 1.0f;
+	if (bottomS < 0.0f) bottomS += 1.0f;
+	if(bgOff < 0)std::cout << bottomS << "," << topS << std::endl;
+
+	GLfloat scrolling_tex_coord[] = {0.0f,  bottomS,
+									 1.0f,  bottomS,
+									 1.0f,  bottomS,
+
+									 1.0f,  bottomS,
+									 0.0f,  bottomS,
+									 0.0f,  bottomS};
+
+   	vec2 bg_tex_coord[] = { vec2(0.0f, 0.0f),
+                            vec2(1.0f, 0.0f),
+                            vec2(1.0f, 1.0f),
+
+                            vec2(1.0f, 1.0f),
+                            vec2(0.0f, 1.0f),
+                            vec2(0.0f, 0.0f)};
+
+    GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f,
+                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f,
+                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
+
+                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
+                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f,
+                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f};
+
+    GLfloat fron_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f,
+                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.8f,
+                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
+
+                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
+                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.8f,
+                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f};
+
+	// rendering!!
+
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(Render::worldShader.uniform[WU_texture], 0);
+
+	Render::worldShader.use();
+	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
+	glUniform4f(Render::worldShader.uniform[WU_ambient], 1.0, 1.0, 1.0, 1.0);
+
+    Render::worldShader.enable();
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    bgTex(0);
+	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+
+
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, back_tex_coord, scrolling_tex_coord, 6);
+
+	bgTex++;
+	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
+
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
+
+	// TODO make stars dynamic
+	static GLuint starTex = Texture::loadTexture("assets/style/classic/bg/star.png");
+	const static float stardim = 24;
+	GLfloat star_coord[star.size() * 5 * 6 + 1];
+    GLfloat *si = &star_coord[0];
+
+	if (worldShade > 0) {
+
+		auto xcoord = offset.x * 0.9f;
+
+		for (auto &s : star) {
+			float data[30] = {
+				s.x + xcoord, s.y, 9.7, 0, 0,
+				s.x + xcoord + stardim, s.y, 9.7, 1, 0,
+				s.x + xcoord + stardim, s.y + stardim, 9.7, 1, 1,
+				s.x + xcoord + stardim, s.y + stardim, 9.7, 1, 1,
+				s.x + xcoord, s.y + stardim, 9.7, 0, 1,
+				s.x + xcoord, s.y, 9.7, 0, 0
+			};
+
+			std::memcpy(si, data, sizeof(float) * 30);
+			si += 30;
+		}
+		glBindTexture(GL_TEXTURE_2D, starTex);
+		glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
+
+		makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(5 * sizeof(GLfloat), &star_coord[0], &star_coord[3], star.size() * 6);
+	}
+
+	Render::worldShader.disable();
+
+	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+	glUniform4f(Render::worldShader.uniform[WU_ambient], ambient.red, ambient.green, ambient.blue, 1.0);
+
+	Render::worldShader.unuse();
+
+    std::vector<vec3> bg_items;
+	std::vector<vec2> bg_tex;
+
+	bgTex++;
+	dim2 mountainDim = bgTex.getTextureDim();
+    auto xcoord = width / 2 * -1 + offset.x * 0.85f;
+	for (unsigned int i = 0; i <= worldData.size() * HLINE / mountainDim.x; i++) {
+        bg_items.emplace_back(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f);
+        bg_items.emplace_back(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f);
+        bg_items.emplace_back(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f);
+
+        bg_items.emplace_back(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f);
+        bg_items.emplace_back(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f);
+        bg_items.emplace_back(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f);
+	}
+
+    for (uint i = 0; i < bg_items.size()/6; i++) {
+        for (auto &v : bg_tex_coord)
+            bg_tex.push_back(v);
+    }
+
+    Render::worldShader.use();
+	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.01);
+
+	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, bg_items.data(), bg_tex.data(), bg_items.size());
+
+    Render::worldShader.unuse();
+
+	// draw the remaining layers
+	for (unsigned int i = 0; i < 4; i++) {
+		bgTex++;
+        dim2 dim = bgTex.getTextureDim();
+		auto xcoord = offset.x * bgDraw[i][2];
+
+		bg_items.clear();
+		bg_tex.clear();
+
+		for (int j = worldStart; j <= -worldStart; j += dim.x) {
+            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
+            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
+            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
+
+            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
+            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
+            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
+		}
+
+        for (uint i = 0; i < bg_items.size()/6; i++) {
+            for (auto &v : bg_tex_coord)
+                bg_tex.push_back(v);
+        }
+
+        Render::worldShader.use();
+		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.075f + (0.2f*i));
+
+		makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, bg_items.data(), &bg_tex[0], bg_items.size());
+
+        Render::worldShader.unuse();
+	}
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // get the line that the player is currently standing on
+    pOffset = (offset.x + player->width / 2 - worldStart) / HLINE;
+
+    // only draw world within player vision
+    iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS),
+	                    0, static_cast<int>(world->lineCount));
+	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / HLINE)),
+                      0, static_cast<int>(world->lineCount));
+
+    // draw the dirt
+    bgTex++;
+    std::vector<std::pair<vec2,vec3>> c;
+
+    for (int i = iStart; i < iEnd; i++) {
+        if (worldData[i].groundHeight <= 0) { // TODO holes (andy)
+            worldData[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
+            glColor4ub(0, 0, 0, 255);
+        } else {
+            safeSetColorA(150, 150, 150, 255);
+        }
+
+        int ty = worldData[i].groundHeight / 64 + worldData[i].groundColor;
+
+		c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + HLINES(i),         worldData[i].groundHeight - GRASS_HEIGHT, -4.0f)));
+        c.push_back(std::make_pair(vec2(1, 0), vec3(worldStart + HLINES(i) + HLINE, worldData[i].groundHeight - GRASS_HEIGHT, -4.0f)));
+        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + HLINES(i) + HLINE, 0,                                        -4.0f)));
+
+        c.push_back(std::make_pair(vec2(1, ty),vec3(worldStart + HLINES(i) + HLINE, 0,                                        -4.0f)));
+        c.push_back(std::make_pair(vec2(0, ty),vec3(worldStart + HLINES(i),         0,                                        -4.0f)));
+        c.push_back(std::make_pair(vec2(0, 0), vec3(worldStart + HLINES(i),         worldData[i].groundHeight - GRASS_HEIGHT, -4.0f)));
+
+        if (worldData[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1)
+            worldData[i].groundHeight = 0;
+    }
+
+    std::vector<GLfloat> dirtc;
+    std::vector<GLfloat> dirtt;
+
+    for (auto &v : c) {
+        dirtc.push_back(v.second.x);
+        dirtc.push_back(v.second.y);
+        dirtc.push_back(v.second.z);
+
+        dirtt.push_back(v.first.x);
+        dirtt.push_back(v.first.y);
+    }
+
+    Render::worldShader.use();
+	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.45f);
+
+    Render::worldShader.enable();
+
+    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, &dirtc[0]);
+    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, &dirtt[0]);
+    glDrawArrays(GL_TRIANGLES, 0 , c.size());
+
+    Render::worldShader.disable();
+	Render::worldShader.unuse();
+
+	bgTex++;
+    safeSetColorA(255, 255, 255, 255);
+
+    c.clear();
+    std::vector<GLfloat> grassc;
+    std::vector<GLfloat> grasst;
+
+	for (int i = iStart; i < iEnd; i++) {
+        auto wd = worldData[i];
+        auto gh = wd.grassHeight;
+
+		// flatten the grass if the player is standing on it.
+	if (!wd.grassUnpressed) {
+		gh[0] /= 4;
+			gh[1] /= 4;
+		}
+
+		// actually draw the grass.
+        if (wd.groundHeight) {
+            c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0], 		-3)));
+            c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[0], 		-3)));
+            c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT, 	-3)));
+
+            c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT,	-3)));
+            c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i)		     , wd.groundHeight - GRASS_HEIGHT,	-3)));
+            c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0],			-3)));
+
+            c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1],			-3)));
+            c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight + gh[1],			-3)));
+            c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT,	-3)));
+
+            c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT,	-3)));
+            c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT,	-3)));
+            c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1],			-3)));
+        }
+	}
+
+    for (auto &v : c) {
+        grassc.push_back(v.second.x);
+        grassc.push_back(v.second.y);
+        grassc.push_back(v.second.z);
+
+        grasst.push_back(v.first.x);
+        grasst.push_back(v.first.y);
+    }
+
+    Render::worldShader.use();
+	glUniform1f(Render::worldShader.uniform[WU_light_impact], 1.0f);
+
+    Render::worldShader.enable();
+
+    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, &grassc[0]);
+    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, &grasst[0]);
+    glDrawArrays(GL_TRIANGLES, 0 , c.size());
+
+    Render::worldShader.disable();
+	Render::worldShader.unuse();
+
+	player->draw();
+}
+
+void WorldSystem::setWorld(World *w)
+{
+	world = w;
+	
+	for (const auto &s : bgPaths[0])
+		bgFiles.push_back(w->styleFolder + s);
+	for (const auto &s : bgPaths[1])
+		bgFilesIndoors.push_back(w->styleFolder + s);
+
+	switch (w->bgType) {
+	case WorldBGType::Forest:
+		bgTex = TextureIterator(bgFiles);
+		break;
+	case WorldBGType::WoodHouse:
+		bgTex = TextureIterator(bgFilesIndoors);
+		break;
+    default:
+        UserError("Invalid world background type");
+        break;
+	}
+}
+
+
 void WorldSystem::receive(const BGMToggleEvent &bte)
 {
-	std::cout << bgmObjFile << '|' << (int)(bte.world == nullptr) << '|' << bte.file << '\n';
-
 	if (bte.world == nullptr || bgmObjFile != bte.file) {
 		Mix_FadeOutMusic(800);
 

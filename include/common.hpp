@@ -71,25 +71,15 @@ typedef ivec2 dim2;
 /**
  * Creates a coordinate out of floating point integers.
  */
-class vec2 {
-public:
+struct vec2 {
 	float x; /**< The x coordinate */
 	float y; /**< The y coordinate */
 
 	/**
-	 * Constructs an empty vec2.
-	 */
-	vec2(){
-		x = y = 0.0f;
-	}
-
-	/**
 	 * Constructs a vec2 with the specified coordinates.
 	 */
-	vec2(float _x, float _y) {
-		x = _x;
-		y = _y;
-	}
+	vec2(float _x = 0.0f, float _y = 0.0f)
+		: x(_x), y(_y) {}
 
 	bool operator==(const vec2 &v) const {
 		return (x == v.x) && (y == v.y);
@@ -105,33 +95,33 @@ public:
 	const vec2 operator+(const T &n) {
 		return vec2 (x + n, y + n);
 	}
-};
+
+	// std::swap can't work due to being packed
+
+	inline void swapX(vec2 &v) {
+		float t = x;
+		x = v.x, v.x = t;
+	}
+
+	inline void swapY(vec2 &v) {
+		float t = y;
+		y = v.y, v.y = t;
+	}
+
+} __attribute__ ((packed));
 
 /**
  * A structure for three-dimensional points.
  */
-class vec3{
-public:
+struct vec3 {
 	float x; /**< The x coordinate */
 	float y; /**< The y coordinate */
 	float z; /**< The z coordinate */
 
-	vec3() {
-		x = y = z = 0.0f;
-	}
+	vec3(float _x = 0.0f, float _y = 0.0f, float _z = 1.0f)
+		: x(_x), y(_y), z(_z) {}
 
-	vec3(float _x, float _y, float _z) {
-		x = _x;
-		y = _y;
-		z = _z;
-	}
-
-	vec3(float _x, float _y) {
-		x = _x;
-		y = _y;
-		z = 1.0f;
-	}
-};
+} __attribute__ ((packed));
 
 /**
  * This structure contains two sets of coordinates for ray drawing.

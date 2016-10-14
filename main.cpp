@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (worldDontReallyRun)
-		return 0;
+		goto EXIT_ROUTINE;
 
 	if (!worldActuallyUseThisXMLFile.empty()) {
 		delete currentWorld;
@@ -218,6 +218,8 @@ int main(int argc, char *argv[])
 
 	ui::menu::init();
 	game::events.emit<BGMToggleEvent>(currentWorld->bgm);
+
+	game::engine.getSystem<WorldSystem>()->setWorld(currentWorld);
 
 	// spawn the arena
 	arena = new Arena();
@@ -248,6 +250,8 @@ int main(int argc, char *argv[])
 		render();
 	}
 
+EXIT_ROUTINE:
+
 	// put away the brice for later
 	game::briceSave();
 
@@ -263,6 +267,8 @@ int main(int argc, char *argv[])
 	currentWorld->save();
 	delete arena;
 	//delete currentWorld;
+
+	game::engine.getSystem<WindowSystem>()->die();
 
     return 0; // Calls everything passed to atexit
 }
@@ -336,8 +342,9 @@ void render() {
 	Render::worldShader.unuse();
 
 	// draw the world and player
+	game::engine.getSystem<WorldSystem>()->render();
 	currentWorld->draw(player);
-
+	
 	// draw the player's inventory
 	player->inv->draw();
 

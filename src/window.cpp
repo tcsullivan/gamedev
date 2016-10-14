@@ -55,7 +55,7 @@ WindowSystem::WindowSystem(void)
     }
 }
 
-WindowSystem::~WindowSystem(void)
+void WindowSystem::die(void)
 {
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(window);

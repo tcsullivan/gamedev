@@ -141,10 +141,17 @@ constexpr const char* WorldWeatherString[3] = {
 
 class WorldSystem : public entityx::System<WorldSystem>, public entityx::Receiver<WorldSystem> {
 private:
+	World *world;
+
 	WorldWeather weather;
 
 	Mix_Music *bgmObj;
 	std::string bgmObjFile;
+
+	std::vector<std::string> bgFiles;
+	std::vector<std::string> bgFilesIndoors;
+
+	TextureIterator bgTex;
 
 public:
 	explicit WorldSystem(void);
@@ -157,6 +164,9 @@ public:
 	void receive(const BGMToggleEvent &bte);
 
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+	void render(void);
+
+	void setWorld(World *w);
 
 	inline const std::string getWeatherStr(void) const
 	{ return WorldWeatherString[static_cast<int>(weather)]; }
@@ -176,8 +186,12 @@ public:
  */
 class World {
 //friend class ItemLight;
-protected:
+public:
 
+	WorldBGType bgType;
+
+	std::string styleFolder;
+	
 	/**
 	 * An array of all the world's ground data, populated through
 	 * World::generate().
@@ -194,18 +208,6 @@ protected:
 	 * The starting x-coordinate of the world.
 	 */
 	float worldStart;
-
-	/**
-	 * Handles textures for the background elements.
-	 */
-	TextureIterator bgTex;
-
-	/**
-	 * Defines the set of background images being used for the world.
-	 *
-	 * @see setBackground()
-	 */
-	WorldBGType bgType;
 
 	/**
 	 * The path to the XML file of the world to the left.
@@ -230,20 +232,6 @@ protected:
 	std::vector<std::string> sTexLoc;
 
 	/**
-	 * The paths of files to be used for the background textures.
-	 *
-	 * @see setStyle()
-	 */
-	std::vector<std::string> bgFiles;
-
-	/**
-	 * The paths of files to be used for the indoor background textures.
-	 *
-	 * @see setStyle()
-	 */
-	std::vector<std::string> bgFilesIndoors;
-
-	/**
 	 * Contains randomly generated coordinates for stars.
 	 */
 	std::vector<vec2> star;
@@ -255,13 +243,6 @@ protected:
 	 * @see getLastLight()
 	 */
 	std::vector<Light>        light;
-
-	/**
-	 * A vector of all particles in the world.
-	 *
-	 * @see addParticle()
-	 */
-	//CoolArray<Particles>    particles;
 
 	/**
 	 * A vector of all villages in the world.
@@ -283,12 +264,6 @@ protected:
 	 */
 	void deleteEntities(void);
 
-	/**
-	 * Draws background textures.
-	 */
-	void drawBackgrounds();
-
-public:
 	/**
 	 * The filename of the world's BGM file.
 	 *
