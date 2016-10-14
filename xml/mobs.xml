@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<mob name="rabbit">
+	<components>
+		<position/>
+		<direction/>
+		<physics/>
+		<solid/>
+		<sprite/>
+		<animation/>
+		<visible/>
+		<health>10</health>
+		<ai/>
+		<wander/>
+	</components>
+</mob>

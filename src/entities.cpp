@@ -12,6 +12,11 @@
 #include <render.hpp>
 #include <engine.hpp>
 
+///NEW
+#include <components.hpp>
+#include <entityx/entityx.h>
+///OLD
+
 extern std::istream *names;
 
 extern Player *player;			// main.cpp
