@@ -60,6 +60,20 @@ struct Physics {
 };
 
 /**
+ * @struct Health
+ * @brief Gives and entity health and stuff.
+ */
+struct Health {
+	/**
+	 * Constructor that sets the variables, with 0 health as default.
+	 */
+	Health(int h = 0, int m = 0) : health(h), maxHealth(m) {}
+
+	int health;
+	int maxHealth;
+};
+
+/**
  * @struct Solid
  * @brief Allows an entity to collide with other objects.
  * When an entity has this component it can collide with the world and other objects.

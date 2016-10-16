@@ -175,6 +175,11 @@ public:
 	{ return weather; }
 
 	void setWeather(const std::string &s);
+
+	void singleDetect(Entity *e, entityx::TimeDelta dt);
+	void detect(entityx::TimeDelta dt);
+
+	void detect2(entityx::TimeDelta dt);
 };
 
 
@@ -254,11 +259,6 @@ public:
 	std::vector<Entity *> entityPending;
 
 	/**
-	 * Handles death, gravity, etc. for a single entity
-	 */
-	virtual void singleDetect(Entity *e);
-
-	/**
 	 * Destroys entities and clears vectors that contain them.
 	 * This function is only called in the world destructor.
 	 */
@@ -305,18 +305,6 @@ public:
 	 * drawn.
 	 */
 	virtual void draw(Player *p);
-
-	/**
-	 * Handles physics for all entities and the player.
-	 *
-	 * @see singleDetect()
-	 */
-	void detect(Player *p);
-
-	/**
-	 * Updates entity positions, time of day, and music.
-	 */
-	void update(Player *p, unsigned int delta);
 
 	/**
 	 * Gets the width of the world, presumably in pixels.

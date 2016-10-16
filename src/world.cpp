@@ -17,6 +17,7 @@
 
 #include <render.hpp>
 #include <engine.hpp>
+#include <components.hpp>
 
 // local library headers
 #include <tinyxml2.h>
@@ -339,258 +340,6 @@ void World::draw(Player *p)
 	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 
     Render::worldShader.unuse();
-}
-
-/**
- * Handles physics and such for a single entity.
- * This function is kept private, as World::detect() should be used instead to
- * handle stuffs for all entities at once.
- */
-void World::
-singleDetect(Entity *e)
-{
-	std::string killed;
-	unsigned int i;
-	int l;
-
-    auto deltaTime = game::time::getDeltaTime();
-
-	if (e == nullptr)
-		return;
-
-	// kill dead entities
-	if (!e->isAlive()) {
-        return;
-    } else if (e->health <= 0) {
-        // die
-        e->die();
-		if (inBattle && e->type == MOBT)
-			Mobp(e)->onDeath();
-
-        // delete the entity
-		for (i = 0; i < entity.size(); i++) {
-			if (entity[i] == e) {
-				switch (e->type) {
-				case STRUCTURET:
-					killed = " structure";
-                    break;
-                case NPCT:
-					killed = "n NPC";
-					break;
-				case MOBT:
-					killed = " mob";
-					break;
-				case OBJECTT:
-					killed = "n object";
-					break;
-				default:
-					break;
-				}
-
-				std::cout << "Killed a" << killed << "...\n";
-				entity.erase(entity.begin() + i);
-				return;
-			}
-		}
-
-        // exit on player death
-		std::cout << "RIP " << e->name << ".\n";
-		exit(0);
-	}
-
-	// collision / gravity: handle only living entities
-	else {
-
-        // forced movement gravity (sword hits)
-        e->handleHits();
-
-		// calculate the line that this entity is currently standing on
-        l = std::clamp(static_cast<int>((e->loc.x + e->width / 2 - worldStart) / game::HLINE),
-                       0,
-                       static_cast<int>(lineCount));
-
-		// if the entity is under the world/line, pop it back to the surface
-		if (e->loc.y < worldData[l].groundHeight) {
-            int dir = e->vel.x < 0 ? -1 : 1;
-            if (l + (dir * 2) < static_cast<int>(worldData.size()) &&
-                worldData[l + (dir * 2)].groundHeight - 30 > worldData[l + dir].groundHeight) {
-                e->loc.x -= (PLAYER_SPEED_CONSTANT + 2.7f) * e->speed * 2 * dir;
-                e->vel.x = 0;
-            } else {
-                e->loc.y = worldData[l].groundHeight - 0.001f * deltaTime;
-		        e->ground = true;
-		        e->vel.y = 0;
-            }
-
-		}
-
-        // handle gravity if the entity is above the line
-        else {
-			if (e->type == STRUCTURET) {
-				e->loc.y = worldData[l].groundHeight;
-				e->vel.y = 0;
-				e->ground = true;
-				return;
-			} else if (e->vel.y > -2) {
-                e->vel.y -= GRAVITY_CONSTANT * deltaTime;
-            }
-		}
-
-		// insure that the entity doesn't fall off either edge of the world.
-        if (e->loc.x < worldStart) {
-			e->vel.x = 0;
-			e->loc.x = worldStart + HLINES(0.5f);
-		} else if (e->loc.x + e->width + game::HLINE > worldStart + worldStart * -2) {
-			e->vel.x = 0;
-			e->loc.x = worldStart + worldStart * -2 - e->width - game::HLINE;
-		}
-	}
-}
-
-/**
- * Handle entity logic for the world.
- *
- * This function runs World::singleDetect() for the player and every entity
- * currently in a vector of this world. Particles and village entrance/exiting
- * are also handled here.
- */
-void World::
-detect(Player *p)
-{
-	int l;
-
-	// handle the player
-    singleDetect(p);
-	//std::thread(&World::singleDetect, this, p).detach();
-
-    // handle other entities
-	for (auto &e : entity)
- 	   singleDetect(e);
-		//std::thread(&World::singleDetect, this, e).detach();
-
-	// qwertyuiop
-	partMutex.lock();
-    // handle particles
-	for (auto &part : particles) {
-		// get particle's current world line
-		l = std::clamp(static_cast<int>((part.loc.x + part.width / 2 - worldStart) / game::HLINE),
-                       0,
-                       static_cast<int>(lineCount - 1));
-		part.update(GRAVITY_CONSTANT, worldData[l].groundHeight);
-	}
-
-	// handle particle creation
-	for (auto &e : entity) {
-		if (e->type == STRUCTURET) {
-			auto b = dynamic_cast<Structures *>(e);
-			switch (b->bsubtype) {
-			case FOUNTAIN:
-				for (unsigned int r = (randGet() % 25) + 11; r--;) {
-					addParticle(randGet() % HLINES(3) + b->loc.x + b->width / 2,	// x
-								b->loc.y + b->height,								// y
-								HLINES(1.25),										// width
-								HLINES(1.25),										// height
-								randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
-								randGet() % 1 ? (8 + randGet() % 6) * .05 : (4 + randGet() % 6) * .05,							// vel.y
-								{ 0, 0, 255 },										// RGB color
-								2500												// duration (ms)
-								);
-					particles.back().fountain = true;
-					particles.back().stu = b;
-				}
-				break;
-			case FIRE_PIT:
-				for(unsigned int r = (randGet() % 20) + 11; r--;) {
-					addParticle(randGet() % (int)(b->width / 2) + b->loc.x + b->width / 4,	// x
-								b->loc.y + HLINES(3),										// y
-								game::HLINE,       											// width
-								game::HLINE,												// height
-								randGet() % 3 * .01 * (randGet() % 2 == 0 ? -1 : 1),		// vel.x
-								(4 + randGet() % 6) * .005,									// vel.y
-								{ 255, 0, 0 },												// RGB color
-								400															// duration (ms)
-								);
-					particles.back().gravity = false;
-					particles.back().behind  = true;
-					particles.back().stu = b;
-				}
-				break;
-			default:
-				break;
-			}
-		}
-	}
-	partMutex.unlock();
-
-	// draws the village welcome message if the player enters the village bounds
-	for (auto &v : village) {
-		if (p->loc.x > v.start.x && p->loc.x < v.end.x) {
-            if (!v.in) {
-			    ui::passiveImportantText(5000, "Welcome to %s", v.name.c_str());
-			    v.in = true;
-		    }
-        } else {
-            v.in = false;
-        }
-	}
-}
-
-/**
- * Updates all entity and player coordinates with their velocities.
- * Also handles music fading, although that could probably be placed elsewhere.
- */
-void World::
-update(Player *p, unsigned int delta)
-{
-    // update player coords
-	p->loc.y += p->vel.y			 * delta;
-	p->loc.x +=(p->vel.x * p->speed) * delta;
-
-    // handle high-ness
-	if (p->loc.y > 5000)
-        UserError("Too high for me m8.");
-
-	// update entity coords
-	for (auto &e : entity) {
-        // dont let structures move?
-		if (e->type != STRUCTURET && e->canMove) {
-			e->loc.x += e->vel.x * delta;
-            e->loc.y += e->vel.y * delta;
-
-            // update boolean directions
-            e->left = e->vel.x ? (e->vel.x < 0) : e->left;
-		} else if (e->vel.y < 0) {
-            e->loc.y += e->vel.y * delta;
-        }
-	}
-
-	partMutex.lock();
-	// iterate through particles
-    particles.remove_if([](const Particles &part) {
-		return part.duration <= 0;
-    });
-
-    for (auto &pa : particles) {
-		if (pa.canMove) { // causes overhead
-			pa.loc.y += pa.vel.y * game::time::getDeltaTime();
-			pa.loc.x += pa.vel.x * game::time::getDeltaTime();
-
-			if (pa.stu != nullptr) {
-				if (pa.loc.x >= pa.stu->loc.x && pa.loc.x <= pa.stu->loc.x + pa.stu->width &&
-				    pa.loc.y <= pa.stu->loc.y + pa.stu->height * 0.25f)
-					pa.duration = 0;
-			}
-		}
-	}
-    partMutex.unlock();
-
-	// add entities if need be
-	if (!entityPending.empty()) {
-		while (entityPending.size() > 0) {
-			entity.push_back(entityPending.back());
-			entityPending.pop_back();
-		}
-	}
 }
 
 /**
@@ -1669,6 +1418,57 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
     // fade in music if not playing
 	if (bgmObj != nullptr && !Mix_PlayingMusic())
 		Mix_FadeInMusic(bgmObj, -1, 2000);
+
+    // update player coords
+	player->loc.y += player->vel.y * dt;
+	player->loc.x += (player->vel.x * player->speed) * dt;
+
+	// update entity coords
+	for (auto &e : world->entity) {
+        // dont let structures move?
+		if (e->type != STRUCTURET && e->canMove) {
+			e->loc.x += e->vel.x * dt;
+            e->loc.y += e->vel.y * dt;
+
+            // update boolean directions
+            e->left = e->vel.x ? (e->vel.x < 0) : e->left;
+		} else if (e->vel.y < 0) {
+            e->loc.y += e->vel.y * dt;
+        }
+	}
+
+	partMutex.lock();
+	// iterate through particles
+    world->particles.remove_if([](const Particles &part) {
+		return part.duration <= 0;
+    });
+
+    for (auto &pa : world->particles) {
+		if (pa.canMove) { // causes overhead
+			pa.loc.y += pa.vel.y * dt;
+			pa.loc.x += pa.vel.x * dt;
+
+			if (pa.stu != nullptr) {
+				if (pa.loc.x >= pa.stu->loc.x && pa.loc.x <= pa.stu->loc.x + pa.stu->width &&
+				    pa.loc.y <= pa.stu->loc.y + pa.stu->height * 0.25f)
+					pa.duration = 0;
+			}
+		}
+	}
+    partMutex.unlock();
+
+	// add entities if need be
+	auto& entityPending = world->entityPending;
+
+	if (!entityPending.empty()) {
+		while (entityPending.size() > 0) {
+			world->entity.push_back(entityPending.back());
+			entityPending.pop_back();
+		}
+	}
+
+	// run detect stuff
+	detect(dt);
 }
 
 void WorldSystem::render(void)
@@ -2054,3 +1854,225 @@ void WorldSystem::setWeather(const std::string &s)
 
 	weather = WorldWeather::None;
 }
+
+void WorldSystem::singleDetect(Entity *e, entityx::TimeDelta dt)
+{
+	std::string killed;
+	unsigned int i;
+	int l;
+
+	auto& worldData = world->worldData;
+
+	if (e == nullptr || !(e->isAlive()))
+		return;
+
+	// kill dead entities
+	if (e->health <= 0) {
+        // die
+        e->die();
+		if (inBattle && e->type == MOBT)
+			Mobp(e)->onDeath();
+
+        // delete the entity
+		for (i = 0; i < world->entity.size(); i++) {
+			if (world->entity[i] == e) {
+				switch (e->type) {
+				case STRUCTURET:
+					killed = " structure";
+                    break;
+                case NPCT:
+					killed = "n NPC";
+					break;
+				case MOBT:
+					killed = " mob";
+					break;
+				case OBJECTT:
+					killed = "n object";
+					break;
+				default:
+					break;
+				}
+
+				std::cout << "Killed a" << killed << "...\n";
+				world->entity.erase(world->entity.begin() + i);
+				return;
+			}
+		}
+
+        // exit on player death
+		std::cout << "RIP " << e->name << ".\n";
+		exit(0);
+	}
+
+	// collision / gravity: handle only living entities
+	else {
+
+        // forced movement gravity (sword hits)
+        e->handleHits();
+
+		// calculate the line that this entity is currently standing on
+        l = std::clamp(static_cast<int>((e->loc.x + e->width / 2 - world->worldStart) / game::HLINE),
+                       0,
+                       static_cast<int>(world->lineCount));
+
+		// if the entity is under the world/line, pop it back to the surface
+		if (e->loc.y < worldData[l].groundHeight) {
+            int dir = e->vel.x < 0 ? -1 : 1;
+            if (l + (dir * 2) < static_cast<int>(worldData.size()) &&
+                worldData[l + (dir * 2)].groundHeight - 30 > worldData[l + dir].groundHeight) {
+                e->loc.x -= (PLAYER_SPEED_CONSTANT + 2.7f) * e->speed * 2 * dir;
+                e->vel.x = 0;
+            } else {
+                e->loc.y = worldData[l].groundHeight - 0.001f * dt;
+		        e->ground = true;
+		        e->vel.y = 0;
+            }
+
+		}
+
+        // handle gravity if the entity is above the line
+        else {
+			if (e->type == STRUCTURET) {
+				e->loc.y = worldData[l].groundHeight;
+				e->vel.y = 0;
+				e->ground = true;
+				return;
+			} else if (e->vel.y > -2) {
+                e->vel.y -= GRAVITY_CONSTANT * dt;
+            }
+		}
+
+		// insure that the entity doesn't fall off either edge of the world.
+        if (e->loc.x < world->worldStart) {
+			e->vel.x = 0;
+			e->loc.x = world->worldStart + HLINES(0.5f);
+		} else if (e->loc.x + e->width + game::HLINE > -((int)world->worldStart)) {
+			e->vel.x = 0;
+			e->loc.x = -((int)world->worldStart) - e->width - game::HLINE;
+		}
+	}
+}
+
+void WorldSystem::detect2(entityx::TimeDelta dt)
+{
+	game::entities.each<Position, Direction, Health, Solid>(
+	    [&](entityx::Entity e, Position &loc, Direction &vel, Health &health, Solid &dim) {
+	
+		(void)e;
+		
+		if (health.health <= 0)
+			UserError("die mofo");
+
+		// get the line the entity is on
+		int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world->worldStart) / game::HLINE),
+		                      0,
+		                      static_cast<int>(world->lineCount));
+
+		// make sure entity is above ground
+		auto& data = world->worldData;
+		if (loc.y < data[line].groundHeight) {
+			int dir = vel.x < 0 ? -1 : 1;
+			if (line + dir * 2 < static_cast<int>(data.size()) &&
+			    data[line + dir * 2].groundHeight - 30 > data[line + dir].groundHeight) {
+				loc.x -= (PLAYER_SPEED_CONSTANT + 2.7f) * dir * 2;
+				vel.x = 0;
+			} else {
+				loc.y = data[line].groundHeight - 0.001f * dt;
+				vel.y = 0;
+				// TODO ground flag
+			}
+		}
+
+        // handle gravity
+        else if (vel.y > -2.0f) {
+			vel.y -= GRAVITY_CONSTANT * dt;
+		}
+
+		// insure that the entity doesn't fall off either edge of the world.
+        if (loc.x < world->worldStart) {
+			vel.x = 0;
+			loc.x = world->worldStart + HLINES(0.5f);
+		} else if (loc.x + dim.width + game::HLINE > -((int)world->worldStart)) {
+			vel.x = 0;
+			loc.x = -((int)world->worldStart) - dim.width - game::HLINE;
+		}
+	});
+}
+
+void WorldSystem::detect(entityx::TimeDelta dt)
+{
+	int l;
+
+	// handle the player
+    singleDetect(player, dt);
+
+    // handle other entities
+	for (auto &e : world->entity)
+		singleDetect(e, dt);
+
+	partMutex.lock();
+    // handle particles
+	for (auto &part : world->particles) {
+		// get particle's current world line
+		l = std::clamp(static_cast<int>((part.loc.x + part.width / 2 - world->worldStart) / game::HLINE),
+                       0,
+                       static_cast<int>(world->lineCount - 1));
+		part.update(GRAVITY_CONSTANT, world->worldData[l].groundHeight);
+	}
+
+	// handle particle creation
+	for (auto &e : world->entity) {
+		if (e->type == STRUCTURET) {
+			auto b = dynamic_cast<Structures *>(e);
+			switch (b->bsubtype) {
+			case FOUNTAIN:
+				for (unsigned int r = (randGet() % 25) + 11; r--;) {
+					world->addParticle(randGet() % HLINES(3) + b->loc.x + b->width / 2,	// x
+								b->loc.y + b->height,								// y
+								HLINES(1.25),										// width
+								HLINES(1.25),										// height
+								randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
+								randGet() % 1 ? (8 + randGet() % 6) * .05 : (4 + randGet() % 6) * .05,// vel.y
+								{ 0, 0, 255 },										// RGB color
+								2500												// duration (ms)
+								);
+					world->particles.back().fountain = true;
+					world->particles.back().stu = b;
+				}
+				break;
+			case FIRE_PIT:
+				for(unsigned int r = (randGet() % 20) + 11; r--;) {
+					world->addParticle(randGet() % (int)(b->width / 2) + b->loc.x + b->width / 4,	// x
+								b->loc.y + HLINES(3),										// y
+								game::HLINE,       											// width
+								game::HLINE,												// height
+								randGet() % 3 * .01 * (randGet() % 2 == 0 ? -1 : 1),		// vel.x
+								(4 + randGet() % 6) * .005,									// vel.y
+								{ 255, 0, 0 },												// RGB color
+								400															// duration (ms)
+								);
+					world->particles.back().gravity = false;
+					world->particles.back().behind  = true;
+					world->particles.back().stu = b;
+				}
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	partMutex.unlock();
+
+	// draws the village welcome message if the player enters the village bounds
+	for (auto &v : world->village) {
+		if (player->loc.x > v.start.x && player->loc.x < v.end.x) {
+            if (!v.in) {
+			    ui::passiveImportantText(5000, "Welcome to %s", v.name.c_str());
+			    v.in = true;
+		    }
+        } else {
+            v.in = false;
+        }
+	}
+}
+

@@ -37,9 +37,7 @@ void Engine::update(entityx::TimeDelta dt)
     systems.update<InputSystem>(dt);
     systems.update<InventorySystem>(dt);
     systems.update<PlayerSystem>(dt);
-
-    currentWorld->update(player, dt);
-    currentWorld->detect(player);
+	systems.update<WorldSystem>(dt);
 }
 
 
