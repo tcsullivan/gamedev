@@ -95,11 +95,12 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 	auto kc = kde.keycode;
 
 	auto worldSwitch = [&](const WorldSwitchInfo& wsi){
-		p->canMove = false;
+		player->canMove = false;
 		ui::toggleBlackFast();
 		ui::waitForCover();
 		game::events.emit<BGMToggleEvent>(wsi.first->bgm, wsi.first);
 		std::tie(currentWorld, player->loc) = wsi; // using p causes segfault
+		game::engine.getSystem<WorldSystem>()->setWorld(currentWorld);
 		ui::toggleBlackFast();
 		ui::waitForUncover();
 		player->canMove = true; // using p causes segfault
@@ -397,6 +398,7 @@ void NPC::createFromXML(XMLElement *e, World *w=nullptr)
 	unsigned int flooor;
 
 	xmle = e;
+	(void)w;
 
     // spawn at coordinates if desired
 	E_LOAD_COORDS(100);
@@ -411,10 +413,6 @@ void NPC::createFromXML(XMLElement *e, World *w=nullptr)
 		addAIFunc(false);
 	else
         dialogIndex = 9999;
-
-
-    if (/*Indoor && */e->QueryUnsignedAttribute("floor", &flooor) == XML_NO_ERROR)
-        Indoorp(w)->moveToFloor(this, flooor);
 
     // custom health value
 	E_LOAD_HEALTH;
@@ -497,8 +495,7 @@ void Structures::createFromXML(XMLElement *e, World *w)
 
 	// edge
 	if (!inside.empty()) {
-		insideWorld = dynamic_cast<IndoorWorld *>(loadWorldFromXMLNoTakeover(inside));
-		insideWorld->outside = inWorld;
+		insideWorld = loadWorldFromXMLNoTakeover(inside);
 	}
 
 	textureLoc = e->StrAttribute("texture");

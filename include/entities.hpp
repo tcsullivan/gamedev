@@ -339,7 +339,7 @@ class Structures : public Entity {
 public:
 	BUILD_SUB bsubtype;
 	World *inWorld;
-	IndoorWorld *insideWorld;
+	World *insideWorld;
 	std::string inside;
 	std::string textureLoc;
 

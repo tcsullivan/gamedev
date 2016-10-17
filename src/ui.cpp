@@ -1441,7 +1441,6 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-	auto indoor = dynamic_cast<IndoorWorld *>(currentWorld);
 	Mob *m; // ;lkjfdsa
 	Entity *ent; // used for interaction
 
@@ -1555,18 +1554,6 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 				m = currentWorld->getNearMob(*player);
 				if (m != nullptr)
 					m->ride(player);
-				break;
-			case SDLK_i:
-				if (indoor && indoor->isFloorAbove(player)) {
-					player->loc.y += INDOOR_FLOOR_HEIGHT;
-					player->ground = false;
-				}
-				break;
-			case SDLK_k:
-				if (indoor && indoor->isFloorBelow(player)) {
-					player->loc.y -= INDOOR_FLOOR_HEIGHT;
-					player->ground = false;
-				}
 				break;
 			case SDLK_l:
 				currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});

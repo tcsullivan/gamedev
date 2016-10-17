@@ -17,7 +17,7 @@
  * in World::setBackground() to select the appropriate images.
  */
 enum class WorldBGType : unsigned int {
-	Forest,		/**< A forest theme. */
+	Forest = 0,	/**< A forest theme. */
 	WoodHouse	/**< An indoor wooden house theme. */
 };
 
@@ -142,6 +142,7 @@ constexpr const char* WorldWeatherString[3] = {
 class WorldSystem : public entityx::System<WorldSystem>, public entityx::Receiver<WorldSystem> {
 private:
 	World *world;
+	World *outside;
 
 	WorldWeather weather;
 
@@ -149,7 +150,6 @@ private:
 	std::string bgmObjFile;
 
 	std::vector<std::string> bgFiles;
-	std::vector<std::string> bgFilesIndoors;
 
 	TextureIterator bgTex;
 
@@ -180,6 +180,9 @@ public:
 	void detect(entityx::TimeDelta dt);
 
 	void detect2(entityx::TimeDelta dt);
+
+	void enterWorld(World *w);
+	void leaveWorld(void);
 };
 
 
@@ -190,8 +193,13 @@ public:
  * drawing.
  */
 class World {
-//friend class ItemLight;
+private:
+	bool m_Indoor;
+
 public:
+
+	inline bool isIndoor(void) const
+	{ return m_Indoor; }
 
 	WorldBGType bgType;
 
@@ -285,7 +293,7 @@ public:
 	/**
 	 * Constructs the world, resets variables.
 	 */
-	World(void);
+	World(bool indoor = false);
 
 	/**
 	 * Destructs the world, frees memory.
@@ -429,50 +437,6 @@ public:
 	void addStructure(Structures *s);
 
 	Village *addVillage(std::string name, World *world);
-};
-
-/**
- * IndoorWorld - Indoor settings stored in a World class
- */
-class IndoorWorld : public World {
-private:
-
-	// like lines, but split into floors
-	std::vector<std::vector<float>> floor;
-
-	// the x coordinate to start each floor at
-	std::vector<float> fstart;
-
-	// handles physics for a single entity
-	void singleDetect(Entity *e);
-
-public:
-
-	World *outside;
-
-	// creates an IndoorWorld object
-	IndoorWorld(void);
-
-	// frees memory used by this object
-	~IndoorWorld(void);
-
-	// adds a floor of the desired width
-	void addFloor(unsigned int width);
-
-	// adds a floor at the desired x coordinate with the given width
-	void addFloor(unsigned int width, unsigned int start);
-
-	// attempts to move the entity provided to the given floor
-	bool moveToFloor(Entity *e, unsigned int _floor);
-
-	// checks for a floor above the given entity
-	bool isFloorAbove(Entity *e);
-
-	// checks for a floor below the given entity
-	bool isFloorBelow(Entity *e);
-
-	// draws the world about the player
-	void draw(Player *p);
 };
 
 /**
