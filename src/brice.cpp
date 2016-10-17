@@ -59,6 +59,12 @@ namespace game {
 
 	void briceLoad(void) {
 		const char *data = readFile("brice.dat");
+
+		if (data == nullptr) {
+			briceClear();
+			data = readFile("brice.dat");
+		}
+
 		auto datas = StringTokenizer(data, '\n');
 
 		if (datas.size() != 0) {

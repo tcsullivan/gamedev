@@ -117,8 +117,10 @@ const char *readFile(const char *path)
 	unsigned int size;
 	GLchar *buf;
 
-	if (!in.is_open())
-		UserError("Error reading file " + (std::string)path + "!");
+	if (!in.is_open()) {
+//		UserError("Error reading file " + (std::string)path + "!");
+		return nullptr;
+	}
 
 	in.seekg(0,in.end);
 	buf = new GLchar[(size = in.tellg()) + 1];
