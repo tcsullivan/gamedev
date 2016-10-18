@@ -77,25 +77,16 @@ std::string currentXML;
 static std::vector<WorldSwitchInfo> arenaNest;
 
 // pathnames of images for world themes
-constexpr const unsigned int BG_PATHS_ENTRY_SIZE = 9;
-static const std::string bgPaths[][BG_PATHS_ENTRY_SIZE] = {
-    {"bg.png",					// Daytime background
-     "bgn.png",					// Nighttime background
-     "bgFarMountain.png",		// Furthest layer
-     "forestTileFar.png",		// Furthest away Tree Layer
-     "forestTileBack.png",		// Closer layer
-     "forestTileMid.png",		// Near layer
-     "forestTileFront.png",		// Closest layer
-     "dirt.png",				// Dirt
-     "grass.png"},				// Grass
-    {"bgWoodTile.png",
-     "bgWoodTile.png",
-     "bgWoodTile.png",
-     "bgWoodTile.png",
-     "bgWoodTile.png",
-     "bgWoodTile.png",
-     "bgWoodTile.png",
-     "bgWoodTile.png"}
+static const std::string bgPaths[] = {
+    "bg.png",					// Daytime background
+    "bgn.png",					// Nighttime background
+    "bgFarMountain.png",		// Furthest layer
+    "forestTileFar.png",		// Furthest away Tree Layer
+    "forestTileBack.png",		// Closer layer
+    "forestTileMid.png",		// Near layer
+    "forestTileFront.png",		// Closest layer
+    "dirt.png",					// Dirt
+    "grass.png",				// Grass
 };
 
 // pathnames of structure textures
@@ -195,9 +186,9 @@ generate(int width)
     auto wditer = std::begin(worldData) + GROUND_HILLINESS;
 
 	if (m_Indoor) {
-		for(; wditer < std::end(worldData); wditer++) {
+		for(wditer = std::begin(worldData); wditer < std::end(worldData); wditer++) {
 			auto w = &*(wditer);
-			w->groundHeight = 100;
+			w->groundHeight = GROUND_HEIGHT_MINIMUM + 5;
 			w->groundColor = 4;
 		}
 	} else {
@@ -961,19 +952,14 @@ loadWorldFromXMLNoSave(std::string path) {
 
         // world generation (for outdoor areas)
         else if (name == "generation") {
-            // random gen.
-			if (!Indoor && wxml->StrAttribute("type") == "Random")
-				tmp->generate(wxml->UnsignedAttribute("width") / game::HLINE);
-            else {
-                if (Indoor)
-                    UserError("XML Error: <generation> tags can't be in <IndoorWorld> tags, use <floor> instead (in " + _currentXML + ")!");
-                else
-                    UserError("XML Error: Invalid <generation> tag in " + _currentXML + "!");
-            }
+			tmp->generate(wxml->UnsignedAttribute("width") / game::HLINE);
 		}
 
-		else if (name == "floor" && tmp->isIndoor()) {
-			tmp->generate(wxml->UnsignedAttribute("width") / game::HLINE);
+		else if (name == "house") {
+			if (Indoor)
+				tmp->HouseWidth = wxml->FloatAttribute("width");
+			else
+				UserError("<house> can only be used with indoor worlds");
 		}
 
 		// weather tags
@@ -1423,29 +1409,46 @@ void WorldSystem::render(void)
 	// draw the remaining layers
 	for (unsigned int i = 0; i < 4; i++) {
 		bgTex++;
-        dim2 dim = bgTex.getTextureDim();
+		auto dim = bgTex.getTextureDim();
 		auto xcoord = offset.x * bgDraw[i][2];
 
 		bg_items.clear();
 		bg_tex.clear();
 
-		for (int j = worldStart; j <= -worldStart; j += dim.x) {
-            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
-            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
-            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
+		if (world->isIndoor() && i == 3) {
+			static const GLuint tex = Texture::loadTexture(world->styleFolder + "insideWoodHouse.png");
+			static const auto dimm = Texture::imageDim(world->styleFolder + "insideWoodHouse.png");
+			glBindTexture(GL_TEXTURE_2D, tex);
 
-            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
-            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
-            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
+			bg_items.emplace_back(worldStart, GROUND_HEIGHT_MINIMUM, 7-(i*.1));
+	        bg_items.emplace_back(worldStart + world->HouseWidth, GROUND_HEIGHT_MINIMUM,	7-(i*.1));
+	        bg_items.emplace_back(worldStart + world->HouseWidth, GROUND_HEIGHT_MINIMUM + dimm.y, 7-(i*.1));
+
+	        bg_items.emplace_back(worldStart + world->HouseWidth, GROUND_HEIGHT_MINIMUM + dimm.y, 7-(i*.1));
+	        bg_items.emplace_back(worldStart, GROUND_HEIGHT_MINIMUM + dimm.y, 7-(i*.1));
+	        bg_items.emplace_back(worldStart, GROUND_HEIGHT_MINIMUM,	7-(i*.1));
+		} else {
+			for (int j = worldStart; j <= -worldStart; j += dim.x) {
+	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
+	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
+	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
+
+	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
+	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
+	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
+			}
 		}
 
-        for (uint i = 0; i < bg_items.size()/6; i++) {
-            for (auto &v : bg_tex_coord)
-                bg_tex.push_back(v);
-        }
+   	    for (uint i = 0; i < bg_items.size()/6; i++) {
+			for (auto &v : bg_tex_coord)
+				bg_tex.push_back(v);
+		}
 
         Render::worldShader.use();
 		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.075f + (0.2f*i));
+
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 		makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, bg_items.data(), &bg_tex[0], bg_items.size());
 
@@ -1572,6 +1575,14 @@ void WorldSystem::render(void)
 
     	Render::worldShader.disable();
 		Render::worldShader.unuse();
+	} else {
+		Render::useShader(&Render::worldShader);
+		Render::worldShader.use();
+		static const GLuint rug = Texture::genColor(Color {255, 0, 0});
+		glBindTexture(GL_TEXTURE_2D, rug);
+		vec2 ll = vec2 {worldStart, GROUND_HEIGHT_MINIMUM};
+		Render::drawRect(ll, vec2 {ll.x + world->HouseWidth, ll.y + 4}, -3);
+		Render::worldShader.unuse();
 	}
 
 	player->draw();
@@ -1582,8 +1593,11 @@ void WorldSystem::setWorld(World *w)
 	world = w;
 
 	bgFiles.clear();
-	for (const auto &s : bgPaths[(int)w->bgType])
-		bgFiles.push_back(w->styleFolder + s);
+
+	for (int i = 0; i < 9; i++) { 
+		int idx = /*((int)w->bgType * 9) +*/ i;
+		bgFiles.push_back(w->styleFolder + bgPaths[idx]);
+	}
 
 	bgTex = TextureIterator(bgFiles);
 }

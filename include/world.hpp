@@ -198,6 +198,8 @@ private:
 
 public:
 
+	float HouseWidth;
+
 	inline bool isIndoor(void) const
 	{ return m_Indoor; }
 

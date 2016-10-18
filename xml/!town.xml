@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <World>
     <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
-    <generation type="Random" width="1600"/>
+    <generation width="1600"/>
     <time>6000</time>
     <spawnx>-300</spawnx>
     <npc name="Sanc" hasDialog="true" health="1" x="23.971899" y="59.998001" dindex="9999"/>
