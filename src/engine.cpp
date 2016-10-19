@@ -6,6 +6,7 @@
 #include <inventory.hpp>
 #include <entities.hpp>
 #include <window.hpp>
+#include <components.hpp>
 
 extern World *currentWorld;
 
@@ -19,9 +20,11 @@ void Engine::init(void) {
     game::events.subscribe<GameEndEvent>(*this);
 
     systems.add<WindowSystem>();
-    systems.add<InputSystem>();
+    systems.add<RenderSystem>();
+	systems.add<InputSystem>();
     systems.add<InventorySystem>();
     systems.add<WorldSystem>();
+	systems.add<MovementSystem>();	
     systems.add<PlayerSystem>(&player);
 
     systems.configure();
@@ -31,7 +34,9 @@ void Engine::init(void) {
 
 void Engine::render(entityx::TimeDelta dt)
 {
-    systems.update<WindowSystem>(dt);
+    systems.update<RenderSystem>(dt);
+	systems.update<WindowSystem>(dt);
+	
 }
 
 void Engine::update(entityx::TimeDelta dt)
@@ -39,6 +44,7 @@ void Engine::update(entityx::TimeDelta dt)
     systems.update<InputSystem>(dt);
     systems.update<InventorySystem>(dt);
     systems.update<PlayerSystem>(dt);
+	systems.update<MovementSystem>(dt);
 	systems.update<WorldSystem>(dt);
 }
 
@@ -46,6 +52,7 @@ void Engine::update(entityx::TimeDelta dt)
 namespace game {
 	entityx::EventManager events;
 	entityx::EntityManager entities (events);
+	SpriteLoader sprite_l;	
 
     Engine engine;
 }

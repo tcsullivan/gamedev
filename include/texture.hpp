@@ -35,6 +35,42 @@ namespace Texture {
 	dim2 imageDim(std::string fileName);
 }
 
+class SpriteLoader {
+private:
+	std::unordered_map<uint64_t, GLuint> sprites;
+	std::unordered_map<std::string, uint64_t> spritesLoc;
+
+	uint64_t freeID = 0;
+	uint64_t increaseID() {
+		uint64_t id_t = 0;
+		while (1) {
+			try {
+				sprites.at(id_t);
+			} catch (const std::out_of_range& oor) {
+				freeID = id_t;
+				return freeID;
+			}
+			id_t++;
+		}		
+	}
+public:
+	uint64_t loadSprite(std::string s)	{
+		uint64_t tex_e;
+		try {
+			tex_e = spritesLoc.at(s);
+		} catch (const std::out_of_range& oor) {
+			sprites.emplace(increaseID(), Texture::loadTexture (s));
+			spritesLoc.emplace(s, freeID);
+			return freeID;
+		}
+		return tex_e;
+	}
+
+	GLuint getSprite(uint64_t id) {
+		return sprites.at(id);
+	}
+};
+
 /**
  * DRAFT texture iterator?
  */

@@ -517,6 +517,7 @@ public:
 	void receive(const KeyUpEvent &kue);
 };
 
+void entityxTest();
 
 #endif // ENTITIES_H
 

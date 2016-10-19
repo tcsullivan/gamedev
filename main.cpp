@@ -221,6 +221,9 @@ int main(int argc, char *argv[])
 
 	game::engine.getSystem<WorldSystem>()->setWorld(currentWorld);
 
+	//TODO
+	entityxTest();
+
 	// spawn the arena
 	arena = new Arena();
 	arena->setStyle("");
