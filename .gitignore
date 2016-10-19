@@ -2,3 +2,6 @@ main
 doc/**
 storyXML/*.dat
 xml/*.dat
+brice.dat
+config/settings.xml
+setup.mk

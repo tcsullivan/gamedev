@@ -56,6 +56,8 @@ typedef unsigned int uint;
  */
 #define DEBUG_printf(message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__)
 
+#define BREAKPOINT __asm__("int $3")
+
 /**
  * Creates a coordinate of integers.
  */

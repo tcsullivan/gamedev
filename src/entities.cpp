@@ -163,7 +163,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 		} else if (kc == getControl(4)) {
 			p->speed = .5;
 		} else if (kc == getControl(5)) {
-			static int heyOhLetsGo = 0;
+			/*static int heyOhLetsGo = 0;
 
 			//edown = true;
 
@@ -179,7 +179,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 
 				// enable action ui
 				ui::action::enable();
-			}
+			}*/
 		}
 	} else if (kc == SDLK_DELETE) {
 		game::endGame();
@@ -499,6 +499,8 @@ void Structures::createFromXML(XMLElement *e, World *w)
 	}
 
 	textureLoc = e->StrAttribute("texture");
+
+	insideTex = Texture::loadTexture(e->StrAttribute("insideTexture"));
 
 	spawn(static_cast<BUILD_SUB>(e->UnsignedAttribute("type")),
 	      e->QueryFloatAttribute("spawnx", &spawnx) == XML_NO_ERROR ? spawnx : (randGet() % w->getTheWidth() / 2.0f),

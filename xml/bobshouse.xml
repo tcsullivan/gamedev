@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <IndoorWorld>
-    <style background="1" bgm="assets/music/theme_jazz.wav" folder="assets/style/classic/"/>
-    <floor width="1600"/>
+    <style background="0" bgm="assets/music/theme_jazz.wav" folder="assets/style/classic/"/>
+	<house width="800" />
+	<generation width="1600" />	
     <link outside="town.xml"/>
     <npc name="Bob" hasDialog="false" spawnx="30"/>
 </IndoorWorld>

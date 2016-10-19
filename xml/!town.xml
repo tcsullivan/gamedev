@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <World>
     <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
-    <generation type="Random" width="1600"/>
+    <generation width="1600"/>
     <time>6000</time>
     <spawnx>-300</spawnx>
-    <npc name="Sanc" hasDialog="true" health="1" x="-208.37956" y="65.399033" dindex="9999"/>
-    <npc name="Bob" hasDialog="true" spawnx="30" health="1" x="283.33429" y="67.798996" dindex="0"/>
+    <npc name="Sanc" hasDialog="true" health="1" x="-324.26083" y="64.398972" dindex="9999"/>
+    <npc name="Bob" hasDialog="true" spawnx="30" health="1" x="94.415268" y="62.398994" dindex="0"/>
     <structure type="1" spawnx="300" alive="1"/>
-    <structure inside="bobshouse.xml" type="1" spawnx="10" alive="1"/>
+    <structure inside="bobshouse.xml" insideTexture="assets/style/classic/bg/insideWoodHouse.png" type="1" spawnx="10" alive="1"/>
     <chest alive="1"/>
 </World>
 

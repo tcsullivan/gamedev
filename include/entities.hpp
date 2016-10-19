@@ -343,6 +343,8 @@ public:
 	std::string inside;
 	std::string textureLoc;
 
+	GLuint insideTex;
+
 	Structures();
 	~Structures();
 
