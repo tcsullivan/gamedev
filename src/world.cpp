@@ -77,16 +77,20 @@ std::string currentXML;
 static std::vector<WorldSwitchInfo> arenaNest;
 
 // pathnames of images for world themes
-static const std::string bgPaths[] = {
-    "bg.png",					// Daytime background
-    "bgn.png",					// Nighttime background
-    "bgFarMountain.png",		// Furthest layer
-    "forestTileFar.png",		// Furthest away Tree Layer
-    "forestTileBack.png",		// Closer layer
-    "forestTileMid.png",		// Near layer
-    "forestTileFront.png",		// Closest layer
-    "dirt.png",					// Dirt
-    "grass.png",				// Grass
+using StyleList = std::array<std::string, 9>;
+
+static const std::vector<StyleList> bgPaths = {
+	{ // Forest 
+		"bg.png", 				// daytime background
+		"bgn.png",				// nighttime background
+		"bgFarMountain.png",	// layer 1 (furthest)
+		"forestTileFar.png",	// layer 2
+		"forestTileBack.png",	// layer 3
+		"forestTileMid.png",	// layer 4
+		"forestTileFront.png",	// layer 5 (closest)
+		"dirt.png",				// ground texture
+		"grass.png"				// grass (ground-top) texture
+	}
 };
 
 // pathnames of structure textures
@@ -614,6 +618,7 @@ WorldSwitchInfo World::goInsideStructure(Player *p)
 		delete[] buf;
 
 		tmp = dynamic_cast<Structures *>(*d)->insideWorld;
+		tmp->houseTex = dynamic_cast<Structures *>(*d)->insideTex;
 
 		return std::make_pair(tmp, vec2 {0, 100});
 	}
@@ -637,7 +642,7 @@ WorldSwitchInfo World::goInsideStructure(Player *p)
         }
 
         if (b == nullptr)*/
-            return std::make_pair(this, vec2 {0, 0});
+            return std::make_pair(currentWorld, vec2 {0, 100});
 
 		//return std::make_pair(tmp, vec2 {b->loc.x + (b->width / 2), 0});
 	}
@@ -1416,16 +1421,14 @@ void WorldSystem::render(void)
 		bg_tex.clear();
 
 		if (world->isIndoor() && i == 3) {
-			static const GLuint tex = Texture::loadTexture(world->styleFolder + "insideWoodHouse.png");
-			static const auto dimm = Texture::imageDim(world->styleFolder + "insideWoodHouse.png");
-			glBindTexture(GL_TEXTURE_2D, tex);
+			glBindTexture(GL_TEXTURE_2D, world->houseTex);
 
 			bg_items.emplace_back(worldStart, GROUND_HEIGHT_MINIMUM, 7-(i*.1));
 	        bg_items.emplace_back(worldStart + world->HouseWidth, GROUND_HEIGHT_MINIMUM,	7-(i*.1));
-	        bg_items.emplace_back(worldStart + world->HouseWidth, GROUND_HEIGHT_MINIMUM + dimm.y, 7-(i*.1));
+	        bg_items.emplace_back(worldStart + world->HouseWidth, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
 
-	        bg_items.emplace_back(worldStart + world->HouseWidth, GROUND_HEIGHT_MINIMUM + dimm.y, 7-(i*.1));
-	        bg_items.emplace_back(worldStart, GROUND_HEIGHT_MINIMUM + dimm.y, 7-(i*.1));
+	        bg_items.emplace_back(worldStart + world->HouseWidth, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
+	        bg_items.emplace_back(worldStart, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
 	        bg_items.emplace_back(worldStart, GROUND_HEIGHT_MINIMUM,	7-(i*.1));
 		} else {
 			for (int j = worldStart; j <= -worldStart; j += dim.x) {
@@ -1594,10 +1597,10 @@ void WorldSystem::setWorld(World *w)
 
 	bgFiles.clear();
 
-	for (int i = 0; i < 9; i++) { 
-		int idx = /*((int)w->bgType * 9) +*/ i;
-		bgFiles.push_back(w->styleFolder + bgPaths[idx]);
-	}
+	const auto& files = bgPaths[(int)w->bgType];
+
+	for (const auto& f : files)
+		bgFiles.push_back(w->styleFolder + f);
 
 	bgTex = TextureIterator(bgFiles);
 }
@@ -1639,7 +1642,7 @@ void WorldSystem::enterWorld(World *w)
 
 void WorldSystem::leaveWorld(void)
 {
-	world = outside;
+	world = currentWorld = outside;
 } 
 
 void WorldSystem::singleDetect(Entity *e, entityx::TimeDelta dt)

@@ -17,8 +17,7 @@
  * in World::setBackground() to select the appropriate images.
  */
 enum class WorldBGType : unsigned int {
-	Forest = 0,	/**< A forest theme. */
-	WoodHouse	/**< An indoor wooden house theme. */
+	Forest = 0	/**< A forest theme. */
 };
 
 /**
@@ -199,6 +198,7 @@ private:
 public:
 
 	float HouseWidth;
+	GLuint houseTex;
 
 	inline bool isIndoor(void) const
 	{ return m_Indoor; }
