@@ -299,6 +299,11 @@ void WorldSystem::load(const std::string& file)
             game::time::setTickCount(std::stoi(wxml->GetText()));
         }
 
+		// hill creation
+		/*else if (tagName == "hill") {
+			addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
+		}*/
+
 		wxml = wxml->NextSiblingElement();		
 	}
 }
