@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <list>
 #include <iterator>
+#include <unordered_map>
 
 // alternative windows thread library
 #ifndef __WIN32__

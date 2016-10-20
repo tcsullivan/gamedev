@@ -21,7 +21,7 @@ using namespace tinyxml2;
 // local game includes
 #include <common.hpp>
 #include <config.hpp>
-//#include <entities.hpp>
+#include <entities.hpp>
 #include <world.hpp>
 #include <ui.hpp>
 #include <gametime.hpp>
@@ -201,6 +201,9 @@ int main(int argc, char *argv[])
 
 	ui::menu::init();
 //	game::events.emit<BGMToggleEvent>(currentWorld->bgm);
+
+	//TODO
+	entityxTest();
 
 	// the main loop, in all of its gloriousness..
 	std::thread([&]{

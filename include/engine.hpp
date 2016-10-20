@@ -2,8 +2,13 @@
 #define ENGINE_HPP_
 
 #include <entityx/entityx.h>
+#include "entityx/deps/Dependencies.h"
 
+#include <texture.hpp>
+#include <components.hpp>
 #include <events.hpp>
+
+//game::engine::Systems->add<entityx::deps::Dependency<Visible, Sprite>>();
 
 class Engine : public entityx::Receiver<Engine> {
 private:
@@ -38,7 +43,7 @@ public:
 
 
 namespace game {
-    extern entityx::EventManager events;
+	extern entityx::EventManager events;
     extern entityx::EntityManager entities;
 
     extern Engine engine;
@@ -46,6 +51,8 @@ namespace game {
     inline void endGame(void) {
         events.emit<GameEndEvent>();
     }
+	
+	extern SpriteLoader sprite_l;
 }
 
 

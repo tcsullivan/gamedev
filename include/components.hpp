@@ -10,6 +10,7 @@
 #define COMPONENTS_HPP
 
 #include <entityx/entityx.h>
+#include <common.hpp>
 
 /**
  * @struct Position
@@ -91,7 +92,11 @@ struct Solid {
 };
 
 struct SpriteData {
-	uint sheetID;
+	
+	SpriteData(uint64_t sid = 0, vec2 offset = 0.0f, vec2 size = 0.0f): 
+		sheetID(sid), offset(offset), size(size) {}
+	
+	uint64_t sheetID;
 	vec2 offset;
 	vec2 size;
 };
@@ -146,6 +151,37 @@ struct Animate {
 
 struct Input {
 	
+};
+
+/**
+ * @struct Visible
+ * @brief If an entity is visible we want to be able to draw it.
+ */
+struct Visible {
+	/**
+	 * @brief Decide what layer to draw the entity on.
+	 * When stuff is drawn, it is drawn on a "layer". This layer gives more of a 3D effect to the world.
+	 * @param z The desired "layer" of the entity.
+	 */
+	Visible(float z = 0.0f): z(z) {}
+
+	float z; /**< The value along the z axis the entity will be drawn on */
+};
+
+/**
+ * SYSTEMS
+ */
+
+class MovementSystem : public entityx::System<MovementSystem> {
+private:
+public:
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+};
+
+class RenderSystem : public entityx::System<RenderSystem> {
+private:
+public:	
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 };
 
 #endif //COMPONENTS_HPP
