@@ -21,7 +21,7 @@ using namespace tinyxml2;
 // local game includes
 #include <common.hpp>
 #include <config.hpp>
-#include <entities.hpp>
+//#include <entities.hpp>
 #include <world.hpp>
 #include <ui.hpp>
 #include <gametime.hpp>
@@ -33,22 +33,11 @@ using namespace tinyxml2;
 ** Variables section
 ** --------------------------------------------------------------------------*/
 
-// world objects for the current world and the two that are adjacent
-World *currentWorld        = NULL,
-	  *currentWorldToLeft  = NULL,
-	  *currentWorldToRight = NULL;
-
-// an arena for fightin'
-Arena *arena = nullptr;
-
 // the currently used folder to grab XML files
 std::string xmlFolder;
 
 // the current menu
 Menu *currentMenu;
-
-// the player object
-Player *player;
 
 // keeps a simple palette of colors for single-color draws
 GLuint colorIndex;
@@ -137,13 +126,13 @@ int main(int argc, char *argv[])
 	game::briceUpdate();
 
 	// load sprites used in the inventory menu. See src/inventory.cpp
-	initInventorySprites();
+	//initInventorySprites();
 
 	// load mouse texture, and other inventory textures
 	mouseTex = Texture::loadTexture("assets/mouse.png");
 
-	player = new Player();
-	player->sspawn(0,100);
+	//player = new Player();
+	//player->sspawn(0,100);
 
 	// get a world
 	if (xmlFolder.empty())
@@ -197,35 +186,21 @@ int main(int argc, char *argv[])
 		goto EXIT_ROUTINE;
 
 	if (!worldActuallyUseThisXMLFile.empty()) {
-		delete currentWorld;
-		currentWorld = loadWorldFromXML(worldActuallyUseThisXMLFile);
-	} else if (currentWorld == nullptr) {
-
+		game::engine.getSystem<WorldSystem>()->load(worldActuallyUseThisXMLFile);
+	} else {
 		// load the first valid XML file for the world
 		for (const auto &xf : xmlFiles) {
 			if (xf[0] != '.') {
 				// read it in
 				std::cout << "File to load: " << xf << '\n';
-				currentWorld = loadWorldFromXML(xf);
+				game::engine.getSystem<WorldSystem>()->load(xf);
 				break;
 			}
 		}
 	}
 
-	// make sure the world was made
-	if (currentWorld == nullptr)
-		UserError("Plot twist: The world never existed...?");
-
 	ui::menu::init();
-	game::events.emit<BGMToggleEvent>(currentWorld->bgm);
-
-	game::engine.getSystem<WorldSystem>()->setWorld(currentWorld);
-
-	// spawn the arena
-	arena = new Arena();
-	arena->setStyle("");
-	arena->setBackground(WorldBGType::Forest);
-	arena->bgm = "assets/music/embark.wav";
+//	game::events.emit<BGMToggleEvent>(currentWorld->bgm);
 
 	// the main loop, in all of its gloriousness..
 	std::thread([&]{
@@ -239,7 +214,7 @@ int main(int argc, char *argv[])
 	std::thread([&]{
 		while (game::engine.shouldRun()) {
 			fps = 1000 / game::time::getDeltaTime();
-			debugY = player->loc.y;
+//			debugY = player->loc.y;
 
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 		}
@@ -259,21 +234,17 @@ EXIT_ROUTINE:
     Mix_HaltMusic();
     Mix_CloseAudio();
 
-    destroyInventory();
+//    destroyInventory();
 	ui::destroyFonts();
     Texture::freeTextures();
 
 	// close up the game stuff
-	currentWorld->save();
-	delete arena;
-	//delete currentWorld;
+//	currentWorld->save();
 
 	game::engine.getSystem<WindowSystem>()->die();
 
     return 0; // Calls everything passed to atexit
 }
-
-extern std::vector<NPC *> aipreload;
 
 void mainLoop(void){
 	game::time::mainLoopHandler();
@@ -281,14 +252,6 @@ void mainLoop(void){
 	if (currentMenu) {
 		return;
 	} else {
-		// Flush preloaded AI functions if necessary
-		if (!ui::dialogBoxExists) {
-			while (!aipreload.empty()) {
-				aipreload.front()->addAIFunc(false);
-				aipreload.erase(std::begin(aipreload));
-			}
-		}
-
 		if (game::time::tickHasPassed())
 			logic();
 
@@ -300,18 +263,20 @@ void render() {
 	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-	offset.x = player->loc.x + player->width / 2;
+//	offset.x = player->loc.x + player->width / 2;
+
+	auto worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
 
 	// ortho x snapping
-	if (currentWorld->getTheWidth() < (int)SCREEN_WIDTH)
+	if (worldWidth < (int)SCREEN_WIDTH)
 		offset.x = 0;
-	else if (offset.x - SCREEN_WIDTH / 2 < currentWorld->getTheWidth() * -0.5f)
-		offset.x = ((currentWorld->getTheWidth() * -0.5f) + SCREEN_WIDTH / 2);
-	else if (offset.x + SCREEN_WIDTH / 2 > currentWorld->getTheWidth() *  0.5f)
-		offset.x = ((currentWorld->getTheWidth() *  0.5f) - SCREEN_WIDTH / 2);
+	else if (offset.x - SCREEN_WIDTH / 2 < worldWidth * -0.5f)
+		offset.x = ((worldWidth * -0.5f) + SCREEN_WIDTH / 2);
+	else if (offset.x + SCREEN_WIDTH / 2 > worldWidth *  0.5f)
+		offset.x = ((worldWidth *  0.5f) - SCREEN_WIDTH / 2);
 
 	// ortho y snapping
-	offset.y = std::max(player->loc.y + player->height / 2, SCREEN_HEIGHT / 2.0f);
+	offset.y = /*std::max(player->loc.y + player->height / 2,*/ SCREEN_HEIGHT / 2.0f; /*);*/
 
 	// "setup"
 	glm::mat4 projection = glm::ortho(floor(offset.x - SCREEN_WIDTH / 2),          // left
@@ -343,10 +308,9 @@ void render() {
 
 	// draw the world and player
 	game::engine.getSystem<WorldSystem>()->render();
-	currentWorld->draw(player);
 	
 	// draw the player's inventory
-	player->inv->draw();
+	//player->inv->draw();
 
 	// draw the fade overlay
 	ui::drawFade();
@@ -359,21 +323,21 @@ void render() {
 		ui::putText(offset.x-SCREEN_WIDTH/2, (offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
 					"fps: %d\ngrounded:%d\nresolution: %ux%u\nentity cnt: %d\nloc: (%+.2f, %+.2f)\nticks: %u\nvolume: %f\nweather: %s\nxml: %s",
 					fps,
-					player->ground,
+					0,//player->ground,
 					SCREEN_WIDTH,				// Window dimensions
 					SCREEN_HEIGHT,				//
-					currentWorld->entity.size(),// Size of entity array
-					player->loc.x,				// The player's x coordinate
+					0,//currentWorld->entity.size(),// Size of entity array
+					0,//player->loc.x,				// The player's x coordinate
 					debugY,						// The player's y coordinate
 					game::time::getTickCount(),
 					game::config::VOLUME_MASTER,
 					game::engine.getSystem<WorldSystem>()->getWeatherStr().c_str(),
-					currentXML.c_str()
+					""//currentXML.c_str()
 					);
 
 		// draw tracer lines if desired
-		static const GLuint tracerText = Texture::genColor(Color(100,100,255));
-		if (ui::posFlag) {
+		//static const GLuint tracerText = Texture::genColor(Color(100,100,255));
+		/*if (ui::posFlag) {
 			GLfloat *tpoint = new GLfloat[currentWorld->getEntityCount() * 2 * 5];
 			auto tp = tpoint;
 
@@ -403,7 +367,7 @@ void render() {
 			Render::textShader.unuse();
 
 			delete[] tpoint;
-		}
+		}*/
 
 	}
 
@@ -421,14 +385,14 @@ void render() {
 }
 
 void logic(){
-	static bool NPCSelected    = false;
-	static bool ObjectSelected = false;
+//	static bool NPCSelected    = false;
+//	static bool ObjectSelected = false;
 
 	// exit the game if the player falls out of the world
-	if (player->loc.y < 0)
-		game::endGame();
+	/*if (player->loc.y < 0)
+		game::endGame();*/
 
-	if (player->inv->usingi) {
+	/*if (player->inv->usingi) {
 		for (auto &e : currentWorld->entity) {
 			if (player->inv->usingi && !e->isHit() &&
 				player->inv->detectCollision(vec2 { e->loc.x, e->loc.y }, vec2 { e->loc.x + e->width, e->loc.y + e->height})) {
@@ -437,9 +401,9 @@ void logic(){
 			}
 		}
 		player->inv->usingi = false;
-	}
+	}*/
 
-	for (auto &e : currentWorld->entity) {
+	/*for (auto &e : currentWorld->entity) {
 		if (e->isAlive() && ((e->type == NPCT) || (e->type == MERCHT) || (e->type == OBJECTT))) {
 			if (e->type == OBJECTT && ObjectSelected) {
 				e->near = false;
@@ -475,7 +439,7 @@ void logic(){
 			e->near = player->isNear(e);
 			e->wander();
 		}
-	}
+	}*/
 
 	// calculate the world shading value
 	worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
@@ -484,10 +448,11 @@ void logic(){
 	ui::fadeUpdate();
 
 	// create weather particles if necessary
-	auto weather = game::engine.getSystem<WorldSystem>()->getWeatherId();
+	/*auto weather = game::engine.getSystem<WorldSystem>()->getWeatherId();
+	auto worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
 	if (weather == WorldWeather::Rain) {
 		for (unsigned int r = (randGet() % 25) + 11; r--;) {
-			currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
+			currentWorld->addParticle(randGet() % worldWidth - (worldWidth / 2),
 									  offset.y + game::SCREEN_HEIGHT / 2,
 									  HLINES(1.25),										// width
 									  HLINES(1.25),										// height
@@ -500,7 +465,7 @@ void logic(){
 		}
 	} else if (weather == WorldWeather::Snowy) {
 		for (unsigned int r = (randGet() % 25) + 11; r--;) {
-			currentWorld->addParticle(randGet() % currentWorld->getTheWidth() - (currentWorld->getTheWidth() / 2),
+			currentWorld->addParticle(randGet() % worldWidth - (worldWidth / 2),
 									  offset.y + game::SCREEN_HEIGHT / 2,
 									  HLINES(1.25),										// width
 									  HLINES(1.25),										// height
@@ -511,10 +476,10 @@ void logic(){
 									  0													// no gravity, no bounce
 									  );
 		}
-	}
+	}*/
 
 	// increment game ticker
 	game::time::tick();
-	NPCSelected = false;
-	ObjectSelected = false;
+	//NPCSelected = false;
+	//ObjectSelected = false;
 }

@@ -21,10 +21,9 @@
 // local game headers
 #include <common.hpp>
 #include <config.hpp>
-#include <entities.hpp>
-#include <inventory.hpp>
+//#include <inventory.hpp>
 #include <ui_menu.hpp>
-#include <ui_action.hpp>
+//#include <ui_action.hpp>
 
 // local library headers
 #include <SDL2/SDL_opengl.h>
@@ -71,7 +70,6 @@ namespace ui {
 	extern bool posFlag;
 
 	extern unsigned char dialogOptChosen;
-	extern unsigned char merchOptChosen;
 	extern bool 		 dialogBoxExists;
 	extern bool 		 dialogImportant;
 	extern bool 		 dialogPassive;
@@ -123,8 +121,6 @@ namespace ui {
 	void drawBox(vec2 c1, vec2 c2);
 	void drawNiceBox(vec2 c1, vec2 c2, float z);
 	void dialogBox(std::string name, std::string opt, bool passive, std::string text, ...);
-	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...);
-	void merchantBox();
 	void closeBox();
 	void waitForDialog(void);
 

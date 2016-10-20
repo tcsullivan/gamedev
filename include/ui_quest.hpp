@@ -27,14 +27,14 @@ namespace ui {
 
 			ui::putStringCentered(offset.x, top_y - 40, "Current Quests:");
 			
-			auto y = top_y - 100;
+			/*auto y = top_y - 100;
 			const auto x = offset.x - 180;
 			for (const auto &q : player->qh.current) {
 				ui::putText(x, y, q.title.c_str());
 				y -= 20;
 				ui::putText(x + 40, y, q.desc.c_str());
 				y -= 40; 
-			}
+			}*/
 
 			std::swap(textWrap, ui::textWrapLimit);
 		}

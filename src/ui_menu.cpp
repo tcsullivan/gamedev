@@ -2,6 +2,7 @@
 
 #include <engine.hpp>
 #include <render.hpp>
+#include <texture.hpp>
 
 #include <fstream>
 

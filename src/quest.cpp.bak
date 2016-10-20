@@ -1,9 +1,6 @@
 #include <algorithm>
 
 #include <quest.hpp>
-#include <entities.hpp>
-
-extern Player *player;
 
 int QuestHandler::assign(std::string title,std::string desc,std::string req) {
 	Quest tmp;
@@ -43,15 +40,15 @@ int QuestHandler::drop(std::string title) {
 int QuestHandler::finish(std::string t) {
 	for (auto c = current.begin(); c != current.end(); c++) {
 		if ((*c).title == t) {
-			for (auto &n : (*c).need) {
-				if (player->inv->hasItem(n.first) < n.second)
+			//for (auto &n : (*c).need) {
+				//if (player->inv->hasItem(n.first) < n.second)
 					return 0;
-			}
+			//}
 
-			for (auto &n : (*c).need)
-				player->inv->takeItem(n.first, n.second);
-			current.erase(c);
-			return 1;
+			//for (auto &n : (*c).need)
+				//player->inv->takeItem(n.first, n.second);
+			//current.erase(c);
+			//return 1;
 		}
 	}
 

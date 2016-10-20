@@ -13,21 +13,6 @@ extern Menu* currentMenu;
 
 extern SDL_Window *window;
 
-/**
- * External references for updating player coords / current world.
- */
-
-extern Player *player;
-extern World  *currentWorld;
-extern World  *currentWorldToLeft;
-extern World  *currentWorldToRight;
-
-/**
- * Pressing ESC or closing the window will set this to false.
- */
-extern bool gameRunning;
-
-
 std::array<SDL_Keycode, 6> controlMap = {
 	SDLK_w, SDLK_a, SDLK_d, SDLK_LSHIFT, SDLK_LCTRL, SDLK_e
 };
@@ -79,7 +64,6 @@ static std::vector<std::pair<vec2, std::string>> textToDraw;
 
 static std::vector<std::pair<std::string,vec3>> dialogOptText;
 static std::string dialogBoxText;
-static std::vector<vec3> merchArrowLoc (2, vec3 { 0, 0, 0 });
 static bool typeOutDone = true;
 static bool typeOutSustain = false;
 
@@ -183,7 +167,6 @@ namespace ui {
 	bool dialogPassive = false;
 	bool dialogMerchant = false;
 	int dialogPassiveTime = 0;
-	Trade merchTrade;
 
 	int fontTransInv = 255;
 
@@ -194,7 +177,6 @@ namespace ui {
 	bool dialogBoxExists = false;
 	bool dialogImportant = false;
 	unsigned char dialogOptChosen = 0;
-	unsigned char merchOptChosen = 0;
 
 	unsigned int textWrapLimit = 0;
 
@@ -582,54 +564,6 @@ namespace ui {
 		ret.clear();
 	}
 
-	void merchantBox(const char *name,Trade trade,const char *opt,bool passive,const char *text,...) {
-		va_list dialogArgs;
-		std::unique_ptr<char[]> printfbuf (new char[512]);
-
-		dialogPassive = passive;
-		merchTrade = trade;
-
-		// clear the buffer
-		dialogBoxText.clear();
-		dialogBoxText = (std::string)name + ": ";
-
-		va_start(dialogArgs,text);
-		vsnprintf(printfbuf.get(),512,text,dialogArgs);
-		va_end(dialogArgs);
-		dialogBoxText += printfbuf.get();
-
-		// free old option text
-		dialogOptText.clear();
-
-		dialogOptChosen = 0;
-		merchOptChosen = 0;
-
-		// handle options if desired
-		if (opt) {
-			std::string soptbuf = opt;
-			char *sopt = strtok(&soptbuf[0], ":");
-
-			// cycle through options
-			while(sopt) {
-				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}));
-				sopt = strtok(NULL,":");
-			}
-		}
-
-		// allow box to be displayed
-		dialogBoxExists = true;
-		dialogImportant = false;
-		dialogMerchant = true;
-		textWrapLimit = 50;
-
-		ret.clear();
-	}
-
-	void merchantBox() {
-		textWrapLimit = 50;
-		dialogMerchant = true;
-	}
-
 	/**
 	 * Wait for a dialog box to be dismissed.
 	 */
@@ -904,7 +838,7 @@ namespace ui {
 		auto SCREEN_HEIGHT = static_cast<float>(game::SCREEN_HEIGHT);
 
 		// will return if not toggled
-		action::draw(vec2 {player->loc.x + player->width / 2, player->loc.y + player->height + game::HLINE});
+		//action::draw(vec2 {player->loc.x + player->width / 2, player->loc.y + player->height + game::HLINE});
 
 		// will return if not toggled
 		quest::draw();
@@ -960,132 +894,6 @@ namespace ui {
 					putStringCentered(offset.x,offset.y,rtext);
 					setFontSize(16);
 				}
-			}else if (dialogMerchant) {
-				x = offset.x - SCREEN_WIDTH / 6;
-				y = (offset.y + SCREEN_HEIGHT / 2) - HLINES(8);
-
-				drawNiceBox(vec2(x, y), vec2(x + (SCREEN_WIDTH / 3.0f), y - (SCREEN_HEIGHT * 0.6f)), -7.0f);
-				// draw typeOut'd text
-				putString(x + game::HLINE, y - fontSize - game::HLINE, (rtext = typeOut(dialogBoxText)));
-
-				std::string itemString1 = std::to_string(merchTrade.quantity[0]) + "x",
-				            itemString2 = std::to_string(merchTrade.quantity[1]) + "x";
-
-				vec2 merchBase = {offset.x, offset.y + SCREEN_HEIGHT / 5};
-
-				putStringCentered(merchBase.x + SCREEN_WIDTH / 10 - 20, merchBase.y + 40 + fontSize * 2, itemString1);
-				putStringCentered(merchBase.x + SCREEN_WIDTH / 10 - 20, merchBase.y + 40 + fontSize    , merchTrade.item[0]);
-				putStringCentered(merchBase.x - SCREEN_WIDTH / 10     , merchBase.y + 40 + fontSize * 2, itemString2);
-				putStringCentered(merchBase.x - SCREEN_WIDTH / 10     , merchBase.y + 40 + fontSize    , merchTrade.item[1]);
-				putStringCentered(offset.x, merchBase.y + 60, "for");
-
-                // render the two items we are trading
-                GLfloat item_tex[] = {0.0, 1.0,
-                                      1.0, 1.0,
-                                      1.0, 0.0,
-
-                                      1.0, 0.0,
-                                      0.0, 0.0,
-                                      0.0, 1.0};
-
-                GLfloat left_item[] = {offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5),     -7.2,
-                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5),     -7.2,
-                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
-
-                                       offset.x - (SCREEN_WIDTH / 10) + 40, offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
-                                       offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
-                                       offset.x - (SCREEN_WIDTH / 10),      offset.y + (SCREEN_HEIGHT / 5),     -7.2};
-
-                GLfloat right_item[] = {offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5),     -7.2,
-                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5),     -7.2,
-                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
-
-                                        offset.x + (SCREEN_WIDTH / 10),         offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
-                                        offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5) + 40,-7.2,
-                                        offset.x + (SCREEN_WIDTH / 10) - 40,    offset.y + (SCREEN_HEIGHT / 5),     -7.2};
-
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[1]));
-                glUniform1i(Render::textShader.uniform[WU_texture], 0);
-
-				Render::textShader.use();
-				Render::textShader.enable();
-
-                glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, left_item);
-                glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
-                glDrawArrays(GL_TRIANGLES, 0 ,6);
-
-                glBindTexture(GL_TEXTURE_2D, getItemTexture(merchTrade.item[0]));
-
-                glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, right_item);
-                glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, item_tex);
-                glDrawArrays(GL_TRIANGLES, 0 ,6);
-
-                Render::textShader.disable();
-				Render::textShader.unuse();
-
-				merchArrowLoc[0].x = offset.x - (SCREEN_WIDTH / 8.5) - 16;
-				merchArrowLoc[1].x = offset.x + (SCREEN_WIDTH / 8.5) + 16;
-				merchArrowLoc[0].y = offset.y + (SCREEN_HEIGHT *.2);
-				merchArrowLoc[1].y = offset.y + (SCREEN_HEIGHT *.2);
-				merchArrowLoc[0].z = offset.x - (SCREEN_WIDTH / 8.5);
-				merchArrowLoc[1].z = offset.x + (SCREEN_WIDTH / 8.5);
-
-				for(i = 0; i < 2; i++) {
-					if (((merchArrowLoc[i].x < merchArrowLoc[i].z) ?
-						(mouse.x > merchArrowLoc[i].x     && mouse.x < merchArrowLoc[i].z) :
-						(mouse.x < merchArrowLoc[i].x     && mouse.x > merchArrowLoc[i].z)) &&
-					     mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8) {
-						glColor3ub(255,255, 0);
-                        glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255,255,0)));
-                    }else{
-						glColor3ub(255,255,255);
-                        glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255,255,255)));
-					}
-
-                    GLfloat tri_t[] = {0.0, 0.0,
-                                       0.0, 1.0,
-                                       1.0, 1.0};
-
-                    GLfloat tri_c[] = {merchArrowLoc[i].x, merchArrowLoc[i].y,      -7.1,
-                                       merchArrowLoc[i].z, merchArrowLoc[i].y - 8,  -7.1,
-                                       merchArrowLoc[i].z, merchArrowLoc[i].y + 8,  -7.1};
-
-                    glUniform1i(Render::textShader.uniform[WU_texture], 0);
-
-					Render::textShader.use();
-					Render::textShader.enable();
-
-                    glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, tri_c);
-                    glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tri_t);
-                    glDrawArrays(GL_TRIANGLES, 0 ,6);
-
-                    Render::textShader.disable();
-					Render::textShader.unuse();
-				}
-
-
-				// draw / handle dialog options if they exist
-				for(i = 0; i < dialogOptText.size(); i++) {
-					setFontColor(255, 255, 255);
-
-					// draw option
-					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 2 - (fontSize + game::HLINE) * (i + 1);
-					tmp = putStringCentered(offset.x, dialogOptText[i].second.y, dialogOptText[i].first);
-
-					// get coordinate information on option
-					dialogOptText[i].second.z = offset.x + tmp;
-					dialogOptText[i].second.x = offset.x - tmp;
-
-					// make text yellow if the mouse hovers over the text
-					if (mouse.x > dialogOptText[i].second.x && mouse.x < dialogOptText[i].second.z &&
-					   mouse.y > dialogOptText[i].second.y && mouse.y < dialogOptText[i].second.y + 16) {
-						  setFontColor(255, 255, 0);
-						  putStringCentered(offset.x, dialogOptText[i].second.y, dialogOptText[i].first);
-					}
-				}
-
-				setFontColor(255, 255, 255);
 			} else { //normal dialog box
 
 				x = offset.x - SCREEN_WIDTH / 2  + HLINES(8);
@@ -1125,15 +933,15 @@ namespace ui {
 		}
 
 		if (!fadeIntensity) {
-			vec2 hub = {
+			/*vec2 hub = {
 				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
 				(offset.y+SCREEN_HEIGHT/2)-fontSize
-			};
+			};*/
 
-			putText(hub.x,hub.y,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
+			/*putText(hub.x,hub.y,"Health: %u/%u",player->health>0?(unsigned)player->health:0,
 												(unsigned)player->maxHealth
-												);
-			static GLuint frontHealth = Texture::genColor(Color(255,0,0));
+												);*/
+			/*static GLuint frontHealth = Texture::genColor(Color(255,0,0));
 			static GLuint backHealth = Texture::genColor(Color(150,0,0));
 
 			if (player->isAlive()) {
@@ -1174,13 +982,13 @@ namespace ui {
 
                 Render::textShader.disable();
 				Render::textShader.unuse();
-            }
+            }*/
 
 			/*
 			 *	Lists all of the quests the player is currently taking.
 			*/
 
-			setFontColor(255,255,255,fontTransInv);
+			/*setFontColor(255,255,255,fontTransInv);
 			if (player->inv->invOpen) {
 				hub.y = player->loc.y + fontSize * 8;
 				hub.x = player->loc.x;// + player->width / 2;
@@ -1201,7 +1009,7 @@ namespace ui {
 				hub.x = offset.x - SCREEN_WIDTH/2 + 45*4*1.5;
 
 				putStringCentered(hub.x,hub.y,"Inventory:");
-			}
+			}*/
 			setFontColor(255,255,255,255);
 		}
 	}
@@ -1248,26 +1056,8 @@ namespace ui {
 			}
 		}
 
-		if (dialogMerchant) {
-			for (i = 0; i < merchArrowLoc.size(); i++) {
-
-				// TODO neaten this if statement
-
-				if (((merchArrowLoc[i].x < merchArrowLoc[i].z) ?
-				    (mouse.x > merchArrowLoc[i].x && mouse.x < merchArrowLoc[i].z) :
-				    (mouse.x < merchArrowLoc[i].x && mouse.x > merchArrowLoc[i].z) &&
-					 mouse.y > merchArrowLoc[i].y - 8 && mouse.y < merchArrowLoc[i].y + 8)) {
-						merchOptChosen = i + 1;
-						goto EXIT;
-				}
-			}
-		}
-
-
 EXIT:
-		//if (!dialogMerchant)closeBox();
 		dialogBoxExists = false;
-		dialogMerchant = false;
 
 		// handle important text
 		if (dialogImportant) {
@@ -1441,17 +1231,11 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-	Mob *m; // ;lkjfdsa
-	Entity *ent; // used for interaction
-
 	SDL_Event e;
 
 	// update mouse coords
 	mouse.x = premouse.x + offset.x - (SCREEN_WIDTH / 2);
 	mouse.y = (offset.y + SCREEN_HEIGHT / 2) - premouse.y;
-
-	static vec2 fr;
-	static Entity *ig;
 
 	while(SDL_PollEvent(&e)) {
 		switch(e.type) {
@@ -1467,21 +1251,13 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 			premouse.y=e.motion.y;
 			break;
 
-		case SDL_MOUSEBUTTONUP:
-			if (ig) {
-				ig->vel.x = (fr.x - mouse.x) / 50.0f;
-				ig->vel.y = (fr.y - mouse.y) / 50.0f;
-				//ig->forcedMove = true; // kills vel.x too quickly
-				ig = NULL;
-			}
-			break;
+		//case SDL_MOUSEBUTTONUP:
 
-		// mouse clicks
 		case SDL_MOUSEBUTTONDOWN:
 
 			// run actions?
-			if ((action::make = e.button.button & SDL_BUTTON_RIGHT))
-				/*player->inv->invHover =*/ edown = false;
+			//if ((action::make = e.button.button & SDL_BUTTON_RIGHT))
+			//	/*player->inv->invHover =*/ edown = false;
 
 			textToDraw.clear();
 
@@ -1492,31 +1268,13 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 			} else {
 				// left click uses item
 				if (e.button.button & SDL_BUTTON_LEFT) {
-					if ((ent = currentWorld->getNearMob(*player)) != nullptr) {
+					/*if ((ent = currentWorld->getNearMob(*player)) != nullptr) {
 						player->inv->currentAddInteract(ent);
 					}
-						player->inv->useCurrent();
+						player->inv->useCurrent();*/
 				}
 
 			}
-
-			if(mouse.x > player->loc.x && mouse.x < player->loc.x + player->width &&
-			   mouse.y > player->loc.y && mouse.y < player->loc.y + player->height) {
-				player->vel.y = .05;
-				fr = mouse;
-				ig = player;
-			} else {
-				for (auto &e : currentWorld->entity) {
-					if (mouse.x > e->loc.x && mouse.x < e->loc.x + e->width &&
-						mouse.y > e->loc.y && mouse.y < e->loc.y + e->height) {
-						e->vel.y = .05;
-						fr = mouse;
-						ig = e;
-						break;
-					}
-				}
-			}
-
 			break;
 
 		case SDL_MOUSEWHEEL:
@@ -1534,13 +1292,16 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 		case SDL_KEYUP:
 			ev.emit<KeyUpEvent>(SDL_KEY);
 
+			if (SDL_KEY == SDLK_ESCAPE)
+				ui::menu::toggle();
+
 			if (SDL_KEY == SDLK_q) {
-				auto item = player->inv->getCurrentItem();
+				/*auto item = player->inv->getCurrentItem();
 				if (item != nullptr) {
 					if (player->inv->takeItem(item->name, 1) == 0)
 						currentWorld->addObject(item->name, "o shit waddup",
 												player->loc.x + player->width / 2, player->loc.y + player->height / 2);
-				}
+				}*/
 			} else if (SDL_KEY == SDLK_h) {
 				quest::toggle();
 			} else switch (SDL_KEY) {
@@ -1550,30 +1311,10 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 			case SDLK_BACKSLASH:
 				dialogBoxExists = false;
 				break;
-			case SDLK_x:
-				m = currentWorld->getNearMob(*player);
-				if (m != nullptr)
-					m->ride(player);
-				break;
-			case SDLK_l:
-				currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});
-				currentWorld->getLastLight().follow(player);
-				currentWorld->getLastLight().makeFlame();
-				break;
-			case SDLK_f:
-				currentWorld->addLight({player->loc.x, player->loc.y}, 300.0f, {1.0f,1.0f,1.0f});
-				break;
 			case SDLK_b:
 				if (debug)
 					posFlag ^= true;
-				else {
-					auto s = new Structures();
-					s->spawn(FIRE_PIT, player->loc.x, player->loc.y);
-					//currentWorld->addStructure(s);
-					//currentWorld->addLight({player->loc.x + SCREEN_WIDTH/2, player->loc.y}, 400.0f, {1.0f,1.0f,1.0f});
-					//currentWorld->getLastLight()->follow(currentWorld->build.back());
-					//currentWorld->getLastLight()->makeFlame();
-				}
+
 				break;
 			case SDLK_F12:
 				// Make the BYTE array, factor of 3 because it's RBG.
@@ -1585,10 +1326,10 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 				std::cout << "Took screenshot" << std::endl;
 				break;
 			case SDLK_UP:
-				player->inv->setSelectionUp();
+				//player->inv->setSelectionUp();
 				break;
 			case SDLK_DOWN:
-				player->inv->setSelectionDown();
+				//player->inv->setSelectionDown();
 				break;
 			default:
 				break;
