@@ -266,11 +266,14 @@ void render() {
 	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-//	offset.x = player->loc.x + player->width / 2;
+	//offset.x = game::entities.Iterator.begin().component<Position>().x;// + player->width / 2;
+
+	game::entities.each<Position>([](entityx::Entity entity, Position &position) {
+		(void)entity;
+		offset.x = position.x;
+	});
 
 	auto worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
-
-	// ortho x snapping
 	if (worldWidth < (int)SCREEN_WIDTH)
 		offset.x = 0;
 	else if (offset.x - SCREEN_WIDTH / 2 < worldWidth * -0.5f)

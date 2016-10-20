@@ -7,7 +7,7 @@
     <npc name="Sanc" hasDialog="true"/>
     <npc name="Bob" hasDialog="true" spawnx="30"/>
     <structure type="1" spawnx="300"/>
-    <structure inside="bobshouse.xml" insideTexture="assets/style/classic/bg/insideWoodHouse.png" type="1" spawnx="10"/>
+    <structure inside="bobshouse.xml" type="1" spawnx="10"/>
     <chest/>
 </World>
 

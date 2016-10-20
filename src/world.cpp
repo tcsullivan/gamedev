@@ -330,51 +330,7 @@ loadWorldFromXMLNoSave(std::string path) {
 		newEntity = nullptr;
 		name = wxml->Name();
 
-        // world linkage
-		if (name == "link") {
-
-            // links world to the left
-			if ((ptr = wxml->Attribute("left"))) {
-				tmp->setToLeft(ptr);
-
-                // load the left world if it isn't
-                if (!loadedLeft) {
-                    loadedRight = true;
-                    currentWorldToLeft = loadWorldFromXMLNoSave(ptr);
-                    loadedRight = false;
-                } else {
-					currentWorldToLeft = nullptr;
-				}
-			}
-
-            // links world to the right
-            else if ((ptr = wxml->Attribute("right"))) {
-				tmp->setToRight(ptr);
-
-                // load the right world if it isn't
-                if (!loadedRight) {
-					loadedLeft = true;
-                    currentWorldToRight = loadWorldFromXMLNoSave(ptr);
-                    loadedLeft = false;
-				} else {
-					currentWorldToRight = nullptr;
-				}
-			}
-
-			// tells what world is outside, if in a structure
-			else if (Indoor && (ptr = wxml->Attribute("outside"))) {
-//				if (!loadedLeft && !loadedRight)
-//					inside.push_back(ptr);
-			}
-
-            // error, invalid link tag
-            else {
-                UserError("XML Error: Invalid <link> tag in " + _currentXML + "!");
-			}
-
-		}
-
-		// set spawn x for player
+   		// set spawn x for player
 		else if (name == "spawnx" && !(loadedLeft | loadedRight)) {
 			player->loc.x = std::stoi(wxml->GetText());
 		}
