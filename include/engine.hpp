@@ -51,7 +51,7 @@ namespace game {
     inline void endGame(void) {
         events.emit<GameEndEvent>();
     }
-	
+
 	extern SpriteLoader sprite_l;
 }
 

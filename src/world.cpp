@@ -71,7 +71,7 @@ std::string currentXML;
 using StyleList = std::array<std::string, 9>;
 
 static const std::vector<StyleList> bgPaths = {
-	{ // Forest 
+	{ // Forest
 		"bg.png", 				// daytime background
 		"bgn.png",				// nighttime background
 		"bgFarMountain.png",	// layer 1 (furthest)
@@ -248,7 +248,7 @@ void WorldSystem::load(const std::string& file)
 			if (wxml->QueryUnsignedAttribute("background", &styleNo) != XML_NO_ERROR)
 				UserError("XML Error: No background given in <style> in " + xmlPath);
 
-			world.style = static_cast<WorldBGType>(styleNo); 
+			world.style = static_cast<WorldBGType>(styleNo);
 			world.bgm = wxml->StrAttribute("bgm");
 
 			bgFiles.clear();
@@ -304,7 +304,7 @@ void WorldSystem::load(const std::string& file)
 			addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
 		}*/
 
-		wxml = wxml->NextSiblingElement();		
+		wxml = wxml->NextSiblingElement();
 	}
 }
 
@@ -757,13 +757,13 @@ void WorldSystem::render(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // get the line that the player is currently standing on
-    pOffset = 200;//(offset.x + player->width / 2 - worldStart) / HLINE;
+    pOffset = (offset.x /*+ player->width / 2*/ - world.startX) / HLINE;
 
     // only draw world within player vision
     iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS),
 	                    0, static_cast<int>(world.data.size()));
 	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / HLINE)),
-                      0, static_cast<int>(world.data.size()));
+                      0, static_cast<int>(world.data.size())) + 1;
 
     // draw the dirt
     bgTex++;
@@ -859,7 +859,7 @@ void WorldSystem::render(void)
 	        grassc.push_back(v.second.x);
 	        grassc.push_back(v.second.y);
 	        grassc.push_back(v.second.z);
-	
+
         	grasst.push_back(v.first.x);
     	    grasst.push_back(v.first.y);
 	    }
@@ -932,9 +932,9 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 {
 	game::entities.each<Position, Direction, Health, Solid>(
 	    [&](entityx::Entity e, Position &loc, Direction &vel, Health &health, Solid &dim) {
-	
+
 		(void)e;
-		
+
 		if (health.health <= 0)
 			UserError("die mofo");
 
@@ -973,5 +973,3 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 		}
 	});
 }
-
-
