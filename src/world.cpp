@@ -299,6 +299,23 @@ void WorldSystem::load(const std::string& file)
             game::time::setTickCount(std::stoi(wxml->GetText()));
         }
 
+		else if (tagName == "entity") {
+			auto str2coord = [](std::string s) -> vec2 {
+				auto cpos = s.find(',');
+				s[cpos] = '\0';
+				return vec2 (std::stof(s), std::stof(s.substr(cpos + 1)));
+			};
+
+			auto entity = game::entities.create();
+
+			auto loc = wxml->Attribute("loc");
+			if (loc != nullptr) {
+				auto locVec = str2coord(loc);
+				float locDat[2] = {locVec.x, locVec.y};
+				entity.assign<Position>(locVec.x, locVec.y);
+			}
+		}
+
 		// hill creation
 		/*else if (tagName == "hill") {
 			addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
@@ -930,13 +947,12 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 void WorldSystem::detect(entityx::TimeDelta dt)
 {
-	game::entities.each<Position, Direction, Health, Solid>(
-	    [&](entityx::Entity e, Position &loc, Direction &vel, Health &health, Solid &dim) {
-
+	game::entities.each<Position, Direction, Solid>(
+	    [&](entityx::Entity e, Position &loc, Direction &vel, Solid &dim) {
 		(void)e;
 
-		if (health.health <= 0)
-			UserError("die mofo");
+		//if (health.health <= 0)
+		//	UserError("die mofo");
 
 		// get the line the entity is on
 		int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world.startX) / game::HLINE),

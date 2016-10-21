@@ -62,6 +62,7 @@ void PlayerSystem::receive(const KeyUpEvent &kue)
 void PlayerSystem::receive(const KeyDownEvent &kde)
 {
 	auto kc = kde.keycode;
+    auto& faceLeft = game::entities.get(pid).component<Sprite>().get()->faceLeft;
 
 	/*auto worldSwitch = [&](const WorldSwitchInfo& wsi){
 		player->canMove = false;
@@ -98,7 +99,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 			}*/
 		} else if (kc == getControl(1)) {
 			if (!ui::fadeEnable) {
-                moveLeft = true;
+                moveLeft = faceLeft = true;
 				moveRight = false;
 
                 /*if (currentWorldToLeft) {
@@ -111,7 +112,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 			}
 		} else if (kc == getControl(2)) {
 			if (!ui::fadeEnable) {
-				moveLeft = false;
+				moveLeft = faceLeft = false;
                 moveRight = true;
 
                 /*if (currentWorldToRight) {
