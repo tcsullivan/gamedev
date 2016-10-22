@@ -3,6 +3,7 @@
     <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
     <generation width="1600"/>
     <time>6000</time>
+    <link right="!town2.xml" />
     <spawnx>-300</spawnx>
     <npc name="Sanc" hasDialog="true"/>
     <npc name="Bob" hasDialog="true" spawnx="30"/>

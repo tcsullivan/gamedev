@@ -5,6 +5,8 @@
 
 #include <events.hpp>
 
+constexpr const float PLAYER_SPEED_CONSTANT = 0.15f;
+
 class PlayerSystem : public entityx::System<PlayerSystem>, public entityx::Receiver<PlayerSystem> {
 private:
     entityx::Entity::Id pid;

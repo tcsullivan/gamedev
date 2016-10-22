@@ -4,8 +4,8 @@
 #include <engine.hpp>
 #include <ui.hpp>
 #include <gametime.hpp>
-
-constexpr const float PLAYER_SPEED_CONSTANT = 0.15f;
+#include <world.hpp>
+#include <components.hpp>
 
 void PlayerSystem::configure(entityx::EventManager &ev)
 {
@@ -62,6 +62,7 @@ void PlayerSystem::receive(const KeyUpEvent &kue)
 void PlayerSystem::receive(const KeyDownEvent &kde)
 {
 	auto kc = kde.keycode;
+	auto& loc = *game::entities.get(pid).component<Position>().get();
 
 	/*auto worldSwitch = [&](const WorldSwitchInfo& wsi){
 		player->canMove = false;
@@ -101,27 +102,15 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
                 moveLeft = true;
 				moveRight = false;
 
-                /*if (currentWorldToLeft) {
-					std::thread([&](void){
-						auto thing = currentWorld->goWorldLeft(p);
-						if (thing.first != currentWorld)
-							worldSwitch(thing);
-					}).detach();
-				}*/
+				game::engine.getSystem<WorldSystem>()->goWorldLeft(loc);
 			}
 		} else if (kc == getControl(2)) {
 			if (!ui::fadeEnable) {
 				moveLeft = false;
                 moveRight = true;
 
-                /*if (currentWorldToRight) {
-					std::thread([&](void){
-						auto thing = currentWorld->goWorldRight(p);
-						if (thing.first != currentWorld)
-							worldSwitch(thing);
-					}).detach();
-				}*/
-			}
+				game::engine.getSystem<WorldSystem>()->goWorldRight(loc);
+   			}
 		} else if (kc == getControl(3)) {
 			if (game::canSprint)
 				speed = 2.0f;

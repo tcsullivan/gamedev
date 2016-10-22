@@ -38,6 +38,7 @@ void Engine::render(entityx::TimeDelta dt)
     systems.update<RenderSystem>(dt);
 	systems.update<WindowSystem>(dt);
 
+	ui::fadeUpdate();
 }
 
 void Engine::update(entityx::TimeDelta dt)

@@ -9,10 +9,10 @@
 // local game includes
 #include <common.hpp>
 #include <coolarray.hpp>
-
 #include <events.hpp>
 #include <texture.hpp>
 #include <tinyxml2.h>
+#include <components.hpp>
 using namespace tinyxml2;
 
 /**
@@ -63,11 +63,6 @@ extern std::string currentXML;
  * Defines how many game ticks it takes to go from day to night or vice versa.
  */
 constexpr const unsigned int DAY_CYCLE = 10000;
-
-/**
- * Defines the velocity of player when moved by the keyboard
- */
-constexpr const float PLAYER_SPEED_CONSTANT = 0.15f;
 
 /**
  * Defines the strongest pull gravity can have on an entity.
@@ -165,8 +160,8 @@ public:
 
 	void detect(entityx::TimeDelta dt);
 
-	void goWorldLeft(void) {}
-	void goWorldRight(void) {}
+	void goWorldLeft(Position& p);
+	void goWorldRight(Position& p);
 	
 	// worlddata2 stuff
 	WorldData2 worldData;
