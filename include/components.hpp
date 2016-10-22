@@ -92,10 +92,10 @@ struct Solid {
 };
 
 struct SpriteData {
-	
-	SpriteData(uint64_t sid = 0, vec2 offset = 0.0f, vec2 size = 0.0f): 
+
+	SpriteData(uint64_t sid = 0, vec2 offset = 0.0f, vec2 size = 0.0f):
 		sheetID(sid), offset(offset), size(size) {}
-	
+
 	uint64_t sheetID;
 	vec2 offset;
 	vec2 size;
@@ -108,18 +108,21 @@ struct SpriteData {
  * Each entity is given a sprite, a sprite can consist of manu frames or pieces to make one.
  */
 struct Sprite {
+	Sprite(bool left = false)
+	 	: faceLeft(left) {}
+
 	std::vector<std::pair<SpriteData, vec2>> getSprite() {
 		return sprite;
 	}
-	
+
 	int clearSprite() {
 		if (sprite.empty())
 			return 0;
 
 		sprite.clear();
-		return 1;	
+		return 1;
 	}
-	
+
 	int addSpriteSegment(SpriteData data, vec2 loc) {
 		//TODO if sprite is in this spot, do something
 		sprite.push_back(std::make_pair(data, loc));
@@ -130,7 +133,7 @@ struct Sprite {
 		for (auto &s : sprite) {
 			if (s.second == loc) {
 				s.first = data;
-				
+
 				return 1;
 			}
 		}
@@ -139,6 +142,7 @@ struct Sprite {
 	}
 
 	std::vector<std::pair<SpriteData, vec2>> sprite;
+	bool faceLeft;
 };
 
 //TODO
@@ -150,7 +154,7 @@ struct Animate {
 //TODO
 
 struct Input {
-	
+
 };
 
 /**
@@ -180,7 +184,7 @@ public:
 
 class RenderSystem : public entityx::System<RenderSystem> {
 private:
-public:	
+public:
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 };
 

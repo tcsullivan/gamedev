@@ -63,6 +63,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 {
 	auto kc = kde.keycode;
 	auto& loc = *game::entities.get(pid).component<Position>().get();
+    auto& faceLeft = game::entities.get(pid).component<Sprite>().get()->faceLeft;
 
 	/*auto worldSwitch = [&](const WorldSwitchInfo& wsi){
 		player->canMove = false;
@@ -99,14 +100,14 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 			}*/
 		} else if (kc == getControl(1)) {
 			if (!ui::fadeEnable) {
-                moveLeft = true;
+                moveLeft = faceLeft = true;
 				moveRight = false;
 
 				game::engine.getSystem<WorldSystem>()->goWorldLeft(loc);
 			}
 		} else if (kc == getControl(2)) {
 			if (!ui::fadeEnable) {
-				moveLeft = false;
+				moveLeft = faceLeft = false;
                 moveRight = true;
 
 				game::engine.getSystem<WorldSystem>()->goWorldRight(loc);

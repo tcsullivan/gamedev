@@ -13,17 +13,17 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 		(void)entity;
 		position.x += direction.x * dt;
 		position.y += direction.y * dt;
-	});		
+	});
 }
 
 void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
 	(void)ev;
 	Render::worldShader.use();
-	
+
 	en.each<Visible, Sprite, Position>([dt](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {
 		(void)entity;
-		// Verticies and shit			
+		// Verticies and shit
 		GLfloat tex_coord[] = {0.0, 0.0,
 							   1.0, 0.0,
 							   1.0, 1.0,
@@ -43,7 +43,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 		for (auto &S : sprite.sprite) {
 			float width = S.first.size.x;
 			float height = S.first.size.y;
-			
+
 			vec2 loc = vec2(pos.x + S.first.offset.x, pos.y + S.first.offset.y);
 
 			GLfloat coords[] = {loc.x, 			loc.y, 			visible.z,
@@ -53,8 +53,8 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 								loc.x + width, 	loc.y + height, visible.z,
 								loc.x, 			loc.y + height, visible.z,
 								loc.x, 			loc.y, 			visible.z};
-		
-			
+
+
 			// make the entity hit flash red
 			// TODO
 			/*if (maxHitDuration-hitDuration) {
@@ -66,7 +66,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 			Render::worldShader.enable();
 
 			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
-			if (false)
+			if (sprite.faceLeft)
 				glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coordL);
 			else
 				glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
