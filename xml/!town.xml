@@ -1,4 +1,7 @@
 <?xml version="1.0"?>
+
+<include file="entities.xml" />
+
 <World>
     <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
     <generation width="1600"/>
@@ -6,9 +9,9 @@
     <link right="!town2.xml" />
     <spawnx>-300</spawnx>
     <npc name="Sanc" hasDialog="true"/>
-    <npc name="Bob" hasDialog="true" spawnx="30"/>
-    <structure type="1" spawnx="300"/>
-    <structure inside="bobshouse.xml" type="1" spawnx="10"/>
+    <npc name="Bob" hasDialog="true" position="50.0,100.0"/>
+    <structure type="1" position="300.0,100.0"/>
+    <structure inside="bobshouse.xml" type="1" position="10.0,100.0"/>
     <chest/>
 </World>
 

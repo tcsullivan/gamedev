@@ -1,0 +1,19 @@
+<spawnx/>
+
+<npc>
+	<Position value="0.0,100.0" />
+	<Visible value="0.2" />
+	<Sprite image="assets/NPC.png" />
+</npc>
+
+<structure>
+	<Position value="0.0,100.0" />
+	<Visible value="0.25" />
+	<Sprite image="assets/style/classic/house1.png" />
+</structure>
+
+<chest>
+	<Position value="0.0,100.0" />
+	<Visible value="0.15" />
+	<Sprite image="assets/chest.png" />
+</chest>

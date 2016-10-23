@@ -4,6 +4,7 @@
 #include <entityx/entityx.h>
 
 #include <events.hpp>
+#include <common.hpp>
 
 constexpr const float PLAYER_SPEED_CONSTANT = 0.15f;
 
@@ -29,6 +30,8 @@ public:
 
     inline void setPlayer(const entityx::Entity& e)
     { pid = e.id(); }
+
+    vec2 getPosition(void) const;
 };
 
 #endif // PLAYER_HPP_

@@ -142,3 +142,9 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 		game::time::tick(50);
 	}
 }
+
+vec2 PlayerSystem::getPosition(void) const
+{
+    auto loc = *game::entities.get(pid).component<Position>().get();
+    return vec2 {loc.x, loc.y};
+}

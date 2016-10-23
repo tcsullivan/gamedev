@@ -134,6 +134,8 @@ private:
 
 	XMLDocument xmlDoc;
 
+	std::string currentXMLFile;
+
 public:
 	explicit WorldSystem(void);
 	~WorldSystem(void);
@@ -156,13 +158,16 @@ public:
 	inline const WorldWeather& getWeatherId(void) const
 	{ return weather; }
 
+	inline const std::string& getXMLFile(void) const
+	{ return currentXMLFile; }
+
 	void setWeather(const std::string &s);
 
 	void detect(entityx::TimeDelta dt);
 
 	void goWorldLeft(Position& p);
 	void goWorldRight(Position& p);
-	
+
 	// worlddata2 stuff
 	WorldData2 worldData;
 

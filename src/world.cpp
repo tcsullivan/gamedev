@@ -205,6 +205,14 @@ loadWorldFromXMLNoTakeover(std::string path)
 
 void WorldSystem::load(const std::string& file)
 {
+	auto str2coord = [](std::string s) -> vec2 {
+		auto cpos = s.find(',');
+		s[cpos] = '\0';
+		return vec2 (std::stof(s), std::stof(s.substr(cpos + 1)));
+	};
+
+	entityx::Entity entity;
+
 	std::string xmlRaw;
 	std::string xmlPath;
 
@@ -222,6 +230,19 @@ void WorldSystem::load(const std::string& file)
 	if (xmlDoc.Parse(xmlRaw.data()) != XML_NO_ERROR)
 		UserError("XML Error: Failed to parse file (not your fault though..?)");
 
+	// include headers
+	auto ixml = xmlDoc.FirstChildElement("include");
+	while (ixml) {
+		auto file = ixml->Attribute("file");
+		if (file != nullptr) {
+			DEBUG_printf("Including file: %s\n", file);
+			xmlRaw.append(readFile((xmlFolder + file).c_str()));
+		}
+		ixml = ixml->NextSiblingElement();
+	}
+
+	xmlDoc.Parse(xmlRaw.data());
+
 	// look for an opening world tag
 	auto wxml = xmlDoc.FirstChildElement("World");
 	if (wxml != nullptr) {
@@ -238,6 +259,9 @@ void WorldSystem::load(const std::string& file)
 	}
 
 	world.toLeft = world.toRight = "";
+	currentXMLFile = file;
+
+	
 
 	// iterate through tags
 	while (wxml) {
@@ -302,25 +326,47 @@ void WorldSystem::load(const std::string& file)
             game::time::setTickCount(std::stoi(wxml->GetText()));
         }
 
-		else if (tagName == "entity") {
-			auto str2coord = [](std::string s) -> vec2 {
-				auto cpos = s.find(',');
-				s[cpos] = '\0';
-				return vec2 (std::stof(s), std::stof(s.substr(cpos + 1)));
-			};
+		// custom entity tags
+		else {
+			auto cxml = xmlDoc.FirstChildElement(tagName.c_str());
+			if (cxml != nullptr) {
+				DEBUG_printf("Using custom tag <%s>\n", tagName.c_str());
 
-			auto entity = game::entities.create();
+				entity = game::entities.create();
+				auto abcd = cxml->FirstChildElement();
 
-			auto loc = wxml->Attribute("loc");
-			if (loc != nullptr) {
-				auto locVec = str2coord(loc);
-				float locDat[2] = {locVec.x, locVec.y};
-				entity.assign<Position>(locDat[0], locDat[1]);
+				while (abcd) {
+					std::string tname = abcd->Name();
+
+					if (tname == "Position") {
+						vec2 coords;
+
+						if (wxml->Attribute("position") != nullptr) {
+							coords = str2coord(wxml->StrAttribute("position"));
+						} else {
+							coords = str2coord(abcd->StrAttribute("value"));
+						}
+
+						float cdat[2] = {coords.x, coords.y};
+						entity.assign<Position>(cdat[0], cdat[1]);
+					} else if (tname == "Visible") {
+						entity.assign<Visible>(abcd->FloatAttribute("value"));
+					} else if (tname == "Sprite") {
+						auto sprite = entity.assign<Sprite>();
+						auto tex = abcd->Attribute("image");
+						auto dim = Texture::imageDim(tex);
+						sprite->addSpriteSegment(SpriteData(game::sprite_l.loadSprite(tex),
+						                                    vec2(0, 0),
+						                                    vec2(dim.x, dim.y) * 2),
+						                         vec2(0, 0));
+					}
+
+					abcd = abcd->NextSiblingElement();
+				}
+
+			} else {
+				UserError("Unknown tag <" + tagName + "> in file " + currentXMLFile);
 			}
-
-			unsigned int health;
-			if (wxml->QueryUnsignedAttribute("health", &health) != XML_NO_ERROR)
-				entity.assign<Health>(health, health);
 		}
 
 		// hill creation
@@ -330,6 +376,8 @@ void WorldSystem::load(const std::string& file)
 
 		wxml = wxml->NextSiblingElement();
 	}
+
+	game::events.emit<BGMToggleEvent>();
 }
 
 /*

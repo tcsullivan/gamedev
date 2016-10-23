@@ -51,11 +51,11 @@ private:
 				return freeID;
 			}
 			id_t++;
-		}		
+		}
 	}
 public:
 	uint64_t loadSprite(std::string s)	{
-		uint64_t tex_e;
+		uint64_t tex_e = 0;
 		try {
 			tex_e = spritesLoc.at(s);
 		} catch (const std::out_of_range& oor) {

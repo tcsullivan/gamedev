@@ -25,6 +25,7 @@ using namespace tinyxml2;
 #include <world.hpp>
 #include <ui.hpp>
 #include <gametime.hpp>
+#include <player.hpp>
 
 #include <fstream>
 #include <mutex>
@@ -55,7 +56,7 @@ vec2 offset;
  */
 
 static unsigned int fps=0;
-static float debugY=0;
+//static float debugY=0;
 
 // handles all logic operations
 void logic(void);
@@ -314,7 +315,7 @@ void render() {
 
 	// draw the world and player
 	game::engine.getSystem<WorldSystem>()->render();
-	
+
 	// draw the player's inventory
 	//player->inv->draw();
 
@@ -326,7 +327,15 @@ void render() {
 
 	// draw the debug overlay if desired
 	if (ui::debug) {
+		auto pos = game::engine.getSystem<PlayerSystem>()->getPosition();
 		ui::putText(offset.x-SCREEN_WIDTH/2, (offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
+		            "loc: (%+.2f, %+.2f)\nticks: %u\nxml: %s",
+					pos.x,
+					pos.y,
+					game::time::getTickCount(),
+					game::engine.getSystem<WorldSystem>()->getXMLFile().c_str()
+		            );
+		/*ui::putText(offset.x-SCREEN_WIDTH/2, (offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
 					"fps: %d\ngrounded:%d\nresolution: %ux%u\nentity cnt: %d\nloc: (%+.2f, %+.2f)\nticks: %u\nvolume: %f\nweather: %s\nxml: %s",
 					fps,
 					0,//player->ground,
@@ -339,7 +348,7 @@ void render() {
 					game::config::VOLUME_MASTER,
 					game::engine.getSystem<WorldSystem>()->getWeatherStr().c_str(),
 					""//currentXML.c_str()
-					);
+				);*/
 
 		// draw tracer lines if desired
 		//static const GLuint tracerText = Texture::genColor(Color(100,100,255));

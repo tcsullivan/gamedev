@@ -99,6 +99,11 @@ struct vec2 {
 		return vec2 (x + n, y + n);
 	}
 
+	template<typename T>
+	const vec2 operator*(const T &n) {
+		return vec2 (x * n, y * n);
+	}
+
 	// std::swap can't work due to being packed
 
 	inline void swapX(vec2 &v) {
