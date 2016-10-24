@@ -16,6 +16,16 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 	});
 }
 
+void PhysicsSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
+{
+	(void)ev;
+	en.each<Direction, Physics>([dt](entityx::Entity entity, Direction &direction, Physics &physics) {
+		(void)entity;
+		// TODO GET GRAVITY FROM WOLRD
+		direction.y += physics.g * dt;
+	});
+}
+
 void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
 	(void)ev;
@@ -61,7 +71,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 				float flashAmt = 1-(hitDuration/maxHitDuration);
 				glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, flashAmt, flashAmt, 1.0);
 			}*/
-			glBindTexture(GL_TEXTURE_2D, game::sprite_l.getSprite(S.first.sheetID));
+			glBindTexture(GL_TEXTURE_2D, S.first.pic);
 			glUniform1i(Render::worldShader.uniform[WU_texture], 0);
 			Render::worldShader.enable();
 

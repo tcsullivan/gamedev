@@ -144,12 +144,12 @@ namespace Texture{
         return object;
     }
 
-	dim2 imageDim(std::string fileName) {
+	vec2 imageDim(std::string fileName) {
 		for(auto &t : LoadedTexture) {
 			if (t.name == fileName)
-				return t.dim;
+				return vec2(t.dim.x, t.dim.y);
 		}
-		return {0,0};
+		return vec2(0,0);
 	}
 
 	void freeTextures(void) {

@@ -32,7 +32,7 @@ namespace Texture {
 
 	void initColorIndex();
 	vec2 getIndex(Color c);
-	dim2 imageDim(std::string fileName);
+	vec2 imageDim(std::string fileName);
 }
 
 class SpriteLoader {
@@ -116,7 +116,7 @@ public:
 
 		return textures[index].second;
 	}
-	const dim2 getTextureDim(void) {
+	const vec2 getTextureDim(void) {
 		return Texture::imageDim((*position).second);
 	}
 };

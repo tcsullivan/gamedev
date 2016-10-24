@@ -25,6 +25,7 @@ void Engine::init(void) {
     systems.add<InventorySystem>();
     systems.add<WorldSystem>();
     systems.add<PlayerSystem>();
+	systems.add<PhysicsSystem>();
 	systems.add<MovementSystem>();
 
     systems.configure();
@@ -44,6 +45,7 @@ void Engine::render(entityx::TimeDelta dt)
 void Engine::update(entityx::TimeDelta dt)
 {
     systems.update<InputSystem>(dt);
+	//systems.update<PhysicsSystem>(dt);
 	systems.update<MovementSystem>(dt);
 	systems.update<WorldSystem>(dt);
     systems.update<PlayerSystem>(dt);

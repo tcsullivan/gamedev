@@ -354,10 +354,8 @@ void WorldSystem::load(const std::string& file)
 					} else if (tname == "Sprite") {
 						auto sprite = entity.assign<Sprite>();
 						auto tex = abcd->Attribute("image");
-						auto dim = Texture::imageDim(tex);
-						sprite->addSpriteSegment(SpriteData(game::sprite_l.loadSprite(tex),
-						                                    vec2(0, 0),
-						                                    vec2(dim.x, dim.y) * 2),
+						sprite->addSpriteSegment(SpriteData(tex,
+						                                    vec2(0, 0)),
 						                         vec2(0, 0));
 					}
 
@@ -752,7 +750,7 @@ void WorldSystem::render(void)
 	std::vector<vec2> bg_tex;
 
 	bgTex++;
-	dim2 mountainDim = bgTex.getTextureDim();
+	vec2 mountainDim = bgTex.getTextureDim();
     auto xcoord = width / 2 * -1 + offset.x * 0.85f;
 	for (int i = 0; i <= width / mountainDim.x; i++) {
         bg_items.emplace_back(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f);

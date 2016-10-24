@@ -682,7 +682,7 @@ namespace ui {
 		static GLuint box_side = 		Texture::loadTexture("assets/ui/button_side_borders.png");
 
 		// the dimensions of the corner textures
-		static dim2 box_corner_dim_t = 	Texture::imageDim("assets/ui/button_corners.png");
+		static vec2 box_corner_dim_t = 	Texture::imageDim("assets/ui/button_corners.png");
 		static vec2 box_corner_dim = vec2(box_corner_dim_t.x / 2.0, box_corner_dim_t.y / 2.0);
 
 		// the amount of bytes to skip in the OpenGL arrays (see below)

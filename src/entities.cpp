@@ -13,11 +13,11 @@ void entityxTest(void)
 	e = game::entities.create();
 	e.assign<Position>(0.0f, 100.0f);
 	e.assign<Direction>(-0.01f, 0.0f);
+	e.assign<Physics>(-0.001f);
 	e.assign<Visible>(-.2f);
 	auto sprite_h = e.assign<Sprite>();
-	sprite_h->addSpriteSegment(SpriteData(game::sprite_l.loadSprite("assets/cat.png"),
-							  			  vec2(0, 0),
-										  vec2(19, 15)),
+	sprite_h->addSpriteSegment(SpriteData("assets/cat.png",
+										  vec2(0, 0)),
 										  vec2(0, 0));
 
 	game::engine.getSystem<PlayerSystem>()->setPlayer(e);

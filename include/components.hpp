@@ -11,6 +11,7 @@
 
 #include <entityx/entityx.h>
 #include <common.hpp>
+#include <texture.hpp>
 
 /**
  * @struct Position
@@ -86,17 +87,22 @@ struct Solid {
 	 * @param h The desired height of the entity.
 	 */
 	Solid(float w = 0.0f, float h = 0.0f): width(w), height(h) {}
+	Solid(float w = 0.0f, float h = 0.0f, vec2 offset = 0.0f): width(w), height(h), offset(offset) {}
 
 	float width; /**< The width of the entity in units */
 	float height; /**< The height of the entity in units */
+	vec2 offset; /**< This allows us to make the hitbox in any spot */
 };
 
 struct SpriteData {
-
-	SpriteData(uint64_t sid = 0, vec2 offset = 0.0f, vec2 size = 0.0f):
-		sheetID(sid), offset(offset), size(size) {}
-
-	uint64_t sheetID;
+	
+	SpriteData(std::string path, vec2 offset): 
+		offset(offset) {
+			pic = Texture::loadTexture(path);
+			size = Texture::imageDim(path);
+		}
+	
+	GLuint pic;
 	vec2 offset;
 	vec2 size;
 };
@@ -182,6 +188,11 @@ public:
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 };
 
+class PhysicsSystem : public entityx::System<PhysicsSystem> {
+private:
+public:
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt);
+};
 class RenderSystem : public entityx::System<RenderSystem> {
 private:
 public:
