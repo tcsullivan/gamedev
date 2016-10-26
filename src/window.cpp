@@ -2,6 +2,7 @@
 
 #include <config.hpp>
 
+#include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 
@@ -60,6 +61,22 @@ void WindowSystem::die(void)
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(window);
 }
+
+
+void WindowSystem::configure(entityx::EventManager &ev)
+{
+    ev.subscribe<WindowResizeEvent>(*this);
+}
+
+
+void WindowSystem::receive(const WindowResizeEvent &wre)
+{
+	
+	game::SCREEN_WIDTH = wre.x;
+	game::SCREEN_HEIGHT = wre.y;
+	glViewport(0, 0, wre.x, wre.y);
+	SDL_SetWindowSize(window, wre.x, wre.y);
+}	
 
 void WindowSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {

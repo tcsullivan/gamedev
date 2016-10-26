@@ -8,10 +8,9 @@
 #include <render.hpp>
 #include <engine.hpp>
 #include <events.hpp>
+#include <window.hpp>
 
 extern Menu* currentMenu;
-
-extern SDL_Window *window;
 
 std::array<SDL_Keycode, 6> controlMap = {
 	SDLK_w, SDLK_a, SDLK_d, SDLK_LSHIFT, SDLK_LCTRL, SDLK_e
@@ -1244,6 +1243,19 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 		case SDL_QUIT:
 			game::endGame();
 			break;
+		
+		// window events - used for resizing and stuff
+		case SDL_WINDOWEVENT:
+			switch (e.window.event) {
+			case SDL_WINDOWEVENT_RESIZED:
+				std::cout << "Window " << e.window.windowID << " resized to: " << e.window.data1 << ", " << e.window.data2 << std::endl;
+				auto w = e.window.data1;
+				auto h = e.window.data2;
+				ev.emit<WindowResizeEvent>(w,h);
+				break;
+			}
+			break;
+
 
 		// mouse movement - update mouse vector
 		case SDL_MOUSEMOTION:

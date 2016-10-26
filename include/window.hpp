@@ -5,7 +5,9 @@
 
 #include <SDL2/SDL.h>
 
-class WindowSystem : public entityx::System<WindowSystem> {
+#include <events.hpp>
+
+class WindowSystem : public entityx::System<WindowSystem>, public entityx::Receiver<WindowSystem>  {
 private:
     SDL_Window *window;
     SDL_GLContext glContext;
@@ -15,7 +17,9 @@ public:
 
 	void die(void);
 
+	void configure(entityx::EventManager &ev);
     void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+	void receive(const WindowResizeEvent&);	
 };
 
 #endif // WINDOW_HPP_

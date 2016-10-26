@@ -47,4 +47,12 @@ struct BGMToggleEvent {
 	World *world;
 };
 
+struct WindowResizeEvent {
+	WindowResizeEvent(int w, int h)
+		: x(w), y(h) {}
+	
+	int x;
+	int y;
+};
+
 #endif // EVENTS_HPP_

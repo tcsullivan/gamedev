@@ -2,9 +2,9 @@
 
 #include <config.hpp>
 #include <world.hpp>
+#include <window.hpp>
 #include <ui.hpp>
 #include <inventory.hpp>
-#include <window.hpp>
 #include <components.hpp>
 #include <player.hpp>
 
