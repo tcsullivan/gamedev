@@ -4,7 +4,9 @@
 	<Position value="0.0,100.0" />
 	<Visible value="0.2" />
 	<Sprite image="assets/NPC.png" />
+	<Direction />
 	<Solid />
+	<Physics />
 </npc>
 
 <structure>

@@ -370,6 +370,31 @@ void WorldSystem::load(const std::string& file)
 						
 						float cdat[2] = {dim.x, dim.y};
 						entity.assign<Solid>(cdat[0], cdat[1]);
+					} else if (tname == "Direction") {
+						vec2 dir;
+
+						if (wxml->Attribute("direction") != nullptr) {
+							dir = str2coord(wxml->StrAttribute("direction"));
+						} else if (wxml->Attribute("value") != nullptr) {
+							dir = str2coord(wxml->StrAttribute("value"));	
+						} else {
+							dir = vec2(0,0);
+						}
+
+						float cdat[2] = {dir.x, dir.y};
+						entity.assign<Direction>(cdat[0], cdat[1]);
+					} else if (tname == "Physics") {
+						float g;
+
+						if (wxml->Attribute("gravity") != nullptr) {
+							g = wxml->FloatAttribute("gravity");
+						} else if (wxml->Attribute("value") != nullptr) {
+							g = wxml->FloatAttribute("value");	
+						} else {
+							g = 1.0f;
+						}
+						
+						entity.assign<Physics>(g);
 					}
 
 					abcd = abcd->NextSiblingElement();
@@ -1013,10 +1038,18 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 void WorldSystem::detect(entityx::TimeDelta dt)
 {
+	game::entities.each<Direction, Physics>(
+		[&](entityx::Entity e, Direction &vel, Physics &phys) {
+			(void)e;
+			// handle gravity
+        	if (vel.y > -2.0f) {
+				vel.y -= (GRAVITY_CONSTANT * phys.g) * dt;
+			}
+		});
+
 	game::entities.each<Position, Direction, Solid>(
 	    [&](entityx::Entity e, Position &loc, Direction &vel, Solid &dim) {
 		(void)e;
-
 		//if (health.health <= 0)
 		//	UserError("die mofo");
 
@@ -1039,11 +1072,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 				// TODO ground flag
 			}
 		}
-
-        // handle gravity
-        else if (vel.y > -2.0f) {
-			vel.y -= GRAVITY_CONSTANT * dt;
-		}
+        
 
 		// insure that the entity doesn't fall off either edge of the world.
         if (loc.x < world.startX) {
