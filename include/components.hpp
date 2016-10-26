@@ -92,12 +92,16 @@ struct Solid {
 	 * @param w The desired width of the entity.
 	 * @param h The desired height of the entity.
 	 */
-	Solid(float w = 0.0f, float h = 0.0f): width(w), height(h) {}
-	Solid(float w = 0.0f, float h = 0.0f, vec2 offset = 0.0f): width(w), height(h), offset(offset) {}
+	Solid(float w = 0.0f, float h = 0.0f): width(w), height(h) {offset = 0.0f; passable = true; }
+	//Solid(float w = 0.0f, float h = 0.0f, vec2 offset = 0.0f): width(w), height(h), offset(offset) {passable = true; }
+	
+	void Passable(bool v) {passable = v;}
+	bool Passable(void)   {return passable;}
 
 	float width; /**< The width of the entity in units */
 	float height; /**< The height of the entity in units */
 	vec2 offset; /**< This allows us to make the hitbox in any spot */
+	bool passable; /**< This determines whether or not one can pass by the entity */
 };
 
 struct SpriteData {
@@ -151,6 +155,32 @@ struct Sprite {
 		}
 		addSpriteSegment(data, loc);
 		return 0;
+	}
+
+	vec2 getSpriteSize() {
+		vec2 st; /** the start location of the sprite */
+		vec2 dim; /** how wide the sprite is */
+		
+		if (sprite.size()) {
+			st.x = sprite[0].second.x;
+			st.y = sprite[0].second.y;
+		} else {
+			return vec2(0.0f, 0.0f);
+		}
+
+		for (auto &s : sprite) {
+			if (s.second.x < st.x)
+				st.x = s.second.x;
+			if (s.second.y < st.y)
+				st.y = s.second.y;
+
+			if (s.second.x + s.first.size.x > dim.x)
+				dim.x = s.second.x + s.first.size.x;
+			if (s.second.y + s.first.size.y > dim.y)
+				dim.y = s.second.y + s.first.size.y;
+		}
+
+		return dim;
 	}
 
 	std::vector<std::pair<SpriteData, vec2>> sprite;

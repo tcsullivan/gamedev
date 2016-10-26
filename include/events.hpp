@@ -48,7 +48,7 @@ struct BGMToggleEvent {
 };
 
 struct WindowResizeEvent {
-	WindowResizeEvent(int w, int h)
+	WindowResizeEvent(int w = 640, int h = 480)
 		: x(w), y(h) {}
 	
 	int x;

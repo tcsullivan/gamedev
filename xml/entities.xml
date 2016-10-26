@@ -4,6 +4,7 @@
 	<Position value="0.0,100.0" />
 	<Visible value="0.2" />
 	<Sprite image="assets/NPC.png" />
+	<Solid />
 </npc>
 
 <structure>
@@ -11,10 +12,12 @@
 	<Visible value="0.25" />
 	<Sprite image="assets/style/classic/house1.png" />
 	<Portal />
+	<Solid />
 </structure>
 
 <chest>
 	<Position value="0.0,100.0" />
 	<Visible value="0.15" />
 	<Sprite image="assets/chest.png" />
+	<Solid />
 </chest>

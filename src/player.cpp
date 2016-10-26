@@ -19,6 +19,9 @@ void PlayerSystem::create(void)
 	sprite->addSpriteSegment(SpriteData("assets/cat.png",
 										vec2(0, 0)),
 							 vec2(0, 0));
+	vec2 dim = player.component<Sprite>().get()->getSpriteSize();
+	float cdat[2] = {dim.x, dim.y};
+	player.assign<Solid>(cdat[0], cdat[1]);
 }
 
 void PlayerSystem::configure(entityx::EventManager &ev)

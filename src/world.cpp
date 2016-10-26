@@ -359,6 +359,17 @@ void WorldSystem::load(const std::string& file)
 						                         vec2(0, 0));
 					} else if (tname == "Portal") {
 						entity.assign<Portal>(wxml->StrAttribute("inside"));
+					} else if (tname == "Solid") {
+						vec2 dim;
+
+						if (abcd->Attribute("value") != nullptr) {
+							dim = str2coord(abcd->StrAttribute("value"));
+						} else {
+							dim = entity.component<Sprite>().get()->getSpriteSize();	
+						}
+						
+						float cdat[2] = {dim.x, dim.y};
+						entity.assign<Solid>(cdat[0], cdat[1]);
 					}
 
 					abcd = abcd->NextSiblingElement();
