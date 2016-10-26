@@ -31,6 +31,7 @@ void Engine::init(void) {
     systems.configure();
 
 	game::config::update();
+	getSystem<PlayerSystem>()->create();
 }
 
 void Engine::render(entityx::TimeDelta dt)

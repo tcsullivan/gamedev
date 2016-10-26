@@ -21,7 +21,6 @@ using namespace tinyxml2;
 // local game includes
 #include <common.hpp>
 #include <config.hpp>
-#include <entities.hpp>
 #include <world.hpp>
 #include <ui.hpp>
 #include <gametime.hpp>
@@ -203,9 +202,6 @@ int main(int argc, char *argv[])
 	ui::menu::init();
 //	game::events.emit<BGMToggleEvent>(currentWorld->bgm);
 
-	//TODO
-	entityxTest();
-
 	// the main loop, in all of its gloriousness..
 	std::thread([&]{
 		while (game::engine.shouldRun()) {
@@ -267,12 +263,7 @@ void render() {
 	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-	//offset.x = game::entities.Iterator.begin().component<Position>().x;// + player->width / 2;
-
-	game::entities.each<Position>([](entityx::Entity entity, Position &position) {
-		(void)entity;
-		offset.x = position.x;
-	});
+	offset.x = game::engine.getSystem<PlayerSystem>()->getPosition().x;// + player->width / 2;
 
 	auto worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
 	if (worldWidth < (int)SCREEN_WIDTH)

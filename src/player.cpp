@@ -7,6 +7,20 @@
 #include <world.hpp>
 #include <components.hpp>
 
+void PlayerSystem::create(void)
+{
+	player = game::entities.create();
+	player.assign<Position>(0.0f, 100.0f);
+	player.assign<Direction>(0.0f, 0.0f);
+	player.assign<Physics>(-0.001f);
+	player.assign<Visible>(-0.2f);
+
+	auto sprite = player.assign<Sprite>();
+	sprite->addSpriteSegment(SpriteData("assets/cat.png",
+										vec2(0, 0)),
+							 vec2(0, 0));
+}
+
 void PlayerSystem::configure(entityx::EventManager &ev)
 {
     ev.subscribe<KeyUpEvent>(*this);
@@ -14,10 +28,11 @@ void PlayerSystem::configure(entityx::EventManager &ev)
 }
 
 void PlayerSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) {
+	(void)en;
     (void)ev;
     (void)dt;
 
-    auto& vel = *en.get(pid).component<Direction>().get();
+    auto& vel = *player.component<Direction>().get();
 
     if (moveLeft & !moveRight)
         vel.x = -PLAYER_SPEED_CONSTANT;
@@ -28,8 +43,8 @@ void PlayerSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 
     vel.x *= speed;
 
-    if (std::stoi(game::getValue("Slow")) == 1)
-        vel.x /= 2.0f;
+	if (std::stoi(game::getValue("Slow")) == 1)
+		vel.x /= 2.0f;
 }
 
 void PlayerSystem::receive(const KeyUpEvent &kue)
@@ -61,21 +76,11 @@ void PlayerSystem::receive(const KeyUpEvent &kue)
 
 void PlayerSystem::receive(const KeyDownEvent &kde)
 {
-	auto kc = kde.keycode;
-	auto& loc = *game::entities.get(pid).component<Position>().get();
-    auto& faceLeft = game::entities.get(pid).component<Sprite>().get()->faceLeft;
+	static auto& worldSystem = *game::engine.getSystem<WorldSystem>();
 
-	/*auto worldSwitch = [&](const WorldSwitchInfo& wsi){
-		player->canMove = false;
-		ui::toggleBlackFast();
-		ui::waitForCover();
-		game::events.emit<BGMToggleEvent>(wsi.first->bgm, wsi.first);
-		std::tie(currentWorld, player->loc) = wsi; // using p causes segfault
-		game::engine.getSystem<WorldSystem>()->setWorld(currentWorld);
-		ui::toggleBlackFast();
-		ui::waitForUncover();
-		player->canMove = true; // using p causes segfault
-	};*/
+	auto kc = kde.keycode;
+	auto& loc = *player.component<Position>().get();
+    auto& faceLeft = player.component<Sprite>().get()->faceLeft;
 
 	/*if ((kc == SDLK_SPACE) && (game::canJump & p->ground)) {
 		p->loc.y += HLINES(2);
@@ -98,19 +103,23 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 						worldSwitch(thing);
 				}).detach();
 			}*/
+			
+			if (!ui::fadeIntensity)
+				worldSystem.goWorldPortal(loc);
+
 		} else if (kc == getControl(1)) {
 			if (!ui::fadeEnable) {
                 moveLeft = faceLeft = true;
 				moveRight = false;
 
-				game::engine.getSystem<WorldSystem>()->goWorldLeft(loc);
+				worldSystem.goWorldLeft(loc);
 			}
 		} else if (kc == getControl(2)) {
 			if (!ui::fadeEnable) {
 				moveLeft = faceLeft = false;
                 moveRight = true;
 
-				game::engine.getSystem<WorldSystem>()->goWorldRight(loc);
+				worldSystem.goWorldRight(loc);
    			}
 		} else if (kc == getControl(3)) {
 			if (game::canSprint)
@@ -145,6 +154,6 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 
 vec2 PlayerSystem::getPosition(void) const
 {
-    auto loc = *game::entities.get(pid).component<Position>().get();
-    return vec2 {loc.x, loc.y};
+	auto& loc = *game::entities.component<Position>(player.id()).get();
+    return vec2(loc.x, loc.y);
 }

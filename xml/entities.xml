@@ -10,6 +10,7 @@
 	<Position value="0.0,100.0" />
 	<Visible value="0.25" />
 	<Sprite image="assets/style/classic/house1.png" />
+	<Portal />
 </structure>
 
 <chest>

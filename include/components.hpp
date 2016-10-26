@@ -75,6 +75,12 @@ struct Health {
 	int maxHealth;
 };
 
+struct Portal {
+	Portal(std::string tf = "") : toFile(tf) {}
+
+	std::string toFile;
+};
+
 /**
  * @struct Solid
  * @brief Allows an entity to collide with other objects.

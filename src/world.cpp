@@ -260,8 +260,8 @@ void WorldSystem::load(const std::string& file)
 
 	world.toLeft = world.toRight = "";
 	currentXMLFile = file;
-
-	
+	game::entities.reset();
+	game::engine.getSystem<PlayerSystem>()->create();
 
 	// iterate through tags
 	while (wxml) {
@@ -357,6 +357,8 @@ void WorldSystem::load(const std::string& file)
 						sprite->addSpriteSegment(SpriteData(tex,
 						                                    vec2(0, 0)),
 						                         vec2(0, 0));
+					} else if (tname == "Portal") {
+						entity.assign<Portal>(wxml->StrAttribute("inside"));
 					}
 
 					abcd = abcd->NextSiblingElement();
@@ -750,7 +752,7 @@ void WorldSystem::render(void)
 	std::vector<vec2> bg_tex;
 
 	bgTex++;
-	vec2 mountainDim = bgTex.getTextureDim();
+	auto mountainDim = bgTex.getTextureDim();
     auto xcoord = width / 2 * -1 + offset.x * 0.85f;
 	for (int i = 0; i <= width / mountainDim.x; i++) {
         bg_items.emplace_back(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f);
@@ -1060,9 +1062,27 @@ void WorldSystem::goWorldLeft(Position& p)
 	if (!(world.toLeft.empty()) && (p.x < world.startX + HLINES(10))) {
 		ui::toggleBlack();
 		ui::waitForCover();
-		auto file = world.toLeft;
-		load(file);
+		load(world.toLeft);
 		p.x = world.startX * -1 - HLINES(15);
 		ui::toggleBlack();
 	}
+}
+
+void WorldSystem::goWorldPortal(Position& p)
+{
+	game::entities.each<Position, Sprite, Portal>(
+		[&](entityx::Entity entity, Position& loc, Sprite &sprite, Portal &portal) {
+			(void)entity;
+
+			auto& size = sprite.sprite.front().first.size;
+			if (p.x > loc.x && p.x < loc.x + size.x) {
+				ui::toggleBlack();
+				ui::waitForCover();
+				load(portal.toFile);
+				p.x = 0;
+				ui::toggleBlack();
+				return;
+			}
+		}
+	);
 }

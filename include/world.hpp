@@ -167,6 +167,7 @@ public:
 
 	void goWorldLeft(Position& p);
 	void goWorldRight(Position& p);
+	void goWorldPortal(Position& p);
 
 	// worlddata2 stuff
 	WorldData2 worldData;
