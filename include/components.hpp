@@ -63,6 +63,16 @@ struct Physics {
 };
 
 /**
+ * @struct Grounded
+ * @brief Places an entity without physics on the ground.
+ * This is used so we don't have to update the physics of a non-moving object every loop.
+ */
+struct Grounded {
+	//TODO possibly make a way to change this
+	bool grounded = false;
+};
+
+/**
  * @struct Health
  * @brief Gives and entity health and stuff.
  */
@@ -201,7 +211,6 @@ struct Animate {
 };
 
 //TODO
-
 struct Input {
 
 };

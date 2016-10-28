@@ -48,7 +48,6 @@ void Engine::render(entityx::TimeDelta dt)
 void Engine::update(entityx::TimeDelta dt)
 {
     systems.update<InputSystem>(dt);
-	//systems.update<PhysicsSystem>(dt);
 	systems.update<MovementSystem>(dt);
 	//systems.update<DialogSystem>(dt);
 	systems.update<WorldSystem>(dt);

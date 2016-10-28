@@ -303,9 +303,11 @@ namespace ui {
 		 *	Draw the character:
 		*/
 
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D,(*ftex)[c-33]);
 		glUniform1i(Render::textShader.uniform[WU_texture], 0);
+		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, 1.0f);
 
 		//glDisable(GL_DEPTH_TEST);
 
