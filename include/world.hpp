@@ -166,7 +166,7 @@ public:
 	void detect(entityx::TimeDelta dt);
 
 	void goWorldLeft(Position& p);
-	void goWorldRight(Position& p);
+	void goWorldRight(Position& p, Solid &d);
 	void goWorldPortal(Position& p);
 
 	// worlddata2 stuff

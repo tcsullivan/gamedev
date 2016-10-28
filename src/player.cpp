@@ -5,7 +5,6 @@
 #include <ui.hpp>
 #include <gametime.hpp>
 #include <world.hpp>
-#include <components.hpp>
 
 void PlayerSystem::create(void)
 {
@@ -85,30 +84,14 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 
 	auto kc = kde.keycode;
 	auto& loc = *player.component<Position>().get();
+	auto& vel = *player.component<Direction>().get();
     auto& faceLeft = player.component<Sprite>().get()->faceLeft;
 
-	/*if ((kc == SDLK_SPACE) && (game::canJump & p->ground)) {
-		p->loc.y += HLINES(2);
-		p->vel.y = .4;
-		p->ground = false;
-	}*/
-
-	if (!ui::dialogBoxExists || ui::dialogPassive) {
+	if ((kc == SDLK_SPACE) && game::canJump && ((vel.y > -0.01) & (vel.y < 0.01))) {
+		loc.y += HLINES(2);
+		vel.y = .4;
+	} else if (!ui::dialogBoxExists || ui::dialogPassive) {
 		if (kc == getControl(0)) {
-			/*if (inBattle) {
-				std::thread([&](void){
-					auto thing = dynamic_cast<Arena *>(currentWorld)->exitArena(p);
-					if (thing.first != currentWorld)
-						worldSwitch(thing);
-				}).detach();
-			} else if (!ui::fadeIntensity) {
-				std::thread([&](void){
-					auto thing = currentWorld->goInsideStructure(p);
-					if (thing.first != currentWorld)
-						worldSwitch(thing);
-				}).detach();
-			}*/
-			
 			if (!ui::fadeIntensity)
 				worldSystem.goWorldPortal(loc);
 
@@ -124,7 +107,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 				moveLeft = faceLeft = false;
                 moveRight = true;
 
-				worldSystem.goWorldRight(loc);
+				worldSystem.goWorldRight(loc, *player.component<Solid>().get());
    			}
 		} else if (kc == getControl(3)) {
 			if (game::canSprint)

@@ -260,8 +260,11 @@ void WorldSystem::load(const std::string& file)
 
 	world.toLeft = world.toRight = "";
 	currentXMLFile = file;
+	std::cout << "ka" << std::endl;
 	game::entities.reset();
+	std::cout << "CHOW!!!" << std::endl;
 	game::engine.getSystem<PlayerSystem>()->create();
+	std::cout << "chow cow" << std::endl;
 
 	// iterate through tags
 	while (wxml) {
@@ -395,6 +398,8 @@ void WorldSystem::load(const std::string& file)
 						}
 						
 						entity.assign<Physics>(g);
+					} else if (tname == "Name") {
+						entity.assign<Name>(coalesce(wxml->Attribute("name"), abcd->Attribute("value"))); 
 					}
 
 					abcd = abcd->NextSiblingElement();
@@ -1085,14 +1090,14 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 	});
 }
 
-void WorldSystem::goWorldRight(Position& p)
+void WorldSystem::goWorldRight(Position& p, Solid &d)
 {
-	if (!(world.toRight.empty()) && (p.x > world.startX * -1 - HLINES(10))) {
+	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(15))) {
 		ui::toggleBlack();
 		ui::waitForCover();
 		auto file = world.toRight;
 		load(file);
-		p.x = world.startX + HLINES(15);
+		game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(15));
 		ui::toggleBlack();
 	}
 }
@@ -1103,7 +1108,7 @@ void WorldSystem::goWorldLeft(Position& p)
 		ui::toggleBlack();
 		ui::waitForCover();
 		load(world.toLeft);
-		p.x = world.startX * -1 - HLINES(15);
+		game::engine.getSystem<PlayerSystem>()->setX(world.startX * -1 - HLINES(15));
 		ui::toggleBlack();
 	}
 }
@@ -1119,7 +1124,6 @@ void WorldSystem::goWorldPortal(Position& p)
 				ui::toggleBlack();
 				ui::waitForCover();
 				load(portal.toFile);
-				p.x = 0;
 				ui::toggleBlack();
 				return;
 			}

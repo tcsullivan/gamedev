@@ -16,7 +16,7 @@ struct MouseScrollEvent {
  		: scrollDistance(sd) {}
 
  	int scrollDistance;
- };
+};
 
 struct KeyDownEvent {
     KeyDownEvent(SDL_Keycode kc = 0)

@@ -4,6 +4,7 @@
 #include <entityx/entityx.h>
 
 #include <events.hpp>
+#include <components.hpp>
 #include <common.hpp>
 
 constexpr const float PLAYER_SPEED_CONSTANT = 0.15f;
@@ -31,6 +32,8 @@ public:
     void receive(const KeyDownEvent&);
 
     vec2 getPosition(void) const;
+	inline void setX(const float& x)
+	{ player.component<Position>().get()->x = x; }
 };
 
 #endif // PLAYER_HPP_

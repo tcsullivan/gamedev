@@ -237,7 +237,8 @@ namespace ui {
 	*/
 
 	void setFontSize(unsigned int size) {
-		if (size == 16) {
+		(void)size;
+		/*if (size == 16) {
 			if (!ft16loaded) {
 				loadFontSize(fontSize = size, ftex16, ftdat16);
 				ft16loaded = true;
@@ -253,7 +254,7 @@ namespace ui {
 			ftex = &ftex24;
 			ftdat = &ftdat24;
 			fontSize = 24;
-		}
+		}*/
 	}
 
 	/*
@@ -572,11 +573,13 @@ namespace ui {
 	}
 
 	void waitForCover(void) {
+		fadeIntensity = 0;
 		while (fadeIntensity < 255);
 		fadeIntensity = 255;
 	}
 
 	void waitForUncover(void) {
+		fadeIntensity = 255;
 		while (fadeIntensity > 0);
 		fadeIntensity = 0;
 	}
@@ -1075,10 +1078,9 @@ EXIT:
 			return;
 		}
 
-		if (fadeWhite)
-			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(255, 255, 255, fadeIntensity)));
-		else
-			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0, 0, 0, fadeIntensity)));
+		auto fadeTex = Texture::genColor( (fadeWhite ? Color(255, 255, 255, fadeIntensity) :
+		                                               Color(0, 0, 0, fadeIntensity)) );
+
 
         GLfloat tex[] = {0.0, 0.0,
                         1.0, 0.0,
@@ -1096,6 +1098,7 @@ EXIT:
 		Render::textShader.use();
 		Render::textShader.enable();
 
+		glBindTexture(GL_TEXTURE_2D, fadeTex);
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
         glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1105,21 +1108,22 @@ EXIT:
 
 		setFontZ(-8.0);
 
+		glDeleteTextures(1, &fadeTex);
     }
 
 	void fadeUpdate(void) {
 		if (fadeEnable) {
 			if (fadeIntensity < 150)
-				fadeIntensity += fadeFast ? 40 : 10;
-			else if (fadeIntensity < 255)
 				fadeIntensity += fadeFast ? 20 : 5;
+			else if (fadeIntensity < 255)
+				fadeIntensity += fadeFast ? 10 : 5;
 			else
 				fadeIntensity = 255;
 		} else {
 			if (fadeIntensity > 150)
-				fadeIntensity -= fadeFast ? 20 : 5;
+				fadeIntensity -= fadeFast ? 10 : 5;
 			else if (fadeIntensity > 0)
-				fadeIntensity -= fadeFast ? 40 : 10;
+				fadeIntensity -= fadeFast ? 20 : 5;
 			else
 				fadeIntensity = 0;
 		}

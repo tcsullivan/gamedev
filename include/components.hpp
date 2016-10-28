@@ -81,6 +81,12 @@ struct Portal {
 	std::string toFile;
 };
 
+struct Name {
+	Name(std::string n = "") : name(n) {}
+
+	std::string name;
+};
+
 /**
  * @struct Solid
  * @brief Allows an entity to collide with other objects.

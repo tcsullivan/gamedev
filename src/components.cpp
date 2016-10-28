@@ -4,6 +4,7 @@
 #include <events.hpp>
 
 #include <render.hpp>
+#include <ui.hpp>
 #include <engine.hpp>
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -88,6 +89,12 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 
 	Render::worldShader.disable();
 	Render::worldShader.unuse();
+
+	en.each<Visible, Position, Solid, Name>([](entityx::Entity e, Visible &v, Position &pos, Solid& dim, Name &name) {
+		(void)e;
+		(void)v;
+		ui::putStringCentered(pos.x + dim.width / 2, pos.y - ui::fontSize - HLINES(0.5), name.name);
+	});
 }
 
 /*

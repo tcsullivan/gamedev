@@ -58,6 +58,12 @@ typedef unsigned int uint;
 
 #define BREAKPOINT __asm__("int $3")
 
+template<typename T>
+inline const T * const& coalesce(const T * const &p1, const T * const &p2)
+{
+	return ((p1 == nullptr) ? p2 : p1);
+}
+
 /**
  * Creates a coordinate of integers.
  */
