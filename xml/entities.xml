@@ -16,6 +16,7 @@
 	<Sprite image="assets/style/classic/house1.png" />
 	<Portal />
 	<Solid />
+	<Grounded />
 </structure>
 
 <chest>
@@ -23,4 +24,5 @@
 	<Visible value="0.15" />
 	<Sprite image="assets/chest.png" />
 	<Solid />
+	<Grounded />
 </chest>

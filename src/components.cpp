@@ -93,6 +93,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 	en.each<Visible, Position, Solid, Name>([](entityx::Entity e, Visible &v, Position &pos, Solid& dim, Name &name) {
 		(void)e;
 		(void)v;
+		ui::setFontZ(-5.0);
 		ui::putStringCentered(pos.x + dim.width / 2, pos.y - ui::fontSize - HLINES(0.5), name.name);
 	});
 }

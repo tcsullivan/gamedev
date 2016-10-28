@@ -400,6 +400,8 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Physics>(g);
 					} else if (tname == "Name") {
 						entity.assign<Name>(coalesce(wxml->Attribute("name"), abcd->Attribute("value"))); 
+					} else if (tname == "Grounded") {
+						entity.assign<Grounded>();
 					}
 
 					abcd = abcd->NextSiblingElement();
@@ -1043,6 +1045,25 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 void WorldSystem::detect(entityx::TimeDelta dt)
 {
+	game::entities.each<Grounded, Position, Solid>(
+		[&](entityx::Entity e, Grounded &g, Position &loc, Solid &dim) {
+			(void)e;
+			if (!g.grounded) {
+				// get the line the entity is on
+				int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world.startX) / game::HLINE),
+									  0,
+									  static_cast<int>(world.data.size()));
+
+				// make sure entity is above ground
+				const auto& data = world.data;
+				if (loc.y != data[line].groundHeight) {
+					loc.y = data[line].groundHeight;
+					e.remove<Grounded>();
+				}
+			}
+
+		});
+	
 	game::entities.each<Direction, Physics>(
 		[&](entityx::Entity e, Direction &vel, Physics &phys) {
 			(void)e;
