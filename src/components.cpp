@@ -6,6 +6,7 @@
 #include <render.hpp>
 #include <ui.hpp>
 #include <engine.hpp>
+#include <world.hpp>
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
@@ -245,3 +246,58 @@ if (health != maxHealth) {
 Render::worldShader.disable();
 Render::worldShader.unuse();
 }*/
+
+void DialogSystem::configure(entityx::EventManager &ev)
+{
+	ev.subscribe<MouseClickEvent>(*this);
+}
+
+void DialogSystem::receive(const MouseClickEvent &mce)
+{
+	game::entities.each<Position, Solid, Dialog, Name>(
+		[&](entityx::Entity e, Position &pos, Solid &dim, Dialog &d, Name &name) {
+			(void)e;
+			(void)d;
+
+			if (((mce.position.x > pos.x) & (mce.position.x < pos.x + dim.width)) &&
+			    ((mce.position.y > pos.y) & (mce.position.y < pos.y + dim.height))) {
+
+			std::thread([&] {
+				auto exml = game::engine.getSystem<WorldSystem>()->getXML()->FirstChildElement("Dialog");
+				int newIndex;
+
+				if (exml != nullptr) {
+					while (exml->StrAttribute("name") != name.name)
+						exml = exml->NextSiblingElement();
+
+					exml = exml->FirstChildElement("text");
+					while (exml->IntAttribute("id") != d.index)
+						exml = exml->NextSiblingElement();
+
+					auto cxml = exml->FirstChildElement("content");
+					if (cxml == nullptr)
+						return;
+
+					auto content = cxml->GetText() - 1;
+					while (*++content && isspace(*content));
+
+					ui::dialogBox(name.name, "", false, content);
+					ui::waitForDialog();
+
+					if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
+						d.index = newIndex;
+				}
+			}).detach();
+
+			}
+		}
+	);
+}
+
+void DialogSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
+{
+	(void)en;
+	(void)ev;
+	(void)dt;
+}
+

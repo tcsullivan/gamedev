@@ -18,11 +18,11 @@
 <Dialog name="Bob">
     <text id="0" nextid="1" pause="true">
         <give id="Dank MayMay" count="10"/>
-        <content alive="1">
+        <content> 
 			Hey there! The name's Bob. Good to see you've finally woken up from your nap by the cliff there... lol
 		</content>
     </text>
-    <text id="1" pause="true" alive="1">
+    <text id="1" pause="true">
         <quest assign="Check out m&apos;swag, man!" desc="Go inside Bob&apos;s house and check out the stuff he has."/>
         <content>
 			Looks like you've got yourself pretty empty handed... you know, I have a simple solution for that. Come on inside, I have somethin' to show you.

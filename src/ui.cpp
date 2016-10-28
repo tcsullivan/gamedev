@@ -238,7 +238,7 @@ namespace ui {
 
 	void setFontSize(unsigned int size) {
 		(void)size;
-		/*if (size == 16) {
+		if (size == 16) {
 			if (!ft16loaded) {
 				loadFontSize(fontSize = size, ftex16, ftdat16);
 				ft16loaded = true;
@@ -254,7 +254,7 @@ namespace ui {
 			ftex = &ftex24;
 			ftdat = &ftdat24;
 			fontSize = 24;
-		}*/
+		}
 	}
 
 	/*
@@ -1270,6 +1270,7 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 		//case SDL_MOUSEBUTTONUP:
 
 		case SDL_MOUSEBUTTONDOWN:
+			ev.emit<MouseClickEvent>(mouse, e.button.button);
 
 			// run actions?
 			//if ((action::make = e.button.button & SDL_BUTTON_RIGHT))

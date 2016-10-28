@@ -12,6 +12,7 @@
 #include <entityx/entityx.h>
 #include <common.hpp>
 #include <texture.hpp>
+#include <events.hpp>
 
 /**
  * @struct Position
@@ -220,25 +221,37 @@ struct Visible {
 	float z; /**< The value along the z axis the entity will be drawn on */
 };
 
+struct Dialog {
+	Dialog(int idx = 0)
+		: index(idx) {}
+
+	int index;
+};
+
 /**
  * SYSTEMS
  */
 
 class MovementSystem : public entityx::System<MovementSystem> {
-private:
 public:
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 };
 
 class PhysicsSystem : public entityx::System<PhysicsSystem> {
-private:
-public:
-	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt);
-};
-class RenderSystem : public entityx::System<RenderSystem> {
-private:
 public:
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+};
+
+class RenderSystem : public entityx::System<RenderSystem> {
+public:
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+};
+
+class DialogSystem : public entityx::System<DialogSystem>, public entityx::Receiver<DialogSystem> {
+public:
+	void configure(entityx::EventManager&);
+	void receive(const MouseClickEvent&);
+	void update(entityx::EntityManager&, entityx::EventManager&, entityx::TimeDelta) override;
 };
 
 #endif //COMPONENTS_HPP

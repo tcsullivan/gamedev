@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 
 #include <string>
+#include <common.hpp>
 
 class World;
 
@@ -16,6 +17,14 @@ struct MouseScrollEvent {
  		: scrollDistance(sd) {}
 
  	int scrollDistance;
+};
+
+struct MouseClickEvent {
+	MouseClickEvent(vec2 pos, int b)
+		: position(pos), button(b) {}
+
+	vec2 position;
+	int button;
 };
 
 struct KeyDownEvent {

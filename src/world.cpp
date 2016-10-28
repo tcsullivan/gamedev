@@ -164,45 +164,6 @@ bool WorldSystem::save(const std::string& s)
 	return false;
 }
 
-/*static bool loadedLeft = false;
-static bool loadedRight = false;
-
-World *loadWorldFromXML(std::string path) {
-	if (!currentXML.empty())
-		currentWorld->save();
-
-	return loadWorldFromXMLNoSave(path);
-}
-
-World *loadWorldFromPtr(World *ptr)
-{
-	currentWorld->save(); // save the current world to the current xml path
-
-	if (ptr->getToLeft() == currentXML) {
-		currentWorldToLeft = currentWorld;
-		loadedRight = true;
-		currentWorldToRight = loadWorldFromXMLNoSave(ptr->getToRight());
-		loadedRight = false;
-	} else if (ptr->getToRight() == currentXML) {
-		currentWorldToRight = currentWorld;
-		loadedLeft = true;
-		currentWorldToLeft = loadWorldFromXMLNoSave(ptr->getToLeft());
-		loadedLeft = false;
-	}
-
-    return ptr;
-}
-
-World *
-loadWorldFromXMLNoTakeover(std::string path)
-{
-	loadedLeft = true, loadedRight = true;
-	auto ret = loadWorldFromXMLNoSave(path);
-	loadedLeft = false, loadedRight = false;
-	return ret;
-}
-*/
-
 void WorldSystem::load(const std::string& file)
 {
 	auto str2coord = [](std::string s) -> vec2 {
@@ -400,6 +361,8 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Physics>(g);
 					} else if (tname == "Name") {
 						entity.assign<Name>(coalesce(wxml->Attribute("name"), abcd->Attribute("value"))); 
+					} else if (tname == "Dialog") {
+						entity.assign<Dialog>();
 					}
 
 					abcd = abcd->NextSiblingElement();
@@ -1097,7 +1060,7 @@ void WorldSystem::goWorldRight(Position& p, Solid &d)
 		ui::waitForCover();
 		auto file = world.toRight;
 		load(file);
-		game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(15));
+		//game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(15));
 		ui::toggleBlack();
 	}
 }
@@ -1108,7 +1071,7 @@ void WorldSystem::goWorldLeft(Position& p)
 		ui::toggleBlack();
 		ui::waitForCover();
 		load(world.toLeft);
-		game::engine.getSystem<PlayerSystem>()->setX(world.startX * -1 - HLINES(15));
+		//game::engine.getSystem<PlayerSystem>()->setX(world.startX * -1 - HLINES(15));
 		ui::toggleBlack();
 	}
 }
@@ -1120,7 +1083,7 @@ void WorldSystem::goWorldPortal(Position& p)
 			(void)entity;
 
 			auto& size = sprite.sprite.front().first.size;
-			if (p.x > loc.x && p.x < loc.x + size.x) {
+			if (!(portal.toFile.empty()) && p.x > loc.x && p.x < loc.x + size.x)  {
 				ui::toggleBlack();
 				ui::waitForCover();
 				load(portal.toFile);

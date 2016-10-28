@@ -8,6 +8,7 @@
 	<Solid />
 	<Physics />
 	<Name value="Daddy" />
+	<Dialog />
 </npc>
 
 <structure>

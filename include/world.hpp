@@ -144,6 +144,9 @@ public:
 		ev.subscribe<BGMToggleEvent>(*this);
 	}
 
+	inline XMLDocument* getXML(void) 
+	{ return &xmlDoc; }
+
 	inline float getWidth(void) const
 	{ return world.startX * -2.0f; }
 
