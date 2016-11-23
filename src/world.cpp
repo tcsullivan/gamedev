@@ -918,33 +918,103 @@ void WorldSystem::render(void)
 			// actually draw the grass.
 	        if (wd.groundHeight) {
 				const auto& worldStart = world.startX;
+				
+				grasst.push_back(0);
+				grasst.push_back(1);
 
-	            c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0], 		-3)));
-	            c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[0], 		-3)));
-	            c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT, 	-3)));
+				grassc.push_back(worldStart + HLINES(i));
+				grassc.push_back(wd.groundHeight + gh[0]);
+				grassc.push_back(-3);
 
-    	        c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT,	-3)));
-	            c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i)		     , wd.groundHeight - GRASS_HEIGHT,	-3)));
-	            c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i)            , wd.groundHeight + gh[0],			-3)));
+				
+				grasst.push_back(1);
+ 			   	grasst.push_back(0);
+				
+				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
+				grassc.push_back(wd.groundHeight + gh[0]); 	
+				grassc.push_back(-3);
 
-	            c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1],			-3)));
-	            c.push_back(std::make_pair(vec2(1, 0),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight + gh[1],			-3)));
-	            c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT,	-3)));
 
-    	        c.push_back(std::make_pair(vec2(1, 1),vec3(worldStart + HLINES(i) + HLINE    , wd.groundHeight - GRASS_HEIGHT,	-3)));
-	            c.push_back(std::make_pair(vec2(0, 1),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight - GRASS_HEIGHT,	-3)));
-	            c.push_back(std::make_pair(vec2(0, 0),vec3(worldStart + HLINES(i) + HLINE / 2, wd.groundHeight + gh[1],			-3)));
+	            grasst.push_back(1);
+				grasst.push_back(1);
+				
+				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
+				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
+				grassc.push_back(-3);
+
+
+    	        grasst.push_back(1);
+				grasst.push_back(1);
+				
+				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
+				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
+				grassc.push_back(-3);
+	            
+
+				grasst.push_back(0);
+				grasst.push_back(1);
+				
+				grassc.push_back(worldStart + HLINES(i));
+				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
+				grassc.push_back(-3);
+
+
+				grasst.push_back(0);
+				grasst.push_back(0);
+				
+	            grassc.push_back(worldStart + HLINES(i));
+				grassc.push_back(wd.groundHeight + gh[0]);			
+				grassc.push_back(-3);
+
+
+				grasst.push_back(0);
+				grasst.push_back(0);
+	            
+				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
+ 			   	grassc.push_back(wd.groundHeight + gh[1]);
+				grassc.push_back(-3);
+
+
+				grasst.push_back(1);
+				grasst.push_back(0);
+
+	            grassc.push_back(worldStart + HLINES(i) + HLINE);
+				grassc.push_back(wd.groundHeight + gh[1]);
+				grassc.push_back(-3);
+
+
+				grasst.push_back(1);
+				grasst.push_back(1);
+	            
+				grassc.push_back(worldStart + HLINES(i) + HLINE);
+				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
+				grassc.push_back(-3);
+
+
+				grasst.push_back(1);
+				grasst.push_back(1);
+
+    	        grassc.push_back(worldStart + HLINES(i) + HLINE);
+				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
+				grassc.push_back(-3);
+
+
+				grasst.push_back(0);
+				grasst.push_back(1);
+	            
+				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
+				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
+				grassc.push_back(-3);
+
+
+				grasst.push_back(0);
+				grasst.push_back(0);
+
+				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
+				grassc.push_back(wd.groundHeight + gh[1]);
+				grassc.push_back(-3);
 	        }
 		}
-
-	    for (auto &v : c) {
-	        grassc.push_back(v.second.x);
-	        grassc.push_back(v.second.y);
-	        grassc.push_back(v.second.z);
-
-        	grasst.push_back(v.first.x);
-    	    grasst.push_back(v.first.y);
-	    }
 
 	    Render::worldShader.use();
 		glUniform1f(Render::worldShader.uniform[WU_light_impact], 1.0f);
@@ -953,7 +1023,7 @@ void WorldSystem::render(void)
 
 	    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, &grassc[0]);
 	    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, &grasst[0]);
-	    glDrawArrays(GL_TRIANGLES, 0 , c.size());
+	    glDrawArrays(GL_TRIANGLES, 0 , grassc.size()/3);
 
 		// the starting pixel of the world
 		float s = -(static_cast<float>(SCREEN_WIDTH)/2.0f);
@@ -965,13 +1035,13 @@ void WorldSystem::render(void)
 			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0))); 
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
-			GLfloat blackBarLeft[] = {s, 				0.0f,								-3.0f,		0.0f, 0.0f, 
-									  world.startX, 	0.0f, 								-3.0f,		1.0f, 0.0f,
-									  world.startX, 	static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		1.0f, 1.0f,
+			GLfloat blackBarLeft[] = {s, 				0.0f,								-3.5f,		0.0f, 0.0f, 
+									  world.startX, 	0.0f, 								-3.5f,		1.0f, 0.0f,
+									  world.startX, 	static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
 									  
-									  world.startX, 	static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		1.0f, 1.0f,
-    								  s,				static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		0.0f, 1.0f,
-									  s,				0.0f,								-3.0f,		0.0f, 0.0f};
+									  world.startX, 	static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
+    								  s,				static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		0.0f, 1.0f,
+									  s,				0.0f,								-3.5f,		0.0f, 0.0f};
 
 	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarLeft[0]);
 	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarLeft[3]);
@@ -983,13 +1053,13 @@ void WorldSystem::render(void)
 			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0))); 
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
-			GLfloat blackBarRight[] = {grassc[grassc.size()-3], 	0.0f,								-3.0f,		0.0f, 0.0f, 
-									   e, 							0.0f, 								-3.0f,		1.0f, 0.0f,
-									   e, 							static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		1.0f, 1.0f,
+			GLfloat blackBarRight[] = {grassc[grassc.size()-3], 	0.0f,								-3.5f,		0.0f, 0.0f, 
+									   e, 							0.0f, 								-3.5f,		1.0f, 0.0f,
+									   e, 							static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
 									  
-									   e, 							static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		1.0f, 1.0f,
-    								   grassc[grassc.size()-3],		static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		0.0f, 1.0f,
-									   grassc[grassc.size()-3],		0.0f,								-3.0f,		0.0f, 0.0f};
+									   e, 							static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
+    								   grassc[grassc.size()-3],		static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		0.0f, 1.0f,
+									   grassc[grassc.size()-3],		0.0f,								-3.5f,		0.0f, 0.0f};
 
 	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarRight[0]);
 	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarRight[3]);
