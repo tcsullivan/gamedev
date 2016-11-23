@@ -20,6 +20,7 @@ public:
 	void configure(entityx::EventManager &ev);
     void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 	void receive(const WindowResizeEvent&);	
+	void receive(const ScreenshotEvent&);
 };
 
 #endif // WINDOW_HPP_

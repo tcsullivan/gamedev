@@ -156,6 +156,11 @@ namespace ui {
 	void waitForCover(void);
 	void waitForUncover(void);
 
+	/*
+ 	 *  Takes a screenshot of the game
+ 	 */
+	
+	void takeScreenshot(GLubyte *pixels);
 }
 
 #endif // UI_H

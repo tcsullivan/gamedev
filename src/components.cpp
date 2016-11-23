@@ -53,8 +53,8 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 								1.0, 0.0};
 
 		for (auto &S : sprite.sprite) {
-			float width = S.first.size.x;
-			float height = S.first.size.y;
+			float width = HLINES(S.first.size.x);
+			float height = HLINES(S.first.size.y);
 
 			vec2 loc = vec2(pos.x + S.first.offset.x, pos.y + S.first.offset.y);
 

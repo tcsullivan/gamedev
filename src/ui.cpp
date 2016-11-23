@@ -1337,10 +1337,12 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 				break;
 			case SDLK_F12:
 				// Make the BYTE array, factor of 3 because it's RBG.
-				static GLubyte* pixels;
+				/*static GLubyte* pixels;
 				pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
 				glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-				takeScreenshot(pixels);
+				takeScreenshot(pixels);*/
+
+				ev.emit<ScreenshotEvent>(game::SCREEN_WIDTH, game::SCREEN_HEIGHT);
 
 				std::cout << "Took screenshot" << std::endl;
 				break;

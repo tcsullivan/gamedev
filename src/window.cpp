@@ -66,6 +66,7 @@ void WindowSystem::die(void)
 void WindowSystem::configure(entityx::EventManager &ev)
 {
     ev.subscribe<WindowResizeEvent>(*this);
+	ev.subscribe<ScreenshotEvent>(*this);
 }
 
 
@@ -77,6 +78,22 @@ void WindowSystem::receive(const WindowResizeEvent &wre)
 	glViewport(0, 0, wre.x, wre.y);
 	SDL_SetWindowSize(window, wre.x, wre.y);
 }	
+
+#include <ui.hpp>
+
+void WindowSystem::receive(const ScreenshotEvent &scr)
+{
+	// Make the BYTE array, factor of 3 because it's RBG.
+	static GLubyte* pixels;
+	pixels = new GLubyte[ 3 * scr.w * scr.h];
+	//glReadPixels(0, 0, scr.w, scr.h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	for(int i = 0; i < (3 * scr.w * scr.h); i++) {
+		pixels[i] = 255;
+	}
+
+	ui::takeScreenshot(pixels);
+	std::cout << "Triggered\n";
+}
 
 void WindowSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {

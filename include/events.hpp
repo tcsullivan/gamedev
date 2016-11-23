@@ -12,6 +12,10 @@
 
 class World;
 
+//////////////////////////
+/// INPUT EVENTS
+//////////////////////////
+
 struct MouseScrollEvent {
  	MouseScrollEvent(int sd = 0)
  		: scrollDistance(sd) {}
@@ -41,12 +45,20 @@ struct KeyUpEvent {
     SDL_Keycode keycode;
 };
 
+//////////////////////////
+/// ENGINE EVENTS
+//////////////////////////
+
 struct GameEndEvent {
     GameEndEvent(bool r = true)
         : really(r) {}
 
     bool really;
 };
+
+//////////////////////////
+/// WORLD EVENTS
+//////////////////////////
 
 struct BGMToggleEvent {
     BGMToggleEvent(std::string f = "", World *w = nullptr)
@@ -56,12 +68,24 @@ struct BGMToggleEvent {
 	World *world;
 };
 
+//////////////////////////
+/// WINDOW EVENTS
+//////////////////////////
+
 struct WindowResizeEvent {
 	WindowResizeEvent(int w = 640, int h = 480)
 		: x(w), y(h) {}
 	
 	int x;
 	int y;
+};
+
+struct ScreenshotEvent {
+	ScreenshotEvent(int w = game::SCREEN_HEIGHT, int h = game::SCREEN_WIDTH)
+		: w(w), h(h) {}
+	
+	int w;
+	int h;	
 };
 
 #endif // EVENTS_HPP_

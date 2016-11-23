@@ -759,6 +759,8 @@ void WorldSystem::render(void)
 
 	bgTex++;
 	auto mountainDim = bgTex.getTextureDim();
+	mountainDim.x = HLINES(mountainDim.x);
+	mountainDim.y = HLINES(mountainDim.y);
     auto xcoord = width / 2 * -1 + offset.x * 0.85f;
 	for (int i = 0; i <= width / mountainDim.x; i++) {
         bg_items.emplace_back(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f);
@@ -786,6 +788,8 @@ void WorldSystem::render(void)
 	for (unsigned int i = 0; i < 4; i++) {
 		bgTex++;
 		auto dim = bgTex.getTextureDim();
+		dim.x = HLINES(dim.x);
+		dim.y = HLINES(dim.y);
 		auto xcoord = offset.x * bgDraw[i][2];
 
 		bg_items.clear();
