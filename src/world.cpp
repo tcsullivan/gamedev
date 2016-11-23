@@ -955,8 +955,50 @@ void WorldSystem::render(void)
 	    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, &grasst[0]);
 	    glDrawArrays(GL_TRIANGLES, 0 , c.size());
 
-    	Render::worldShader.disable();
+		// the starting pixel of the world
+		float s = -(static_cast<float>(SCREEN_WIDTH)/2.0f);
+		// the ending pixel of the world
+		float e =  (static_cast<float>(SCREEN_WIDTH)/2.0f);
+
+		if (offset.x + world.startX > s) {
+
+			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0))); 
+			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
+
+			GLfloat blackBarLeft[] = {s, 				0.0f,								-3.0f,		0.0f, 0.0f, 
+									  world.startX, 	0.0f, 								-3.0f,		1.0f, 0.0f,
+									  world.startX, 	static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		1.0f, 1.0f,
+									  
+									  world.startX, 	static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		1.0f, 1.0f,
+    								  s,				static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		0.0f, 1.0f,
+									  s,				0.0f,								-3.0f,		0.0f, 0.0f};
+
+	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarLeft[0]);
+	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarLeft[3]);
+	    	glDrawArrays(GL_TRIANGLES, 0 , 6);
+		}
+
+		if (offset.x - world.startX < e) {
+			
+			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0))); 
+			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
+
+			GLfloat blackBarRight[] = {grassc[grassc.size()-3], 	0.0f,								-3.0f,		0.0f, 0.0f, 
+									   e, 							0.0f, 								-3.0f,		1.0f, 0.0f,
+									   e, 							static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		1.0f, 1.0f,
+									  
+									   e, 							static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		1.0f, 1.0f,
+    								   grassc[grassc.size()-3],		static_cast<float>(SCREEN_HEIGHT), 	-3.0f,		0.0f, 1.0f,
+									   grassc[grassc.size()-3],		0.0f,								-3.0f,		0.0f, 0.0f};
+
+	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarRight[0]);
+	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarRight[3]);
+	    	glDrawArrays(GL_TRIANGLES, 0 , 6);
+		}
+		
+		Render::worldShader.disable();
 		Render::worldShader.unuse();
+
 	} else {
 		Render::useShader(&Render::worldShader);
 		Render::worldShader.use();

@@ -320,9 +320,11 @@ void render() {
 	if (ui::debug) {
 		auto pos = game::engine.getSystem<PlayerSystem>()->getPosition();
 		ui::putText(offset.x-SCREEN_WIDTH/2, (offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-		            "loc: (%+.2f, %+.2f)\nticks: %u\nxml: %s",
+		            "loc: (%+.2f, %+.2f)\noffset: (%+.2f, %+.2f)\nticks: %u\nxml: %s",
 					pos.x,
 					pos.y,
+					offset.x,
+					offset.y,
 					game::time::getTickCount(),
 					game::engine.getSystem<WorldSystem>()->getXMLFile().c_str()
 		            );
