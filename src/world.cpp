@@ -146,7 +146,7 @@ void WorldSystem::generate(unsigned int width)
 	}
 
     // define x-coordinate of world's leftmost 'line'
-    world.startX = (width - GROUND_HILLINESS) * game::HLINE / 2 * -1;
+    world.startX = HLINES(width * -0.5);
 }
 
 static Color ambient;
@@ -318,12 +318,11 @@ void WorldSystem::load(const std::string& file)
 					} else if (tname == "Solid") {
 						vec2 dim;
 
-						if (abcd->Attribute("value") != nullptr) {
+						if (abcd->Attribute("value") != nullptr)
 							dim = str2coord(abcd->StrAttribute("value"));
-						} else {
+						else
 							dim = entity.component<Sprite>().get()->getSpriteSize() * game::HLINE;
-						}
-						
+
 						float cdat[2] = {dim.x, dim.y};
 						entity.assign<Solid>(cdat[0], cdat[1]);
 					} else if (tname == "Direction") {
@@ -332,7 +331,7 @@ void WorldSystem::load(const std::string& file)
 						if (wxml->Attribute("direction") != nullptr) {
 							dir = str2coord(wxml->StrAttribute("direction"));
 						} else if (wxml->Attribute("value") != nullptr) {
-							dir = str2coord(wxml->StrAttribute("value"));	
+							dir = str2coord(wxml->StrAttribute("value"));
 						} else {
 							dir = vec2(0,0);
 						}
@@ -345,14 +344,14 @@ void WorldSystem::load(const std::string& file)
 						if (wxml->Attribute("gravity") != nullptr) {
 							g = wxml->FloatAttribute("gravity");
 						} else if (wxml->Attribute("value") != nullptr) {
-							g = wxml->FloatAttribute("value");	
+							g = wxml->FloatAttribute("value");
 						} else {
 							g = 1.0f;
 						}
-						
+
 						entity.assign<Physics>(g);
 					} else if (tname == "Name") {
-						entity.assign<Name>(coalesce(wxml->Attribute("name"), abcd->Attribute("value"))); 
+						entity.assign<Name>(coalesce(wxml->Attribute("name"), abcd->Attribute("value")));
 					} else if (tname == "Dialog") {
 						entity.assign<Dialog>((wxml->BoolAttribute("hasDialog") ? 0 : 9999));
 					} else if (tname == "Grounded") {
@@ -922,7 +921,7 @@ void WorldSystem::render(void)
 			// actually draw the grass.
 	        if (wd.groundHeight) {
 				const auto& worldStart = world.startX;
-				
+
 				grasst.push_back(0);
 				grasst.push_back(1);
 
@@ -930,18 +929,18 @@ void WorldSystem::render(void)
 				grassc.push_back(wd.groundHeight + gh[0]);
 				grassc.push_back(-3);
 
-				
+
 				grasst.push_back(1);
  			   	grasst.push_back(0);
-				
+
 				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
-				grassc.push_back(wd.groundHeight + gh[0]); 	
+				grassc.push_back(wd.groundHeight + gh[0]);
 				grassc.push_back(-3);
 
 
 	            grasst.push_back(1);
 				grasst.push_back(1);
-				
+
 				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
 				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
 				grassc.push_back(-3);
@@ -949,15 +948,15 @@ void WorldSystem::render(void)
 
     	        grasst.push_back(1);
 				grasst.push_back(1);
-				
+
 				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
 				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
 				grassc.push_back(-3);
-	            
+
 
 				grasst.push_back(0);
 				grasst.push_back(1);
-				
+
 				grassc.push_back(worldStart + HLINES(i));
 				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
 				grassc.push_back(-3);
@@ -965,15 +964,15 @@ void WorldSystem::render(void)
 
 				grasst.push_back(0);
 				grasst.push_back(0);
-				
+
 	            grassc.push_back(worldStart + HLINES(i));
-				grassc.push_back(wd.groundHeight + gh[0]);			
+				grassc.push_back(wd.groundHeight + gh[0]);
 				grassc.push_back(-3);
 
 
 				grasst.push_back(0);
 				grasst.push_back(0);
-	            
+
 				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
  			   	grassc.push_back(wd.groundHeight + gh[1]);
 				grassc.push_back(-3);
@@ -989,7 +988,7 @@ void WorldSystem::render(void)
 
 				grasst.push_back(1);
 				grasst.push_back(1);
-	            
+
 				grassc.push_back(worldStart + HLINES(i) + HLINE);
 				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
 				grassc.push_back(-3);
@@ -1005,7 +1004,7 @@ void WorldSystem::render(void)
 
 				grasst.push_back(0);
 				grasst.push_back(1);
-	            
+
 				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
 				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
 				grassc.push_back(-3);
@@ -1036,13 +1035,13 @@ void WorldSystem::render(void)
 
 		if (offset.x + world.startX > s) {
 
-			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0))); 
+			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0)));
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
-			GLfloat blackBarLeft[] = {s, 				0.0f,								-3.5f,		0.0f, 0.0f, 
+			GLfloat blackBarLeft[] = {s, 				0.0f,								-3.5f,		0.0f, 0.0f,
 									  world.startX, 	0.0f, 								-3.5f,		1.0f, 0.0f,
 									  world.startX, 	static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
-									  
+
 									  world.startX, 	static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
     								  s,				static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		0.0f, 1.0f,
 									  s,				0.0f,								-3.5f,		0.0f, 0.0f};
@@ -1053,14 +1052,14 @@ void WorldSystem::render(void)
 		}
 
 		if (offset.x - world.startX < e) {
-			
-			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0))); 
+
+			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0)));
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
-			GLfloat blackBarRight[] = {grassc[grassc.size()-3], 	0.0f,								-3.5f,		0.0f, 0.0f, 
+			GLfloat blackBarRight[] = {grassc[grassc.size()-3], 	0.0f,								-3.5f,		0.0f, 0.0f,
 									   e, 							0.0f, 								-3.5f,		1.0f, 0.0f,
 									   e, 							static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
-									  
+
 									   e, 							static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
     								   grassc[grassc.size()-3],		static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		0.0f, 1.0f,
 									   grassc[grassc.size()-3],		0.0f,								-3.5f,		0.0f, 0.0f};
@@ -1069,7 +1068,7 @@ void WorldSystem::render(void)
 	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarRight[3]);
 	    	glDrawArrays(GL_TRIANGLES, 0 , 6);
 		}
-		
+
 		Render::worldShader.disable();
 		Render::worldShader.unuse();
 
@@ -1146,7 +1145,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 			}
 
 		});
-	
+
 	game::entities.each<Direction, Physics>(
 		[&](entityx::Entity e, Direction &vel, Physics &phys) {
 			(void)e;
@@ -1181,7 +1180,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 				// TODO ground flag
 			}
 		}
-        
+
 
 		// insure that the entity doesn't fall off either edge of the world.
         if (loc.x < world.startX) {

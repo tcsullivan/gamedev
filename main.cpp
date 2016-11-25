@@ -131,9 +131,6 @@ int main(int argc, char *argv[])
 	// load mouse texture, and other inventory textures
 	mouseTex = Texture::loadTexture("assets/mouse.png");
 
-	//player = new Player();
-	//player->sspawn(0,100);
-
 	// get a world
 	if (xmlFolder.empty())
 		xmlFolder = "xml/";
@@ -200,7 +197,6 @@ int main(int argc, char *argv[])
 	}
 
 	ui::menu::init();
-//	game::events.emit<BGMToggleEvent>(currentWorld->bgm);
 
 	// the main loop, in all of its gloriousness..
 	std::thread([&]{
@@ -265,7 +261,7 @@ void render() {
 
 	offset.x = game::engine.getSystem<PlayerSystem>()->getPosition().x;// + player->width / 2;
 
-	auto worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
+	const auto& worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
 	if (worldWidth < (int)SCREEN_WIDTH)
 		offset.x = 0;
 	else if (offset.x - SCREEN_WIDTH / 2 < worldWidth * -0.5f)
@@ -319,12 +315,13 @@ void render() {
 	// draw the debug overlay if desired
 	if (ui::debug) {
 		auto pos = game::engine.getSystem<PlayerSystem>()->getPosition();
-		ui::putText(offset.x-SCREEN_WIDTH/2, (offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-		            "loc: (%+.2f, %+.2f)\noffset: (%+.2f, %+.2f)\nticks: %u\nxml: %s",
+		ui::putText(offset.x - SCREEN_WIDTH / 2, (offset.y + SCREEN_HEIGHT / 2) - ui::fontSize,
+		            "loc: (%+.2f, %+.2f)\noffset: (%+.2f, %+.2f)\nfps: %d\nticks: %d\nxml: %s",
 					pos.x,
 					pos.y,
 					offset.x,
 					offset.y,
+					fps,
 					game::time::getTickCount(),
 					game::engine.getSystem<WorldSystem>()->getXMLFile().c_str()
 		            );
@@ -342,41 +339,6 @@ void render() {
 					game::engine.getSystem<WorldSystem>()->getWeatherStr().c_str(),
 					""//currentXML.c_str()
 				);*/
-
-		// draw tracer lines if desired
-		//static const GLuint tracerText = Texture::genColor(Color(100,100,255));
-		/*if (ui::posFlag) {
-			GLfloat *tpoint = new GLfloat[currentWorld->getEntityCount() * 2 * 5];
-			auto tp = tpoint;
-
-			for (auto &e : currentWorld->entity) {
-				*(tp++) = player->loc.x + player->width / 2;
-				*(tp++) = player->loc.y + player->height / 2;
-				*(tp++) = -5.0;
-
-				*(tp++) = 0.0;
-				*(tp++) = 0.0;
-
-				*(tp++) = e->loc.x + e->width / 2;
- 				*(tp++) = e->loc.y + e->height / 2;
-				*(tp++) = -5.0;
-
-				*(tp++) = 1.0;
-				*(tp++) = 1.0;
-			}
-
-			Render::textShader.use();
-				glBindTexture(GL_TEXTURE_2D, tracerText);
-				Render::textShader.enable();
-				glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[0]);
-				glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &tpoint[3]);
-				glDrawArrays(GL_LINES, 0, currentWorld->getEntityCount() * 2);
-				Render::textShader.disable();
-			Render::textShader.unuse();
-
-			delete[] tpoint;
-		}*/
-
 	}
 
 	// draw the menu
