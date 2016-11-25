@@ -67,7 +67,6 @@ namespace Texture{
 #ifdef DEBUG
 		DEBUG_printf("Loaded image file: %s\n", fileName.c_str());
 #endif // DEBUG
-
 		/*
 		 * Load texture through OpenGL.
 		 */
@@ -77,10 +76,8 @@ namespace Texture{
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	// Sets the "min" filter
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	// The the "max" filter of the stack
-
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Wrap the texture to the matrix
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); //
-
 		glTexImage2D(GL_TEXTURE_2D,  // Sets the texture to the image file loaded above
 					 0,
 					 GL_RGBA,
@@ -104,7 +101,7 @@ namespace Texture{
     GLuint genColor(Color c)
     {
         std::string out;
-        
+
         // add the red
         out += static_cast<int>(c.red);
 
@@ -140,7 +137,7 @@ namespace Texture{
 					 GL_UNSIGNED_BYTE,  // type
 					 out.data()         // source
 					);
-        
+
         return object;
     }
 

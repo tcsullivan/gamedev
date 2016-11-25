@@ -177,7 +177,7 @@ namespace ui {
 	bool dialogImportant = false;
 	unsigned char dialogOptChosen = 0;
 
-	unsigned int textWrapLimit = 0;
+	unsigned int textWrapLimit = 72;
 
 	/*
 	 *	Current font size. Changing this WILL NOT change the font size, see setFontSize() for
@@ -369,7 +369,7 @@ namespace ui {
 		 */
 
 		do {
-			if (dialogBoxExists && o.x > textWrapLimit * nl + x) {
+			if (dialogBoxExists && i > textWrapLimit * nl) {
 
  				o.y -= fontSize * 1.05f;
  				o.x = x;
@@ -529,7 +529,6 @@ namespace ui {
 		va_list dialogArgs;
 		std::unique_ptr<char[]> printfbuf (new char[512]);
 
-		textWrapLimit = game::SCREEN_WIDTH - HLINES(20);
 		dialogPassive = passive;
 
 		// add speaker prefix
@@ -844,10 +843,8 @@ namespace ui {
 
 	void draw(void){
 		unsigned char i;
-		float x,y,tmp;
 		std::string rtext;
 
-		auto SCREEN_WIDTH = static_cast<float>(game::SCREEN_WIDTH);
 		auto SCREEN_HEIGHT = static_cast<float>(game::SCREEN_HEIGHT);
 
 		// will return if not toggled
@@ -909,16 +906,17 @@ namespace ui {
 				}
 			} else { //normal dialog box
 
-				x = offset.x - SCREEN_WIDTH / 2  + HLINES(8);
-				y = offset.y + SCREEN_HEIGHT / 2 - HLINES(8);
+				float y = offset.y + SCREEN_HEIGHT / 2 - HLINES(8);
+				float x = offset.x - 300;
 
-				drawNiceBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH - HLINES(16), y - SCREEN_HEIGHT / 4}, -7.0);
+				drawNiceBox(vec2 {x, y}, vec2 {x + 600, y - SCREEN_HEIGHT / 4}, -7.0);
 
 				setFontZ(-7.2f);
 				rtext = typeOut(dialogBoxText);
 				putString(x + HLINES(2), y - fontSize - game::HLINE, rtext);
 
-				for(i=0;i<dialogOptText.size();i++) {
+				for (i = 0; i < dialogOptText.size(); i++) {
+					float tmp;
 					setFontColor(255,255,255);
 					tmp = putStringCentered(offset.x,dialogOptText[i].second.y,dialogOptText[i].first);
 					dialogOptText[i].second.z = offset.x + tmp;
@@ -1259,7 +1257,7 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 		case SDL_QUIT:
 			game::endGame();
 			break;
-		
+
 		// window events - used for resizing and stuff
 		case SDL_WINDOWEVENT:
 			switch (e.window.event) {
