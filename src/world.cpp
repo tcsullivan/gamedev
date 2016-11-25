@@ -63,7 +63,7 @@ constexpr const float GROUND_HEIGHT_MAXIMUM = 110.0f;
 constexpr const float GROUND_HILLINESS      =  10.0f;
 
 // defines grass height in HLINEs
-constexpr const unsigned int GRASS_HEIGHT = 4;
+const unsigned int GRASS_HEIGHT = HLINES(4);
 
 // the path of the currently loaded XML file, externally referenced in places
 std::string currentXML;
@@ -111,7 +111,7 @@ static const float bgDraw[4][3]={
 
 void WorldSystem::generate(unsigned int width)
 {
-    float geninc = 0;
+	float geninc = 0;
 
     // allocate space for world
     world.data = std::vector<WorldData> (width + GROUND_HILLINESS, WorldData { false, {0, 0}, 0, 0 });
@@ -140,8 +140,8 @@ void WorldSystem::generate(unsigned int width)
     	    w->groundHeight   = std::clamp(w[-1].groundHeight + geninc, GROUND_HEIGHT_MINIMUM, GROUND_HEIGHT_MAXIMUM);
 	        w->groundColor    = randGet() % 32 / 8;
 	        w->grassUnpressed = true;
-	        w->grassHeight[0] = (randGet() % 16) / 3 + 2;
-	        w->grassHeight[1] = (randGet() % 16) / 3 + 2;
+	        w->grassHeight[0] = (randGet() % 16) / 3 + HLINES(2);
+	        w->grassHeight[1] = (randGet() % 16) / 3 + HLINES(2);
 	    }
 	}
 

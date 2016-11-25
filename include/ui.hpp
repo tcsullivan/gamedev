@@ -120,6 +120,7 @@ namespace ui {
 
 	void drawBox(vec2 c1, vec2 c2);
 	void drawNiceBox(vec2 c1, vec2 c2, float z);
+	void drawNiceBoxColor(vec2 c1, vec2 c2, float z, Color c);
 	void dialogBox(std::string name, std::string opt, bool passive, std::string text, ...);
 	void closeBox();
 	void waitForDialog(void);

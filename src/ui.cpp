@@ -683,6 +683,10 @@ namespace ui {
 	}
 
 	void drawNiceBox(vec2 c1, vec2 c2, float z) {
+		drawNiceBoxColor(c1, c2, z, Color(1.0f, 1.0f, 1.0f));
+	}
+
+	void drawNiceBoxColor(vec2 c1, vec2 c2, float z, Color c) {
 		// the textures for the box corners
 		static GLuint box_corner =	 	Texture::loadTexture("assets/ui/button_corners.png");
 		static GLuint box_side_top = 	Texture::loadTexture("assets/ui/button_top_bot_borders.png");
@@ -777,12 +781,14 @@ namespace ui {
 							c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f};
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, box_corner);
 		glUniform1f(Render::textShader.uniform[WU_texture], 0);
 
 		Render::textShader.use();
 		Render::textShader.enable();
 
+		glUniform4f(Render::textShader.uniform[WU_tex_color], c.red, c.green, c.blue, c.alpha);
+		glBindTexture(GL_TEXTURE_2D, box_corner);
+		
 		// draw upper left corner
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ul[0]);
         glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ul[3]);
@@ -1307,6 +1313,11 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 		// key presses
 		case SDL_KEYDOWN:
 			ev.emit<KeyDownEvent>(SDL_KEY);
+			switch(SDL_KEY){
+				case SDLK_t:
+					game::time::tick(100);
+					break;
+			}
 			break;
 		/*
 		 *	KEYUP
