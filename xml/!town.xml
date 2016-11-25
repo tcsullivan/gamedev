@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
-
-<include file="entities.xml" />
+<include file="entities.xml"/>
 
 <World>
     <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
     <generation width="1600"/>
     <time>6000</time>
-    <link right="!town2.xml" />
+    <link right="!town2.xml"/>
     <spawnx>-300</spawnx>
     <npc name="Sanc" hasDialog="true"/>
     <npc name="Bob" hasDialog="true" position="50.0,100.0"/>

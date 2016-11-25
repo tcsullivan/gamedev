@@ -105,9 +105,6 @@ static const float bgDraw[4][3]={
 	{ 255, 255, 0.1  }
 };
 
-std::string currentXMLRaw;
-XMLDocument currentXMLDoc;
-
 /* ----------------------------------------------------------------------------
 ** Functions section
 ** --------------------------------------------------------------------------*/
@@ -221,11 +218,8 @@ void WorldSystem::load(const std::string& file)
 
 	world.toLeft = world.toRight = "";
 	currentXMLFile = file;
-	std::cout << "ka" << std::endl;
 	game::entities.reset();
-	std::cout << "CHOW!!!" << std::endl;
 	game::engine.getSystem<PlayerSystem>()->create();
-	std::cout << "chow cow" << std::endl;
 
 	// iterate through tags
 	while (wxml) {
@@ -294,8 +288,6 @@ void WorldSystem::load(const std::string& file)
 		else {
 			auto cxml = xmlDoc.FirstChildElement(tagName.c_str());
 			if (cxml != nullptr) {
-				DEBUG_printf("Using custom tag <%s>\n", tagName.c_str());
-
 				entity = game::entities.create();
 				auto abcd = cxml->FirstChildElement();
 
@@ -329,7 +321,7 @@ void WorldSystem::load(const std::string& file)
 						if (abcd->Attribute("value") != nullptr) {
 							dim = str2coord(abcd->StrAttribute("value"));
 						} else {
-							dim = entity.component<Sprite>().get()->getSpriteSize();	
+							dim = entity.component<Sprite>().get()->getSpriteSize() * game::HLINE;
 						}
 						
 						float cdat[2] = {dim.x, dim.y};
@@ -362,7 +354,7 @@ void WorldSystem::load(const std::string& file)
 					} else if (tname == "Name") {
 						entity.assign<Name>(coalesce(wxml->Attribute("name"), abcd->Attribute("value"))); 
 					} else if (tname == "Dialog") {
-						entity.assign<Dialog>();
+						entity.assign<Dialog>((wxml->BoolAttribute("hasDialog") ? 0 : 9999));
 					} else if (tname == "Grounded") {
 						entity.assign<Grounded>();
 					}
@@ -1193,6 +1185,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 void WorldSystem::goWorldRight(Position& p, Solid &d)
 {
 	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(15))) {
+	BREAKPOINT;
 		ui::toggleBlack();
 		ui::waitForCover();
 		auto file = world.toRight;
@@ -1215,18 +1208,31 @@ void WorldSystem::goWorldLeft(Position& p)
 
 void WorldSystem::goWorldPortal(Position& p)
 {
-	game::entities.each<Position, Sprite, Portal>(
-		[&](entityx::Entity entity, Position& loc, Sprite &sprite, Portal &portal) {
-			(void)entity;
+	std::string file;
 
-			auto& size = sprite.sprite.front().first.size;
-			if (!(portal.toFile.empty()) && p.x > loc.x && p.x < loc.x + size.x)  {
-				ui::toggleBlack();
-				ui::waitForCover();
-				load(portal.toFile);
-				ui::toggleBlack();
-				return;
+	if (world.indoor) {
+		file = world.outdoor;
+		p.x = world.outdoorCoords.x; // ineffective, player is regen'd
+		p.y = world.outdoorCoords.y;
+	} else {
+		game::entities.each<Position, Solid, Portal>(
+			[&](entityx::Entity entity, Position& loc, Solid &dim, Portal &portal) {
+				(void)entity;
+				if (!(portal.toFile.empty()) && p.x > loc.x && p.x < loc.x + dim.width)  {
+					file = portal.toFile;
+					world.outdoor = currentXMLFile;
+					world.outdoorCoords = vec2(loc.x + dim.width / 2, 100);
+					return;
+				}
 			}
-		}
-	);
+		);
+	}
+
+	if (!file.empty()) {
+		std::cout << file << std::endl;
+		ui::toggleBlack();
+		ui::waitForCover();
+		load(file);
+		ui::toggleBlack();
+	}
 }

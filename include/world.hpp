@@ -1,24 +1,27 @@
-#ifndef WORLD_H
-#define WORLD_H
-
 /**
  * @file  world.hpp
  * @brief The world system
  */
+
+#ifndef WORLD_H
+#define WORLD_H
+
+// library includes
+#include <entityx/entityx.h>
 
 // local game includes
 #include <common.hpp>
 #include <coolarray.hpp>
 #include <events.hpp>
 #include <texture.hpp>
-#include <tinyxml2.h>
 #include <components.hpp>
+#include <tinyxml2.h>
+
 using namespace tinyxml2;
 
 /**
  * The background type enum.
- * This enum contains all different possibilities for world backgrounds; used
- * in World::setBackground() to select the appropriate images.
+ * Used to choose which set of background images should be used.
  */
 enum class WorldBGType : unsigned int {
 	Forest = 0	/**< A forest theme. */
@@ -33,6 +36,15 @@ enum class WorldWeather : unsigned char {
 	None = 0,	/**< None (sunny) */
 	Rain,		/**< Rain */
 	Snowy		/**< Snow */
+};
+
+/**
+ * Strings to represent each type of weather.
+ */
+constexpr const char* WorldWeatherString[3] = {
+	"None",
+	"Rainy",
+	"Snowy"
 };
 
 /**
@@ -55,12 +67,8 @@ typedef struct {
 extern int worldShade;
 
 /**
- * The file path to the currently loaded XML file.
- */
-extern std::string currentXML;
-
-/**
  * Defines how many game ticks it takes to go from day to night or vice versa.
+ * Technically a half day cycle...
  */
 constexpr const unsigned int DAY_CYCLE = 10000;
 
@@ -87,53 +95,76 @@ constexpr const unsigned int INDOOR_FLOOR_HEIGHTT = 400;
  */
 constexpr const unsigned int INDOOR_FLOOR_HEIGHT = (INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS);
 
-#include <entityx/entityx.h>
-
-constexpr const char* WorldWeatherString[3] = {
-	"None",
-	"Rainy",
-	"Snowy"
-};
-
+/**
+ * World data.
+ * Contains all necessary data for a world. An instance of this is kept in the
+ * world system, and is populated through it's load() function.
+ */
 struct WorldData2 {
-	// data
-	std::vector<WorldData> data;
-	float startX;
 
-	// indoor
-	bool indoor;
-	float indoorWidth;
-	GLuint indoorTex;
+	// Data variables
+	std::vector<WorldData> data; /**< The world's ground data. */
+	float startX;                /**< The furthest left coordinate of the world. */
 
-	// links
-	std::string toLeft, toRight;
+	// Indoor variables
+	bool indoor;                 /**< Set to true if this is an indoor world. */
+	float indoorWidth;           /**< The width of the indoor texture (house). */
+	GLuint indoorTex;            /**< The texture to draw (house). */
+	std::string outdoor;         /**< The file name of the outdoor world. */
+	vec2 outdoorCoords;          /**< The coordinates the player should spawn to when exiting. */
 
-	// style
-	WorldBGType style;
-	std::string styleFolder;
-	std::vector<std::string> sTexLoc;
+	// World linkage
+	std::string toLeft, toRight; /**< File names of the worlds adjacent to this one. */
 
-	// music
-	std::string bgm;
+	// Style variables
+	WorldBGType style;                /**< The style type of the world. */
+	std::string styleFolder;          /**< The folder to get stylized textures from. */
+	std::vector<std::string> sTexLoc; /**< File names of stylized textures for structures. */
 
-	// village
-	float villageStart, villageEnd;
+	// Music
+	std::string bgm;             /**< The path to the BGM file. */
 };
 
+/**
+ * The world system
+ * Does everything needed to take care of the world.
+ */
 class WorldSystem : public entityx::System<WorldSystem>, public entityx::Receiver<WorldSystem> {
 private:
+
+	/**
+	 * The world's data.
+	 */
 	WorldData2 world;
 
+	/**
+	 * The current state of weather in the world.
+	 */
 	WorldWeather weather;
 
+	/**
+	 * SDL's object for handling the background music.
+	 */
 	Mix_Music *bgmObj;
 
+	/**
+	 * Paths of files to get stylized textures from.
+	 */
 	std::vector<std::string> bgFiles;
 
+	/**
+	 * Allows for iteration between background textures, for rendering.
+	 */
 	TextureIterator bgTex;
 
+	/**
+	 * An object to handle and parse world XML files.
+	 */
 	XMLDocument xmlDoc;
 
+	/**
+	 * The file path to the currently loaded world.
+	 */
 	std::string currentXMLFile;
 
 public:
@@ -182,30 +213,5 @@ public:
 	bool save(const std::string& file);
 	void load(const std::string& file);
 };
-
-/**
- * Constructs an XML object for accessing/modifying the current world's XML
- * file.
- */
-const XMLDocument& loadWorldXML(void);
-
-/**
- * Loads the player into the world created by the given XML file. If a world is
- * already loaded it will be saved before the transition is made.
- */
-World *loadWorldFromXML(std::string path);
-
-/**
- * Loads the player into the XML-scripted world, but does not save data from the
- * previous world if one was loaded.
- */
-World *loadWorldFromXMLNoSave(std::string path);
-World *loadWorldFromXMLNoTakeover(std::string path);
-
-/**
- * Loads a world using a pointer to the current world (used for loading adjacent
- * worlds that have already been read into memory.
- */
-World *loadWorldFromPtr(World *ptr);
 
 #endif // WORLD_H

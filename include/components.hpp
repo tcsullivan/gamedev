@@ -232,9 +232,10 @@ struct Visible {
 
 struct Dialog {
 	Dialog(int idx = 0)
-		: index(idx) {}
+		: index(idx), rindex((idx == 9999) ? randGet() : idx) {}
 
 	int index;
+	int rindex;
 };
 
 /**

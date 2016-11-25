@@ -49,7 +49,7 @@ void Engine::update(entityx::TimeDelta dt)
 {
     systems.update<InputSystem>(dt);
 	systems.update<MovementSystem>(dt);
-	//systems.update<DialogSystem>(dt);
+	systems.update<DialogSystem>(dt);
 	systems.update<WorldSystem>(dt);
     systems.update<PlayerSystem>(dt);
 }

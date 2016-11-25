@@ -3,5 +3,5 @@
     <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
     <generation width="600"/>
     <time>6000</time>
-    <link left="!town.xml" />
+    <link left="!town.xml"/>
 </World>

@@ -575,9 +575,11 @@ namespace ui {
 	}
 
 	void waitForCover(void) {
-		fadeIntensity = 0;
-		while (fadeIntensity < 255);
-		fadeIntensity = 255;
+		auto& fi = fadeIntensity;
+		fi = 0;
+		while (fi < 255)
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		fi = 255;
 	}
 
 	void waitForUncover(void) {
@@ -905,6 +907,7 @@ namespace ui {
 
 				drawNiceBox(vec2 {x, y}, vec2 {x + SCREEN_WIDTH - HLINES(16), y - SCREEN_HEIGHT / 4}, -7.0);
 
+				setFontZ(-7.2f);
 				rtext = typeOut(dialogBoxText);
 				putString(x + HLINES(2), y - fontSize - game::HLINE, rtext);
 
