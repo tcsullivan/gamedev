@@ -12,9 +12,9 @@ ifeq ($(TARGET_OS),win32)
 	       -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
 endif
 
-CXXFLAGS = -g -m$(TARGET_BITS) -std=c++14 -fext-numeric-literals
+CXXFLAGS = -ggdb -m$(TARGET_BITS) -std=c++14 -fext-numeric-literals
 CXXINC   = -Iinclude -Iinclude/freetype
-CXXWARN  = -Wall -Wextra -Werror
+CXXWARN  = -Wall -Wextra -Werror -pedantic
 
 CXXSRCDIR = src
 CXXOUTDIR = out

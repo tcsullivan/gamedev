@@ -55,7 +55,7 @@ namespace glm
 
 		// -- Data --
 
-#		if GLM_HAS_UNRESTRICTED_UNIONS
+/*#		if GLM_HAS_UNRESTRICTED_UNIONS
 			union
 			{
 				struct{ T x, y; };
@@ -74,14 +74,14 @@ namespace glm
 					_GLM_SWIZZLE2_4_MEMBERS(T, P, tvec4, s, t)
 #				endif//GLM_SWIZZLE
 			};
-#		else
+#		else*/
 			union {T x, r, s;};
 			union {T y, g, t;};
 
 #			ifdef GLM_SWIZZLE
 				GLM_SWIZZLE_GEN_VEC_FROM_VEC2(T, P, tvec2, tvec2, tvec3, tvec4)
 #			endif//GLM_SWIZZLE
-#		endif
+//#		endif
 
 		// -- Component accesses --
 

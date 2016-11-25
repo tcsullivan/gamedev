@@ -844,6 +844,14 @@ void WorldSystem::render(void)
     std::vector<std::pair<vec2,vec3>> c;
 
     for (int i = iStart; i < iEnd; i++) {
+
+		// world switching changes world data size, render doesn't know
+		// because it's in a different thread, I guess. make sure we don't
+		// die:
+		if (i > static_cast<int>(world.data.size()))
+			return; // death for a frame is okay, right?
+
+
         if (world.data[i].groundHeight <= 0) { // TODO holes (andy)
             world.data[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
             glColor4ub(0, 0, 0, 255);
@@ -898,6 +906,10 @@ void WorldSystem::render(void)
 	    std::vector<GLfloat> grasst;
 
 		for (int i = iStart; i < iEnd; i++) {
+
+			if (i > static_cast<int>(world.data.size()))
+				return; // see dirt rendering
+
         	auto wd = world.data[i];
 	        auto gh = wd.grassHeight;
 
@@ -1185,7 +1197,6 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 void WorldSystem::goWorldRight(Position& p, Solid &d)
 {
 	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(15))) {
-	BREAKPOINT;
 		ui::toggleBlack();
 		ui::waitForCover();
 		auto file = world.toRight;

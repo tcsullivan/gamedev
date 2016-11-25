@@ -571,7 +571,8 @@ namespace ui {
 	 */
 
 	void waitForDialog(void) {
-		while (dialogBoxExists);
+		while (dialogBoxExists)
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 
 	void waitForCover(void) {
