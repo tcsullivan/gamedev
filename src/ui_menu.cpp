@@ -230,15 +230,9 @@ namespace ui {
                 }
             }
 
+			static float cMult = 1.0f;
 			static GLuint backTex = Texture::genColor(Color(0, 0, 0, 204));
 			//static GLuint bsTex =	Texture::genColor(Color(30, 30, 30));
-			static GLuint border =	Texture::genColor(Color(245, 245, 245));
-
-			GLfloat line_tex[] = {0.0, 0.0,
-								  1.0, 0.0,
-								  1.0, 1.0,
-								  0.0, 1.0,
-								  0.0, 0.0};
 
 			//draw the dark transparent background
             glColor4f(0.0f, 0.0f, 0.0f, .8f);
@@ -252,44 +246,17 @@ namespace ui {
 
             //loop through all elements of the menu
             for (auto &m : currentMenu->items) {
-                //if the menu is any type of button
+				// reset the background modifier
+				cMult = 1.0f;
+				
+				//if the menu is any type of button
                 if (m.member == 0 || m.member == -1 || m.member == -2) {
-
-                    //draw the button background
-                    GLuint bsTex = Texture::genColor(Color(m.button.color.red,m.button.color.green,m.button.color.blue));
-
-					Render::textShader.use();
-					glBindTexture(GL_TEXTURE_2D, bsTex);
-
-					Render::drawRect(vec2(offset.x + m.button.loc.x, offset.y + m.button.loc.y),
-							         vec2(offset.x + m.button.loc.x + m.button.dim.x, offset.y + m.button.loc.y + m.button.dim.y), -8.6);
-                    //draw the button text
-                    putStringCentered(offset.x + m.button.loc.x + (m.button.dim.x/2),
-                                      (offset.y + m.button.loc.y + (m.button.dim.y/2)) - ui::fontSize/2,
-                                      m.button.text);
-
                     //tests if the mouse is over the button
                     if (mouse.x >= offset.x+m.button.loc.x && mouse.x <= offset.x+m.button.loc.x + m.button.dim.x) {
                         if (mouse.y >= offset.y+m.button.loc.y && mouse.y <= offset.y+m.button.loc.y + m.button.dim.y) {
-
-                            //if the mouse if over the button, it draws this white outline
-							glBindTexture(GL_TEXTURE_2D, border);
-
-							GLfloat verts[] = {offset.x+m.button.loc.x, 					offset.y+m.button.loc.y,				-8.7,
-                                			   offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y,				-8.7,
-                                			   offset.x+m.button.loc.x+m.button.dim.x, 		offset.y+m.button.loc.y+m.button.dim.y, -8.7,
-                                			   offset.x+m.button.loc.x, 					offset.y+m.button.loc.y+m.button.dim.y, -8.7,
-                                			   offset.x+m.button.loc.x, 					offset.y+m.button.loc.y, 				-8.7};
-
-							Render::textShader.use();
-							Render::textShader.enable();
-
-							glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, verts);
-							glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
-							glDrawArrays(GL_LINE_STRIP, 0, 5);
-
-							Render::textShader.disable();
-							Render::textShader.unuse();
+							
+							// set the darkness multiplier
+							cMult = 0.6f;
 
                             //if the mouse is over the button and clicks
                             if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
@@ -308,7 +275,14 @@ namespace ui {
                         }
                     }
 
-                    //if element is a slider
+					ui::drawNiceBoxColor(vec2(offset.x + m.button.loc.x, offset.y + m.button.loc.y),
+							        vec2(offset.x + m.button.loc.x + m.button.dim.x, offset.y + m.button.loc.y + m.button.dim.y), -8.6, Color(cMult, cMult, cMult, 1.0f));
+                    //draw the button text
+                    putStringCentered(offset.x + m.button.loc.x + (m.button.dim.x/2),
+                                      (offset.y + m.button.loc.y + (m.button.dim.y/2)) - ui::fontSize/2,
+                                      m.button.text);
+
+					//if element is a slider
                 }else if (m.member == 1) {
                     //combining slider text with variable amount
                     char outSV[32];
@@ -330,89 +304,27 @@ namespace ui {
                         m.slider.sliderLoc = m.slider.minValue + (*m.slider.var/m.slider.maxValue)*(m.slider.dim.x-sliderW);
                     }
                     //draw the background of the slider
-					Render::textShader.use();
-                    GLuint bsTex = Texture::genColor(Color(m.slider.color.red, m.slider.color.green, m.slider.color.blue, 175));
-					GLuint hTex =  Texture::genColor(Color(m.slider.color.red, m.slider.color.green, m.slider.color.blue, 255));
+					ui::drawNiceBoxColor(vec2(offset.x + m.slider.loc.x, offset.y + m.slider.loc.y),
+							         vec2(offset.x + m.slider.loc.x + m.slider.dim.x, offset.y + m.slider.loc.y + m.slider.dim.y), -8.6, Color(.5f, .5f, .5f, 1.0f));
 
-					glBindTexture(GL_TEXTURE_2D, bsTex);
-					Render::drawRect(vec2(offset.x + m.slider.loc.x, offset.y + m.slider.loc.y),
-							         vec2(offset.x + m.slider.loc.x + m.slider.dim.x, offset.y + m.slider.loc.y + m.slider.dim.y), -8.6);
-
-					//draw the slider handle
-                    glBindTexture(GL_TEXTURE_2D, hTex);
-					if (m.slider.dim.y > m.slider.dim.x) {
-                        Render::drawRect(vec2(offset.x+m.slider.loc.x, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),
-                            	         vec2(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH), -8.7);
-
-                        //draw the now combined slider text
-                        putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y*1.05)) - ui::fontSize/2, outSV);
-                    }else{
-                        Render::drawRect(vec2(offset.x+m.slider.loc.x+m.slider.sliderLoc, offset.y+m.slider.loc.y),
-                                         vec2(offset.x+m.slider.loc.x + m.slider.sliderLoc + sliderW, offset.y+m.slider.loc.y + sliderH), -8.7);
-
-                        //draw the now combined slider text
-                        putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y/2)) - ui::fontSize/2, outSV);
-                    }
                     //test if mouse is inside of the slider's borders
-                    if (mouse.x >= offset.x+m.slider.loc.x && mouse.x <= offset.x+m.slider.loc.x + m.slider.dim.x) {
-                        if (mouse.y >= offset.y+m.slider.loc.y && mouse.y <= offset.y+m.slider.loc.y + m.slider.dim.y) {
-
-                            //if it is we draw a white border around it
-                            glBindTexture(GL_TEXTURE_2D, border);
-
-							Render::textShader.use();
-							Render::textShader.enable();
-
-							GLfloat box_border[] = {offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y, 				-8.8,
-                                					offset.x+m.slider.loc.x+m.slider.dim.x, 	offset.y+m.slider.loc.y,				-8.8,
-                                					offset.x+m.slider.loc.x+m.slider.dim.x, 	offset.y+m.slider.loc.y+m.slider.dim.y,	-8.8,
-                                					offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y+m.slider.dim.y,	-8.8,
-                                					offset.x+m.slider.loc.x, 					offset.y+m.slider.loc.y,				-8.8};
-
-							glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, box_border);
-							glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
-							glDrawArrays(GL_LINE_STRIP, 0, 5);
-                            if (m.slider.dim.y > m.slider.dim.x) {
-                                //and a border around the slider handle
-                                GLfloat handle_border[] = {offset.x+m.slider.loc.x, 		  static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				-8.8,
-                                						   offset.x+m.slider.loc.x + sliderW, static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				-8.8,
-                                						   offset.x+m.slider.loc.x + sliderW, static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH),	-8.8,
-                                						   offset.x+m.slider.loc.x,           static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH),	-8.8,
-                                						   offset.x+m.slider.loc.x,           static_cast<GLfloat>(offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),				-8.8};
-								glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, handle_border);
-								glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
-								glDrawArrays(GL_LINE_STRIP, 0, 5);
-                            }else{
-                                //and a border around the slider handle
-                                GLfloat handle_border[] = {offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y,							-8.8,
-                                						   offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y,				-8.8,
-                                						   offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y+m.slider.dim.y,-8.8,
-                                						   offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y+m.slider.dim.y,			-8.8,
-                                						   offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y,							-8.8};
-								glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, handle_border);
-								glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, line_tex);
-								glDrawArrays(GL_LINE_STRIP, 0, 5);
-                            }
-
-
-							Render::textShader.disable();
-
-                            //if we are inside the slider and click it will set the slider to that point
+                    if (mouse.x >= offset.x+m.slider.loc.x && mouse.x <= offset.x+m.slider.loc.x+m.slider.dim.x) {
+                        if (mouse.y >= offset.y+m.slider.loc.y && mouse.y <= offset.y+m.slider.loc.y+m.slider.dim.y) {
+							
+							// change multiplier background modifier
+							cMult = 0.75f;
+                            
+							//if we are inside the slider and click it will set the slider to that point
                             if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
                                 //change handle location
                                 if (m.slider.dim.y > m.slider.dim.x) {
                                     *m.slider.var = (((mouse.y-offset.y) - m.slider.loc.y)/m.slider.dim.y)*100;
-                                    //draw a white box over the handle
-                                    glBindTexture(GL_TEXTURE_2D, border);
-									Render::drawRect(vec2(offset.x+m.slider.loc.x, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),
-                                                     vec2(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH), -8.9);
-
+                                    
+									cMult = 0.5f;
                                 }else{
                                     *m.slider.var = (((mouse.x-offset.x) - m.slider.loc.x)/m.slider.dim.x)*100;
-                                    //draw a white box over the handle
-                                    glBindTexture(GL_TEXTURE_2D, border);
-									Render::drawRect(vec2(offset.x+m.slider.loc.x + m.slider.sliderLoc, offset.y+m.slider.loc.y),
-                                                     vec2(offset.x+m.slider.loc.x + (m.slider.sliderLoc + sliderW), offset.y+m.slider.loc.y + m.slider.dim.y), -8.9);
+                                    
+									cMult = 0.5f;
                                 }
                             }
 
@@ -420,6 +332,21 @@ namespace ui {
                             if (*m.slider.var >= m.slider.maxValue)*m.slider.var = m.slider.maxValue;
                             else if (*m.slider.var <= m.slider.minValue)*m.slider.var = m.slider.minValue;
                         }
+                    }
+
+					//draw the slider handle
+					if (m.slider.dim.y > m.slider.dim.x) {
+                        ui::drawNiceBoxColor(vec2(offset.x+m.slider.loc.x, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),
+                            	         vec2(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH), -8.7, Color(cMult, cMult, cMult, 1.0f));
+
+                        //draw the now combined slider text
+                        putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y*1.05)) - ui::fontSize/2, outSV);
+                    }else{
+                        ui::drawNiceBoxColor(vec2(offset.x+m.slider.loc.x+m.slider.sliderLoc, offset.y+m.slider.loc.y),
+                                         vec2(offset.x+m.slider.loc.x + m.slider.sliderLoc + sliderW, offset.y+m.slider.loc.y + sliderH), -8.7, Color(cMult, cMult, cMult, 1.0f));
+
+                        //draw the now combined slider text
+                        putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y/2)) - ui::fontSize/2, outSV);
                     }
                 }
             }
