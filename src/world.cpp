@@ -151,13 +151,23 @@ void WorldSystem::generate(unsigned int width)
 
 static Color ambient;
 
-bool WorldSystem::save(const std::string& s)
+bool WorldSystem::save(void)
 {
-	(void)s;
-	/*for (const auto &e : entity)
-		e->saveToXML();
+	std::ofstream save (xmlFolder + currentXMLFile + ".dat");
 
-	currentXMLDoc.SaveFile((s.empty() ? currentXML : xmlFolder + s).c_str(), false);*/
+	// signature?
+	save << "831998 ";
+
+	game::entities.each<Position>([&](entityx::Entity entity, Position& pos) {
+		// save position
+		save << "p " << pos.x << ' ' << pos.y << ' ';
+
+		// save dialog, if exists
+		if (entity.has_component<Dialog>())
+			save << "d " << entity.component<Dialog>()->index << ' ';
+	});
+
+	save.close();
 	return false;
 }
 
@@ -356,6 +366,8 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Dialog>((wxml->BoolAttribute("hasDialog") ? 0 : 9999));
 					} else if (tname == "Grounded") {
 						entity.assign<Grounded>();
+					} else if (tname == "Wander") {
+						entity.assign<Wander>();
 					}
 
 					abcd = abcd->NextSiblingElement();
@@ -372,6 +384,37 @@ void WorldSystem::load(const std::string& file)
 		}*/
 
 		wxml = wxml->NextSiblingElement();
+	}
+
+	// attempt to load data
+	std::ifstream save (xmlFolder + currentXMLFile + ".dat");
+	if (save.good()) {
+		// check signature
+		int signature;
+		save >> signature;
+		if (signature != 831998)
+			UserError("Save file signature is invalid... (delete it)");
+
+		char id;
+		save >> id;
+
+		entityx::ComponentHandle<Position> pos;
+		for (entityx::Entity entity : game::entities.entities_with_components(pos)) {
+			save >> pos->x >> pos->y;
+			save >> id;
+
+			while (id != 'p') {
+				switch (id) {
+				case 'd':
+					save >> entity.component<Dialog>()->index;
+					break;
+				}
+
+				save >> id;
+			}
+		}
+
+		save.close();
 	}
 
 	game::events.emit<BGMToggleEvent>();
@@ -1195,12 +1238,12 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 
 void WorldSystem::goWorldRight(Position& p, Solid &d)
 {
-	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(15))) {
+	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(5))) {
 		ui::toggleBlack();
 		ui::waitForCover();
 		auto file = world.toRight;
 		load(file);
-		//game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(15));
+		game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(10));
 		ui::toggleBlack();
 	}
 }
@@ -1211,7 +1254,7 @@ void WorldSystem::goWorldLeft(Position& p)
 		ui::toggleBlack();
 		ui::waitForCover();
 		load(world.toLeft);
-		//game::engine.getSystem<PlayerSystem>()->setX(world.startX * -1 - HLINES(15));
+		game::engine.getSystem<PlayerSystem>()->setX(world.startX * -1 - HLINES(15));
 		ui::toggleBlack();
 	}
 }

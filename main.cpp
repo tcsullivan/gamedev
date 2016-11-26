@@ -235,7 +235,7 @@ EXIT_ROUTINE:
     Texture::freeTextures();
 
 	// close up the game stuff
-//	currentWorld->save();
+	game::engine.getSystem<WorldSystem>()->save();
 
 	game::engine.getSystem<WindowSystem>()->die();
 

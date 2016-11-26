@@ -111,7 +111,7 @@ struct Solid {
 	 */
 	Solid(float w = 0.0f, float h = 0.0f): width(w), height(h) {offset = 0.0f; passable = true; }
 	//Solid(float w = 0.0f, float h = 0.0f, vec2 offset = 0.0f): width(w), height(h), offset(offset) {passable = true; }
-	
+
 	void Passable(bool v) {passable = v;}
 	bool Passable(void)   {return passable;}
 
@@ -122,13 +122,13 @@ struct Solid {
 };
 
 struct SpriteData {
-	
-	SpriteData(std::string path, vec2 offset): 
+
+	SpriteData(std::string path, vec2 offset):
 		offset(offset) {
 			pic = Texture::loadTexture(path);
 			size = Texture::imageDim(path);
 		}
-	
+
 	GLuint pic;
 	vec2 offset;
 	vec2 size;
@@ -177,7 +177,7 @@ struct Sprite {
 	vec2 getSpriteSize() {
 		vec2 st; /** the start location of the sprite */
 		vec2 dim; /** how wide the sprite is */
-		
+
 		if (sprite.size()) {
 			st.x = sprite[0].second.x;
 			st.y = sprite[0].second.y;
@@ -237,6 +237,28 @@ struct Dialog {
 	int index;
 	int rindex;
 };
+
+
+
+// movement styles
+
+/**
+ * Causes the entity to hop around.
+ */
+struct Hop {}; // TODO require wander, for range?
+
+/**
+ * Causes the entity to wander about.
+ */
+struct Wander {
+	Wander(float ix = 0, float r = 0)
+		: initialX(ix), range(r), countdown(0) {}
+
+	float initialX;
+	float range;
+	int countdown;
+};
+
 
 /**
  * SYSTEMS

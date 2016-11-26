@@ -85,7 +85,6 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 	auto kc = kde.keycode;
 	auto& loc = *player.component<Position>().get();
 	auto& vel = *player.component<Direction>().get();
-    auto& faceLeft = player.component<Sprite>().get()->faceLeft;
 
 	if ((kc == SDLK_SPACE) && game::canJump && ((vel.y > -0.01) & (vel.y < 0.01))) {
 		loc.y += HLINES(2);
@@ -97,14 +96,14 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 
 		} else if (kc == getControl(1)) {
 			if (!ui::fadeEnable) {
-                moveLeft = faceLeft = true;
+                moveLeft = true;
 				moveRight = false;
 
 				worldSystem.goWorldLeft(loc);
 			}
 		} else if (kc == getControl(2)) {
 			if (!ui::fadeEnable) {
-				moveLeft = faceLeft = false;
+				moveLeft = false;
                 moveRight = true;
 
 				worldSystem.goWorldRight(loc, *player.component<Solid>().get());

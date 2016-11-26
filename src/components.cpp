@@ -15,9 +15,25 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 {
 	(void)ev;
 	en.each<Position, Direction>([dt](entityx::Entity entity, Position &position, Direction &direction) {
-		(void)entity;
 		position.x += direction.x * dt;
 		position.y += direction.y * dt;
+
+		if (entity.has_component<Sprite>()) {
+			auto& fl = entity.component<Sprite>()->faceLeft;
+			if (direction.x != 0)
+				fl = (direction.x < 0);
+		}
+
+		if (entity.has_component<Wander>()) {
+			auto& countdown = entity.component<Wander>()->countdown;
+
+			if (countdown > 0) {
+				countdown--;
+			} else {
+				countdown = 5000 + randGet() % 10 * 100;
+				direction.x = (randGet() % 3 - 1) * 0.02f;
+			}
+		}
 	});
 }
 
@@ -26,7 +42,7 @@ void PhysicsSystem::update(entityx::EntityManager &en, entityx::EventManager &ev
 	(void)ev;
 	en.each<Direction, Physics>([dt](entityx::Entity entity, Direction &direction, Physics &physics) {
 		(void)entity;
-		// TODO GET GRAVITY FROM WOLRD
+		// TODO GET GRAVITY FROM WORLD
 		direction.y += physics.g * dt;
 	});
 }
@@ -168,4 +184,3 @@ void DialogSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 	(void)ev;
 	(void)dt;
 }
-

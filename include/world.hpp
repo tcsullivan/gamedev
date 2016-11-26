@@ -175,7 +175,7 @@ public:
 		ev.subscribe<BGMToggleEvent>(*this);
 	}
 
-	inline XMLDocument* getXML(void) 
+	inline XMLDocument* getXML(void)
 	{ return &xmlDoc; }
 
 	inline float getWidth(void) const
@@ -210,7 +210,7 @@ public:
 	void addHole(const unsigned int& start, const unsigned int& end);
 	void addHill(const ivec2& peak, const unsigned int& width);
 
-	bool save(const std::string& file);
+	bool save(void);
 	void load(const std::string& file);
 };
 

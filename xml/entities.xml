@@ -9,6 +9,7 @@
 	<Physics />
 	<Name value="Daddy" />
 	<Dialog />
+	<Wander />
 </npc>
 
 <structure>
