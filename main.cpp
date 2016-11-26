@@ -28,6 +28,9 @@ using namespace tinyxml2;
 
 #include <fstream>
 #include <mutex>
+#include <chrono>
+
+using namespace std::literals::chrono_literals;
 
 /* ----------------------------------------------------------------------------
 ** Variables section
@@ -62,9 +65,6 @@ void logic(void);
 
 // handles all rendering operations
 void render(void);
-
-// takes care of *everything*
-void mainLoop(void);
 
 /*******************************************************************************
 ** MAIN ************************************************************************
@@ -179,9 +179,6 @@ int main(int argc, char *argv[])
 		pdat.close();
 	}
 
-	if (worldDontReallyRun)
-		goto EXIT_ROUTINE;
-
 	if (!worldActuallyUseThisXMLFile.empty()) {
 		game::engine.getSystem<WorldSystem>()->load(worldActuallyUseThisXMLFile);
 	} else {
@@ -198,30 +195,41 @@ int main(int argc, char *argv[])
 
 	ui::menu::init();
 
-	// the main loop, in all of its gloriousness..
-	std::thread([&]{
-		while (game::engine.shouldRun()) {
-			mainLoop();
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+
+	if (!worldDontReallyRun) {
+		// the main loop, in all of its gloriousness..
+		std::thread([&] {
+			const bool &run = game::engine.shouldRun;
+			while (run) {
+				game::time::mainLoopHandler();
+
+				if (game::time::tickHasPassed())
+					logic();
+
+				game::engine.update(game::time::getDeltaTime());
+
+				std::this_thread::sleep_for(1ms);
+			}
+		}).detach();
+
+		// the debug loop, gets debug screen values
+		std::thread([&] {
+			const bool &run = game::engine.shouldRun;
+			while (run) {
+				fps = 1000 / game::time::getDeltaTime();
+//				debugY = player->loc.y;
+
+				std::this_thread::sleep_for(1s);
+			}
+		}).detach();
+
+		const bool &run = game::engine.shouldRun;
+		while (run) {
+			game::engine.render(0);
+			render();
 		}
-	}).detach();
-
-	// the debug loop, gets debug screen values
-	std::thread([&]{
-		while (game::engine.shouldRun()) {
-			fps = 1000 / game::time::getDeltaTime();
-//			debugY = player->loc.y;
-
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		}
-	}).detach();
-
-	while (game::engine.shouldRun()) {
-		game::engine.render(0);
-		render();
 	}
-
-EXIT_ROUTINE:
 
 	// put away the brice for later
 	game::briceSave();
@@ -240,19 +248,6 @@ EXIT_ROUTINE:
 	game::engine.getSystem<WindowSystem>()->die();
 
     return 0; // Calls everything passed to atexit
-}
-
-void mainLoop(void){
-	game::time::mainLoopHandler();
-
-	if (currentMenu) {
-		return;
-	} else {
-		if (game::time::tickHasPassed())
-			logic();
-
-		game::engine.update(game::time::getDeltaTime());
-	}
 }
 
 void render() {

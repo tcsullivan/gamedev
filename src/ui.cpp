@@ -10,6 +10,9 @@
 #include <events.hpp>
 #include <window.hpp>
 
+#include <chrono>
+using namespace std::literals::chrono_literals;
+
 extern Menu* currentMenu;
 
 std::array<SDL_Keycode, 6> controlMap = {
@@ -571,14 +574,14 @@ namespace ui {
 
 	void waitForDialog(void) {
 		while (dialogBoxExists)
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			std::this_thread::sleep_for(1ms);
 	}
 
 	void waitForCover(void) {
 		auto& fi = fadeIntensity;
 		fi = 0;
 		while (fi < 255)
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			std::this_thread::sleep_for(1ms);
 		fi = 255;
 	}
 
@@ -787,7 +790,7 @@ namespace ui {
 
 		glUniform4f(Render::textShader.uniform[WU_tex_color], c.red, c.green, c.blue, c.alpha);
 		glBindTexture(GL_TEXTURE_2D, box_corner);
-		
+
 		// draw upper left corner
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ul[0]);
         glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_ul[3]);

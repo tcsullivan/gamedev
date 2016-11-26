@@ -11,7 +11,7 @@
 extern World *currentWorld;
 
 Engine::Engine(void)
-    : gameRunning(true), systems(game::entities, game::events)
+    : shouldRun(true), systems(game::entities, game::events)
 {
 }
 

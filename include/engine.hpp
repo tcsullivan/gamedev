@@ -11,10 +11,9 @@
 //game::engine::Systems->add<entityx::deps::Dependency<Visible, Sprite>>();
 
 class Engine : public entityx::Receiver<Engine> {
-private:
-	bool gameRunning;
-
 public:
+	bool shouldRun;
+
     entityx::SystemManager systems;
 
 	explicit Engine(void);
@@ -33,11 +32,7 @@ public:
 	}*/
 
 	inline void receive(const GameEndEvent &gee) {
-		gameRunning = !(gee.really);
-	}
-
-	inline bool shouldRun(void) const {
-		return gameRunning;
+		shouldRun = !(gee.really);
 	}
 };
 

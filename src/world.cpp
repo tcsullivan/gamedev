@@ -10,6 +10,8 @@
 #include <fstream>
 #include <memory>
 #include <mutex>
+#include <chrono>
+using namespace std::literals::chrono_literals;
 
 // local game headers
 #include <ui.hpp>
@@ -49,6 +51,9 @@ void makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_Ju
 ** --------------------------------------------------------------------------*/
 
 extern std::string  xmlFolder;
+
+// wait
+static bool waitToSwap = false;
 
 // particle mutex
 std::mutex partMutex;
@@ -652,7 +657,7 @@ void WorldSystem::render(void)
 
 				ambient = Color(rg, rg, b, 1.0f);
 
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				std::this_thread::sleep_for(1ms);
 			}
 		}).detach();
 	}
@@ -882,18 +887,23 @@ void WorldSystem::render(void)
                       0, static_cast<int>(world.data.size())) + 1;
 
     // draw the dirt
+	waitToSwap = true;
+
     bgTex++;
-    std::vector<std::pair<vec2,vec3>> c;
 
+	static std::vector<GLfloat> dirt;
+	if (dirt.size() != world.data.size() * 30) {
+		dirt.clear();
+		dirt.resize(world.data.size() * 30);
+	}
+
+	auto push5 = [](GLfloat *&vec, GLfloat *five) {
+		for (int i = 0; i < 5; i++)
+			*vec++ = *five++;
+	};
+
+	GLfloat *dirtp = &dirt[0];
     for (int i = iStart; i < iEnd; i++) {
-
-		// world switching changes world data size, render doesn't know
-		// because it's in a different thread, I guess. make sure we don't
-		// die:
-		if (i > static_cast<int>(world.data.size()))
-			return; // death for a frame is okay, right?
-
-
         if (world.data[i].groundHeight <= 0) { // TODO holes (andy)
             world.data[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
             glColor4ub(0, 0, 0, 255);
@@ -903,28 +913,23 @@ void WorldSystem::render(void)
 
         int ty = world.data[i].groundHeight / 64 + world.data[i].groundColor;
 
-		c.push_back(std::make_pair(vec2(0, 0), vec3(world.startX + HLINES(i),         world.data[i].groundHeight - GRASS_HEIGHT, -4.0f)));
-        c.push_back(std::make_pair(vec2(1, 0), vec3(world.startX + HLINES(i) + HLINE, world.data[i].groundHeight - GRASS_HEIGHT, -4.0f)));
-        c.push_back(std::make_pair(vec2(1, ty),vec3(world.startX + HLINES(i) + HLINE, 0,                                         -4.0f)));
+		GLfloat five[5] = {
+			0, 0, world.startX + HLINES(i), world.data[i].groundHeight - GRASS_HEIGHT, -4
+		};
 
-        c.push_back(std::make_pair(vec2(1, ty),vec3(world.startX + HLINES(i) + HLINE, 0,                                         -4.0f)));
-        c.push_back(std::make_pair(vec2(0, ty),vec3(world.startX + HLINES(i),         0,                                         -4.0f)));
-        c.push_back(std::make_pair(vec2(0, 0), vec3(world.startX + HLINES(i),         world.data[i].groundHeight - GRASS_HEIGHT, -4.0f)));
+		push5(dirtp, five);
+		five[0]++, five[2] += game::HLINE;
+		push5(dirtp, five);
+		five[1] += ty, five[3] = 0;
+		push5(dirtp, five);
+		push5(dirtp, five);
+		five[0]--, five[2] -= game::HLINE;
+		push5(dirtp, five);
+		five[1] = 0, five[3] = world.data[i].groundHeight - GRASS_HEIGHT;
+		push5(dirtp, five);
 
         if (world.data[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1)
             world.data[i].groundHeight = 0;
-    }
-
-    std::vector<GLfloat> dirtc;
-    std::vector<GLfloat> dirtt;
-
-    for (auto &v : c) {
-        dirtc.push_back(v.second.x);
-        dirtc.push_back(v.second.y);
-        dirtc.push_back(v.second.z);
-
-        dirtt.push_back(v.first.x);
-        dirtt.push_back(v.first.y);
     }
 
     Render::worldShader.use();
@@ -932,9 +937,9 @@ void WorldSystem::render(void)
 
     Render::worldShader.enable();
 
-    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, &dirtc[0]);
-    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, &dirtt[0]);
-    glDrawArrays(GL_TRIANGLES, 0 , c.size());
+    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &dirt[2]);
+    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &dirt[0]);
+    glDrawArrays(GL_TRIANGLES, 0 , dirt.size() / 5);
 
     Render::worldShader.disable();
 	Render::worldShader.unuse();
@@ -943,15 +948,14 @@ void WorldSystem::render(void)
 		bgTex++;
 	    safeSetColorA(255, 255, 255, 255);
 
-	    c.clear();
-	    std::vector<GLfloat> grassc;
-	    std::vector<GLfloat> grasst;
+		static std::vector<GLfloat> grass;
+		if (grass.size() != world.data.size() * 60) {
+			grass.clear();
+			grass.resize(world.data.size() * 60);
+		}
 
+		GLfloat *grassp = &grass[0];
 		for (int i = iStart; i < iEnd; i++) {
-
-			if (i > static_cast<int>(world.data.size()))
-				return; // see dirt rendering
-
         	auto wd = world.data[i];
 	        auto gh = wd.grassHeight;
 
@@ -963,102 +967,34 @@ void WorldSystem::render(void)
 
 			// actually draw the grass.
 	        if (wd.groundHeight) {
-				const auto& worldStart = world.startX;
+				float five[5] = {
+					0, 1, world.startX + HLINES(i), wd.groundHeight + gh[0], -3
+				};
 
-				grasst.push_back(0);
-				grasst.push_back(1);
+				push5(grassp, five);
+				five[0]++, five[1]--, five[2] += game::HLINE / 2;
+				push5(grassp, five);
+				five[1]++, five[3] = wd.groundHeight - GRASS_HEIGHT;
+				push5(grassp, five);
+				push5(grassp, five);
+				five[0]--, five[2] -= game::HLINE / 2;
+				push5(grassp, five);
+				five[1]--, five[3] = wd.groundHeight + gh[0];
+				push5(grassp, five);
+				five[1]++;
 
-				grassc.push_back(worldStart + HLINES(i));
-				grassc.push_back(wd.groundHeight + gh[0]);
-				grassc.push_back(-3);
+				five[2] = world.startX + HLINES(i + 0.5), five[3] = wd.groundHeight + gh[1];
 
-
-				grasst.push_back(1);
- 			   	grasst.push_back(0);
-
-				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
-				grassc.push_back(wd.groundHeight + gh[0]);
-				grassc.push_back(-3);
-
-
-	            grasst.push_back(1);
-				grasst.push_back(1);
-
-				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
-				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
-				grassc.push_back(-3);
-
-
-    	        grasst.push_back(1);
-				grasst.push_back(1);
-
-				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
-				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
-				grassc.push_back(-3);
-
-
-				grasst.push_back(0);
-				grasst.push_back(1);
-
-				grassc.push_back(worldStart + HLINES(i));
-				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
-				grassc.push_back(-3);
-
-
-				grasst.push_back(0);
-				grasst.push_back(0);
-
-	            grassc.push_back(worldStart + HLINES(i));
-				grassc.push_back(wd.groundHeight + gh[0]);
-				grassc.push_back(-3);
-
-
-				grasst.push_back(0);
-				grasst.push_back(0);
-
-				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
- 			   	grassc.push_back(wd.groundHeight + gh[1]);
-				grassc.push_back(-3);
-
-
-				grasst.push_back(1);
-				grasst.push_back(0);
-
-	            grassc.push_back(worldStart + HLINES(i) + HLINE);
-				grassc.push_back(wd.groundHeight + gh[1]);
-				grassc.push_back(-3);
-
-
-				grasst.push_back(1);
-				grasst.push_back(1);
-
-				grassc.push_back(worldStart + HLINES(i) + HLINE);
-				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
-				grassc.push_back(-3);
-
-
-				grasst.push_back(1);
-				grasst.push_back(1);
-
-    	        grassc.push_back(worldStart + HLINES(i) + HLINE);
-				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
-				grassc.push_back(-3);
-
-
-				grasst.push_back(0);
-				grasst.push_back(1);
-
-				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
-				grassc.push_back(wd.groundHeight - GRASS_HEIGHT);
-				grassc.push_back(-3);
-
-
-				grasst.push_back(0);
-				grasst.push_back(0);
-
-				grassc.push_back(worldStart + HLINES(i) + HLINE / 2);
-				grassc.push_back(wd.groundHeight + gh[1]);
-				grassc.push_back(-3);
+				push5(grassp, five);
+				five[0]++, five[1]--, five[2] += game::HLINE / 2 + 1;
+				push5(grassp, five);
+				five[1]++, five[3] = wd.groundHeight - GRASS_HEIGHT;
+				push5(grassp, five);
+				push5(grassp, five);
+				five[0]--, five[2] -= game::HLINE / 2 + 1;
+				push5(grassp, five);
+				five[1]--, five[3] = wd.groundHeight + gh[1];
+				push5(grassp, five);
 	        }
 		}
 
@@ -1067,9 +1003,9 @@ void WorldSystem::render(void)
 
 	    Render::worldShader.enable();
 
-	    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, &grassc[0]);
-	    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, &grasst[0]);
-	    glDrawArrays(GL_TRIANGLES, 0 , grassc.size()/3);
+	    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[2]);
+	    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[0]);
+	    glDrawArrays(GL_TRIANGLES, 0 , grass.size() / 5);
 
 		// the starting pixel of the world
 		float s = -(static_cast<float>(SCREEN_WIDTH)/2.0f);
@@ -1099,13 +1035,12 @@ void WorldSystem::render(void)
 			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0)));
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
-			GLfloat blackBarRight[] = {grassc[grassc.size()-3], 	0.0f,								-3.5f,		0.0f, 0.0f,
-									   e, 							0.0f, 								-3.5f,		1.0f, 0.0f,
-									   e, 							static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
-
-									   e, 							static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
-    								   grassc[grassc.size()-3],		static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		0.0f, 1.0f,
-									   grassc[grassc.size()-3],		0.0f,								-3.5f,		0.0f, 0.0f};
+			GLfloat blackBarRight[] = {-(world.startX), 0.0f,								-3.5f,		0.0f, 0.0f,
+									   e, 				0.0f, 								-3.5f,		1.0f, 0.0f,
+									   e, 				static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
+									   e, 				static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
+    								   -(world.startX),	static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		0.0f, 1.0f,
+									   -(world.startX),	0.0f,								-3.5f,		0.0f, 0.0f};
 
 	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarRight[0]);
 	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarRight[3]);
@@ -1124,6 +1059,8 @@ void WorldSystem::render(void)
 		Render::drawRect(ll, vec2 {ll.x + world.indoorWidth, ll.y + 4}, -3);
 		Render::worldShader.unuse();
 	}
+
+	waitToSwap = false;
 
 	//player->draw();
 }
@@ -1161,7 +1098,7 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 	(void)dt;
 
     // fade in music if not playing
-	if (bgmObj != nullptr && !Mix_PlayingMusic())
+	if (!Mix_PlayingMusic() && bgmObj != nullptr)
 		Mix_FadeInMusic(bgmObj, -1, 2000);
 
 	// run detect stuff
@@ -1241,8 +1178,9 @@ void WorldSystem::goWorldRight(Position& p, Solid &d)
 	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(5))) {
 		ui::toggleBlack();
 		ui::waitForCover();
-		auto file = world.toRight;
-		load(file);
+		while (waitToSwap)
+			std::this_thread::sleep_for(1ms);
+		load(world.toRight);
 		game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(10));
 		ui::toggleBlack();
 	}
@@ -1253,6 +1191,8 @@ void WorldSystem::goWorldLeft(Position& p)
 	if (!(world.toLeft.empty()) && (p.x < world.startX + HLINES(10))) {
 		ui::toggleBlack();
 		ui::waitForCover();
+		while (waitToSwap)
+			std::this_thread::sleep_for(1ms);
 		load(world.toLeft);
 		game::engine.getSystem<PlayerSystem>()->setX(world.startX * -1 - HLINES(15));
 		ui::toggleBlack();
@@ -1282,9 +1222,10 @@ void WorldSystem::goWorldPortal(Position& p)
 	}
 
 	if (!file.empty()) {
-		std::cout << file << std::endl;
 		ui::toggleBlack();
 		ui::waitForCover();
+		while (waitToSwap)
+			std::this_thread::sleep_for(1ms);
 		load(file);
 		ui::toggleBlack();
 	}
