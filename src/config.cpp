@@ -59,9 +59,8 @@ namespace game {
 		}
 
 		void update(void) {
-			Mix_Volume(0, VOLUME_MASTER);
-			Mix_Volume(1, VOLUME_SFX * (VOLUME_MASTER / 100.0f));
-			Mix_VolumeMusic(VOLUME_MUSIC * (VOLUME_MASTER / 100.0f));
+			Mix_Volume(0, static_cast<int>(VOLUME_SFX * (VOLUME_MASTER / 100)));
+			Mix_VolumeMusic(static_cast<int>(VOLUME_MUSIC * (VOLUME_MASTER / 100)));
 		}
 
 		void save(void) {

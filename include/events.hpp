@@ -1,4 +1,4 @@
-z#ifndef EVENTS_HPP_
+#ifndef EVENTS_HPP_
 #define EVENTS_HPP_
 
 /**

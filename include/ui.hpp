@@ -82,6 +82,7 @@ namespace ui {
 	*/
 
 	void initFonts(void);
+	void initSounds(void);
 
 	void destroyFonts(void);
 

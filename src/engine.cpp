@@ -32,6 +32,7 @@ void Engine::init(void) {
 
     systems.configure();
 
+    ui::initSounds();
 	game::config::update();
 	getSystem<PlayerSystem>()->create();
 }

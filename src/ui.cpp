@@ -204,12 +204,14 @@ namespace ui {
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n",NULL);
 #endif // DEBUG
+
+		fontSize = 0;
+	}
+
+	void initSounds(void) {
 		dialogClick = Mix_LoadWAV("assets/sounds/click.wav");
 		battleStart = Mix_LoadWAV("assets/sounds/frig.wav");
 		sanic = Mix_LoadWAV("assets/sounds/sanic.wav");
-		//Mix_Volume(1,50);
-
-		fontSize = 0;
 	}
 
 	void destroyFonts(void) {
@@ -937,7 +939,8 @@ namespace ui {
 			static unsigned int rtext_oldsize = 0;
 			if (rtext_oldsize != rtext.size()) {
 				if (!isspace(rtext[(rtext_oldsize = rtext.size()) - 1]))
-					Mix_PlayChannel(1, dialogClick, 0);
+					Mix_PlayChannel(0, dialogClick, 0);
+
 			}
 
 		} else {

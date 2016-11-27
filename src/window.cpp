@@ -74,10 +74,10 @@ void WindowSystem::receive(const WindowResizeEvent &wre)
 {
 	game::SCREEN_WIDTH = wre.x;
 	game::SCREEN_HEIGHT = wre.y;
-	
+
 	glViewport(0, 0, wre.x, wre.y);
 	SDL_SetWindowSize(window, wre.x, wre.y);
-}	
+}
 
 #include <ui.hpp>
 
