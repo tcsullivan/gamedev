@@ -226,8 +226,8 @@ int main(int argc, char *argv[])
 
 		const bool &run = game::engine.shouldRun;
 		while (run) {
-			game::engine.render(0);
 			render();
+			game::engine.render(0);
 		}
 
 		thMain.join();

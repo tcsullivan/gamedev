@@ -178,6 +178,7 @@ bool WorldSystem::save(void)
 
 void WorldSystem::load(const std::string& file)
 {
+	auto& render = *game::engine.getSystem<RenderSystem>();
 	auto str2coord = [](std::string s) -> vec2 {
 		auto cpos = s.find(',');
 		s[cpos] = '\0';
@@ -275,7 +276,7 @@ void WorldSystem::load(const std::string& file)
 
 			world.indoorWidth = wxml->FloatAttribute("width");
 			auto str = wxml->StrAttribute("texture");
-			auto tex = Texture::loadTexture(str);
+			auto tex = render.loadTexture(str);
 			world.indoorTex = tex;
 		}
 

@@ -14,6 +14,8 @@
 #include <texture.hpp>
 #include <events.hpp>
 
+#include <atomic>
+
 /**
  * @struct Position
  * @brief Stores the position of an entity on the xy plane.
@@ -275,7 +277,11 @@ public:
 };
 
 class RenderSystem : public entityx::System<RenderSystem> {
+private:
+	std::string loadTexString;
+	std::atomic<GLuint> loadTexResult;
 public:
+	GLuint loadTexture(const std::string& file);
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 };
 

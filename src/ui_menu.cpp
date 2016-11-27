@@ -6,8 +6,6 @@
 
 #include <fstream>
 
-extern bool gameRunning;
-
 extern Menu *currentMenu;
 
 static Menu pauseMenu;
@@ -248,13 +246,13 @@ namespace ui {
             for (auto &m : currentMenu->items) {
 				// reset the background modifier
 				cMult = 1.0f;
-				
+
 				//if the menu is any type of button
                 if (m.member == 0 || m.member == -1 || m.member == -2) {
                     //tests if the mouse is over the button
                     if (mouse.x >= offset.x+m.button.loc.x && mouse.x <= offset.x+m.button.loc.x + m.button.dim.x) {
                         if (mouse.y >= offset.y+m.button.loc.y && mouse.y <= offset.y+m.button.loc.y + m.button.dim.y) {
-							
+
 							// set the darkness multiplier
 							cMult = 0.6f;
 
@@ -310,20 +308,20 @@ namespace ui {
                     //test if mouse is inside of the slider's borders
                     if (mouse.x >= offset.x+m.slider.loc.x && mouse.x <= offset.x+m.slider.loc.x+m.slider.dim.x) {
                         if (mouse.y >= offset.y+m.slider.loc.y && mouse.y <= offset.y+m.slider.loc.y+m.slider.dim.y) {
-							
+
 							// change multiplier background modifier
 							cMult = 0.75f;
-                            
+
 							//if we are inside the slider and click it will set the slider to that point
                             if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
                                 //change handle location
                                 if (m.slider.dim.y > m.slider.dim.x) {
                                     *m.slider.var = (((mouse.y-offset.y) - m.slider.loc.y)/m.slider.dim.y)*100;
-                                    
+
 									cMult = 0.5f;
                                 }else{
                                     *m.slider.var = (((mouse.x-offset.x) - m.slider.loc.x)/m.slider.dim.x)*100;
-                                    
+
 									cMult = 0.5f;
                                 }
                             }

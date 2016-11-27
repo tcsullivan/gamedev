@@ -8,8 +8,6 @@
 #include <components.hpp>
 #include <player.hpp>
 
-extern World *currentWorld;
-
 Engine::Engine(void)
     : shouldRun(true), systems(game::entities, game::events)
 {

@@ -47,9 +47,24 @@ void PhysicsSystem::update(entityx::EntityManager &en, entityx::EventManager &ev
 	});
 }
 
+GLuint RenderSystem::loadTexture(const std::string& file)
+{
+	loadTexString = file;
+	loadTexResult = 0xFFFF;
+	while (loadTexResult == 0xFFFF)
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	return loadTexResult;
+}
+
 void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
 	(void)ev;
+
+	if (!loadTexString.empty()) {
+		loadTexResult = Texture::loadTexture(loadTexString);
+		loadTexString.clear();
+	}
+
 	Render::worldShader.use();
 
 	en.each<Visible, Sprite, Position>([dt](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {

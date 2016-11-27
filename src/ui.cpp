@@ -14,7 +14,7 @@
 #include <chrono>
 using namespace std::literals::chrono_literals;
 
-extern Menu* currentMenu;
+extern Menu *currentMenu;
 
 std::array<SDL_Keycode, 6> controlMap = {
 	SDLK_w, SDLK_a, SDLK_d, SDLK_LSHIFT, SDLK_LCTRL, SDLK_e
@@ -71,8 +71,6 @@ static bool typeOutDone = true;
 static bool typeOutSustain = false;
 
 static Mix_Chunk *dialogClick;
-
-extern void mainLoop(void);
 
 /*
  * Fade effect flags
@@ -1244,6 +1242,8 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 	(void)ev;
 	(void)dt;
 
+	if (currentMenu != nullptr)
+		return;
 
 	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
@@ -1284,6 +1284,9 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 		//case SDL_MOUSEBUTTONUP:
 
 		case SDL_MOUSEBUTTONDOWN:
+			if (currentMenu != nullptr)
+				break;
+
 			ev.emit<MouseClickEvent>(mouse, e.button.button);
 
 			// run actions?
