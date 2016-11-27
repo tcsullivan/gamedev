@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 
 	if (!worldDontReallyRun) {
 		// the main loop, in all of its gloriousness..
-		std::thread([&] {
+		std::thread thMain ([&] {
 			const bool &run = game::engine.shouldRun;
 			while (run) {
 				game::time::mainLoopHandler();
@@ -211,10 +211,10 @@ int main(int argc, char *argv[])
 
 				std::this_thread::sleep_for(1ms);
 			}
-		}).detach();
+		});
 
 		// the debug loop, gets debug screen values
-		std::thread([&] {
+		std::thread thDebug ([&] {
 			const bool &run = game::engine.shouldRun;
 			while (run) {
 				fps = 1000 / game::time::getDeltaTime();
@@ -222,13 +222,17 @@ int main(int argc, char *argv[])
 
 				std::this_thread::sleep_for(1s);
 			}
-		}).detach();
+		});
 
 		const bool &run = game::engine.shouldRun;
 		while (run) {
 			game::engine.render(0);
 			render();
 		}
+
+		thMain.join();
+		thDebug.join();
+		//game::engine.getSystem<WorldSystem>()->thAmbient.join();
 	}
 
 	// put away the brice for later
@@ -254,7 +258,8 @@ void render() {
 	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-	offset.x = game::engine.getSystem<PlayerSystem>()->getPosition().x;// + player->width / 2;
+	auto ps = game::engine.getSystem<PlayerSystem>();
+	offset.x = ps->getPosition().x + ps->getWidth() / 2;
 
 	const auto& worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
 	if (worldWidth < (int)SCREEN_WIDTH)

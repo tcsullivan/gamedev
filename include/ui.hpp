@@ -23,7 +23,7 @@
 #include <config.hpp>
 //#include <inventory.hpp>
 #include <ui_menu.hpp>
-//#include <ui_action.hpp>
+#include <events.hpp>
 
 // local library headers
 #include <SDL2/SDL_opengl.h>
@@ -160,7 +160,7 @@ namespace ui {
 	/*
  	 *  Takes a screenshot of the game
  	 */
-	
+
 	void takeScreenshot(GLubyte *pixels);
 }
 

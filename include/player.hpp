@@ -4,6 +4,7 @@
 #include <entityx/entityx.h>
 
 #include <events.hpp>
+#include <engine.hpp>
 #include <components.hpp>
 #include <common.hpp>
 
@@ -34,6 +35,8 @@ public:
     vec2 getPosition(void) const;
 	inline void setX(const float& x)
 	{ player.component<Position>().get()->x = x; }
+    inline float getWidth(void) const
+    { return game::entities.component<Solid>(player.id())->width; }
 };
 
 #endif // PLAYER_HPP_

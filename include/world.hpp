@@ -168,6 +168,8 @@ private:
 	std::string currentXMLFile;
 
 public:
+	std::thread thAmbient;
+
 	explicit WorldSystem(void);
 	~WorldSystem(void);
 
@@ -206,7 +208,7 @@ public:
 	// worlddata2 stuff
 	WorldData2 worldData;
 
-	void generate(unsigned int width = 0);
+	void generate(int width = 0);
 	void addHole(const unsigned int& start, const unsigned int& end);
 	void addHill(const ivec2& peak, const unsigned int& width);
 

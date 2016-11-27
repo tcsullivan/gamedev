@@ -1,7 +1,6 @@
 #include <player.hpp>
 
 #include <brice.hpp>
-#include <engine.hpp>
 #include <ui.hpp>
 #include <gametime.hpp>
 #include <world.hpp>
@@ -71,10 +70,7 @@ void PlayerSystem::receive(const KeyUpEvent &kue)
 				p->inv->selected = false;
 
 			p->inv->mouseSel = false;
-		}
-
-		// disable action ui
-		ui::action::disable();*/
+		}*/
 	}
 }
 
@@ -114,23 +110,17 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 		} else if (kc == getControl(4)) {
 			speed = .5;
 		} else if (kc == getControl(5)) {
-			/*static int heyOhLetsGo = 0;
-
+			//static int heyOhLetsGo = 0;
 			//edown = true;
-
 			// start hover counter?
-			if (!heyOhLetsGo) {
-				heyOhLetsGo = game::time::getTickCount();
-				p->inv->mouseSel = false;
-			}
+			//if (!heyOhLetsGo) {
+			//	heyOhLetsGo = game::time::getTickCount();
+			//	p->inv->mouseSel = false;
+			//}
 
 			// run hover thing
-			if (game::time::getTickCount() - heyOhLetsGo >= 2 && !(p->inv->invOpen) && !(p->inv->selected)) {
-				p->inv->invHover = true;
-
-				// enable action ui
-				ui::action::enable();
-			}*/
+			//if (game::time::getTickCount() - heyOhLetsGo >= 2 && !(p->inv->invOpen) && !(p->inv->selected))
+			//	p->inv->invHover = true;
 		}
 	} else if (kc == SDLK_DELETE) {
 		game::endGame();

@@ -1,4 +1,4 @@
-#ifndef EVENTS_HPP_
+z#ifndef EVENTS_HPP_
 #define EVENTS_HPP_
 
 /**
@@ -75,7 +75,7 @@ struct BGMToggleEvent {
 struct WindowResizeEvent {
 	WindowResizeEvent(int w = 640, int h = 480)
 		: x(w), y(h) {}
-	
+
 	int x;
 	int y;
 };
@@ -83,9 +83,9 @@ struct WindowResizeEvent {
 struct ScreenshotEvent {
 	ScreenshotEvent(int w = game::SCREEN_HEIGHT, int h = game::SCREEN_WIDTH)
 		: w(w), h(h) {}
-	
+
 	int w;
-	int h;	
+	int h;
 };
 
 #endif // EVENTS_HPP_

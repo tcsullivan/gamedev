@@ -9,6 +9,7 @@
 #include <engine.hpp>
 #include <events.hpp>
 #include <window.hpp>
+#include <player.hpp>
 
 #include <chrono>
 using namespace std::literals::chrono_literals;
@@ -849,9 +850,6 @@ namespace ui {
 		std::string rtext;
 
 		auto SCREEN_HEIGHT = static_cast<float>(game::SCREEN_HEIGHT);
-
-		// will return if not toggled
-		//action::draw(vec2 {player->loc.x + player->width / 2, player->loc.y + player->height + game::HLINE});
 
 		// will return if not toggled
 		quest::draw();

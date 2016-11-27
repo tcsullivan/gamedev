@@ -46,7 +46,6 @@ namespace Texture{
 
 	GLuint loadTexture(std::string fileName) {
 		SDL_Surface *image;
-		static GLuint object = 0;
 
 		// check if texture is already loaded
 		for(auto &t : LoadedTexture) {
@@ -67,11 +66,13 @@ namespace Texture{
 #ifdef DEBUG
 		DEBUG_printf("Loaded image file: %s\n", fileName.c_str());
 #endif // DEBUG
+
 		/*
 		 * Load texture through OpenGL.
 		 */
-		//glGenTextures(1,&object);				// Turns "object" into a texture
-		glBindTexture(GL_TEXTURE_2D,++object);	// Binds "object" to the top of the stack
+		GLuint object;
+		glGenTextures(1, &object);				// Turns "object" into a texture
+		glBindTexture(GL_TEXTURE_2D, object);	// Binds "object" to the top of the stack
 		glPixelStoref(GL_UNPACK_ALIGNMENT,1);
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	// Sets the "min" filter

@@ -114,7 +114,7 @@ static const float bgDraw[4][3]={
 ** Functions section
 ** --------------------------------------------------------------------------*/
 
-void WorldSystem::generate(unsigned int width)
+void WorldSystem::generate(int width)
 {
 	float geninc = 0;
 
@@ -209,7 +209,9 @@ void WorldSystem::load(const std::string& file)
 		auto file = ixml->Attribute("file");
 		if (file != nullptr) {
 			DEBUG_printf("Including file: %s\n", file);
-			xmlRaw.append(readFile((xmlFolder + file).c_str()));
+			auto include = readFile((xmlFolder + file).c_str());
+			xmlRaw.append(include);
+			delete[] include;
 		}
 		ixml = ixml->NextSiblingElement();
 	}
@@ -263,7 +265,7 @@ void WorldSystem::load(const std::string& file)
 
         // world generation
         else if (tagName == "generation") {
-			generate(wxml->UnsignedAttribute("width") / game::HLINE);
+			generate(wxml->IntAttribute("width"));
 		}
 
 		// indoor stuff
@@ -272,7 +274,9 @@ void WorldSystem::load(const std::string& file)
 				UserError("<house> can only be used inside <IndoorWorld>");
 
 			world.indoorWidth = wxml->FloatAttribute("width");
-			world.indoorTex = Texture::loadTexture(wxml->Attribute("texture"));
+			auto str = wxml->StrAttribute("texture");
+			auto tex = Texture::loadTexture(str);
+			world.indoorTex = tex;
 		}
 
 		// weather tag
@@ -649,8 +653,9 @@ void WorldSystem::render(void)
 	static bool ambientUpdaterStarted = false;
 	if (!ambientUpdaterStarted) {
 		ambientUpdaterStarted = true;
-		std::thread([&](void) {
-			while (true) {
+		thAmbient = std::thread([&](void) {
+			const bool &run = game::engine.shouldRun;
+			while (run) {
 				float v = 75 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 				float rg = std::clamp(.5f + (-v / 100.0f), 0.01f, .9f);
 				float b  = std::clamp(.5f + (-v / 80.0f), 0.03f, .9f);
@@ -659,7 +664,8 @@ void WorldSystem::render(void)
 
 				std::this_thread::sleep_for(1ms);
 			}
-		}).detach();
+		});
+		thAmbient.detach();
 	}
 
 
@@ -883,8 +889,8 @@ void WorldSystem::render(void)
     // only draw world within player vision
     iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS),
 	                    0, static_cast<int>(world.data.size()));
-	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / HLINE)),
-                      0, static_cast<int>(world.data.size())) + 1;
+	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / HLINE) + 2),
+                      0, static_cast<int>(world.data.size()));
 
     // draw the dirt
 	waitToSwap = true;
@@ -1010,7 +1016,7 @@ void WorldSystem::render(void)
 		// the starting pixel of the world
 		float s = -(static_cast<float>(SCREEN_WIDTH)/2.0f);
 		// the ending pixel of the world
-		float e =  (static_cast<float>(SCREEN_WIDTH)/2.0f);
+		float e = (static_cast<float>(SCREEN_WIDTH)/2.0f);
 
 		if (offset.x + world.startX > s) {
 
