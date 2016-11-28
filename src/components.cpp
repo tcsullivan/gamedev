@@ -18,20 +18,24 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 		position.x += direction.x * dt;
 		position.y += direction.y * dt;
 
-		if (entity.has_component<Sprite>()) {
-			auto& fl = entity.component<Sprite>()->faceLeft;
-			if (direction.x != 0)
-				fl = (direction.x < 0);
-		}
+		if (entity.has_component<Dialog>() && entity.component<Dialog>()->talking) {
+			direction.x = 0;
+		} else {
+			if (entity.has_component<Sprite>()) {
+				auto& fl = entity.component<Sprite>()->faceLeft;
+				if (direction.x != 0)
+					fl = (direction.x < 0);
+			}
 
-		if (entity.has_component<Wander>()) {
-			auto& countdown = entity.component<Wander>()->countdown;
+			if (entity.has_component<Wander>()) {
+				auto& countdown = entity.component<Wander>()->countdown;
 
-			if (countdown > 0) {
-				countdown--;
-			} else {
-				countdown = 5000 + randGet() % 10 * 100;
-				direction.x = (randGet() % 3 - 1) * 0.02f;
+				if (countdown > 0) {
+					countdown--;
+				} else {
+					countdown = 5000 + randGet() % 10 * 100;
+					direction.x = (randGet() % 3 - 1) * 0.02f;
+				}
 			}
 		}
 	});
@@ -152,6 +156,9 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 				auto exml = game::engine.getSystem<WorldSystem>()->getXML()->FirstChildElement("Dialog");
 				int newIndex;
 
+				if (e.has_component<Direction>())
+					d.talking = true;
+
 				if (d.index == 9999) {
 					ui::dialogBox(name.name, "", false, randomDialog[d.rindex % randomDialog.size()]);
 					ui::waitForDialog();
@@ -170,7 +177,6 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 						game::briceUpdate();
 					}
 
-
 					auto cxml = exml->FirstChildElement("content");
 					const char *content;
 					if (cxml == nullptr) {
@@ -186,6 +192,8 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 					if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
 						d.index = newIndex;
 				}
+
+				d.talking = false;
 			}).detach();
 
 			}
