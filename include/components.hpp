@@ -136,6 +136,8 @@ struct SpriteData {
 	vec2 size;
 };
 
+using Frame = std::vector<std::pair<SpriteData, vec2>>;
+
 //TODO
 /**
  * @struct Sprite
@@ -202,14 +204,25 @@ struct Sprite {
 		return dim;
 	}
 
-	std::vector<std::pair<SpriteData, vec2>> sprite;
+	Frame sprite;
 	bool faceLeft;
 };
 
 //TODO
 struct Animate {
-	std::vector<std::pair<SpriteData, vec2>> sprite_e;
-	std::vector<std::pair<SpriteData, vec2>> sprite_c;
+	// COMMENT
+	std::vector<Frame> frame;
+	// COMMENT	
+	std::vector<Frame>::iterator currentFrame;
+	
+	// COMMENT
+	Frame nextFrame() {
+		if (currentFrame != std::end(frame))
+			currentFrame++;
+		else 
+			currentFrame = std::begin(frame);
+	return *currentFrame;	
+	}
 };
 
 //TODO
@@ -240,8 +253,6 @@ struct Dialog {
 	int rindex;
 };
 
-
-
 // movement styles
 
 /**
@@ -260,7 +271,6 @@ struct Wander {
 	float range;
 	int countdown;
 };
-
 
 /**
  * SYSTEMS

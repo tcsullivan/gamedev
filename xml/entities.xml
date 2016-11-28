@@ -4,6 +4,10 @@
 	<Position value="0.0,100.0" />
 	<Visible value="0.2" />
 	<Sprite image="assets/NPC.png" />
+	<Animation>
+		<frame>assets/NPC.png</frame>
+		<frame>assets/NPC_Walk.png</frame>
+	</Animation>
 	<Direction />
 	<Solid />
 	<Physics />

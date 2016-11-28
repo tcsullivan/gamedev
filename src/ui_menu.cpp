@@ -198,12 +198,14 @@ namespace ui {
 
             SDL_Event e;
 
+			bool clicked = false;
+
 			Render::useShader(&Render::textShader);
 
             setFontSize(24);
             game::config::update();
 			setFontZ(-9.0);
-
+	
             mouse.x = ui::premouse.x+offset.x-(SCREEN_WIDTH/2);
             mouse.y = (offset.y+SCREEN_HEIGHT/2)-ui::premouse.y;
 
@@ -218,6 +220,11 @@ namespace ui {
                     premouse.x=e.motion.x;
                     premouse.y=e.motion.y;
                     break;
+				case SDL_MOUSEBUTTONUP:
+					if (e.button.button & SDL_BUTTON_LEFT) {
+						clicked = true;
+					}
+					break;	
                 case SDL_KEYUP:
                     if (SDL_KEY == SDLK_ESCAPE) {
                         currentMenu->gotoParent();
@@ -257,7 +264,7 @@ namespace ui {
 							cMult = 0.6f;
 
                             //if the mouse is over the button and clicks
-                            if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                            if (clicked) {
                                 switch(m.member) {
                                     case 0: //normal button
                                         m.button.func();
