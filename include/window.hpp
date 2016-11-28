@@ -1,3 +1,8 @@
+/**
+ * @file window.hpp
+ * Provides a system for handling the game's window.
+ */
+
 #ifndef WINDOW_HPP_
 #define WINDOW_HPP_
 
@@ -7,9 +12,22 @@
 
 #include <events.hpp>
 
+/**
+ * @class WindowSystem
+ * Contains everything needed to create and update a window, using SDL.
+ * Also handles window resizing (WIP) and screenshots (WIP).
+ */
 class WindowSystem : public entityx::System<WindowSystem>, public entityx::Receiver<WindowSystem>  {
 private:
+
+	/**
+	 * SDL's object for the window.
+	 */
     SDL_Window *window;
+
+	/**
+	 * An OpenGL context, created when OpenGL is set up for use.
+	 */
     SDL_GLContext glContext;
 
 public:

@@ -247,10 +247,11 @@ struct Visible {
 
 struct Dialog {
 	Dialog(int idx = 0)
-		: index(idx), rindex((idx == 9999) ? randGet() : idx) {}
+		: index(idx), rindex((idx == 9999) ? randGet() : idx), talking(false) {}
 
 	int index;
 	int rindex;
+	bool talking;
 };
 
 // movement styles
