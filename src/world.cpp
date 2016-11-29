@@ -158,6 +158,9 @@ static Color ambient;
 
 bool WorldSystem::save(void)
 {
+	if (world.indoor)
+		return false;
+
 	std::ofstream save (xmlFolder + currentXMLFile + ".dat");
 
 	// signature?
@@ -173,7 +176,7 @@ bool WorldSystem::save(void)
 	});
 
 	save.close();
-	return false;
+	return true;
 }
 
 void WorldSystem::load(const std::string& file)
@@ -256,7 +259,7 @@ void WorldSystem::load(const std::string& file)
 
 			bgFiles.clear();
 
-			const auto& files = bgPaths[(int)world.style];
+			const auto& files = bgPaths[static_cast<int>(world.style)];
 
 			for (const auto& f : files)
 				bgFiles.push_back(world.styleFolder + "bg/" + f);
@@ -636,7 +639,6 @@ void WorldSystem::render(void)
 {
 	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
-	const auto HLINE = game::HLINE;
 
 	const ivec2 backgroundOffset = ivec2 {
         static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2
@@ -645,7 +647,7 @@ void WorldSystem::render(void)
 	int iStart, iEnd, pOffset;
 
     // world width in pixels
-	int width = world.data.size() * HLINE;
+	int width = HLINES(world.data.size());
 
     // used for alpha values of background textures
     int alpha;
@@ -698,46 +700,55 @@ void WorldSystem::render(void)
                             0.0f, 1.0f,};
 
 	// TODO scroll backdrop
-	GLfloat bgOff = game::time::getTickCount()/24000.0f;
+	GLfloat bgOff = game::time::getTickCount() / static_cast<float>(DAY_CYCLE * 2);
 
 	GLfloat topS = .125f + bgOff;
 	GLfloat bottomS = 0.0f + bgOff;
 
-	if (topS < 0.0f) topS += 1.0f;
-	if (bottomS < 0.0f) bottomS += 1.0f;
-	if(bgOff < 0)std::cout << bottomS << "," << topS << std::endl;
+	if (topS < 0.0f)
+		topS += 1.0f;
+	if (bottomS < 0.0f)
+		bottomS += 1.0f;
 
-	GLfloat scrolling_tex_coord[] = {0.0f,  bottomS,
-									 1.0f,  bottomS,
-									 1.0f,  bottomS,
+	GLfloat scrolling_tex_coord[] = {
+		0.0f,  bottomS,
+		1.0f,  bottomS,
+		1.0f,  bottomS,
 
-									 1.0f,  bottomS,
-									 0.0f,  bottomS,
-									 0.0f,  bottomS};
+		1.0f,  bottomS,
+		0.0f,  bottomS,
+		0.0f,  bottomS
+	};
 
-   	vec2 bg_tex_coord[] = { vec2(0.0f, 0.0f),
-                            vec2(1.0f, 0.0f),
-                            vec2(1.0f, 1.0f),
+   	static const vec2 bg_tex_coord[] = {
+		vec2(0.0f, 0.0f),
+        vec2(1.0f, 0.0f),
+        vec2(1.0f, 1.0f),
 
-                            vec2(1.0f, 1.0f),
-                            vec2(0.0f, 1.0f),
-                            vec2(0.0f, 0.0f)};
+        vec2(1.0f, 1.0f),
+        vec2(0.0f, 1.0f),
+        vec2(0.0f, 0.0f)
+	};
 
-    GLfloat back_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f,
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f,
-                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
+    GLfloat back_tex_coord[] = {
+		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f,
+        offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f,
+        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
 
-                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
-                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f,
-                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f};
+        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
+        offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f,
+        offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f
+	};
 
-    GLfloat fron_tex_coord[] = {offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f,
-                                offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.8f,
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
+    GLfloat fron_tex_coord[] = {
+		offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f,
+        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.8f,
+        offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
 
-                                offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
-                                offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.8f,
-                                offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f};
+        offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
+        offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.8f,
+        offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f
+	};
 
 	// rendering!!
 
@@ -760,7 +771,7 @@ void WorldSystem::render(void)
 	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, back_tex_coord, scrolling_tex_coord, 6);
 
 	bgTex++;
-	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
+	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha) / 255.0f);
 
 	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
 
@@ -831,7 +842,7 @@ void WorldSystem::render(void)
     Render::worldShader.unuse();
 
 	// draw the remaining layers
-	for (unsigned int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++) {
 		bgTex++;
 		auto dim = bgTex.getTextureDim();
 		dim.x = HLINES(dim.x);
@@ -846,32 +857,32 @@ void WorldSystem::render(void)
 
 			const auto& startx = world.startX;
 
-			bg_items.emplace_back(startx, GROUND_HEIGHT_MINIMUM, 7-(i*.1));
-	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM,	7-(i*.1));
-	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
+			bg_items.emplace_back(startx,                     GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
+	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM,	     7 - (i * 0.1f));
+	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
 
-	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
-	        bg_items.emplace_back(startx, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
-	        bg_items.emplace_back(startx, GROUND_HEIGHT_MINIMUM,	7-(i*.1));
+	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
+	        bg_items.emplace_back(startx,                     GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
+	        bg_items.emplace_back(startx,                     GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
 		} else {
 			for (int j = world.startX; j <= -world.startX; j += dim.x) {
-	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
-	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
-	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
+	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
+	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
+	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
 
-	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
-	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7-(i*.1));
-	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM, 		7-(i*.1));
+	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
+	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
+	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
 			}
 		}
 
-   	    for (uint i = 0; i < bg_items.size()/6; i++) {
+   	    for (uint i = 0; i < bg_items.size() / 6; i++) {
 			for (auto &v : bg_tex_coord)
 				bg_tex.push_back(v);
 		}
 
         Render::worldShader.use();
-		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.075f + (0.2f*i));
+		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.075f + (0.2f * i));
 
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -885,12 +896,12 @@ void WorldSystem::render(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // get the line that the player is currently standing on
-    pOffset = (offset.x /*+ player->width / 2*/ - world.startX) / HLINE;
+    pOffset = (offset.x - world.startX) / game::HLINE;
 
     // only draw world within player vision
-    iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / HLINE) - GROUND_HILLINESS),
+    iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / game::HLINE) - GROUND_HILLINESS),
 	                    0, static_cast<int>(world.data.size()));
-	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / HLINE) + 2),
+	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / game::HLINE) + 2),
                       0, static_cast<int>(world.data.size()));
 
     // draw the dirt
@@ -979,12 +990,12 @@ void WorldSystem::render(void)
 				};
 
 				push5(grassp, five);
-				five[0]++, five[1]--, five[2] += game::HLINE / 2;
+				five[0]++, five[1]--, five[2] += HLINES(0.5f);
 				push5(grassp, five);
 				five[1]++, five[3] = wd.groundHeight - GRASS_HEIGHT;
 				push5(grassp, five);
 				push5(grassp, five);
-				five[0]--, five[2] -= game::HLINE / 2;
+				five[0]--, five[2] -= HLINES(0.5f);
 				push5(grassp, five);
 				five[1]--, five[3] = wd.groundHeight + gh[0];
 				push5(grassp, five);
@@ -993,12 +1004,12 @@ void WorldSystem::render(void)
 				five[2] = world.startX + HLINES(i + 0.5), five[3] = wd.groundHeight + gh[1];
 
 				push5(grassp, five);
-				five[0]++, five[1]--, five[2] += game::HLINE / 2 + 1;
+				five[0]++, five[1]--, five[2] += HLINES(0.5f) + 1;
 				push5(grassp, five);
 				five[1]++, five[3] = wd.groundHeight - GRASS_HEIGHT;
 				push5(grassp, five);
 				push5(grassp, five);
-				five[0]--, five[2] -= game::HLINE / 2 + 1;
+				five[0]--, five[2] -= HLINES(0.5f) + 1;
 				push5(grassp, five);
 				five[1]--, five[3] = wd.groundHeight + gh[1];
 				push5(grassp, five);
@@ -1015,43 +1026,49 @@ void WorldSystem::render(void)
 	    glDrawArrays(GL_TRIANGLES, 0 , grass.size() / 5);
 
 		// the starting pixel of the world
-		float s = -(static_cast<float>(SCREEN_WIDTH)/2.0f);
+		static const float s = -(static_cast<float>(SCREEN_WIDTH) / 2.0f);
 		// the ending pixel of the world
-		float e = (static_cast<float>(SCREEN_WIDTH)/2.0f);
+		static const float e = static_cast<float>(SCREEN_WIDTH) / 2.0f;
+
+		static const auto blackTex = Texture::genColor(Color(0, 0, 0));
+		static const float sheight = static_cast<float>(SCREEN_HEIGHT);
 
 		if (offset.x + world.startX > s) {
-
-			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0)));
+			glBindTexture(GL_TEXTURE_2D, blackTex);
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
-			GLfloat blackBarLeft[] = {s, 				0.0f,								-3.5f,		0.0f, 0.0f,
-									  world.startX, 	0.0f, 								-3.5f,		1.0f, 0.0f,
-									  world.startX, 	static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
+			GLfloat blackBarLeft[] = {
+				s,            0.0f,    -3.5f, 0.0f, 0.0f,
+				world.startX, 0.0f,    -3.5f, 1.0f, 0.0f,
+				world.startX, sheight, -3.5f, 1.0f, 1.0f,
 
-									  world.startX, 	static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
-    								  s,				static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		0.0f, 1.0f,
-									  s,				0.0f,								-3.5f,		0.0f, 0.0f};
+				world.startX, sheight, -3.5f, 1.0f, 1.0f,
+    			s,            sheight, -3.5f, 0.0f, 1.0f,
+				s,            0.0f,    -3.5f, 0.0f, 0.0f
+			};
 
-	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarLeft[0]);
-	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarLeft[3]);
-	    	glDrawArrays(GL_TRIANGLES, 0 , 6);
+	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, &blackBarLeft[0]);
+	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, &blackBarLeft[3]);
+	    	glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
 		if (offset.x - world.startX < e) {
-
-			glBindTexture(GL_TEXTURE_2D, Texture::genColor(Color(0,0,0)));
+			glBindTexture(GL_TEXTURE_2D, blackTex);
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
-			GLfloat blackBarRight[] = {-(world.startX), 0.0f,								-3.5f,		0.0f, 0.0f,
-									   e, 				0.0f, 								-3.5f,		1.0f, 0.0f,
-									   e, 				static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
-									   e, 				static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		1.0f, 1.0f,
-    								   -(world.startX),	static_cast<float>(SCREEN_HEIGHT), 	-3.5f,		0.0f, 1.0f,
-									   -(world.startX),	0.0f,								-3.5f,		0.0f, 0.0f};
+			GLfloat blackBarRight[] = {
+				-(world.startX), 0.0f,    -3.5f, 0.0f, 0.0f,
+				e,               0.0f,    -3.5f, 1.0f, 0.0f,
+				e,               sheight, -3.5f, 1.0f, 1.0f,
 
-	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarRight[0]);
-	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*5, &blackBarRight[3]);
-	    	glDrawArrays(GL_TRIANGLES, 0 , 6);
+				e,               sheight, -3.5f, 1.0f, 1.0f,
+    			-(world.startX), sheight, -3.5f, 0.0f, 1.0f,
+				-(world.startX), 0.0f,    -3.5f, 0.0f, 0.0f
+			};
+
+	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, &blackBarRight[0]);
+	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, &blackBarRight[3]);
+	    	glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
 		Render::worldShader.disable();
@@ -1063,24 +1080,25 @@ void WorldSystem::render(void)
 		static const GLuint rug = Texture::genColor(Color {255, 0, 0});
 		glBindTexture(GL_TEXTURE_2D, rug);
 		vec2 ll = vec2 {world.startX, GROUND_HEIGHT_MINIMUM};
-		Render::drawRect(ll, vec2 {ll.x + world.indoorWidth, ll.y + 4}, -3);
+		Render::drawRect(ll, ll + vec2 {world.indoorWidth, 4}, -3);
 		Render::worldShader.unuse();
 	}
 
 	waitToSwap = false;
-
-	//player->draw();
 }
 
 void WorldSystem::receive(const BGMToggleEvent &bte)
 {
 	if (bte.world == nullptr || world.bgm != bte.file) {
+		if (bgmCurrent == world.bgm)
+			return;
+
 		Mix_FadeOutMusic(800);
 
 		if (bgmObj != nullptr)
 			Mix_FreeMusic(bgmObj);
 
-		//worldBgmFile = bte.file;
+		bgmCurrent = world.bgm;
 		bgmObj = Mix_LoadMUS(world.bgm.c_str());
 		Mix_PlayMusic(bgmObj, -1);
 	}
@@ -1102,7 +1120,6 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 {
 	(void)en;
 	(void)ev;
-	(void)dt;
 
     // fade in music if not playing
 	if (!Mix_PlayingMusic() && bgmObj != nullptr)
@@ -1137,9 +1154,8 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 		[&](entityx::Entity e, Direction &vel, Physics &phys) {
 			(void)e;
 			// handle gravity
-        	if (vel.y > -2.0f) {
+        	if (vel.y > -2.0f)
 				vel.y -= (GRAVITY_CONSTANT * phys.g) * dt;
-			}
 		});
 
 	game::entities.each<Position, Direction, Solid>(
@@ -1173,9 +1189,9 @@ void WorldSystem::detect(entityx::TimeDelta dt)
         if (loc.x < world.startX) {
 			vel.x = 0;
 			loc.x = world.startX + HLINES(0.5f);
-		} else if (loc.x + dim.width + game::HLINE > -((int)world.startX)) {
+		} else if (loc.x + dim.width + game::HLINE > -(static_cast<int>(world.startX))) {
 			vel.x = 0;
-			loc.x = -((int)world.startX) - dim.width - game::HLINE;
+			loc.x = -(static_cast<int>(world.startX)) - dim.width - game::HLINE;
 		}
 	});
 }

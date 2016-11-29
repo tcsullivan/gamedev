@@ -105,6 +105,10 @@ struct vec2 {
 		return vec2 (x + n, y + n);
 	}
 
+	const vec2 operator+(const vec2 &v) {
+		return vec2 (x + v.x, y + v.y);
+	}
+
 	template<typename T>
 	const vec2 operator*(const T &n) {
 		return vec2 (x * n, y * n);
