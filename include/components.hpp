@@ -13,8 +13,9 @@
 #include <common.hpp>
 #include <texture.hpp>
 #include <events.hpp>
-
 #include <atomic>
+#include <tinyxml2.h>
+using namespace tinyxml2;
 
 /**
  * @struct Position
@@ -138,6 +139,8 @@ struct SpriteData {
 
 using Frame = std::vector<std::pair<SpriteData, vec2>>;
 
+std::vector<Frame> developFrame(XMLElement*);
+
 //TODO
 /**
  * @struct Sprite
@@ -214,14 +217,20 @@ struct Animate {
 	std::vector<Frame> frame;
 	// COMMENT	
 	std::vector<Frame>::iterator currentFrame;
-	
+
+	Animate(){
+		currentFrame = std::begin(frame);
+	}
+
 	// COMMENT
 	Frame nextFrame() {
-		if (currentFrame != std::end(frame))
-			currentFrame++;
-		else 
+		std::rotate(frame.begin(), frame.begin()+1, frame.end());
+		return frame[0];
+		/*if (currentFrame < std::end(frame))
+			return (*currentFrame++);
+		else
 			currentFrame = std::begin(frame);
-	return *currentFrame;	
+		return (*currentFrame);*/
 	}
 };
 

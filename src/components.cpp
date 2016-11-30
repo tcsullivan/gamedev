@@ -72,7 +72,6 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 	Render::worldShader.use();
 
 	en.each<Visible, Sprite, Position>([dt](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {
-		(void)entity;
 		// Verticies and shit
 		GLfloat tex_coord[] = {0.0, 0.0,
 							   1.0, 0.0,
@@ -90,6 +89,10 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 								1.0, 1.0,
 								1.0, 0.0};
 
+		if (entity.has_component<Animate>()) {
+			sprite.sprite = entity.component<Animate>().get()->nextFrame();
+		}
+		
 		for (auto &S : sprite.sprite) {
 			float width = HLINES(S.first.size.x);
 			float height = HLINES(S.first.size.y);
@@ -111,7 +114,9 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 				float flashAmt = 1-(hitDuration/maxHitDuration);
 				glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, flashAmt, flashAmt, 1.0);
 			}*/
+			
 			glBindTexture(GL_TEXTURE_2D, S.first.pic);
+			
 			glUniform1i(Render::worldShader.uniform[WU_texture], 0);
 			Render::worldShader.enable();
 
@@ -206,4 +211,37 @@ void DialogSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 	(void)en;
 	(void)ev;
 	(void)dt;
+}
+
+std::vector<Frame> developFrame(XMLElement* xml)
+{
+	Frame tmpf;
+	std::vector<Frame> tmp;
+
+	// this is the xml elements first child. It will only be the <frame> tag
+	auto framexml = xml->FirstChildElement();
+	while (framexml) {
+		// this will always be frame. but if it isn't we don't wanna crash the game
+		std::string defframe = framexml->Name();
+		if (defframe == "frame") {
+			tmpf.clear();
+			// the xml element to parse each src of the frames
+			auto sxml = framexml->FirstChildElement();
+			while (sxml) {
+				std::string sname = sxml->Name();
+				if (sname == "src") {
+					tmpf.push_back(std::make_pair(SpriteData(sxml->GetText(), vec2(0,0)), vec2(0,0)));
+					std::cout << tmpf.back().first.pic << std::endl;
+				}
+				sxml = sxml->NextSiblingElement();
+			}
+			tmp.push_back(tmpf);
+		}
+		// if it's not a frame we don't care
+		
+		// parse next frame
+		framexml = framexml->NextSiblingElement();
+	}
+
+	return tmp;
 }

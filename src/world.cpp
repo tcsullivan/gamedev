@@ -335,7 +335,7 @@ void WorldSystem::load(const std::string& file)
 						auto tex = abcd->Attribute("image");
 						sprite->addSpriteSegment(SpriteData(tex,
 						                                    vec2(0, 0)),
-						                         vec2(0, 0));
+						                         			vec2(0, 0));
 					} else if (tname == "Portal") {
 						entity.assign<Portal>(wxml->StrAttribute("inside"));
 					} else if (tname == "Solid") {
@@ -381,6 +381,17 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Grounded>();
 					} else if (tname == "Wander") {
 						entity.assign<Wander>();
+					} else if (tname == "Animation") {
+						entity.assign<Animate>();
+						auto animx = abcd->FirstChildElement();
+						while (animx) {	
+							std::string animType = animx->Name();
+							if (animType == "movement") {
+								entity.component<Animate>().get()->frame = developFrame(animx);
+							}
+							
+							animx = animx->NextSiblingElement();
+						}
 					}
 
 					abcd = abcd->NextSiblingElement();

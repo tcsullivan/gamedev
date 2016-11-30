@@ -5,8 +5,41 @@
 	<Visible value="0.2" />
 	<Sprite image="assets/NPC.png" />
 	<Animation>
-		<frame>assets/NPC.png</frame>
-		<frame>assets/NPC_Walk.png</frame>
+		<movement>
+			<frame>
+				<src>assets/NPC.png</src>		
+			</frame>
+			<frame>
+				<src>assets/NPC_Walk.png</src>
+			</frame>
+			<frame>
+				<src>assets/NPC_Walk2.png</src>
+			</frame>
+			<frame>
+				<src>assets/NPC_Walk3.png</src>
+			</frame>
+			<frame>
+				<src>assets/NPC_Walk4.png</src>
+			</frame>
+			<frame>
+				<src>assets/NPC_Walk5.png</src>
+			</frame>
+			<frame>
+				<src>assets/NPC_Walk6.png</src>
+			</frame>
+			<frame>
+				<src>assets/NPC_Walk7.png</src>
+			</frame>
+			<frame>
+				<src>assets/NPC_Walk8.png</src>
+			</frame>
+			<frame>
+				<src>assets/NPC_Walk9.png</src>
+			</frame>
+			<frame>
+				<src>assets/NPC_Walk0.png</src>
+			</frame>
+		</movement>
 	</Animation>
 	<Direction />
 	<Solid />
