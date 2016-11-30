@@ -8,6 +8,7 @@
 #include <engine.hpp>
 #include <world.hpp>
 #include <brice.hpp>
+#include <quest.hpp>
 
 static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
 
@@ -158,8 +159,10 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 			    ((mce.position.y > pos.y) & (mce.position.y < pos.y + dim.height))) {
 
 			std::thread([&] {
-				auto exml = game::engine.getSystem<WorldSystem>()->getXML()->FirstChildElement("Dialog");
+				std::string questAssignedText;
 				int newIndex;
+
+				auto exml = game::engine.getSystem<WorldSystem>()->getXML()->FirstChildElement("Dialog");
 
 				if (e.has_component<Direction>())
 					d.talking = true;
@@ -182,6 +185,34 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 						game::briceUpdate();
 					}
 
+					auto qxml = exml->FirstChildElement("quest");
+					if (qxml != nullptr) {
+						std::string qname;
+						auto qsys = game::engine.getSystem<QuestSystem>();
+
+						do {
+							// assign quest
+							qname = qxml->StrAttribute("assign");
+							if (!qname.empty()) {
+								questAssignedText = qname;
+								qsys->assign(qname, qxml->StrAttribute("desc"), "req"); // gettext() for req
+							}
+
+							// check / finish quest
+							else {
+								qname = qxml->StrAttribute("check");
+								if (!(qname.empty() && qsys->hasQuest(qname) && qsys->finish(qname))) {
+									ui::dialogBox(name.name, "", false, "Finish my quest u nug");
+									ui::waitForDialog();
+									return;
+								//	oldidx = d.index;
+								//	d.index = qxml->UnsignedAttribute("fail");
+								//	goto COMMONAIFUNC;
+								}
+							}
+						} while((qxml = qxml->NextSiblingElement()));
+					}
+
 					auto cxml = exml->FirstChildElement("content");
 					const char *content;
 					if (cxml == nullptr) {
@@ -193,6 +224,9 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 
 					ui::dialogBox(name.name, "", false, content);
 					ui::waitForDialog();
+
+					if (!questAssignedText.empty())
+						ui::passiveImportantText(4000, ("Quest assigned:\n\"" + questAssignedText + "\"").c_str());
 
 					if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
 						d.index = newIndex;

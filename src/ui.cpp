@@ -411,13 +411,16 @@ namespace ui {
 	}
 
 	float putStringCentered(const float x, const float y, std::string s) {
-		unsigned int i = 0;
-		float width = 0;
+		unsigned int i = 0, lastnl = 0;
+		float width = 0, yy = y;
 
 		do {
 			switch (s[i]) {
 			case '\n':
-				// TODO
+				putString(floor(x - width / 2), yy, s.substr(0, i));
+				lastnl = 1 + i;
+				width = 0;
+				yy -= fontSize * 1.15f;
 				break;
 			case '\b':
 				break;
@@ -429,7 +432,8 @@ namespace ui {
 				break;
 			}
 		} while(s[++i]);
-		putString(floor(x-width/2),y,s);
+
+		putString(floor(x - width / 2), yy, s.substr(lastnl));
 		return width;
 	}
 
@@ -478,17 +482,20 @@ namespace ui {
 				case '!':
 				case '?':
 				case '.':
+				case ':':
 					tadv = 10;
 					break;
 				case ',':
+				case ';':
 					tadv = 5;
 				break;
 				default:
 					tadv = 1;
 					break;
 				}
-			} else
+			} else {
 				typeOutDone = true;
+			}
 		}
 
 		return ret;		//	The buffered string.

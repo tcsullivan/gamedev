@@ -159,11 +159,11 @@ namespace ui {
 
 		void init(void) {
 			// Create the main pause menu
-			pauseMenu.items.push_back(ui::menu::createParentButton({-128,0},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
-			pauseMenu.items.push_back(ui::menu::createChildButton({-128,-100},{256,75},{0.0f,0.0f,0.0f}, "Options", &optionsMenu));
-			pauseMenu.items.push_back(ui::menu::createChildButton({-128,-200},{256,75},{0.0f,0.0f,0.0f}, "Controls", &controlsMenu));
-			pauseMenu.items.push_back(ui::menu::createButton({-128,-300},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
-			pauseMenu.items.push_back(ui::menu::createButton({-128,-400},{256,75},{0.0f,0.0f,0.0f}, "Segfault", segFault));
+			pauseMenu.items.push_back(ui::menu::createParentButton({-128,100},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
+			pauseMenu.items.push_back(ui::menu::createChildButton({-128, 0},{256,75},{0.0f,0.0f,0.0f}, "Options", &optionsMenu));
+			pauseMenu.items.push_back(ui::menu::createChildButton({-128,-100},{256,75},{0.0f,0.0f,0.0f}, "Controls", &controlsMenu));
+			pauseMenu.items.push_back(ui::menu::createButton({-128,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
+			pauseMenu.items.push_back(ui::menu::createButton({-128,-300},{256,75},{0.0f,0.0f,0.0f}, "Segfault", segFault));
 
 			// Create the options (sound) menu
 			optionsMenu.items.push_back(ui::menu::createSlider({0-static_cast<float>(game::SCREEN_WIDTH)/4,0-(512/2)}, {50,512}, {0.0f, 0.0f, 0.0f}, 0, 100, "Master", &game::config::VOLUME_MASTER));

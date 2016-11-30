@@ -259,7 +259,8 @@ void render() {
 	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
 	auto ps = game::engine.getSystem<PlayerSystem>();
-	offset.x = ps->getPosition().x + ps->getWidth() / 2;
+	auto ploc = ps->getPosition();
+	offset.x = ploc.x + ps->getWidth() / 2;
 
 	const auto& worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
 	if (worldWidth < (int)SCREEN_WIDTH)
@@ -270,7 +271,7 @@ void render() {
 		offset.x = ((worldWidth *  0.5f) - SCREEN_WIDTH / 2);
 
 	// ortho y snapping
-	offset.y = /*std::max(player->loc.y + player->height / 2,*/ SCREEN_HEIGHT / 2.0f; /*);*/
+	offset.y = std::max(ploc.y /*+ player->height / 2*/, SCREEN_HEIGHT / 2.0f);
 
 	// "setup"
 	glm::mat4 projection = glm::ortho(floor(offset.x - SCREEN_WIDTH / 2),          // left
