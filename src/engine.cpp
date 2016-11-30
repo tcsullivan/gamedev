@@ -20,7 +20,7 @@ void Engine::init(void) {
     systems.add<WindowSystem>();
     systems.add<RenderSystem>();
 	systems.add<InputSystem>();
-    systems.add<InventorySystem>();
+    //systems.add<InventorySystem>();
     systems.add<WorldSystem>();
     systems.add<PlayerSystem>();
 
@@ -39,7 +39,7 @@ void Engine::render(entityx::TimeDelta dt)
 {
     systems.update<RenderSystem>(dt);
 	systems.update<WindowSystem>(dt);
-    systems.update<InventorySystem>(dt);
+    //systems.update<InventorySystem>(dt);
 
 	ui::fadeUpdate();
 }

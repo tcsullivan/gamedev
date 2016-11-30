@@ -146,6 +146,7 @@ private:
 	 * SDL's object for handling the background music.
 	 */
 	Mix_Music *bgmObj;
+	std::string bgmCurrent;
 
 	/**
 	 * Paths of files to get stylized textures from.
