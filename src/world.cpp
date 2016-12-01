@@ -1043,19 +1043,22 @@ void WorldSystem::render(void)
 
 		static const auto blackTex = Texture::genColor(Color(0, 0, 0));
 		static const float sheight = static_cast<float>(SCREEN_HEIGHT);
+			
 
 		if (offset.x + world.startX > s) {
 			glBindTexture(GL_TEXTURE_2D, blackTex);
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
-			GLfloat blackBarLeft[] = {
-				s,            0.0f,    -3.5f, 0.0f, 0.0f,
-				world.startX, 0.0f,    -3.5f, 1.0f, 0.0f,
-				world.startX, sheight, -3.5f, 1.0f, 1.0f,
+			auto off = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
 
-				world.startX, sheight, -3.5f, 1.0f, 1.0f,
-    			s,            sheight, -3.5f, 0.0f, 1.0f,
-				s,            0.0f,    -3.5f, 0.0f, 0.0f
+			GLfloat blackBarLeft[] = {
+				s,            0.0f    + off,    -3.5f, 0.0f, 0.0f,
+				world.startX, 0.0f    + off,    -3.5f, 1.0f, 0.0f,
+				world.startX, sheight + off, -3.5f, 1.0f, 1.0f,
+
+				world.startX, sheight + off, -3.5f, 1.0f, 1.0f,
+    			s,            sheight + off, -3.5f, 0.0f, 1.0f,
+				s,            0.0f 	  + off,    -3.5f, 0.0f, 0.0f
 			};
 
 	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, &blackBarLeft[0]);
@@ -1066,15 +1069,17 @@ void WorldSystem::render(void)
 		if (offset.x - world.startX < e) {
 			glBindTexture(GL_TEXTURE_2D, blackTex);
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
+		
+			auto off = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
 
 			GLfloat blackBarRight[] = {
-				-(world.startX), 0.0f,    -3.5f, 0.0f, 0.0f,
-				e,               0.0f,    -3.5f, 1.0f, 0.0f,
-				e,               sheight, -3.5f, 1.0f, 1.0f,
+				-(world.startX), 0.0f    + off,    -3.5f, 0.0f, 0.0f,
+				e,               0.0f    + off,    -3.5f, 1.0f, 0.0f,
+				e,               sheight + off, -3.5f, 1.0f, 1.0f,
 
-				e,               sheight, -3.5f, 1.0f, 1.0f,
-    			-(world.startX), sheight, -3.5f, 0.0f, 1.0f,
-				-(world.startX), 0.0f,    -3.5f, 0.0f, 0.0f
+				e,               sheight + off, -3.5f, 1.0f, 1.0f,
+    			-(world.startX), sheight + off, -3.5f, 0.0f, 1.0f,
+				-(world.startX), 0.0f    + off,    -3.5f, 0.0f, 0.0f
 			};
 
 	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, &blackBarRight[0]);

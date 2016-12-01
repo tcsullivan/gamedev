@@ -18,7 +18,14 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 	en.each<Position, Direction>([dt](entityx::Entity entity, Position &position, Direction &direction) {
 		position.x += direction.x * dt;
 		position.y += direction.y * dt;
-
+		
+		if (entity.has_component<Animate>() && entity.has_component<Sprite>()) {
+			if (direction.x) {	
+				entity.component<Sprite>().get()->sprite = entity.component<Animate>().get()->nextFrame();
+			} else {
+				entity.component<Sprite>().get()->sprite = entity.component<Animate>().get()->firstFrame();
+			}
+		}
 		if (entity.has_component<Dialog>() && entity.component<Dialog>()->talking) {
 			direction.x = 0;
 		} else {
@@ -73,6 +80,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 	Render::worldShader.use();
 
 	en.each<Visible, Sprite, Position>([dt](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {
+		(void)entity;
 		// Verticies and shit
 		GLfloat tex_coord[] = {0.0, 0.0,
 							   1.0, 0.0,
@@ -89,10 +97,6 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 								0.0, 1.0,
 								1.0, 1.0,
 								1.0, 0.0};
-
-		if (entity.has_component<Animate>()) {
-			sprite.sprite = entity.component<Animate>().get()->nextFrame();
-		}
 		
 		for (auto &S : sprite.sprite) {
 			float width = HLINES(S.first.size.x);
@@ -265,7 +269,6 @@ std::vector<Frame> developFrame(XMLElement* xml)
 				std::string sname = sxml->Name();
 				if (sname == "src") {
 					tmpf.push_back(std::make_pair(SpriteData(sxml->GetText(), vec2(0,0)), vec2(0,0)));
-					std::cout << tmpf.back().first.pic << std::endl;
 				}
 				sxml = sxml->NextSiblingElement();
 			}
