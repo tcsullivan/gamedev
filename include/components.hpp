@@ -216,21 +216,24 @@ struct Animate {
 	// COMMENT
 	std::vector<Frame> frame;
 	// COMMENT	
-	std::vector<Frame>::iterator currentFrame;
+	uint index;
 
 	Animate(){
-		currentFrame = std::begin(frame);
+		index = 0;
 	}
 
 	// COMMENT
 	Frame nextFrame() {
-		std::rotate(frame.begin(), frame.begin()+1, frame.end());
-		return frame[0];
-		/*if (currentFrame < std::end(frame))
-			return (*currentFrame++);
-		else
-			currentFrame = std::begin(frame);
-		return (*currentFrame);*/
+		if (index < frame.size() - 1) {
+			index++;
+		} else {
+			index = 0;
+		}
+		return frame.at(index);
+	}
+
+	Frame firstFrame() {
+		return frame.front();
 	}
 };
 
