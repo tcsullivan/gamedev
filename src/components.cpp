@@ -93,7 +93,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 		if (entity.has_component<Animate>()) {
 			sprite.sprite = entity.component<Animate>().get()->nextFrame();
 		}
-		
+
 		for (auto &S : sprite.sprite) {
 			float width = HLINES(S.first.size.x);
 			float height = HLINES(S.first.size.y);
@@ -115,9 +115,9 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 				float flashAmt = 1-(hitDuration/maxHitDuration);
 				glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, flashAmt, flashAmt, 1.0);
 			}*/
-			
+
 			glBindTexture(GL_TEXTURE_2D, S.first.pic);
-			
+
 			glUniform1i(Render::worldShader.uniform[WU_texture], 0);
 			Render::worldShader.enable();
 
@@ -187,24 +187,29 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 
 					auto qxml = exml->FirstChildElement("quest");
 					if (qxml != nullptr) {
-						std::string qname;
+						const char *qname;
 						auto qsys = game::engine.getSystem<QuestSystem>();
 
 						do {
 							// assign quest
-							qname = qxml->StrAttribute("assign");
-							if (!qname.empty()) {
+							qname = qxml->Attribute("assign");
+							if (qname != nullptr) {
 								questAssignedText = qname;
-								qsys->assign(qname, qxml->StrAttribute("desc"), "req"); // gettext() for req
+								auto req = qxml->GetText();
+								qsys->assign(qname, qxml->StrAttribute("desc"), req ? req : "");
 							}
 
 							// check / finish quest
 							else {
-								qname = qxml->StrAttribute("check");
-								if (!(qname.empty() && qsys->hasQuest(qname) && qsys->finish(qname))) {
-									ui::dialogBox(name.name, "", false, "Finish my quest u nug");
-									ui::waitForDialog();
-									return;
+								qname = qxml->Attribute("check");
+								if (qname != nullptr) {
+									if (qname != nullptr && qsys->hasQuest(qname) && qsys->finish(qname) == 0) {
+										d.index = 9999;
+									} else {
+										ui::dialogBox(name.name, "", false, "Finish my quest u nug");
+										ui::waitForDialog();
+										return;
+									}
 								//	oldidx = d.index;
 								//	d.index = qxml->UnsignedAttribute("fail");
 								//	goto COMMONAIFUNC;
@@ -226,7 +231,7 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 					ui::waitForDialog();
 
 					if (!questAssignedText.empty())
-						ui::passiveImportantText(4000, ("Quest assigned:\n\"" + questAssignedText + "\"").c_str());
+						ui::passiveImportantText(5000, ("Quest assigned:\n\"" + questAssignedText + "\"").c_str());
 
 					if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
 						d.index = newIndex;
@@ -272,7 +277,7 @@ std::vector<Frame> developFrame(XMLElement* xml)
 			tmp.push_back(tmpf);
 		}
 		// if it's not a frame we don't care
-		
+
 		// parse next frame
 		framexml = framexml->NextSiblingElement();
 	}

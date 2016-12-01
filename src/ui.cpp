@@ -899,7 +899,7 @@ namespace ui {
 			if (dialogImportant) {
 				setFontColor(255,255,255);
 				if (dialogPassive) {
-					dialogPassiveTime -= game::time::getDeltaTime();
+					dialogPassiveTime -= game::time::getDeltaTime() * 12;
 					if (dialogPassiveTime < 0) {
 						dialogPassive = false;
 						dialogImportant = false;

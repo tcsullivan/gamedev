@@ -59,9 +59,9 @@ typedef unsigned int uint;
 #define BREAKPOINT __asm__("int $3")
 
 template<typename T>
-inline const T * const& coalesce(const T * const &p1, const T * const &p2)
+inline const T * const& coalesce(const void * &p1, const void * &p2)
 {
-	return ((p1 == nullptr) ? p2 : p1);
+	return ((p1 == nullptr) ? reinterpret_cast<T*>(p2) : p1);
 }
 
 /**

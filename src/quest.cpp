@@ -1,4 +1,5 @@
 #include <quest.hpp>
+#include <common.hpp>
 
 #include <algorithm>
 
@@ -11,14 +12,17 @@ void QuestSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 int QuestSystem::assign(std::string title, std::string desc, std::string req)
 {
-	(void)req;
+	const auto& reqs = StringTokenizer(req, ',');
+	for (const auto& s : reqs)
+		std::cout << s << '\n';
+
 	current.emplace_back(title, desc);
 	return 0;
 }
 
 int QuestSystem::drop(std::string title)
 {
-	current.erase(std::remove_if(std::begin(current), std::end(current), 
+	current.erase(std::remove_if(std::begin(current), std::end(current),
 		[&title](const Quest& q) { return (q.name == title); }));
 	return 0;
 }
@@ -43,4 +47,3 @@ bool QuestSystem::hasQuest(std::string title)
 	return (std::find_if(std::begin(current), std::end(current),
 		[&title](const Quest& q) { return (q.name == title); }) != std::end(current));
 }
-
