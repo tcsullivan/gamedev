@@ -200,7 +200,7 @@ namespace ui {
 			UserError("Couldn't initialize freetype.");
 
 #ifdef DEBUG
-		DEBUG_printf("Initialized FreeType2.\n",NULL);
+		DEBUG_printf("Initialized FreeType2.\n", nullptr);
 #endif // DEBUG
 
 		fontSize = 0;
@@ -562,7 +562,7 @@ namespace ui {
 			// cycle through options
 			while (sopt) {
 				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}));
-				sopt = strtok(NULL,":");
+				sopt = strtok(nullptr, ":");
 			}
 		}
 
@@ -1037,7 +1037,7 @@ namespace ui {
 
 	void quitGame() {
 		dialogBoxExists = false;
-		currentMenu = NULL;
+		currentMenu = nullptr;
 		game::config::update();
 		game::config::save();
 		game::endGame();
@@ -1183,7 +1183,7 @@ EXIT:
 			bgr[x+2] = pixels[x];
 		}
 
-		time_t epoch = time(NULL);
+		time_t epoch = time(nullptr);
 		struct tm* timen = localtime(&epoch);
 
 		std::string name = "screenshots/";

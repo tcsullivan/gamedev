@@ -151,7 +151,7 @@ struct Sprite {
 	Sprite(bool left = false)
 	 	: faceLeft(left) {}
 
-	std::vector<std::pair<SpriteData, vec2>> getSprite() {
+	Frame getSprite() {
 		return sprite;
 	}
 

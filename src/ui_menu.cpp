@@ -120,7 +120,7 @@ namespace ui {
             temp.button.dim = d;
             temp.button.color = c;
             temp.button.text = t;
-            temp.button.func = NULL;
+            temp.button.func = nullptr;
 			temp.child = _child;
 
             return temp;
@@ -134,7 +134,7 @@ namespace ui {
             temp.button.dim = d;
             temp.button.color = c;
             temp.button.text = t;
-            temp.button.func = NULL;
+            temp.button.func = nullptr;
 			temp.child = nullptr;
 
             return temp;
@@ -320,7 +320,7 @@ namespace ui {
 							cMult = 0.75f;
 
 							//if we are inside the slider and click it will set the slider to that point
-                            if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                            if (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
                                 //change handle location
                                 if (m.slider.dim.y > m.slider.dim.x) {
                                     *m.slider.var = (((mouse.y-offset.y) - m.slider.loc.y)/m.slider.dim.y)*100;

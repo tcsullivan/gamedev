@@ -190,17 +190,14 @@ void WorldSystem::load(const std::string& file)
 
 	entityx::Entity entity;
 
-	std::string xmlRaw;
-	std::string xmlPath;
-
 	// check for empty file name
 	if (file.empty())
 		return;
 
 	// load file data to string
-	xmlPath = xmlFolder + file;
+	auto xmlPath = xmlFolder + file;
 	auto xmlRawData = readFile(xmlPath.c_str());
-	xmlRaw = xmlRawData;
+	std::string xmlRaw = xmlRawData;
 	delete[] xmlRawData;
 
 	// let tinyxml parse the file
@@ -209,18 +206,23 @@ void WorldSystem::load(const std::string& file)
 
 	// include headers
 	auto ixml = xmlDoc.FirstChildElement("include");
-	while (ixml) {
+	while (ixml != nullptr) {
 		auto file = ixml->Attribute("file");
+
 		if (file != nullptr) {
 			DEBUG_printf("Including file: %s\n", file);
 			auto include = readFile((xmlFolder + file).c_str());
 			xmlRaw.append(include);
 			delete[] include;
+		} else {
+			UserError("XML Error: <include> tag file not given");
 		}
+
 		ixml = ixml->NextSiblingElement();
 	}
 
-	xmlDoc.Parse(xmlRaw.data());
+	if (xmlDoc.Parse(xmlRaw.data()) != XML_NO_ERROR)
+		UserError("XML Error:");
 
 	// look for an opening world tag
 	auto wxml = xmlDoc.FirstChildElement("World");
