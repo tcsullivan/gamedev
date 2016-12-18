@@ -218,7 +218,7 @@ void WorldSystem::load(const std::string& file)
 			UserError("XML Error: <include> tag file not given");
 		}
 
-		ixml = ixml->NextSiblingElement();
+		break;//ixml = ixml->NextSiblingElement();
 	}
 
 	if (xmlDoc.Parse(xmlRaw.data()) != XML_NO_ERROR)
