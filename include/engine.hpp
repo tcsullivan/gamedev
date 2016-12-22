@@ -20,6 +20,7 @@ public:
 
 	void init(void);
     void render(entityx::TimeDelta dt);
+	void resetRender(entityx::TimeDelta dt);
 	void update(entityx::TimeDelta dt);
 
 	template<typename T>

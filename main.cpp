@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 	//initInventorySprites();
 
 	// load mouse texture, and other inventory textures
-	mouseTex = Texture::loadTexture("assets/mouse.png");
+	mouseTex = Texture::loadTexture("assets/goodmouse.png");
 
 	// get a world
 	if (xmlFolder.empty())
@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
 		const bool &run = game::engine.shouldRun;
 		while (run) {
 			render();
-			game::engine.render(0);
+			game::engine.resetRender(0);
 		}
 
 		thMain.join();
@@ -307,6 +307,8 @@ void render() {
 	// draw the player's inventory
 	//player->inv->draw();
 
+	game::engine.render(0);
+	
 	// draw the fade overlay
 	ui::drawFade();
 
@@ -351,7 +353,7 @@ void render() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mouseTex);
 		Render::useShader(&Render::textShader);
-		Render::drawRect(ui::mouse, ui::mouse + 15, -9.9);
+		Render::drawRect(vec2(ui::mouse.x, ui::mouse.y - 64), vec2(ui::mouse.x + 64, ui::mouse.y), -9.9);
 	Render::textShader.unuse();
 }
 

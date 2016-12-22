@@ -3,71 +3,20 @@
 <npc>
 	<Position value="0.0,100.0" />
 	<Visible value="0.2" />
-	<Sprite image="assets/NPC.png" />
+	<Sprite> image="assets/NPC.png"
+		<frame>
+			<src id="0" offset="0,0" size="15,20" drawOffset="0,0">assets/NPC.png</src>
+			<src id="1" offset="0,21" size="15,9" drawOffset="-1,14">assets/NPC.png</src>
+			<src id="2" drawOffset="13,6">assets/items/ironSword.png</src>
+		</frame>
+	</Sprite>	
 	<Animation>
-		<movement>
+		<movement update="1" changeId="1">
 			<frame>
-				<src>assets/NPC.png</src>		
+				<src offset="0,21" size="15,9" drawOffset="0,13">assets/NPC.png</src>		
 			</frame>
 			<frame>
-				<src>assets/NPC_Walk.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk2.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk3.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk4.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk5.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk6.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk7.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk8.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk9.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk0.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk9.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk8.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk7.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk6.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk5.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk4.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk3.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk2.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC_Walk.png</src>
-			</frame>
-			<frame>
-				<src>assets/NPC.png</src>
+				<src offset="0,21" size="15,9" drawOffset="0,13">assets/NPC_Walk.png</src>
 			</frame>
 		</movement>
 	</Animation>
@@ -82,7 +31,11 @@
 <structure>
 	<Position value="0.0,100.0" />
 	<Visible value="0.25" />
-	<Sprite image="assets/style/classic/house1.png" />
+	<Sprite>
+		<frame>
+			<src>assets/style/classic/house1.png</src>
+		</frame>
+	</Sprite>
 	<Portal />
 	<Solid />
 	<Grounded />
@@ -91,7 +44,11 @@
 <chest>
 	<Position value="0.0,100.0" />
 	<Visible value="0.15" />
-	<Sprite image="assets/chest.png" />
+	<Sprite>
+		<frame>
+			<src>assets/chest.png</src>
+		</frame>
+	</Sprite>
 	<Solid />
 	<Grounded />
 </chest>

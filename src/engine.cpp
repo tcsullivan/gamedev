@@ -40,10 +40,13 @@ void Engine::init(void) {
 void Engine::render(entityx::TimeDelta dt)
 {
     systems.update<RenderSystem>(dt);
-	systems.update<WindowSystem>(dt);
     //systems.update<InventorySystem>(dt); // doesn't do anything...
 
 	ui::fadeUpdate();
+}
+void Engine::resetRender(entityx::TimeDelta dt)
+{
+	systems.update<WindowSystem>(dt);
 }
 
 void Engine::update(entityx::TimeDelta dt)

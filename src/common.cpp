@@ -22,6 +22,14 @@ unsigned int millis(void) {
 	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }
 
+
+vec2 str2coord(std::string s)
+{
+	auto cpos = s.find(',');
+	s[cpos] = '\0';
+	return vec2 (std::stof(s), std::stof(s.substr(cpos + 1)));
+}
+
 std::vector<std::string> StringTokenizer(const std::string& str, char delim)
 {
 	std::vector<std::string> tokens;

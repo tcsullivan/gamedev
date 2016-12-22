@@ -130,11 +130,28 @@ struct SpriteData {
 		offset(offset) {
 			pic = Texture::loadTexture(path);
 			size = Texture::imageDim(path);
-		}
+			size_tex = vec2(1.0, 1.0);
+			
+			offset_tex.x = offset.x/size.x;
+			offset_tex.y = offset.y/size.y;
+	}
+
+	SpriteData(std::string path, vec2 offset, vec2 size):
+		offset(offset), size(size) {
+			pic = Texture::loadTexture(path);
+			vec2 tmpsize = Texture::imageDim(path);
+
+			size_tex.x = size.x/tmpsize.x;
+			size_tex.y = size.y/tmpsize.y;
+			offset_tex.x = offset.x/tmpsize.x;
+			offset_tex.y = offset.y/tmpsize.y;
+	}
 
 	GLuint pic;
 	vec2 offset;
+	vec2 offset_tex;
 	vec2 size;
+	vec2 size_tex;
 };
 
 using Frame = std::vector<std::pair<SpriteData, vec2>>;
@@ -214,7 +231,7 @@ struct Sprite {
 //TODO
 struct Animate {
 	// COMMENT
-	std::vector<Frame> frame;
+	std::vector<std::pair<uint, Frame>> frame;
 	// COMMENT	
 	uint index;
 
@@ -223,17 +240,19 @@ struct Animate {
 	}
 
 	// COMMENT
-	Frame nextFrame() {
+	void nextFrame(Frame sprite) {
 		if (index < frame.size() - 1) {
 			index++;
 		} else {
 			index = 0;
 		}
-		return frame.at(index);
+		auto fa = frame.at(index);
+		if (sprite.size() > fa.first-1)
+			sprite.at(fa.first) = fa.second.at(fa.first);
 	}
 
-	Frame firstFrame() {
-		return frame.front();
+	void firstFrame(Frame sprite) {
+		sprite = frame.at(0).second;
 	}
 };
 

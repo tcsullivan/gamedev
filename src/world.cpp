@@ -182,11 +182,6 @@ bool WorldSystem::save(void)
 void WorldSystem::load(const std::string& file)
 {
 	auto& render = *game::engine.getSystem<RenderSystem>();
-	auto str2coord = [](std::string s) -> vec2 {
-		auto cpos = s.find(',');
-		s[cpos] = '\0';
-		return vec2 (std::stof(s), std::stof(s.substr(cpos + 1)));
-	};
 
 	entityx::Entity entity;
 
@@ -332,10 +327,10 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Visible>(abcd->FloatAttribute("value"));
 					} else if (tname == "Sprite") {
 						auto sprite = entity.assign<Sprite>();
-						auto tex = abcd->Attribute("image");
-						sprite->addSpriteSegment(SpriteData(tex,
-						                                    vec2(0, 0)),
-						                         			vec2(0, 0));
+						auto sprx = abcd;
+						auto frames = developFrame(sprx);
+						if (frames.size())
+							sprite->sprite = frames.at(0);
 					} else if (tname == "Portal") {
 						entity.assign<Portal>(wxml->StrAttribute("inside"));
 					} else if (tname == "Solid") {
@@ -382,12 +377,20 @@ void WorldSystem::load(const std::string& file)
 					} else if (tname == "Wander") {
 						entity.assign<Wander>();
 					} else if (tname == "Animation") {
-						entity.assign<Animate>();
+						auto entan = entity.assign<Animate>();
 						auto animx = abcd->FirstChildElement();
+						uint idtc = 0;
 						while (animx) {	
 							std::string animType = animx->Name();
 							if (animType == "movement") {
-								entity.component<Animate>().get()->frame = developFrame(animx);
+								auto frames = developFrame(animx);
+								if (animx->UnsignedAttribute("changeID") != XML_NO_ERROR)
+									idtc = 0;
+								else 
+									idtc = animx->UnsignedAttribute("changeID");
+								for (uint i = 0; i < frames.size(); i++) {
+									entan->frame.push_back(std::make_pair(idtc, frames[i]));
+								}
 							}
 							
 							animx = animx->NextSiblingElement();

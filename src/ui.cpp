@@ -747,7 +747,7 @@ namespace ui {
                           	c2.x,						c1.y + box_corner_dim.y, z,	1.0f, 0.5f,
 
                           	c2.x,						c1.y + box_corner_dim.y, z, 1.0f, 0.5f,
-                       	  	c2.x - box_corner_dim.x, 	c1.y + box_corner_dim.y, z, 0.0f, 0.5f,
+                       	  	c2.x - box_corner_dim.x, 	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
                           	c2.x - box_corner_dim.x, 	c1.y,					 z,	0.5f, 0.0f};
 
 		GLfloat box_l[] =  {c1.x,						c1.y + box_corner_dim.y, z, 0.0f, 0.0f,

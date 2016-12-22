@@ -21,9 +21,9 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 
 		if (entity.has_component<Animate>() && entity.has_component<Sprite>()) {
 			if (direction.x) {
-				entity.component<Sprite>().get()->sprite = entity.component<Animate>().get()->nextFrame();
+				entity.component<Animate>()->nextFrame(entity.component<Sprite>()->sprite);
 			} else {
-				entity.component<Sprite>().get()->sprite = entity.component<Animate>().get()->firstFrame();
+				entity.component<Animate>()->firstFrame(entity.component<Sprite>()->sprite);
 			}
 		}
 		if (entity.has_component<Dialog>() && entity.component<Dialog>()->talking) {
@@ -82,38 +82,41 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 	en.each<Visible, Sprite, Position>([dt](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {
 		(void)entity;
 		// Verticies and shit
-		GLfloat tex_coord[] = {0.0, 0.0,
-							   1.0, 0.0,
-							   1.0, 1.0,
-
-							   1.0, 1.0,
-							   0.0, 1.0,
-							   0.0, 0.0};
-
-		GLfloat tex_coordL[] = {1.0, 0.0,
-								0.0, 0.0,
-								0.0, 1.0,
-
-								0.0, 1.0,
-								1.0, 1.0,
-								1.0, 0.0};
-
-		if (entity.has_component<Animate>())
-			sprite.sprite = entity.component<Animate>()->nextFrame();
-
+		float its = 0;
 		for (auto &S : sprite.sprite) {
+			auto sp = S.first;
 			float width = HLINES(S.first.size.x);
 			float height = HLINES(S.first.size.y);
+			vec2 drawOffset(HLINES(S.second.x), HLINES(S.second.y));
+			vec2 loc(pos.x + drawOffset.x, pos.y + drawOffset.y);
 
-			vec2 loc = vec2(pos.x + S.first.offset.x, pos.y + S.first.offset.y);
+			GLfloat tex_coord[] = {sp.offset_tex.x, 				sp.offset_tex.y,
+								   sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y,
+								   sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y + sp.size_tex.y,
 
-			GLfloat coords[] = {loc.x, 			loc.y, 			visible.z,
-								loc.x + width, 	loc.y, 			visible.z,
-								loc.x + width, 	loc.y + height, visible.z,
+								   sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y + sp.size_tex.y,
+								   sp.offset_tex.x, 				sp.offset_tex.y + sp.size_tex.y,
+								   sp.offset_tex.x, 				sp.offset_tex.y};
 
-								loc.x + width, 	loc.y + height, visible.z,
-								loc.x, 			loc.y + height, visible.z,
-								loc.x, 			loc.y, 			visible.z};
+			if(sprite.faceLeft) {
+
+				glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f,1.0f,1.0f));
+				glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0-width-pos.x*2, 0.0f, 0.0f));
+
+				glm::mat4 mov = scale * translate;
+				glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(mov));
+
+			} else {
+				
+			}
+
+			GLfloat coords[] = {loc.x, 			loc.y, 			visible.z + its,
+								loc.x + width, 	loc.y, 			visible.z + its,
+								loc.x + width, 	loc.y + height, visible.z + its,
+
+								loc.x + width, 	loc.y + height, visible.z + its,
+								loc.x, 			loc.y + height, visible.z + its,
+								loc.x, 			loc.y, 			visible.z + its};
 
 
 			// make the entity hit flash red
@@ -129,13 +132,13 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 			Render::worldShader.enable();
 
 			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
-			if (sprite.faceLeft)
-				glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coordL);
-			else
-				glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
+			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 
+			glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 			glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+			
+			its-=.01;
 		}
 	});
 
@@ -264,6 +267,10 @@ std::vector<Frame> developFrame(XMLElement* xml)
 	Frame tmpf;
 	std::vector<Frame> tmp;
 
+	vec2 foffset;
+	vec2 fsize;
+	vec2 fdraw;
+
 	// this is the xml elements first child. It will only be the <frame> tag
 	auto framexml = xml->FirstChildElement();
 	while (framexml) {
@@ -271,12 +278,23 @@ std::vector<Frame> developFrame(XMLElement* xml)
 		std::string defframe = framexml->Name();
 		if (defframe == "frame") {
 			tmpf.clear();
+			tmp.clear();
 			// the xml element to parse each src of the frames
 			auto sxml = framexml->FirstChildElement();
 			while (sxml) {
 				std::string sname = sxml->Name();
 				if (sname == "src") {
-					tmpf.push_back(std::make_pair(SpriteData(sxml->GetText(), vec2(0,0)), vec2(0,0)));
+					foffset = (sxml->Attribute("offset") != nullptr) ? 
+						str2coord(sxml->Attribute("offset")) : vec2(0,0);
+					fdraw = (sxml->Attribute("drawOffset") != nullptr) ?
+						str2coord(sxml->Attribute("drawOffset")) : vec2(0,0);
+
+					if (sxml->Attribute("size") != nullptr) {
+						fsize = str2coord(sxml->Attribute("size"));
+						tmpf.push_back(std::make_pair(SpriteData(sxml->GetText(), foffset, fsize), fdraw));
+					} else {
+						tmpf.push_back(std::make_pair(SpriteData(sxml->GetText(), foffset), fdraw));
+					}
 				}
 				sxml = sxml->NextSiblingElement();
 			}
