@@ -1,81 +1,66 @@
-/* ----------------------------------------------------------------------------
-** The main file, home of the main loop.
-** --------------------------------------------------------------------------*/
-// ...
-/* ----------------------------------------------------------------------------
-** Includes section
-** --------------------------------------------------------------------------*/
+/**
+ * @file main.cpp
+ * The main file, where it all happens.
+ */
 
-#include <brice.hpp>
-
-#include <entityx/entityx.h>
-
-#include <window.hpp>
-#include <render.hpp>
-#include <engine.hpp>
-
-// local library includes
-#include <tinyxml2.h>
-using namespace tinyxml2;
-
-// local game includes
-#include <common.hpp>
-#include <config.hpp>
-#include <world.hpp>
-#include <ui.hpp>
-#include <gametime.hpp>
-#include <player.hpp>
-
+// standard library includes
 #include <fstream>
 #include <mutex>
 #include <chrono>
-
 using namespace std::literals::chrono_literals;
 
-/* ----------------------------------------------------------------------------
-** Variables section
-** --------------------------------------------------------------------------*/
+// local library includes
+#include <entityx/entityx.h>
+#include <tinyxml2.h>
+using namespace tinyxml2;
 
-// the currently used folder to grab XML files
+// our own includes
+#include <brice.hpp>
+#include <config.hpp>
+#include <common.hpp>
+#include <engine.hpp>
+#include <gametime.hpp>
+#include <player.hpp>
+#include <window.hpp>
+#include <world.hpp>
+#include <render.hpp>
+#include <ui.hpp>
+
+/**
+ * The currently used folder to look for XML files in.
+ */
 std::string xmlFolder;
 
-// the current menu
+/**
+ * The current menu, if any are open (TODO why is this here)
+ */
 Menu *currentMenu;
 
-// keeps a simple palette of colors for single-color draws
-GLuint colorIndex;
-
-// the mouse's texture
-GLuint mouseTex;
-
-// the center of the screen
+/**
+ * The current center of the screen, updated in main render.
+ */
 vec2 offset;
 
-/*
- * fps contains the game's current FPS, debugY contains the player's
- * y coordinates, updated at a certain interval. These are used in
- * the debug menu (see below).
+/**
+ * The current FPS of the game.
  */
+static unsigned int fps = 0;
 
-static unsigned int fps=0;
-//static float debugY=0;
-
-// handles all logic operations
-void logic(void);
-
-// handles all rendering operations
 void render(void);
 
-/*******************************************************************************
-** MAIN ************************************************************************
-********************************************************************************/
-
+/**
+ * The main program.
+ * Init, load, run. Die.
+ */
 int main(int argc, char *argv[])
 {
 	static bool worldReset = false, worldDontReallyRun = false;
 	std::string worldActuallyUseThisXMLFile;
 
-	// handle command line arguments
+	//
+	// get command line arguments, if any
+	//
+
 	if (argc > 1) {
 		for (int i = 1; i < argc; i++) {
 			std::string s = argv[i];
@@ -89,49 +74,67 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	game::engine.init();
+	//
+	// init the main game engine
+	//
 
+	game::engine.init();
+	// used three times below
+	auto worldSys = game::engine.getSystem<WorldSystem>();
+
+	//
 	// initialize GLEW
+	//
+
 #ifndef __WIN32__
 	glewExperimental = GL_TRUE;
 #endif
 
-	GLenum err;
-	if ((err = glewInit()) != GLEW_OK)
-		UserError(std::string("GLEW was not able to initialize! Error: ") + reinterpret_cast<const char *>(glewGetErrorString(err)));
+	auto glewError = glewInit();
+	if (glewError != GLEW_OK)
+		UserError(std::string("GLEW was not able to initialize! Error: ")
+			+ reinterpret_cast<const char *>(glewGetErrorString(glewError)));
 
-	// start the random number generator
+	//
+	// start the random number generator (TODO our own?)
+	//
+
 	randInit(millis());
 
-	// 'basic' OpenGL setup
+	//
+	// some basic OpenGL setup stuff
+	//
+
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetSwapInterval(1); // v-sync
-	SDL_ShowCursor(SDL_DISABLE); // hide the mouse
+	// enable v-sync (TODO but 1000 fps?)
+	SDL_GL_SetSwapInterval(1);
+	// hide the cursor
+	SDL_ShowCursor(SDL_DISABLE);
+	// switch to pixel grid
 	glViewport(0, 0, game::SCREEN_WIDTH, game::SCREEN_HEIGHT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glClearColor(1,1,1,1);
+	glClearColor(1, 1, 1, 1);
 
-	// TODO
-	Texture::initColorIndex();
-
+	//
 	// initialize shaders
+	//
+
 	std::cout << "Initializing shaders!\n";
-
-	// create shaders
 	Render::initShaders();
+	Colors::init();
 
-	// load up some fresh hot brice
+	//
+	// load some saved data
+	//
+
 	game::briceLoad();
 	game::briceUpdate();
 
-	// load sprites used in the inventory menu. See src/inventory.cpp
-	//initInventorySprites();
-
-	// load mouse texture, and other inventory textures
-	mouseTex = Texture::loadTexture("assets/mouse.png");
-
+	//
 	// get a world
+	//
+
 	if (xmlFolder.empty())
 		xmlFolder = "xml/";
 
@@ -143,69 +146,57 @@ int main(int argc, char *argv[])
 	// alphabetically sort files
 	strVectorSortAlpha(&xmlFiles);
 
+	// kill the world if needed
 	if (worldReset) {
-		for (const auto &xf : xmlFiles) {
-			if (xf[0] != '.') {
-				XMLDocument xmld;
-				auto file = xmlFolder + xf;
-				xmld.LoadFile(file.c_str());
-
-				auto xmle = xmld.FirstChildElement("World");
-
-				if (xmle == nullptr) {
-					xmle = xmld.FirstChildElement("IndoorWorld");
-
-					if (xmle == nullptr)
-						continue;
-				}
-
-				xmle = xmle->FirstChildElement();
-				while (xmle) {
-					xmle->DeleteAttribute("x");
-					xmle->DeleteAttribute("y");
-					xmle->DeleteAttribute("health");
-					xmle->DeleteAttribute("alive");
-					xmle->DeleteAttribute("dindex");
-					xmle = xmle->NextSiblingElement();
-				}
-
-				xmld.SaveFile(file.c_str(), false);
-			}
-		}
-
+		// TODO TODO TODO we do xml/*.dat now...
 		game::briceClear();
-
-		std::ofstream pdat ("xml/.main.dat", std::ios::out);
-		pdat.close();
 	}
 
+	// either load the given XML, or find one
 	if (!worldActuallyUseThisXMLFile.empty()) {
-		game::engine.getSystem<WorldSystem>()->load(worldActuallyUseThisXMLFile);
+		worldSys->load(worldActuallyUseThisXMLFile);
 	} else {
 		// load the first valid XML file for the world
 		for (const auto &xf : xmlFiles) {
 			if (xf[0] != '.') {
 				// read it in
 				std::cout << "File to load: " << xf << '\n';
-				game::engine.getSystem<WorldSystem>()->load(xf);
+				worldSys->load(xf);
 				break;
 			}
 		}
 	}
 
+	//
+	// initialize ui
+	//
+
 	ui::menu::init();
 
 
+	/////////////////////////////
+	//                         //
+	// actually start the game //
+	//                         //
+	/////////////////////////////
 
 	if (!worldDontReallyRun) {
-		// the main loop, in all of its gloriousness..
+		// the main loop, in all of its gloriousness...
 		std::thread thMain ([&] {
 			const bool &run = game::engine.shouldRun;
 			while (run) {
 				game::time::mainLoopHandler();
 
-				if (game::time::tickHasPassed())
-					logic();
+				if (game::time::tickHasPassed()) {
+					// calculate the world shading value
+					worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
+
+					// update fades
+					ui::fadeUpdate();
+
+					// increment game ticker
+					game::time::tick();
+				}
 
 				game::engine.update(game::time::getDeltaTime());
 
@@ -217,73 +208,87 @@ int main(int argc, char *argv[])
 		std::thread thDebug ([&] {
 			const bool &run = game::engine.shouldRun;
 			while (run) {
-				fps = 1000 / game::time::getDeltaTime();
-//				debugY = player->loc.y;
-
+				fps = 1000 / game::time::getDeltaTime(); // TODO really?
 				std::this_thread::sleep_for(1s);
 			}
 		});
 
+		// thre render loop, renders
 		const bool &run = game::engine.shouldRun;
 		while (run) {
 			render();
 			game::engine.render(0);
 		}
 
+		// on game end, get back together
 		thMain.join();
 		thDebug.join();
-		//game::engine.getSystem<WorldSystem>()->thAmbient.join();
+		//game::engine.getSystem<WorldSystem>()->thAmbient.join(); // segfault or something
 	}
 
-	// put away the brice for later
-	game::briceSave();
+	//
+	// put away the brice for later, save world
+	//
 
-	// free library resources
+	game::briceSave();
+	worldSys->save();
+
+	//
+	// close things, free stuff, yada yada
+	//
+
     Mix_HaltMusic();
     Mix_CloseAudio();
 
-//    destroyInventory();
 	ui::destroyFonts();
-    Texture::freeTextures();
-
-	// close up the game stuff
-	game::engine.getSystem<WorldSystem>()->save();
+    unloadTextures();
 
 	game::engine.getSystem<WindowSystem>()->die();
+
+	//
+	// goodbye
+	//
 
     return 0; // Calls everything passed to atexit
 }
 
 void render() {
-	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
-	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+	static const Texture mouseTex ("assets/mouse.png");
+	static const glm::mat4 view = glm::lookAt(
+		glm::vec3(0.0f, 0.0f, 0.0f),   // pos
+		glm::vec3(0.0f, 0.0f, -10.0f), // looking at
+		glm::vec3(0.0f, 1.0f, 0.0f)    // up vector
+	);
+
+	static const auto& SCREEN_WIDTH2  = game::SCREEN_WIDTH / 2.0f;
+	static const auto& SCREEN_HEIGHT2 = game::SCREEN_HEIGHT / 2.0f;
+
+	//
+	// set the ortho
+	//
 
 	auto ps = game::engine.getSystem<PlayerSystem>();
 	auto ploc = ps->getPosition();
 	offset.x = ploc.x + ps->getWidth() / 2;
 
 	const auto& worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
-	if (worldWidth < (int)SCREEN_WIDTH)
+	if (worldWidth < (int)SCREEN_WIDTH2 * 2)
 		offset.x = 0;
-	else if (offset.x - SCREEN_WIDTH / 2 < worldWidth * -0.5f)
-		offset.x = ((worldWidth * -0.5f) + SCREEN_WIDTH / 2);
-	else if (offset.x + SCREEN_WIDTH / 2 > worldWidth *  0.5f)
-		offset.x = ((worldWidth *  0.5f) - SCREEN_WIDTH / 2);
+	else if (offset.x - SCREEN_WIDTH2 < worldWidth * -0.5f)
+		offset.x = ((worldWidth * -0.5f) + SCREEN_WIDTH2);
+	else if (offset.x + SCREEN_WIDTH2 > worldWidth *  0.5f)
+		offset.x = ((worldWidth *  0.5f) - SCREEN_WIDTH2);
 
 	// ortho y snapping
-	offset.y = std::max(ploc.y /*+ player->height / 2*/, SCREEN_HEIGHT / 2.0f);
+	offset.y = std::max(ploc.y /*+ player->height / 2*/, SCREEN_HEIGHT2);
 
 	// "setup"
-	glm::mat4 projection = glm::ortho(floor(offset.x - SCREEN_WIDTH / 2),          // left
-	                                  floor(offset.x + SCREEN_WIDTH / 2),          // right
-	                                  floor(offset.y - SCREEN_HEIGHT / 2),         // bottom
-	                                  floor(offset.y + SCREEN_HEIGHT / 2),         // top
+	glm::mat4 projection = glm::ortho(floor(offset.x - SCREEN_WIDTH2),             // left
+	                                  floor(offset.x + SCREEN_WIDTH2),             // right
+	                                  floor(offset.y - SCREEN_HEIGHT2),            // bottom
+	                                  floor(offset.y + SCREEN_HEIGHT2),            // top
 	                                  static_cast<decltype(floor(10.0f))>(10.0),   // near
 	                                  static_cast<decltype(floor(10.0f))>(-10.0)); // far
-
-	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f),   // pos
-								 glm::vec3(0.0f, 0.0f, -10.0f), // looking at
-								 glm::vec3(0.0f, 1.0f, 0.0f));  // up vector
 
 	glm::mat4 ortho = projection * view;
 
@@ -316,30 +321,10 @@ void render() {
 	// draw the debug overlay if desired
 	if (ui::debug) {
 		auto pos = game::engine.getSystem<PlayerSystem>()->getPosition();
-		ui::putText(offset.x - SCREEN_WIDTH / 2, (offset.y + SCREEN_HEIGHT / 2) - ui::fontSize,
-		            "loc: (%+.2f, %+.2f)\noffset: (%+.2f, %+.2f)\nfps: %d\nticks: %d\nxml: %s",
-					pos.x,
-					pos.y,
-					offset.x,
-					offset.y,
-					fps,
-					game::time::getTickCount(),
-					game::engine.getSystem<WorldSystem>()->getXMLFile().c_str()
-		            );
-		/*ui::putText(offset.x-SCREEN_WIDTH/2, (offset.y+SCREEN_HEIGHT/2)-ui::fontSize,
-					"fps: %d\ngrounded:%d\nresolution: %ux%u\nentity cnt: %d\nloc: (%+.2f, %+.2f)\nticks: %u\nvolume: %f\nweather: %s\nxml: %s",
-					fps,
-					0,//player->ground,
-					SCREEN_WIDTH,				// Window dimensions
-					SCREEN_HEIGHT,				//
-					0,//currentWorld->entity.size(),// Size of entity array
-					0,//player->loc.x,				// The player's x coordinate
-					debugY,						// The player's y coordinate
-					game::time::getTickCount(),
-					game::config::VOLUME_MASTER,
-					game::engine.getSystem<WorldSystem>()->getWeatherStr().c_str(),
-					""//currentXML.c_str()
-				);*/
+		ui::putText(offset.x - SCREEN_WIDTH2, (offset.y + SCREEN_HEIGHT2) - ui::fontSize,
+		            "loc: %s\noffset: %s\nfps: %d\nticks: %d\nxml: %s",
+					pos.toString().c_str(), offset.toString().c_str(), fps,
+					game::time::getTickCount(), game::engine.getSystem<WorldSystem>()->getXMLFile().c_str());
 	}
 
 	// draw the menu
@@ -349,108 +334,8 @@ void render() {
 	// draw the mouse
 	Render::textShader.use();
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mouseTex);
+		mouseTex.use();
 		Render::useShader(&Render::textShader);
 		Render::drawRect(ui::mouse, ui::mouse + 15, -9.9);
 	Render::textShader.unuse();
-}
-
-void logic(){
-//	static bool NPCSelected    = false;
-//	static bool ObjectSelected = false;
-
-	// exit the game if the player falls out of the world
-	/*if (player->loc.y < 0)
-		game::endGame();*/
-
-	/*if (player->inv->usingi) {
-		for (auto &e : currentWorld->entity) {
-			if (player->inv->usingi && !e->isHit() &&
-				player->inv->detectCollision(vec2 { e->loc.x, e->loc.y }, vec2 { e->loc.x + e->width, e->loc.y + e->height})) {
-				e->takeHit(25, 10);
-				break;
-			}
-		}
-		player->inv->usingi = false;
-	}*/
-
-	/*for (auto &e : currentWorld->entity) {
-		if (e->isAlive() && ((e->type == NPCT) || (e->type == MERCHT) || (e->type == OBJECTT))) {
-			if (e->type == OBJECTT && ObjectSelected) {
-				e->near = false;
-				continue;
-			} else if (e->canMove) {
-				if (!currentWorld->goWorldLeft(dynamic_cast<NPC *>(e)))
-					currentWorld->goWorldRight(dynamic_cast<NPC *>(e));
-				e->wander((rand() % 120 + 30));
-				if (NPCSelected) {
-					e->near = false;
-					continue;
-				}
-			}
-
-			if(e->isInside(ui::mouse) && player->isNear(e)) {
-				e->near = true;
-				if (e->type == OBJECTT)
-					ObjectSelected = true;
-				else
-					NPCSelected = true;
-
-				if ((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) && !ui::dialogBoxExists) {
-					if (ui::mouse.x < player->loc.x && player->right)
-						player->left = true, player->right = false;
-					else if(ui::mouse.x > player->loc.x && player->left)
-						player->right = true, player->left = false;
-					e->interact();
-				}
-			} else {
-				e->near = false;
-			}
-		} else if (e->type == MOBT) {
-			e->near = player->isNear(e);
-			e->wander();
-		}
-	}*/
-
-	// calculate the world shading value
-	worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
-
-	// update fades
-	ui::fadeUpdate();
-
-	// create weather particles if necessary
-	/*auto weather = game::engine.getSystem<WorldSystem>()->getWeatherId();
-	auto worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
-	if (weather == WorldWeather::Rain) {
-		for (unsigned int r = (randGet() % 25) + 11; r--;) {
-			currentWorld->addParticle(randGet() % worldWidth - (worldWidth / 2),
-									  offset.y + game::SCREEN_HEIGHT / 2,
-									  HLINES(1.25),										// width
-									  HLINES(1.25),										// height
-									  randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
-									  (4 + randGet() % 6) * .05,							// vel.y
-									  { 0, 0, 255 },										// RGB color
-									  2500,												// duration (ms)
-									  (1 << 0) | (1 << 1)									// gravity and bounce
-									  );
-		}
-	} else if (weather == WorldWeather::Snowy) {
-		for (unsigned int r = (randGet() % 25) + 11; r--;) {
-			currentWorld->addParticle(randGet() % worldWidth - (worldWidth / 2),
-									  offset.y + game::SCREEN_HEIGHT / 2,
-									  HLINES(1.25),										// width
-									  HLINES(1.25),										// height
-							.0001 + randGet() % 7 * .01 * (randGet() % 2 == 0 ? -1 : 1),	// vel.x
-									  (4 + randGet() % 6) * -.03,							// vel.y
-									  { 255, 255, 255 },									// RGB color
-									  5000,												// duration (ms)
-									  0													// no gravity, no bounce
-									  );
-		}
-	}*/
-
-	// increment game ticker
-	game::time::tick();
-	//NPCSelected = false;
-	//ObjectSelected = false;
 }

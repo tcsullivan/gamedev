@@ -47,7 +47,7 @@ namespace game {
         events.emit<GameEndEvent>();
     }
 
-	extern SpriteLoader sprite_l;
+	//extern SpriteLoader sprite_l;
 }
 
 

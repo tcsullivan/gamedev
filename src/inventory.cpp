@@ -7,7 +7,7 @@
 
 constexpr const char* ICON_TEX_FILE_PATH = "config/invIcons.txt";
 
-static std::vector<GLuint> iconTextures;
+static std::vector<Texture> iconTextures;
 
 void InventorySystem::configure(entityx::EventManager &ev)
 {
@@ -18,7 +18,7 @@ void InventorySystem::loadIcons(void) {
     iconTextures.clear();
     auto icons = readFileA(ICON_TEX_FILE_PATH);
     for (const auto& s : icons)
-        iconTextures.push_back(Texture::loadTexture(s));
+        iconTextures.push_back(s);
 }
 
 void InventorySystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -27,14 +27,13 @@ void InventorySystem::update(entityx::EntityManager &en, entityx::EventManager &
     (void)ev;
     (void)dt;
 
-    static auto color = Texture::genColor(Color(0, 0, 0));
     vec2 start = vec2(offset.x, 100);// - game::SCREEN_WIDTH / 2 + 20, game::SCREEN_HEIGHT - 40);
 
     //std::cout << start.x << ' ' << start.y << std::endl;
 
     Render::textShader.use();
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, color);
+        Colors::black.use();
         Render::useShader(&Render::textShader);
         Render::drawRect(start, start + 20, -9.9f);
     Render::textShader.unuse();

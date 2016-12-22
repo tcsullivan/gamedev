@@ -277,10 +277,11 @@ void WorldSystem::load(const std::string& file)
 			if (!world.indoor)
 				UserError("<house> can only be used inside <IndoorWorld>");
 
-			world.indoorWidth = wxml->FloatAttribute("width");
-			auto str = wxml->StrAttribute("texture");
-			auto tex = render.loadTexture(str);
-			world.indoorTex = tex;
+			//world.indoorWidth = wxml->FloatAttribute("width");
+			world.indoorTex = render.loadTexture(wxml->StrAttribute("texture"));
+			//auto str = wxml->StrAttribute("texture");
+			//auto tex = render.loadTexture(str);
+			//world.indoorTex = tex;
 		}
 
 		// weather tag
@@ -855,26 +856,26 @@ void WorldSystem::render(void)
 	// draw the remaining layers
 	for (int i = 0; i < 4; i++) {
 		bgTex++;
-		auto dim = bgTex.getTextureDim();
-		dim.x = HLINES(dim.x);
-		dim.y = HLINES(dim.y);
 		auto xcoord = offset.x * bgDraw[i][2];
 
 		bg_items.clear();
 		bg_tex.clear();
 
+		vec2 dim = bgTex.getTextureDim() * game::HLINE;
+
 		if (world.indoor && i == 3) {
-			glBindTexture(GL_TEXTURE_2D, world.indoorTex);
+			world.indoorTex.use();
 
 			const auto& startx = world.startX;
+			dim = world.indoorTex.getDim() * game::HLINE;
 
-			bg_items.emplace_back(startx,                     GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
-	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM,	     7 - (i * 0.1f));
-	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
+			bg_items.emplace_back(startx,         GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
+	        bg_items.emplace_back(startx + dim.x, GROUND_HEIGHT_MINIMUM,	     7 - (i * 0.1f));
+	        bg_items.emplace_back(startx + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
 
-	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
-	        bg_items.emplace_back(startx,                     GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
-	        bg_items.emplace_back(startx,                     GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
+	        bg_items.emplace_back(startx + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
+	        bg_items.emplace_back(startx,         GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
+	        bg_items.emplace_back(startx,         GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
 		} else {
 			for (int j = world.startX; j <= -world.startX; j += dim.x) {
 	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
@@ -1041,11 +1042,10 @@ void WorldSystem::render(void)
 		// the ending pixel of the world
 		static const float e = static_cast<float>(SCREEN_WIDTH) / 2.0f;
 
-		static const auto blackTex = Texture::genColor(Color(0, 0, 0));
 		static const float sheight = static_cast<float>(SCREEN_HEIGHT);
 
 		if (offset.x + world.startX > s) {
-			glBindTexture(GL_TEXTURE_2D, blackTex);
+			Colors::black.use();
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
 			GLfloat blackBarLeft[] = {
@@ -1064,7 +1064,7 @@ void WorldSystem::render(void)
 		}
 
 		if (offset.x - world.startX < e) {
-			glBindTexture(GL_TEXTURE_2D, blackTex);
+			Colors::black.use();
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
 			GLfloat blackBarRight[] = {
@@ -1088,10 +1088,9 @@ void WorldSystem::render(void)
 	} else {
 		Render::useShader(&Render::worldShader);
 		Render::worldShader.use();
-		static const GLuint rug = Texture::genColor(Color {255, 0, 0});
-		glBindTexture(GL_TEXTURE_2D, rug);
+		Colors::red.use();
 		vec2 ll = vec2 {world.startX, GROUND_HEIGHT_MINIMUM};
-		Render::drawRect(ll, ll + vec2 {world.indoorWidth, 4}, -3);
+		Render::drawRect(ll, ll + vec2(world.indoorTex.getDim().x, 4), -3);
 		Render::worldShader.unuse();
 	}
 

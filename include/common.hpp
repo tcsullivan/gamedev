@@ -58,10 +58,9 @@ typedef unsigned int uint;
 
 #define BREAKPOINT __asm__("int $3")
 
-template<typename T>
-inline const T * const& coalesce(const void * &p1, const void * &p2)
+inline const char* coalesce(const char * p1, const char * p2)
 {
-	return ((p1 == nullptr) ? reinterpret_cast<T*>(p2) : p1);
+	return ((p1 == nullptr) ? p2 : p1);
 }
 
 /**
@@ -81,12 +80,9 @@ typedef ivec2 dim2;
  * Creates a coordinate out of floating point integers.
  */
 struct vec2 {
-	float x; /**< The x coordinate */
-	float y; /**< The y coordinate */
+	float x;
+	float y;
 
-	/**
-	 * Constructs a vec2 with the specified coordinates.
-	 */
 	vec2(float _x = 0.0f, float _y = 0.0f)
 		: x(_x), y(_y) {}
 
@@ -109,9 +105,12 @@ struct vec2 {
 		return vec2 (x + v.x, y + v.y);
 	}
 
-	template<typename T>
-	const vec2 operator*(const T &n) {
+	vec2 operator*(const float&n) const {
 		return vec2 (x * n, y * n);
+	}
+
+	vec2 operator/(const float& n) const {
+		return vec2 (x / n, y / n);
 	}
 
 	// std::swap can't work due to being packed
@@ -124,6 +123,10 @@ struct vec2 {
 	inline void swapY(vec2 &v) {
 		float t = y;
 		y = v.y, v.y = t;
+	}
+
+	std::string toString(void) const {
+		return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
 	}
 
 } __attribute__ ((packed));

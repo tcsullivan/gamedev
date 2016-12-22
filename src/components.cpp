@@ -52,11 +52,11 @@ void PhysicsSystem::update(entityx::EntityManager &en, entityx::EventManager &ev
 	});
 }
 
-GLuint RenderSystem::loadTexture(const std::string& file)
+Texture RenderSystem::loadTexture(const std::string& file)
 {
 	loadTexString = file;
-	loadTexResult = 0xFFFF;
-	while (loadTexResult == 0xFFFF)
+	loadTexResult = Texture();
+	while (loadTexResult.isEmpty())
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	return loadTexResult;
 }
@@ -66,7 +66,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 	(void)ev;
 
 	if (!loadTexString.empty()) {
-		loadTexResult = Texture::loadTexture(loadTexString);
+		loadTexResult = Texture(loadTexString);
 		loadTexString.clear();
 	}
 
@@ -95,17 +95,16 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 		}
 
 		for (auto &S : sprite.sprite) {
-			float width = HLINES(S.first.size.x);
-			float height = HLINES(S.first.size.y);
+			const auto& size = S.first.tex.getDim() * game::HLINE;
 
 			vec2 loc = vec2(pos.x + S.first.offset.x, pos.y + S.first.offset.y);
 
 			GLfloat coords[] = {loc.x, 			loc.y, 			visible.z,
-								loc.x + width, 	loc.y, 			visible.z,
-								loc.x + width, 	loc.y + height, visible.z,
+								loc.x + size.x,	loc.y, 			visible.z,
+								loc.x + size.x, loc.y + size.y, visible.z,
 
-								loc.x + width, 	loc.y + height, visible.z,
-								loc.x, 			loc.y + height, visible.z,
+								loc.x + size.x,	loc.y + size.y, visible.z,
+								loc.x, 			loc.y + size.y, visible.z,
 								loc.x, 			loc.y, 			visible.z};
 
 
@@ -116,7 +115,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 				glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, flashAmt, flashAmt, 1.0);
 			}*/
 
-			glBindTexture(GL_TEXTURE_2D, S.first.pic);
+			S.first.tex.use();
 
 			glUniform1i(Render::worldShader.uniform[WU_texture], 0);
 			Render::worldShader.enable();
@@ -270,7 +269,7 @@ std::vector<Frame> developFrame(XMLElement* xml)
 				std::string sname = sxml->Name();
 				if (sname == "src") {
 					tmpf.push_back(std::make_pair(SpriteData(sxml->GetText(), vec2(0,0)), vec2(0,0)));
-					std::cout << tmpf.back().first.pic << std::endl;
+					//std::cout << tmpf.back().first.pic << std::endl;
 				}
 				sxml = sxml->NextSiblingElement();
 			}

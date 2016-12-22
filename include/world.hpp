@@ -108,8 +108,7 @@ struct WorldData2 {
 
 	// Indoor variables
 	bool indoor;                 /**< Set to true if this is an indoor world. */
-	float indoorWidth;           /**< The width of the indoor texture (house). */
-	GLuint indoorTex;            /**< The texture to draw (house). */
+	Texture indoorTex;           /**< The house's inside texture. */
 	std::string outdoor;         /**< The file name of the outdoor world. */
 	vec2 outdoorCoords;          /**< The coordinates the player should spawn to when exiting. */
 

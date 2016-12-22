@@ -667,11 +667,8 @@ namespace ui {
                              0,1,
                              0,0};
 
-        static GLuint boxT = Texture::genColor(Color(0,0,0));
-        static GLuint lineT = Texture::genColor(Color(255,255,255));
-
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, boxT);
+		Colors::black.use();
         glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
         Render::textShader.use();
@@ -681,7 +678,7 @@ namespace ui {
         glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
         glDrawArrays(GL_TRIANGLES, 0 ,6);
 
-        glBindTexture(GL_TEXTURE_2D, lineT);
+        Colors::white.use();
         glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, line_strip);
@@ -698,13 +695,13 @@ namespace ui {
 
 	void drawNiceBoxColor(vec2 c1, vec2 c2, float z, Color c) {
 		// the textures for the box corners
-		static GLuint box_corner =	 	Texture::loadTexture("assets/ui/button_corners.png");
-		static GLuint box_side_top = 	Texture::loadTexture("assets/ui/button_top_bot_borders.png");
-		static GLuint box_side = 		Texture::loadTexture("assets/ui/button_side_borders.png");
+		static Texture boxCorner  ("assets/ui/button_corners.png");
+		static Texture boxSideTop ("assets/ui/button_top_bot_borders.png");
+		static Texture boxSide    ("assets/ui/button_side_borders.png");
 
 		// the dimensions of the corner textures
-		static vec2 box_corner_dim_t = 	Texture::imageDim("assets/ui/button_corners.png");
-		static vec2 box_corner_dim = vec2(box_corner_dim_t.x / 2.0, box_corner_dim_t.y / 2.0);
+		static const auto& boxCornerDim  = boxCorner.getDim();
+		static const auto& boxCornerDim2 = boxCornerDim / 2;
 
 		// the amount of bytes to skip in the OpenGL arrays (see below)
 		auto stride = 5 * sizeof(GLfloat);
@@ -714,81 +711,80 @@ namespace ui {
 		if (c1.y > c2.y) c1.swapY(c2); // std::swap(c1.y, c2.y);
 
 		// if the box is too small, we will not be able to draw it
-		if (c2.x - c1.x < (box_corner_dim_t.x)) return;
-		if (c2.y - c1.y < (box_corner_dim_t.y)) return;
+		if (c2.x - c1.x < (boxCornerDim.x) || c2.y - c1.y < (boxCornerDim.y))
+			return;
 
+		GLfloat box_ul[] = {c1.x, 						c2.y - boxCornerDim2.y, z,	0.0f, 0.5f,
+                          	c1.x + boxCornerDim2.x, 	c2.y - boxCornerDim2.y, z,	0.5f, 0.5f,
+                          	c1.x + boxCornerDim2.x,	c2.y, 				    z,	0.5f, 1.0f,
 
-		GLfloat box_ul[] = {c1.x, 						c2.y - box_corner_dim.y, z,	0.0f, 0.5f,
-                          	c1.x + box_corner_dim.x, 	c2.y - box_corner_dim.y, z,	0.5f, 0.5f,
-                          	c1.x + box_corner_dim.x,	c2.y, 					 z,	0.5f, 1.0f,
+                          	c1.x + boxCornerDim2.x,	c2.y, 					z, 0.5f, 1.0f,
+                       	  	c1.x, 						c2.y, 					z, 0.0f, 1.0f,
+                          	c1.x, 						c2.y - boxCornerDim2.y, z,	0.0f, 0.5f};
 
-                          	c1.x + box_corner_dim.x,	c2.y, 					 z, 0.5f, 1.0f,
-                       	  	c1.x, 						c2.y, 					 z, 0.0f, 1.0f,
-                          	c1.x, 						c2.y - box_corner_dim.y, z,	0.0f, 0.5f};
+		GLfloat box_ll[] = {c1.x, 						c1.y, 					z,	0.0f, 0.0f,
+                          	c1.x + boxCornerDim2.x, 	c1.y,					z,	0.5f, 0.0f,
+                          	c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z,	0.5f, 0.5f,
 
-		GLfloat box_ll[] = {c1.x, 						c1.y, 					 z,	0.0f, 0.0f,
-                          	c1.x + box_corner_dim.x, 	c1.y,					 z,	0.5f, 0.0f,
-                          	c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z,	0.5f, 0.5f,
+                          	c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.5f,
+                       	  	c1.x, 						c1.y + boxCornerDim2.y, z, 0.0f, 0.5f,
+                          	c1.x, 						c1.y,					z, 0.0f, 0.0f};
 
-                          	c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
-                       	  	c1.x, 						c1.y + box_corner_dim.y, z, 0.0f, 0.5f,
-                          	c1.x, 						c1.y,					 z,	0.0f, 0.0f};
-
-		GLfloat box_ur[] = {c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z,	0.5f, 0.5f,
-                          	c2.x, 						c2.y - box_corner_dim.y, z,	1.0f, 0.5f,
+		GLfloat box_ur[] = {c2.x - boxCornerDim2.x,	c2.y - boxCornerDim2.y, z,	0.5f, 0.5f,
+                          	c2.x, 						c2.y - boxCornerDim2.y, z,	1.0f, 0.5f,
                           	c2.x,						c2.y, 					 z,	1.0f, 1.0f,
 
                           	c2.x,						c2.y, 					 z, 1.0f, 1.0f,
-                       	  	c2.x - box_corner_dim.x, 	c2.y, 					 z, 0.5f, 1.0f,
-                          	c2.x - box_corner_dim.x, 	c2.y - box_corner_dim.y, z,	0.5f, 0.5f};
+                       	  	c2.x - boxCornerDim2.x, 	c2.y, 					 z, 0.5f, 1.0f,
+                          	c2.x - boxCornerDim2.x, 	c2.y - boxCornerDim2.y, z,	0.5f, 0.5f};
 
-		GLfloat box_lr[] = {c2.x - box_corner_dim.x, 	c1.y, 					 z,	0.5f, 0.0f,
+		GLfloat box_lr[] = {c2.x - boxCornerDim2.x, 	c1.y, 					 z,	0.5f, 0.0f,
                           	c2.x, 						c1.y,					 z,	1.0f, 0.0f,
-                          	c2.x,						c1.y + box_corner_dim.y, z,	1.0f, 0.5f,
+                          	c2.x,						c1.y + boxCornerDim2.y, z,	1.0f, 0.5f,
 
-                          	c2.x,						c1.y + box_corner_dim.y, z, 1.0f, 0.5f,
-                       	  	c2.x - box_corner_dim.x, 	c1.y + box_corner_dim.y, z, 0.0f, 0.5f,
-                          	c2.x - box_corner_dim.x, 	c1.y,					 z,	0.5f, 0.0f};
+                          	c2.x,						c1.y + boxCornerDim2.y, z, 1.0f, 0.5f,
+                       	  	c2.x - boxCornerDim2.x, 	c1.y + boxCornerDim2.y, z, 0.0f, 0.5f,
+                          	c2.x - boxCornerDim2.x, 	c1.y,					 z,	0.5f, 0.0f};
 
-		GLfloat box_l[] =  {c1.x,						c1.y + box_corner_dim.y, z, 0.0f, 0.0f,
-							c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.0f,
-							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 1.0f,
+		GLfloat box_l[] =  {c1.x,						c1.y + boxCornerDim2.y, z, 0.0f, 0.0f,
+							c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.0f,
+							c1.x + boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 1.0f,
 
-							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 1.0f,
-							c1.x,						c2.y - box_corner_dim.y, z, 0.0f, 1.0f,
-							c1.x,						c1.y + box_corner_dim.y, z, 0.0f, 0.0f};
+							c1.x + boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 1.0f,
+							c1.x,						c2.y - boxCornerDim2.y, z, 0.0f, 1.0f,
+							c1.x,						c1.y + boxCornerDim2.y, z, 0.0f, 0.0f};
 
-		GLfloat box_r[] =  {c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.0f,
-							c2.x,						c1.y + box_corner_dim.y, z, 1.0f, 0.0f,
-							c2.x,						c2.y - box_corner_dim.y, z, 1.0f, 1.0f,
+		GLfloat box_r[] =  {c2.x - boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.0f,
+							c2.x,						c1.y + boxCornerDim2.y, z, 1.0f, 0.0f,
+							c2.x,						c2.y - boxCornerDim2.y, z, 1.0f, 1.0f,
 
-							c2.x,						c2.y - box_corner_dim.y, z, 1.0f, 1.0f,
-							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 1.0f,
-							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.0f};
+							c2.x,						c2.y - boxCornerDim2.y, z, 1.0f, 1.0f,
+							c2.x - boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 1.0f,
+							c2.x - boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.0f};
 
-        GLfloat box_b[] =  {c1.x + box_corner_dim.x,	c1.y,					 z,	0.0f, 0.0f,
-							c2.x - box_corner_dim.x,	c1.y,					 z, 1.0f, 0.0f,
-							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z,	1.0f, 0.5f,
+        GLfloat box_b[] =  {c1.x + boxCornerDim2.x,	c1.y,					 z,	0.0f, 0.0f,
+							c2.x - boxCornerDim2.x,	c1.y,					 z, 1.0f, 0.0f,
+							c2.x - boxCornerDim2.x,	c1.y + boxCornerDim2.y, z,	1.0f, 0.5f,
 
-							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z,	1.0f, 0.5f,
-							c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.0f, 0.5f,
-							c1.x + box_corner_dim.x,	c1.y,					 z, 0.0f, 0.0f};
+							c2.x - boxCornerDim2.x,	c1.y + boxCornerDim2.y, z,	1.0f, 0.5f,
+							c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.0f, 0.5f,
+							c1.x + boxCornerDim2.x,	c1.y,					 z, 0.0f, 0.0f};
 
-        GLfloat box_t[] =  {c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z,	0.0f, 0.5f,
-							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 1.0f, 0.5f,
-							c2.x - box_corner_dim.x,	c2.y, 					 z,	1.0f, 1.0f,
+        GLfloat box_t[] =  {c1.x + boxCornerDim2.x,	c2.y - boxCornerDim2.y, z,	0.0f, 0.5f,
+							c2.x - boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 1.0f, 0.5f,
+							c2.x - boxCornerDim2.x,	c2.y, 					 z,	1.0f, 1.0f,
 
-							c2.x - box_corner_dim.x,	c2.y,					 z,	1.0f, 1.0f,
-							c1.x + box_corner_dim.x,	c2.y,					 z, 0.0f, 1.0f,
-							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.0f, 0.5f};
+							c2.x - boxCornerDim2.x,	c2.y,					 z,	1.0f, 1.0f,
+							c1.x + boxCornerDim2.x,	c2.y,					 z, 0.0f, 1.0f,
+							c1.x + boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.0f, 0.5f};
 
-		GLfloat box_f[] =  {c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
-							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
-							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 0.5f,
+		GLfloat box_f[] =  {c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.5f,
+							c2.x - boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.5f,
+							c2.x - boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 0.5f,
 
-							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 0.5f,
-							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 0.5f,
-							c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f};
+							c2.x - boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 0.5f,
+							c1.x + boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 0.5f,
+							c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.5f};
 
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1f(Render::textShader.uniform[WU_texture], 0);
@@ -797,7 +793,7 @@ namespace ui {
 		Render::textShader.enable();
 
 		glUniform4f(Render::textShader.uniform[WU_tex_color], c.red, c.green, c.blue, c.alpha);
-		glBindTexture(GL_TEXTURE_2D, box_corner);
+		boxCorner.use();
 
 		// draw upper left corner
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ul[0]);
@@ -824,7 +820,7 @@ namespace ui {
         glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_f[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		glBindTexture(GL_TEXTURE_2D, box_side);
+		boxSide.use();
 
 		// draw the left edge of the box
 		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_l[0]);
@@ -836,7 +832,7 @@ namespace ui {
         glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_r[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		glBindTexture(GL_TEXTURE_2D, box_side_top);
+		boxSideTop.use();
 
 		// draw bottom of the box
 		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_b[0]);
@@ -1097,8 +1093,8 @@ EXIT:
 			return;
 		}
 
-		auto fadeTex = Texture::genColor( (fadeWhite ? Color(255, 255, 255, fadeIntensity) :
-		                                               Color(0, 0, 0, fadeIntensity)) );
+		ColorTex fadeTex (fadeWhite ? Color(255, 255, 255, fadeIntensity) :
+		    Color(0, 0, 0, fadeIntensity));
 
 
         GLfloat tex[] = {0.0, 0.0,
@@ -1117,7 +1113,7 @@ EXIT:
 		Render::textShader.use();
 		Render::textShader.enable();
 
-		glBindTexture(GL_TEXTURE_2D, fadeTex);
+		fadeTex.use();
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
         glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1127,7 +1123,7 @@ EXIT:
 
 		setFontZ(-8.0);
 
-		glDeleteTextures(1, &fadeTex);
+		fadeTex.destroy();
     }
 
 	void fadeUpdate(void) {

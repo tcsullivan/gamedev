@@ -236,14 +236,13 @@ namespace ui {
             }
 
 			static float cMult = 1.0f;
-			static GLuint backTex = Texture::genColor(Color(0, 0, 0, 204));
-			//static GLuint bsTex =	Texture::genColor(Color(30, 30, 30));
+			static const ColorTex back (Color(0, 0, 0, 204));
 
 			//draw the dark transparent background
             glColor4f(0.0f, 0.0f, 0.0f, .8f);
 			Render::textShader.use();
 
-			glBindTexture(GL_TEXTURE_2D, backTex);
+			back.use();
 			Render::drawRect(vec2(offset.x - SCREEN_WIDTH / 2 - 1, offset.y - (SCREEN_HEIGHT / 2)),
 			                 vec2(offset.x + SCREEN_WIDTH / 2, offset.y + (SCREEN_HEIGHT / 2)), -8.5);
 
