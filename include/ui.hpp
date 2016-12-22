@@ -39,8 +39,8 @@
 ** The UI namespace
 ** --------------------------------------------------------------------------*/
 
-void setControl(unsigned int index, SDL_Keycode key);
-SDL_Keycode getControl(unsigned int index);
+void setControl(int index, SDL_Keycode key);
+SDL_Keycode getControl(int index);
 
 #include <entityx/entityx.h>
 
@@ -92,7 +92,7 @@ namespace ui {
 
 	void setFontFace(const char *ttf);
 	void setFontSize(unsigned int size);
-	void setFontColor(unsigned char r,unsigned char g,unsigned char b, unsigned char a);
+	void setFontColor(int r, int g, int b, int a);
 	void setFontZ(float z);
 
 	/*
@@ -144,8 +144,6 @@ namespace ui {
 	void draw(void);
 	void drawFade(void);
 	void fadeUpdate(void);
-
-	void quitGame();
 
 	/*
 	 *	Toggle the black overlay thing.

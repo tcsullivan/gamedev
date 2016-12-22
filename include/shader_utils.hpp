@@ -1,8 +1,11 @@
 /**
+ * @file shader_utils.hpp
+ * @brief Utilities to use to handle GLSL shaders.
  * From the OpenGL Programming wikibook: http://en.wikibooks.org/wiki/OpenGL_Programming
  * This file is in the public domain.
  * Contributors: Sylvain Beucler, Guus Sliepen
  */
+
 #ifndef _CREATE_SHADER_H
 #define _CREATE_SHADER_H
 

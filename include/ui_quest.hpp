@@ -1,3 +1,8 @@
+/**
+ * @file ui_quest.hpp
+ * @brief Handles UI elements related to quests.
+ */
+
 #ifndef UI_QUEST_HPP_
 #define UI_QUEST_HPP_
 
@@ -6,12 +11,20 @@
 
 namespace ui {
 	namespace quest {
+		/**
+		 * A flag to determine if the UI should be drawn.
+		 */
 		bool _toggle = false;
 
-		void toggle(void) {
-			_toggle ^= true;
-		}
+		/**
+		 * Toggles displaying of the UI.
+		 */
+		inline void toggle(void)
+		{ _toggle ^= true; }
 
+		/**
+		 * Draws the quest UI to the screen, if enabled.
+		 */
 		void draw(void) {
 			static unsigned int textWrap = 40;
 

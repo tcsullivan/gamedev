@@ -22,8 +22,16 @@ void Menu::gotoParent(void)
 	}
 }
 
-inline void segFault() {
-	(*((int *)NULL))++;
+inline void segFault(void)
+{
+	++*((int *)0);
+}
+
+void quitGame(void)
+{
+	game::config::update();
+	game::config::save();
+	game::endGame();
 }
 
 std::string& deleteWord(std::string& s)
@@ -120,7 +128,7 @@ namespace ui {
             temp.button.dim = d;
             temp.button.color = c;
             temp.button.text = t;
-            temp.button.func = NULL;
+            temp.button.func = nullptr;
 			temp.child = _child;
 
             return temp;
@@ -134,7 +142,7 @@ namespace ui {
             temp.button.dim = d;
             temp.button.color = c;
             temp.button.text = t;
-            temp.button.func = NULL;
+            temp.button.func = nullptr;
 			temp.child = nullptr;
 
             return temp;
@@ -162,7 +170,7 @@ namespace ui {
 			pauseMenu.items.push_back(ui::menu::createParentButton({-128,100},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
 			pauseMenu.items.push_back(ui::menu::createChildButton({-128, 0},{256,75},{0.0f,0.0f,0.0f}, "Options", &optionsMenu));
 			pauseMenu.items.push_back(ui::menu::createChildButton({-128,-100},{256,75},{0.0f,0.0f,0.0f}, "Controls", &controlsMenu));
-			pauseMenu.items.push_back(ui::menu::createButton({-128,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", ui::quitGame));
+			pauseMenu.items.push_back(ui::menu::createButton({-128,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", quitGame));
 			pauseMenu.items.push_back(ui::menu::createButton({-128,-300},{256,75},{0.0f,0.0f,0.0f}, "Segfault", segFault));
 
 			// Create the options (sound) menu
@@ -319,7 +327,7 @@ namespace ui {
 							cMult = 0.75f;
 
 							//if we are inside the slider and click it will set the slider to that point
-                            if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                            if (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
                                 //change handle location
                                 if (m.slider.dim.y > m.slider.dim.x) {
                                     *m.slider.var = (((mouse.y-offset.y) - m.slider.loc.y)/m.slider.dim.y)*100;
