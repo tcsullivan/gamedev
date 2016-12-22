@@ -60,13 +60,6 @@ typedef struct {
 } WorldData;
 
 /**
- * Alters how bright world elements are drawn.
- * This value is based off of the current time of day (tick count), set in
- * main.cpp.
- */
-extern int worldShade;
-
-/**
  * Defines how many game ticks it takes to go from day to night or vice versa.
  * Technically a half day cycle...
  */

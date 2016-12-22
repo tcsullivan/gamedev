@@ -14,12 +14,12 @@
 
 #include <SDL2/SDL.h>
 
-extern char* file_read(const char* filename);
-extern void print_log(GLuint object);
-extern GLuint create_shader(const char* filename, GLenum type);
-extern GLuint create_program(const char* vertexfile, const char *fragmentfile);
-extern GLint get_attrib(GLuint program, const char *name);
-extern GLint get_uniform(GLuint program, const char *name);
-extern void print_opengl_info();
+char* file_read(const char* filename);
+void print_log(GLuint object);
+GLuint create_shader(const char* filename, GLenum type);
+GLuint create_program(const char* vertexfile, const char *fragmentfile);
+GLint get_attrib(GLuint program, const char *name);
+GLint get_uniform(GLuint program, const char *name);
+void print_opengl_info();
 
 #endif

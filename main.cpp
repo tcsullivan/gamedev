@@ -189,6 +189,7 @@ int main(int argc, char *argv[])
 
 				if (game::time::tickHasPassed()) {
 					// calculate the world shading value
+					extern int worldShade; // TODO kill
 					worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 
 					// update fades

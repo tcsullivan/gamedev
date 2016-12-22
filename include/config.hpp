@@ -29,7 +29,7 @@ namespace game {
 	/**
 	 * The window is fullscreen if this is true.
 	 */
-	extern bool         FULLSCREEN;
+	extern bool FULLSCREEN;
 
 	namespace config {
 		/**

@@ -196,9 +196,7 @@ void WorldSystem::load(const std::string& file)
 
 	// load file data to string
 	auto xmlPath = xmlFolder + file;
-	auto xmlRawData = readFile(xmlPath.c_str());
-	std::string xmlRaw = xmlRawData;
-	delete[] xmlRawData;
+	auto xmlRaw = readFile(xmlPath);
 
 	// let tinyxml parse the file
 	if (xmlDoc.Parse(xmlRaw.data()) != XML_NO_ERROR)
@@ -211,9 +209,7 @@ void WorldSystem::load(const std::string& file)
 
 		if (file != nullptr) {
 			DEBUG_printf("Including file: %s\n", file);
-			auto include = readFile((xmlFolder + file).c_str());
-			xmlRaw.append(include);
-			delete[] include;
+			xmlRaw.append(readFile(xmlFolder + file));
 		} else {
 			UserError("XML Error: <include> tag file not given");
 		}
@@ -936,11 +932,11 @@ void WorldSystem::render(void)
 
 	GLfloat *dirtp = &dirt[0];
     for (int i = iStart; i < iEnd; i++) {
-        if (world.data[i].groundHeight <= 0) { // TODO holes (andy)
+        if (world.data[i].groundHeight <= 0) { // TODO holes (andy) TODO TODO TODO
             world.data[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
-            glColor4ub(0, 0, 0, 255);
+            //glColor4ub(0, 0, 0, 255);
         } else {
-            safeSetColorA(150, 150, 150, 255);
+            //safeSetColorA(150, 150, 150, 255);
         }
 
         int ty = world.data[i].groundHeight / 64 + world.data[i].groundColor;
@@ -978,7 +974,7 @@ void WorldSystem::render(void)
 
 	if (!world.indoor) {
 		bgTex++;
-	    safeSetColorA(255, 255, 255, 255);
+	    //safeSetColorA(255, 255, 255, 255); TODO TODO TODO 
 
 		static std::vector<GLfloat> grass;
 		if (grass.size() != world.data.size() * 60) {

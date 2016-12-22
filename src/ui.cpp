@@ -1014,17 +1014,14 @@ namespace ui {
 	}
 
 	void drawFade(void) {
-		auto SCREEN_WIDTH2 = game::SCREEN_WIDTH / 2;
-		auto SCREEN_HEIGHT2 = game::SCREEN_HEIGHT / 2;
+		static const auto SCREEN_WIDTH2 = game::SCREEN_WIDTH / 2;
+		static const auto SCREEN_HEIGHT2 = game::SCREEN_HEIGHT / 2;
 
 		if (!fadeIntensity) {
 			if (fontSize != 16)
 				setFontSize(16);
 			return;
 		}
-
-		ColorTex fadeTex (fadeWhite ? Color(255, 255, 255, fadeIntensity) :
-		    Color(0, 0, 0, fadeIntensity));
 
 		static const GLfloat tex[] = {
 			0.0, 0.0,
@@ -1045,8 +1042,8 @@ namespace ui {
 
 		Render::textShader.use();
 		Render::textShader.enable();
-
-		fadeTex.use();
+		Colors::black.use();
+		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, fadeIntensity / 255.0f);
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
         glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1055,8 +1052,6 @@ namespace ui {
 		Render::textShader.unuse();
 
 		setFontZ(-8.0);
-
-		fadeTex.destroy();
     }
 
 	void fadeUpdate(void) {

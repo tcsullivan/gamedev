@@ -58,9 +58,9 @@ namespace game {
 	}
 
 	void briceLoad(void) {
-		const char *data = readFile("brice.dat");
+		auto data = readFile("brice.dat");
 
-		if (data == nullptr) {
+		if (data.empty()) {
 			briceClear();
 			data = readFile("brice.dat");
 		}
@@ -74,8 +74,6 @@ namespace game {
 				brice.emplace(std::make_pair(datas[i], datas[i + 1]));
 			}
 		}
-
-		delete[] data;
 	}
 
 	void briceUpdate(void) {

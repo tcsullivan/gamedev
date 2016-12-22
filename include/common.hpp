@@ -43,11 +43,8 @@
 // game library includes
 #include <config.hpp>
 
-
-
 // windows stuff
 #ifdef __WIN32__
-typedef unsigned int uint;
 #undef near
 #endif
 
@@ -192,8 +189,6 @@ public:
 	}
 };
 
-extern GLuint colorIndex;
-
 /**
  * The amount of game ticks that should occur each second.
  */
@@ -259,17 +254,6 @@ extern vec2 offset;
  */
 void DEBUG_prints(const char* file, int line, const char *s,...);
 
-// TODO make sure we don't use these. Then burn them.
-/**
- * Sets color using glColor3ub(), but handles potential overflow.
- */
-void safeSetColor(int r,int g,int b);
-
-/**
- * Sets color using glColor4ub(), but handles potential overflow.
- */
-void safeSetColorA(int r,int g,int b,int a);
-
 unsigned int millis(void);
 
 // reads the names of files in a directory into the given string vector
@@ -279,7 +263,6 @@ int getdir(std::string dir, std::vector<std::string> &files);
 void strVectorSortAlpha(std::vector<std::string> *v);
 
 // reads the given file into a buffer and returns a pointer to the buffer
-const char *readFile(const char *path);
 std::string readFile(const std::string& path);
 std::vector<std::string> readFileA(const std::string& path);
 
