@@ -63,7 +63,7 @@ void Engine::update(entityx::TimeDelta dt)
 namespace game {
 	entityx::EventManager events;
 	entityx::EntityManager entities (events);
-	SpriteLoader sprite_l;
+	//SpriteLoader sprite_l;
 
     Engine engine;
 }

@@ -10,6 +10,8 @@
 #include <brice.hpp>
 #include <quest.hpp>
 
+#include <atomic>
+
 static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -19,13 +21,11 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 		position.x += direction.x * dt;
 		position.y += direction.y * dt;
 
-		if (entity.has_component<Animate>() && entity.has_component<Sprite>()) {
-			if (direction.x) {
-				entity.component<Animate>()->nextFrame(entity.component<Sprite>()->sprite);
-			} else {
-				entity.component<Animate>()->firstFrame(entity.component<Sprite>()->sprite);
-			}
-		}
+		/*if (entity.has_component<Animate>() && entity.has_component<Sprite>()) {
+			auto animate = entity.component<Animate>();
+			entity.component<Sprite>()->sprite = 
+				(direction.x != 0) ? animate->nextFrame() : animate->firstFrame();
+		}*/
 		if (entity.has_component<Dialog>() && entity.component<Dialog>()->talking) {
 			direction.x = 0;
 		} else {
@@ -59,11 +59,11 @@ void PhysicsSystem::update(entityx::EntityManager &en, entityx::EventManager &ev
 	});
 }
 
-GLuint RenderSystem::loadTexture(const std::string& file)
+Texture RenderSystem::loadTexture(const std::string& file)
 {
 	loadTexString = file;
-	loadTexResult = 0xFFFF;
-	while (loadTexResult == 0xFFFF)
+	loadTexResult = Texture();
+	while (loadTexResult.isEmpty())
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	return loadTexResult;
 }
@@ -73,7 +73,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 	(void)ev;
 
 	if (!loadTexString.empty()) {
-		loadTexResult = Texture::loadTexture(loadTexString);
+		loadTexResult = Texture(loadTexString);
 		loadTexString.clear();
 	}
 
@@ -85,8 +85,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 		float its = 0;
 		for (auto &S : sprite.sprite) {
 			auto sp = S.first;
-			float width = HLINES(S.first.size.x);
-			float height = HLINES(S.first.size.y);
+			auto size = sp.size * game::HLINE;
 			vec2 drawOffset(HLINES(S.second.x), HLINES(S.second.y));
 			vec2 loc(pos.x + drawOffset.x, pos.y + drawOffset.y);
 
@@ -99,23 +98,19 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 								   sp.offset_tex.x, 				sp.offset_tex.y};
 
 			if(sprite.faceLeft) {
-
 				glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f,1.0f,1.0f));
-				glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0-width-pos.x*2, 0.0f, 0.0f));
+				glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f - size.x - pos.x * 2.0f, 0.0f, 0.0f));
 
 				glm::mat4 mov = scale * translate;
 				glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(mov));
-
-			} else {
-				
 			}
 
 			GLfloat coords[] = {loc.x, 			loc.y, 			visible.z + its,
-								loc.x + width, 	loc.y, 			visible.z + its,
-								loc.x + width, 	loc.y + height, visible.z + its,
+								loc.x + size.x,	loc.y, 			visible.z + its,
+								loc.x + size.x, loc.y + size.y, visible.z + its,
 
-								loc.x + width, 	loc.y + height, visible.z + its,
-								loc.x, 			loc.y + height, visible.z + its,
+								loc.x + size.x,	loc.y + size.y, visible.z + its,
+								loc.x, 			loc.y + size.y, visible.z + its,
 								loc.x, 			loc.y, 			visible.z + its};
 
 
@@ -126,7 +121,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 				glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, flashAmt, flashAmt, 1.0);
 			}*/
 
-			glBindTexture(GL_TEXTURE_2D, S.first.pic);
+			sp.tex.use();
 
 			glUniform1i(Render::worldShader.uniform[WU_texture], 0);
 			Render::worldShader.enable();
@@ -162,97 +157,100 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 {
 	game::entities.each<Position, Solid, Dialog, Name>(
 		[&](entityx::Entity e, Position &pos, Solid &dim, Dialog &d, Name &name) {
+			static std::atomic_bool dialogRun;
 			(void)e;
 			(void)d;
 
 			if (((mce.position.x > pos.x) & (mce.position.x < pos.x + dim.width)) &&
 			    ((mce.position.y > pos.y) & (mce.position.y < pos.y + dim.height))) {
 
-			std::thread([&] {
-				std::string questAssignedText;
-				int newIndex;
+			if (!dialogRun.load()) {
+				std::thread([&] {
+					std::string questAssignedText;
+					int newIndex;
 
-				auto exml = game::engine.getSystem<WorldSystem>()->getXML()->FirstChildElement("Dialog");
+					auto exml = game::engine.getSystem<WorldSystem>()->getXML()->FirstChildElement("Dialog");
+					dialogRun.store(true);
 
-				if (e.has_component<Direction>())
-					d.talking = true;
+					if (e.has_component<Direction>())
+						d.talking = true;
 
-				if (d.index == 9999) {
-					ui::dialogBox(name.name, "", false, randomDialog[d.rindex % randomDialog.size()]);
-					ui::waitForDialog();
-				} else if (exml != nullptr) {
-					while (exml->StrAttribute("name") != name.name)
-						exml = exml->NextSiblingElement();
+					if (d.index == 9999) {
+						ui::dialogBox(name.name, "", false, randomDialog[d.rindex % randomDialog.size()]);
+						ui::waitForDialog();
+					} else if (exml != nullptr) {
+						while (exml->StrAttribute("name") != name.name)
+							exml = exml->NextSiblingElement();
 
-					exml = exml->FirstChildElement("text");
-					while (exml->IntAttribute("id") != d.index)
-						exml = exml->NextSiblingElement();
+						exml = exml->FirstChildElement("text");
+						while (exml->IntAttribute("id") != d.index)
+							exml = exml->NextSiblingElement();
 
-					auto oxml = exml->FirstChildElement("set");
-					if (oxml != nullptr) {
-						do game::setValue(oxml->StrAttribute("id"), oxml->StrAttribute("value"));
-						while ((oxml = oxml->NextSiblingElement()));
-						game::briceUpdate();
-					}
+						auto oxml = exml->FirstChildElement("set");
+						if (oxml != nullptr) {
+							do game::setValue(oxml->StrAttribute("id"), oxml->StrAttribute("value"));
+							while ((oxml = oxml->NextSiblingElement()));
+							game::briceUpdate();
+						}
 
-					auto qxml = exml->FirstChildElement("quest");
-					if (qxml != nullptr) {
-						const char *qname;
-						auto qsys = game::engine.getSystem<QuestSystem>();
+						auto qxml = exml->FirstChildElement("quest");
+						if (qxml != nullptr) {
+							const char *qname;
+							auto qsys = game::engine.getSystem<QuestSystem>();
 
-						do {
-							// assign quest
-							qname = qxml->Attribute("assign");
-							if (qname != nullptr) {
-								questAssignedText = qname;
-								auto req = qxml->GetText();
-								qsys->assign(qname, qxml->StrAttribute("desc"), req ? req : "");
-							}
-
-							// check / finish quest
-							else {
-								qname = qxml->Attribute("check");
+							do {
+								// assign quest
+								qname = qxml->Attribute("assign");
 								if (qname != nullptr) {
-									if (qname != nullptr && qsys->hasQuest(qname) && qsys->finish(qname) == 0) {
-										d.index = 9999;
-									} else {
-										ui::dialogBox(name.name, "", false, "Finish my quest u nug");
-										ui::waitForDialog();
-										return;
-									}
-								//	oldidx = d.index;
-								//	d.index = qxml->UnsignedAttribute("fail");
-								//	goto COMMONAIFUNC;
+									questAssignedText = qname;
+									auto req = qxml->GetText();
+									qsys->assign(qname, qxml->StrAttribute("desc"), req ? req : "");
 								}
-							}
-						} while((qxml = qxml->NextSiblingElement()));
+
+								// check / finish quest
+								else {
+									qname = qxml->Attribute("check");
+									if (qname != nullptr) {
+										if (qname != nullptr && qsys->hasQuest(qname) && qsys->finish(qname) == 0) {
+											d.index = 9999;
+										} else {
+											ui::dialogBox(name.name, "", false, "Finish my quest u nug");
+											ui::waitForDialog();
+											return;
+										}
+									//	oldidx = d.index;
+									//	d.index = qxml->UnsignedAttribute("fail");
+									//	goto COMMONAIFUNC;
+									}
+								}
+							} while((qxml = qxml->NextSiblingElement()));
+						}
+
+						auto cxml = exml->FirstChildElement("content");
+						const char *content;
+						if (cxml == nullptr) {
+							content = randomDialog[d.rindex % randomDialog.size()].c_str();
+						} else {
+							content = cxml->GetText() - 1;
+							while (*++content && isspace(*content));
+						}
+
+						ui::dialogBox(name.name, "", false, content);
+						ui::waitForDialog();
+
+						if (!questAssignedText.empty())
+							ui::passiveImportantText(5000, ("Quest assigned:\n\"" + questAssignedText + "\"").c_str());
+
+						if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
+							d.index = newIndex;
 					}
 
-					auto cxml = exml->FirstChildElement("content");
-					const char *content;
-					if (cxml == nullptr) {
-						content = randomDialog[d.rindex % randomDialog.size()].c_str();
-					} else {
-						content = cxml->GetText() - 1;
-						while (*++content && isspace(*content));
-					}
-
-					ui::dialogBox(name.name, "", false, content);
-					ui::waitForDialog();
-
-					if (!questAssignedText.empty())
-						ui::passiveImportantText(5000, ("Quest assigned:\n\"" + questAssignedText + "\"").c_str());
-
-					if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
-						d.index = newIndex;
-				}
-
-				d.talking = false;
-			}).detach();
-
+					d.talking = false;
+					dialogRun.store(false);
+				}).detach();
 			}
 		}
-	);
+	});
 }
 
 void DialogSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)

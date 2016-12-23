@@ -185,18 +185,13 @@ void WorldSystem::load(const std::string& file)
 
 	entityx::Entity entity;
 
-	std::string xmlRaw;
-	std::string xmlPath;
-
 	// check for empty file name
 	if (file.empty())
 		return;
 
 	// load file data to string
-	xmlPath = xmlFolder + file;
-	auto xmlRawData = readFile(xmlPath.c_str());
-	xmlRaw = xmlRawData;
-	delete[] xmlRawData;
+	auto xmlPath = xmlFolder + file;
+	auto xmlRaw = readFile(xmlPath);
 
 	// let tinyxml parse the file
 	if (xmlDoc.Parse(xmlRaw.data()) != XML_NO_ERROR)
@@ -204,18 +199,21 @@ void WorldSystem::load(const std::string& file)
 
 	// include headers
 	auto ixml = xmlDoc.FirstChildElement("include");
-	while (ixml) {
+	while (ixml != nullptr) {
 		auto file = ixml->Attribute("file");
+
 		if (file != nullptr) {
 			DEBUG_printf("Including file: %s\n", file);
-			auto include = readFile((xmlFolder + file).c_str());
-			xmlRaw.append(include);
-			delete[] include;
+			xmlRaw.append(readFile(xmlFolder + file));
+		} else {
+			UserError("XML Error: <include> tag file not given");
 		}
-		ixml = ixml->NextSiblingElement();
+
+		break;//ixml = ixml->NextSiblingElement();
 	}
 
-	xmlDoc.Parse(xmlRaw.data());
+	if (xmlDoc.Parse(xmlRaw.data()) != XML_NO_ERROR)
+		UserError("XML Error:");
 
 	// look for an opening world tag
 	auto wxml = xmlDoc.FirstChildElement("World");
@@ -272,10 +270,11 @@ void WorldSystem::load(const std::string& file)
 			if (!world.indoor)
 				UserError("<house> can only be used inside <IndoorWorld>");
 
-			world.indoorWidth = wxml->FloatAttribute("width");
-			auto str = wxml->StrAttribute("texture");
-			auto tex = render.loadTexture(str);
-			world.indoorTex = tex;
+			//world.indoorWidth = wxml->FloatAttribute("width");
+			world.indoorTex = render.loadTexture(wxml->StrAttribute("texture"));
+			//auto str = wxml->StrAttribute("texture");
+			//auto tex = render.loadTexture(str);
+			//world.indoorTex = tex;
 		}
 
 		// weather tag
@@ -858,26 +857,26 @@ void WorldSystem::render(void)
 	// draw the remaining layers
 	for (int i = 0; i < 4; i++) {
 		bgTex++;
-		auto dim = bgTex.getTextureDim();
-		dim.x = HLINES(dim.x);
-		dim.y = HLINES(dim.y);
 		auto xcoord = offset.x * bgDraw[i][2];
 
 		bg_items.clear();
 		bg_tex.clear();
 
+		vec2 dim = bgTex.getTextureDim() * game::HLINE;
+
 		if (world.indoor && i == 3) {
-			glBindTexture(GL_TEXTURE_2D, world.indoorTex);
+			world.indoorTex.use();
 
 			const auto& startx = world.startX;
+			dim = world.indoorTex.getDim() * game::HLINE;
 
-			bg_items.emplace_back(startx,                     GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
-	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM,	     7 - (i * 0.1f));
-	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
+			bg_items.emplace_back(startx,         GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
+	        bg_items.emplace_back(startx + dim.x, GROUND_HEIGHT_MINIMUM,	     7 - (i * 0.1f));
+	        bg_items.emplace_back(startx + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
 
-	        bg_items.emplace_back(startx + world.indoorWidth, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
-	        bg_items.emplace_back(startx,                     GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
-	        bg_items.emplace_back(startx,                     GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
+	        bg_items.emplace_back(startx + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
+	        bg_items.emplace_back(startx,         GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
+	        bg_items.emplace_back(startx,         GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
 		} else {
 			for (int j = world.startX; j <= -world.startX; j += dim.x) {
 	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
@@ -936,11 +935,11 @@ void WorldSystem::render(void)
 
 	GLfloat *dirtp = &dirt[0];
     for (int i = iStart; i < iEnd; i++) {
-        if (world.data[i].groundHeight <= 0) { // TODO holes (andy)
+        if (world.data[i].groundHeight <= 0) { // TODO holes (andy) TODO TODO TODO
             world.data[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
-            glColor4ub(0, 0, 0, 255);
+            //glColor4ub(0, 0, 0, 255);
         } else {
-            safeSetColorA(150, 150, 150, 255);
+            //safeSetColorA(150, 150, 150, 255);
         }
 
         int ty = world.data[i].groundHeight / 64 + world.data[i].groundColor;
@@ -978,7 +977,7 @@ void WorldSystem::render(void)
 
 	if (!world.indoor) {
 		bgTex++;
-	    safeSetColorA(255, 255, 255, 255);
+	    //safeSetColorA(255, 255, 255, 255); TODO TODO TODO 
 
 		static std::vector<GLfloat> grass;
 		if (grass.size() != world.data.size() * 60) {
@@ -1044,12 +1043,11 @@ void WorldSystem::render(void)
 		// the ending pixel of the world
 		static const float e = static_cast<float>(SCREEN_WIDTH) / 2.0f;
 
-		static const auto blackTex = Texture::genColor(Color(0, 0, 0));
 		static const float sheight = static_cast<float>(SCREEN_HEIGHT);
 			
 
 		if (offset.x + world.startX > s) {
-			glBindTexture(GL_TEXTURE_2D, blackTex);
+			Colors::black.use();
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 
 			auto off = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
@@ -1070,7 +1068,7 @@ void WorldSystem::render(void)
 		}
 
 		if (offset.x - world.startX < e) {
-			glBindTexture(GL_TEXTURE_2D, blackTex);
+			Colors::black.use();
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 		
 			auto off = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
@@ -1096,10 +1094,9 @@ void WorldSystem::render(void)
 	} else {
 		Render::useShader(&Render::worldShader);
 		Render::worldShader.use();
-		static const GLuint rug = Texture::genColor(Color {255, 0, 0});
-		glBindTexture(GL_TEXTURE_2D, rug);
+		Colors::red.use();
 		vec2 ll = vec2 {world.startX, GROUND_HEIGHT_MINIMUM};
-		Render::drawRect(ll, ll + vec2 {world.indoorWidth, 4}, -3);
+		Render::drawRect(ll, ll + vec2(world.indoorTex.getDim().x, 4), -3);
 		Render::worldShader.unuse();
 	}
 

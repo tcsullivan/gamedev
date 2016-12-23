@@ -20,14 +20,14 @@ std::array<SDL_Keycode, 6> controlMap = {
 	SDLK_w, SDLK_a, SDLK_d, SDLK_LSHIFT, SDLK_LCTRL, SDLK_e
 };
 
-void setControl(unsigned int index, SDL_Keycode key)
+void setControl(int index, SDL_Keycode key)
 {
 	controlMap[index] = key;
 }
 
-SDL_Keycode getControl(unsigned int index)
+SDL_Keycode getControl(int index)
 {
-	if (index >= controlMap.size())
+	if (index >= static_cast<int>(controlMap.size()))
 		return 0;
 
 	return controlMap[index];
@@ -57,7 +57,7 @@ static bool ft24loaded = false;
 static auto *ftdat = &ftdat16;
 static auto *ftex  = &ftex16;
 
-static unsigned char fontColor[4] = {255,255,255,255};
+static Color fontColor (255, 255, 255, 255);
 
 /*
  *	Variables for dialog boxes / options.
@@ -87,57 +87,45 @@ Mix_Chunk *sanic;
 static GLuint pageTex = 0;
 static bool   pageTexReady = false;
 
-void loadFontSize(unsigned int size, std::vector<GLuint> &tex, std::vector<FT_Info> &dat)
+void loadFontSize(int size, std::vector<GLuint> &tex, std::vector<FT_Info> &dat)
 {
 	FT_Set_Pixel_Sizes(ftf,0,size);
 
-	/*
-	 *	Pre-render 'all' the characters.
-	*/
-
+	// pre-render 'all' the characters
 	glDeleteTextures(93, tex.data());
 	glGenTextures(93, tex.data());		//	Generate new texture name/locations?
 
-	for(char i=33;i<126;i++) {
-
-		/*
-		 *	Load the character from the font family file.
-		*/
-
-		if (FT_Load_Char (ftf, i, FT_LOAD_RENDER))
+	for (char i = 33; i < 126; i++) {
+		// load the character from the font family file
+		if (FT_Load_Char(ftf, i, FT_LOAD_RENDER))
 			UserError("Error! Unsupported character " + i);
 
-		/*
-		 *	Transfer the character's bitmap (?) to a texture for rendering.
-		*/
+		// transfer the character's bitmap (?) to a texture for rendering
+		glBindTexture(GL_TEXTURE_2D, tex[i - 33]);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S , GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T , GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER , GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER , GL_LINEAR);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-		glBindTexture(GL_TEXTURE_2D,tex[i-33]);
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S		,GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T		,GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER	,GL_LINEAR		);
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER	,GL_LINEAR		);
-		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+		/**
+		 * The just-created texture will render red-on-black if we don't do anything to it, so
+		 * here we create a buffer 4 times the size and transform the texture into an RGBA array,
+		 * making it white-on-black.
+		 */
+		auto& g = ftf->glyph;
+		std::vector<uint32_t> buf (g->bitmap.width * g->bitmap.rows, 0xFFFFFFFF);
+		for (auto j = buf.size(); j--;)
+			buf[j] ^= !g->bitmap.buffer[j] ? buf[j] : 0;
 
-		/*
-		 *	The just-created texture will render red-on-black if we don't do anything to it, so
-		 *	here we create a buffer 4 times the size and transform the texture into an RGBA array,
-		 *	making it white-on-black.
-		*/
-
-
-		std::vector<uint32_t> buf (ftf->glyph->bitmap.width * ftf->glyph->bitmap.rows, 0xFFFFFFFF);
-
-		for(unsigned int j = buf.size(); j--;)
-			buf[j] ^= !ftf->glyph->bitmap.buffer[j] ? buf[j] : 0;
-
-		dat[i - 33].wh.x = ftf->glyph->bitmap.width;
-		dat[i - 33].wh.y = ftf->glyph->bitmap.rows;
-		dat[i - 33].bl.x = ftf->glyph->bitmap_left;
-		dat[i - 33].bl.y = ftf->glyph->bitmap_top;
-		dat[i - 33].ad.x = ftf->glyph->advance.x >> 6;
-		dat[i - 33].ad.y = ftf->glyph->advance.y >> 6;
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ftf->glyph->bitmap.width, ftf->glyph->bitmap.rows,
+		auto& d = dat[i - 33];
+		d.wh.x = g->bitmap.width;
+		d.wh.y = g->bitmap.rows;
+		d.bl.x = g->bitmap_left;
+		d.bl.y = g->bitmap_top;
+		d.ad.x = g->advance.x >> 6;
+		d.ad.y = g->advance.y >> 6;
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g->bitmap.width, g->bitmap.rows,
 			          0, GL_RGBA, GL_UNSIGNED_BYTE, buf.data());
 	}
 }
@@ -200,7 +188,7 @@ namespace ui {
 			UserError("Couldn't initialize freetype.");
 
 #ifdef DEBUG
-		DEBUG_printf("Initialized FreeType2.\n",NULL);
+		DEBUG_printf("Initialized FreeType2.\n", nullptr);
 #endif // DEBUG
 
 		fontSize = 0;
@@ -232,6 +220,7 @@ namespace ui {
 #ifdef DEBUG
 		DEBUG_printf("Using font %s\n",ttf);
 #endif // DEBUG
+
 		ft16loaded = false;
 		ft24loaded = false;
 	}
@@ -241,42 +230,24 @@ namespace ui {
 	*/
 
 	void setFontSize(unsigned int size) {
-		(void)size;
-		if (size == 16) {
-			if (!ft16loaded) {
-				loadFontSize(fontSize = size, ftex16, ftdat16);
-				ft16loaded = true;
-			}
-			ftex = &ftex16;
-			ftdat = &ftdat16;
-			fontSize = 16;
-		} else if (size == 24) {
-			if (!ft24loaded) {
-				loadFontSize(fontSize = size, ftex24, ftdat24);
-				ft24loaded = true;
-			}
-			ftex = &ftex24;
-			ftdat = &ftdat24;
-			fontSize = 24;
+		auto& loaded = (size == 16) ? ft16loaded : ft24loaded;
+		auto& tex = (size == 16) ? ftex16 : ftex24;
+		auto& dat = (size == 16) ? ftdat16 : ftdat24;
+
+		if (!loaded) {
+			loadFontSize(fontSize = size, tex, dat);
+			loaded = true;
 		}
+		ftex = &tex;
+		ftdat = &dat;
+		fontSize = size;
 	}
 
 	/*
 	 *	Set a color for font rendering (default: white).
-	*/
-
-	void setFontColor(unsigned char r,unsigned char g,unsigned char b) {
-		fontColor[0]=r;
-		fontColor[1]=g;
-		fontColor[2]=b;
-		fontColor[3]=255;
-	}
-
-	void setFontColor(unsigned char r,unsigned char g,unsigned char b, unsigned char a) {
-		fontColor[0]=r;
-		fontColor[1]=g;
-		fontColor[2]=b;
-		fontColor[3]=a;
+	 */
+	void setFontColor(int r, int g, int b, int a = 255) {
+		fontColor = Color(r, g, b, a);
 	}
 
 	/*
@@ -288,65 +259,53 @@ namespace ui {
 
 	/*
 	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
-	*/
-
+	 */
 	vec2 putChar(float xx,float yy,char c){
-		vec2 c1,c2;
-
+		const auto& ch = (*ftdat)[c - 33];
 		int x = xx, y = yy;
 
-		/*
-		 *	Get the width and height of the rendered character.
-		*/
+		// get dimensions of the rendered character
+		vec2 c1 = {
+			static_cast<float>(floor(x) + ch.bl.x),
+			static_cast<float>(floor(y) + ch.bl.y)
+		};
 
-		c1={(float)floor(x)+(*ftdat)[c-33].bl.x,
-		    (float)floor(y)+(*ftdat)[c-33].bl.y};
-		c2=(*ftdat)[c-33].wh;
+		const auto& c2 = ch.wh;
 
-		/*
-		 *	Draw the character:
-		*/
-
-
+		// draw the character
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D,(*ftex)[c-33]);
+		glBindTexture(GL_TEXTURE_2D, (*ftex)[c - 33]);
 		glUniform1i(Render::textShader.uniform[WU_texture], 0);
 		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, 1.0f);
 
-		//glDisable(GL_DEPTH_TEST);
-
 		Render::textShader.use();
 		Render::textShader.enable();
-
 		GLfloat tex_coord[] = {
 			0.0, 1.0,				//bottom left
 			1.0, 1.0,				//bottom right
 			1.0, 0.0,				//top right
-
 			1.0, 0.0,				//top right
 			0.0, 0.0,				//top left
 			0.0, 1.0,				//bottom left
-
 		};
 
 		GLfloat text_vert[] = {
 			c1.x, 		c1.y     -c2.y, fontZ,	//bottom left
 			c1.x+c2.x, 	c1.y	 -c2.y, fontZ, 	//bottom right
 			c1.x+c2.x, 	c1.y+c2.y-c2.y, fontZ,	//top right
-
 			c1.x+c2.x, 	c1.y+c2.y-c2.y, fontZ,	//top right
 			c1.x, 		c1.y+c2.y-c2.y, fontZ,	//top left
 			c1.x, 		c1.y	 -c2.y, fontZ	//bottom left
 		};
 
         glUniform4f(Render::textShader.uniform[WU_tex_color],
-                    static_cast<float>(fontColor[0]/255),
-                    static_cast<float>(fontColor[1]/255),
-                    static_cast<float>(fontColor[2]/255),
-                    static_cast<float>(fontColor[3]/255));
+                    static_cast<float>(fontColor.red / 255),
+                    static_cast<float>(fontColor.green / 255),
+                    static_cast<float>(fontColor.blue / 255),
+                    static_cast<float>(fontColor.alpha / 255));
 
 		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, text_vert);
-		glVertexAttribPointer(Render::textShader.tex,  	2, GL_FLOAT, GL_FALSE, 0, tex_coord);
+		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
@@ -354,10 +313,8 @@ namespace ui {
 		Render::textShader.disable();
 		Render::textShader.unuse();
 
-		//glEnable(GL_DEPTH_TEST);
-
 		// return the width.
-		return (*ftdat)[c-33].ad;
+		return ch.ad;
 	}
 
 	/*
@@ -368,13 +325,9 @@ namespace ui {
 		unsigned int i = 0, nl = 1;
 		vec2 add, o = {x, y};
 
-		/*
-		 * Loop on each character:
-		 */
-
+		// loop on each character
 		do {
 			if (dialogBoxExists && i > textWrapLimit * nl) {
-
  				o.y -= fontSize * 1.05f;
  				o.x = x;
 				++nl;
@@ -385,13 +338,12 @@ namespace ui {
   			}
 
 			switch (s[i]) {
+			case '\r':
+			case '\t':
+				break;
 			case '\n':
 				o.y -= fontSize * 1.05f;
 				o.x = x;
-				break;
-			case '\r':
-				break;
-			case '\t':
 				break;
 			case '\b':
 				o.x -= add.x;
@@ -407,7 +359,7 @@ namespace ui {
 			}
 		} while (s[++i]);
 
-		return o.x;	// i.e. the string width
+		return o.x;	// the string width
 	}
 
 	float putStringCentered(const float x, const float y, std::string s) {
@@ -505,40 +457,36 @@ namespace ui {
 	 *	Draw a formatted string to the specified coordinates.
 	*/
 
+	std::string uisprintf(const char *s, va_list args) {
+		std::unique_ptr<char[]> buf (new char[512]);
+		vsnprintf(buf.get(), 512, s, args);
+		std::string ret (buf.get());
+		return ret;
+	}
+
 	float putText(const float x, const float y, const char *str, ...) {
 		va_list args;
-		std::unique_ptr<char[]> buf (new char[512]);
-
-		// zero out the buffer
-		memset(buf.get(),0,512*sizeof(char));
-
-		/*
-		 *	Handle the formatted string, printing it to the buffer.
-		 */
-
+	
 		va_start(args,str);
-		vsnprintf(buf.get(),512,str,args);
+		auto s = uisprintf(str, args);
 		va_end(args);
 
 		// draw the string and return the width
-		return putString(x, y, buf.get());
+		return putString(x, y, s);
 	}
 
 	void putTextL(vec2 c, const char *str, ...) {
 		va_list args;
-		std::unique_ptr<char[]> buf (new char[512]);
-		memset(buf.get(), 0, 512 * sizeof(char));
 
 		va_start(args, str);
-		vsnprintf(buf.get(), 512, str, args);
+		auto s = uisprintf(str, args);
 		va_end(args);
 
-		textToDraw.push_back(std::make_pair(c, buf.get()));
+		textToDraw.push_back(std::make_pair(c, s));
 	}
 
 	void dialogBox(std::string name, std::string opt, bool passive, std::string text, ...) {
-		va_list dialogArgs;
-		std::unique_ptr<char[]> printfbuf (new char[512]);
+		va_list args;
 
 		dialogPassive = passive;
 
@@ -546,14 +494,14 @@ namespace ui {
 		dialogBoxText = name + ": ";
 
 		// handle the formatted string
-		va_start(dialogArgs, text);
-		vsnprintf(printfbuf.get(), 512, text.c_str(), dialogArgs);
-		va_end(dialogArgs);
-		dialogBoxText += printfbuf.get();
+		va_start(args, text);
+		auto s = uisprintf(text.c_str(), args);
+		va_end(args);
+
+		dialogBoxText += s;
 
 		// setup option text
 		dialogOptText.clear();
-
 		dialogOptChosen = 0;
 
 		if (!opt.empty()) {
@@ -562,14 +510,11 @@ namespace ui {
 			// cycle through options
 			while (sopt) {
 				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}));
-				sopt = strtok(NULL,":");
+				sopt = strtok(nullptr, ":");
 			}
 		}
 
-		/*
-		 *	Tell draw() that the box is ready.
-		*/
-
+		// tell draw() that the box is ready
 		dialogBoxExists = true;
 		dialogImportant = false;
 
@@ -599,21 +544,16 @@ namespace ui {
 		fadeIntensity = 0;
 	}
 
-	void waitForNothing(unsigned int ms) {
-		unsigned int target = millis() + ms;
-		while (millis() < target);
-	}
-
-	void importantText(const char *text,...) {
-		va_list textArgs;
-		std::unique_ptr<char[]> printfbuf (new char[512]);
+	void importantText(const char *text, ...) {
+		va_list args;
 
 		dialogBoxText.clear();
 
-		va_start(textArgs,text);
-		vsnprintf(printfbuf.get(),512,text,textArgs);
-		va_end(textArgs);
-		dialogBoxText = printfbuf.get();
+		va_start(args, text);
+		auto s = uisprintf(text, args);
+		va_end(args);
+
+		dialogBoxText = s;
 
 		dialogBoxExists = true;
 		dialogImportant = true;
@@ -622,15 +562,15 @@ namespace ui {
 	}
 
 	void passiveImportantText(int duration, const char *text, ...) {
-		va_list textArgs;
-		std::unique_ptr<char[]> printfbuf (new char[512]);
+		va_list args;
 
 		dialogBoxText.clear();
 
-		va_start(textArgs,text);
-		vsnprintf(printfbuf.get(),512,text,textArgs);
-		va_end(textArgs);
-		dialogBoxText = printfbuf.get();
+		va_start(args, text);
+		auto s = uisprintf(text, args);
+		va_end(args);
+
+		dialogBoxText = s;
 
 		dialogBoxExists = true;
 		dialogImportant = true;
@@ -667,11 +607,8 @@ namespace ui {
                              0,1,
                              0,0};
 
-        static GLuint boxT = Texture::genColor(Color(0,0,0));
-        static GLuint lineT = Texture::genColor(Color(255,255,255));
-
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, boxT);
+		Colors::black.use();
         glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
         Render::textShader.use();
@@ -681,7 +618,7 @@ namespace ui {
         glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
         glDrawArrays(GL_TRIANGLES, 0 ,6);
 
-        glBindTexture(GL_TEXTURE_2D, lineT);
+        Colors::white.use();
         glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, line_strip);
@@ -698,13 +635,13 @@ namespace ui {
 
 	void drawNiceBoxColor(vec2 c1, vec2 c2, float z, Color c) {
 		// the textures for the box corners
-		static GLuint box_corner =	 	Texture::loadTexture("assets/ui/button_corners.png");
-		static GLuint box_side_top = 	Texture::loadTexture("assets/ui/button_top_bot_borders.png");
-		static GLuint box_side = 		Texture::loadTexture("assets/ui/button_side_borders.png");
+		static Texture boxCorner  ("assets/ui/button_corners.png");
+		static Texture boxSideTop ("assets/ui/button_top_bot_borders.png");
+		static Texture boxSide    ("assets/ui/button_side_borders.png");
 
 		// the dimensions of the corner textures
-		static vec2 box_corner_dim_t = 	Texture::imageDim("assets/ui/button_corners.png");
-		static vec2 box_corner_dim = vec2(box_corner_dim_t.x / 2.0, box_corner_dim_t.y / 2.0);
+		static const auto& boxCornerDim  = boxCorner.getDim();
+		static const auto& boxCornerDim2 = boxCornerDim / 2;
 
 		// the amount of bytes to skip in the OpenGL arrays (see below)
 		auto stride = 5 * sizeof(GLfloat);
@@ -714,81 +651,80 @@ namespace ui {
 		if (c1.y > c2.y) c1.swapY(c2); // std::swap(c1.y, c2.y);
 
 		// if the box is too small, we will not be able to draw it
-		if (c2.x - c1.x < (box_corner_dim_t.x)) return;
-		if (c2.y - c1.y < (box_corner_dim_t.y)) return;
+		if (c2.x - c1.x < (boxCornerDim.x) || c2.y - c1.y < (boxCornerDim.y))
+			return;
 
+		GLfloat box_ul[] = {c1.x, 						c2.y - boxCornerDim2.y, z,	0.0f, 0.5f,
+                          	c1.x + boxCornerDim2.x, 	c2.y - boxCornerDim2.y, z,	0.5f, 0.5f,
+                          	c1.x + boxCornerDim2.x,	c2.y, 				    z,	0.5f, 1.0f,
 
-		GLfloat box_ul[] = {c1.x, 						c2.y - box_corner_dim.y, z,	0.0f, 0.5f,
-                          	c1.x + box_corner_dim.x, 	c2.y - box_corner_dim.y, z,	0.5f, 0.5f,
-                          	c1.x + box_corner_dim.x,	c2.y, 					 z,	0.5f, 1.0f,
+                          	c1.x + boxCornerDim2.x,	c2.y, 					z, 0.5f, 1.0f,
+                       	  	c1.x, 						c2.y, 					z, 0.0f, 1.0f,
+                          	c1.x, 						c2.y - boxCornerDim2.y, z,	0.0f, 0.5f};
 
-                          	c1.x + box_corner_dim.x,	c2.y, 					 z, 0.5f, 1.0f,
-                       	  	c1.x, 						c2.y, 					 z, 0.0f, 1.0f,
-                          	c1.x, 						c2.y - box_corner_dim.y, z,	0.0f, 0.5f};
+		GLfloat box_ll[] = {c1.x, 						c1.y, 					z,	0.0f, 0.0f,
+                          	c1.x + boxCornerDim2.x, 	c1.y,					z,	0.5f, 0.0f,
+                          	c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z,	0.5f, 0.5f,
 
-		GLfloat box_ll[] = {c1.x, 						c1.y, 					 z,	0.0f, 0.0f,
-                          	c1.x + box_corner_dim.x, 	c1.y,					 z,	0.5f, 0.0f,
-                          	c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z,	0.5f, 0.5f,
+                          	c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.5f,
+                       	  	c1.x, 						c1.y + boxCornerDim2.y, z, 0.0f, 0.5f,
+                          	c1.x, 						c1.y,					z, 0.0f, 0.0f};
 
-                          	c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
-                       	  	c1.x, 						c1.y + box_corner_dim.y, z, 0.0f, 0.5f,
-                          	c1.x, 						c1.y,					 z,	0.0f, 0.0f};
-
-		GLfloat box_ur[] = {c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z,	0.5f, 0.5f,
-                          	c2.x, 						c2.y - box_corner_dim.y, z,	1.0f, 0.5f,
+		GLfloat box_ur[] = {c2.x - boxCornerDim2.x,	c2.y - boxCornerDim2.y, z,	0.5f, 0.5f,
+                          	c2.x, 						c2.y - boxCornerDim2.y, z,	1.0f, 0.5f,
                           	c2.x,						c2.y, 					 z,	1.0f, 1.0f,
 
                           	c2.x,						c2.y, 					 z, 1.0f, 1.0f,
-                       	  	c2.x - box_corner_dim.x, 	c2.y, 					 z, 0.5f, 1.0f,
-                          	c2.x - box_corner_dim.x, 	c2.y - box_corner_dim.y, z,	0.5f, 0.5f};
+                       	  	c2.x - boxCornerDim2.x, 	c2.y, 					 z, 0.5f, 1.0f,
+                          	c2.x - boxCornerDim2.x, 	c2.y - boxCornerDim2.y, z,	0.5f, 0.5f};
 
-		GLfloat box_lr[] = {c2.x - box_corner_dim.x, 	c1.y, 					 z,	0.5f, 0.0f,
+		GLfloat box_lr[] = {c2.x - boxCornerDim2.x, 	c1.y, 					 z,	0.5f, 0.0f,
                           	c2.x, 						c1.y,					 z,	1.0f, 0.0f,
-                          	c2.x,						c1.y + box_corner_dim.y, z,	1.0f, 0.5f,
+                          	c2.x,						c1.y + boxCornerDim2.y, z,	1.0f, 0.5f,
 
-                          	c2.x,						c1.y + box_corner_dim.y, z, 1.0f, 0.5f,
-                       	  	c2.x - box_corner_dim.x, 	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
-                          	c2.x - box_corner_dim.x, 	c1.y,					 z,	0.5f, 0.0f};
+                          	c2.x,						c1.y + boxCornerDim2.y, z, 1.0f, 0.5f,
+                       	  	c2.x - boxCornerDim2.x, 	c1.y + boxCornerDim2.y, z, 0.5f, 0.5f,
+                          	c2.x - boxCornerDim2.x, 	c1.y,					 z,	0.5f, 0.0f};
 
-		GLfloat box_l[] =  {c1.x,						c1.y + box_corner_dim.y, z, 0.0f, 0.0f,
-							c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.0f,
-							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 1.0f,
+		GLfloat box_l[] =  {c1.x,						c1.y + boxCornerDim2.y, z, 0.0f, 0.0f,
+							c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.0f,
+							c1.x + boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 1.0f,
 
-							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 1.0f,
-							c1.x,						c2.y - box_corner_dim.y, z, 0.0f, 1.0f,
-							c1.x,						c1.y + box_corner_dim.y, z, 0.0f, 0.0f};
+							c1.x + boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 1.0f,
+							c1.x,						c2.y - boxCornerDim2.y, z, 0.0f, 1.0f,
+							c1.x,						c1.y + boxCornerDim2.y, z, 0.0f, 0.0f};
 
-		GLfloat box_r[] =  {c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.0f,
-							c2.x,						c1.y + box_corner_dim.y, z, 1.0f, 0.0f,
-							c2.x,						c2.y - box_corner_dim.y, z, 1.0f, 1.0f,
+		GLfloat box_r[] =  {c2.x - boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.0f,
+							c2.x,						c1.y + boxCornerDim2.y, z, 1.0f, 0.0f,
+							c2.x,						c2.y - boxCornerDim2.y, z, 1.0f, 1.0f,
 
-							c2.x,						c2.y - box_corner_dim.y, z, 1.0f, 1.0f,
-							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 1.0f,
-							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.0f};
+							c2.x,						c2.y - boxCornerDim2.y, z, 1.0f, 1.0f,
+							c2.x - boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 1.0f,
+							c2.x - boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.0f};
 
-        GLfloat box_b[] =  {c1.x + box_corner_dim.x,	c1.y,					 z,	0.0f, 0.0f,
-							c2.x - box_corner_dim.x,	c1.y,					 z, 1.0f, 0.0f,
-							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z,	1.0f, 0.5f,
+        GLfloat box_b[] =  {c1.x + boxCornerDim2.x,	c1.y,					 z,	0.0f, 0.0f,
+							c2.x - boxCornerDim2.x,	c1.y,					 z, 1.0f, 0.0f,
+							c2.x - boxCornerDim2.x,	c1.y + boxCornerDim2.y, z,	1.0f, 0.5f,
 
-							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z,	1.0f, 0.5f,
-							c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.0f, 0.5f,
-							c1.x + box_corner_dim.x,	c1.y,					 z, 0.0f, 0.0f};
+							c2.x - boxCornerDim2.x,	c1.y + boxCornerDim2.y, z,	1.0f, 0.5f,
+							c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.0f, 0.5f,
+							c1.x + boxCornerDim2.x,	c1.y,					 z, 0.0f, 0.0f};
 
-        GLfloat box_t[] =  {c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z,	0.0f, 0.5f,
-							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 1.0f, 0.5f,
-							c2.x - box_corner_dim.x,	c2.y, 					 z,	1.0f, 1.0f,
+        GLfloat box_t[] =  {c1.x + boxCornerDim2.x,	c2.y - boxCornerDim2.y, z,	0.0f, 0.5f,
+							c2.x - boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 1.0f, 0.5f,
+							c2.x - boxCornerDim2.x,	c2.y, 					 z,	1.0f, 1.0f,
 
-							c2.x - box_corner_dim.x,	c2.y,					 z,	1.0f, 1.0f,
-							c1.x + box_corner_dim.x,	c2.y,					 z, 0.0f, 1.0f,
-							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.0f, 0.5f};
+							c2.x - boxCornerDim2.x,	c2.y,					 z,	1.0f, 1.0f,
+							c1.x + boxCornerDim2.x,	c2.y,					 z, 0.0f, 1.0f,
+							c1.x + boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.0f, 0.5f};
 
-		GLfloat box_f[] =  {c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
-							c2.x - box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f,
-							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 0.5f,
+		GLfloat box_f[] =  {c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.5f,
+							c2.x - boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.5f,
+							c2.x - boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 0.5f,
 
-							c2.x - box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 0.5f,
-							c1.x + box_corner_dim.x,	c2.y - box_corner_dim.y, z, 0.5f, 0.5f,
-							c1.x + box_corner_dim.x,	c1.y + box_corner_dim.y, z, 0.5f, 0.5f};
+							c2.x - boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 0.5f,
+							c1.x + boxCornerDim2.x,	c2.y - boxCornerDim2.y, z, 0.5f, 0.5f,
+							c1.x + boxCornerDim2.x,	c1.y + boxCornerDim2.y, z, 0.5f, 0.5f};
 
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1f(Render::textShader.uniform[WU_texture], 0);
@@ -797,7 +733,7 @@ namespace ui {
 		Render::textShader.enable();
 
 		glUniform4f(Render::textShader.uniform[WU_tex_color], c.red, c.green, c.blue, c.alpha);
-		glBindTexture(GL_TEXTURE_2D, box_corner);
+		boxCorner.use();
 
 		// draw upper left corner
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_ul[0]);
@@ -824,7 +760,7 @@ namespace ui {
         glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_f[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		glBindTexture(GL_TEXTURE_2D, box_side);
+		boxSide.use();
 
 		// draw the left edge of the box
 		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_l[0]);
@@ -836,7 +772,7 @@ namespace ui {
         glVertexAttribPointer(Render::textShader.tex,   2, GL_FLOAT, GL_FALSE, stride, &box_r[3]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		glBindTexture(GL_TEXTURE_2D, box_side_top);
+		boxSideTop.use();
 
 		// draw bottom of the box
 		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, stride, &box_b[0]);
@@ -871,13 +807,14 @@ namespace ui {
                                   offset.x - 300, SCREEN_HEIGHT - 600, -6.0,
                                   offset.x - 300, SCREEN_HEIGHT - 100, -6.0};
 
-            GLfloat page_tex[] = {0.0, 0.0,
-                                  1.0, 0.0,
-                                  1.0, 1.0,
-
-                                  1.0, 1.0,
-                                  0.0, 1.0,
-                                  0.0, 0.0};
+            static const GLfloat page_tex[] = {
+				0.0, 0.0,
+                1.0, 0.0,
+                1.0, 1.0,
+	            1.0, 1.0,
+                0.0, 1.0,
+                0.0, 0.0
+			};
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, pageTex);
@@ -897,7 +834,7 @@ namespace ui {
 			rtext = typeOut(dialogBoxText);
 
 			if (dialogImportant) {
-				setFontColor(255,255,255);
+				setFontColor(255, 255, 255);
 				if (dialogPassive) {
 					dialogPassiveTime -= game::time::getDeltaTime() * 12;
 					if (dialogPassiveTime < 0) {
@@ -924,21 +861,21 @@ namespace ui {
 				putString(x + HLINES(2), y - fontSize - game::HLINE, rtext);
 
 				for (i = 0; i < dialogOptText.size(); i++) {
-					float tmp;
-					setFontColor(255,255,255);
-					tmp = putStringCentered(offset.x,dialogOptText[i].second.y,dialogOptText[i].first);
-					dialogOptText[i].second.z = offset.x + tmp;
-					dialogOptText[i].second.x = offset.x - tmp;
-					dialogOptText[i].second.y = y - SCREEN_HEIGHT / 4 + (fontSize + game::HLINE) * (i + 1);
-					if (mouse.x > dialogOptText[i].second.x &&
-					   mouse.x < dialogOptText[i].second.z &&
-					   mouse.y > dialogOptText[i].second.y &&
-					   mouse.y < dialogOptText[i].second.y + 16) { // fontSize
-						  setFontColor(255,255,0);
-						  putStringCentered(offset.x,dialogOptText[i].second.y,dialogOptText[i].first);
+					auto& sec = dialogOptText[i].second;
+
+					setFontColor(255, 255, 255);
+					auto tmp = putStringCentered(offset.x, sec.y,dialogOptText[i].first);
+					sec.z = offset.x + tmp;
+					sec.x = offset.x - tmp;
+					sec.y = y - SCREEN_HEIGHT / 4 + (fontSize + game::HLINE) * (i + 1);
+					if (mouse.x > sec.x && mouse.x < sec.z &&
+					    mouse.y > sec.y && mouse.y < sec.y + 16) { // fontSize
+						  setFontColor(255, 255, 0);
+						  putStringCentered(offset.x, sec.y, dialogOptText[i].first);
 					}
 				}
-				setFontColor(255,255,255);
+
+				setFontColor(255, 255, 255);
 			}
 
 			static unsigned int rtext_oldsize = 0;
@@ -1035,22 +972,12 @@ namespace ui {
 		}
 	}
 
-	void quitGame() {
-		dialogBoxExists = false;
-		currentMenu = NULL;
-		game::config::update();
-		game::config::save();
-		game::endGame();
-	}
-
 	void closeBox() {
 		dialogBoxExists = false;
 		dialogMerchant = false;
 	}
 
 	void dialogAdvance(void) {
-		unsigned char i;
-
 		dialogPassive = false;
 		dialogPassiveTime = 0;
 
@@ -1067,17 +994,16 @@ namespace ui {
 			return;
 		}
 
-		for(i=0;i<dialogOptText.size();i++) {
-			if (mouse.x > dialogOptText[i].second.x &&
-			   mouse.x < dialogOptText[i].second.z &&
-			   mouse.y > dialogOptText[i].second.y &&
-			   mouse.y < dialogOptText[i].second.y + 16) { // fontSize
+		for (int i = 0; i < static_cast<int>(dialogOptText.size()); i++) {
+			const auto& dot = dialogOptText[i].second;
+
+			if (mouse.x > dot.x && mouse.x < dot.z &&
+			    mouse.y > dot.y && mouse.y < dot.y + 16) { // fontSize
 				dialogOptChosen = i + 1;
-				goto EXIT;
+				break;
 			}
 		}
 
-EXIT:
 		dialogBoxExists = false;
 
 		// handle important text
@@ -1088,8 +1014,8 @@ EXIT:
 	}
 
 	void drawFade(void) {
-		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
-		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+		static const auto SCREEN_WIDTH2 = game::SCREEN_WIDTH / 2;
+		static const auto SCREEN_HEIGHT2 = game::SCREEN_HEIGHT / 2;
 
 		if (!fadeIntensity) {
 			if (fontSize != 16)
@@ -1097,27 +1023,27 @@ EXIT:
 			return;
 		}
 
-		auto fadeTex = Texture::genColor( (fadeWhite ? Color(255, 255, 255, fadeIntensity) :
-		                                               Color(0, 0, 0, fadeIntensity)) );
+		static const GLfloat tex[] = {
+			0.0, 0.0,
+			1.0, 0.0,
+			0.0, 1.0,
+			1.0, 1.0
+		};
 
-
-        GLfloat tex[] = {0.0, 0.0,
-                        1.0, 0.0,
-                        0.0, 1.0,
-                        1.0, 1.0};
-
-        GLfloat backdrop[] = {offset.x - SCREEN_WIDTH / 2 - 1, offset.y - SCREEN_HEIGHT / 2, -7.9,
-                              offset.x + SCREEN_WIDTH / 2, offset.y - SCREEN_HEIGHT / 2, 	 -7.9,
-                              offset.x - SCREEN_WIDTH / 2 - 1, offset.y + SCREEN_HEIGHT / 2, -7.9,
-                              offset.x + SCREEN_WIDTH / 2, offset.y + SCREEN_HEIGHT / 2, 	 -7.9};
+        GLfloat backdrop[] = {
+			offset.x - SCREEN_WIDTH2 - 1, offset.y - SCREEN_HEIGHT2, -7.9,
+			offset.x + SCREEN_WIDTH2, offset.y - SCREEN_HEIGHT2, -7.9,
+			offset.x - SCREEN_WIDTH2 - 1, offset.y + SCREEN_HEIGHT2, -7.9,
+			offset.x + SCREEN_WIDTH2, offset.y + SCREEN_HEIGHT2, -7.9
+		};
 
 		setFontZ(-8.2);
         glUniform1i(Render::textShader.uniform[WU_texture], 0);
 
 		Render::textShader.use();
 		Render::textShader.enable();
-
-		glBindTexture(GL_TEXTURE_2D, fadeTex);
+		Colors::black.use();
+		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, fadeIntensity / 255.0f);
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
         glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1126,8 +1052,6 @@ EXIT:
 		Render::textShader.unuse();
 
 		setFontZ(-8.0);
-
-		glDeleteTextures(1, &fadeTex);
     }
 
 	void fadeUpdate(void) {
@@ -1183,7 +1107,7 @@ EXIT:
 			bgr[x+2] = pixels[x];
 		}
 
-		time_t epoch = time(NULL);
+		time_t epoch = time(nullptr);
 		struct tm* timen = localtime(&epoch);
 
 		std::string name = "screenshots/";

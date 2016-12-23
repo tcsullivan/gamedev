@@ -51,22 +51,6 @@ void DEBUG_prints(const char* file, int line, const char *s,...)
 	va_end(args);
 }
 
-void safeSetColor(int r, int g, int b)
-{
-	r = static_cast<int>(fmax(fmin(r, 255), 0));
-	g = static_cast<int>(fmax(fmin(g, 255), 0));
-	b = static_cast<int>(fmax(fmin(b, 255), 0));
-	glColor3ub(r, g, b);
-}
-
-void safeSetColorA(int r,int g,int b,int a) {
-	r = static_cast<int>(fmax(fmin(r, 255), 0));
-	g = static_cast<int>(fmax(fmin(g, 255), 0));
-	b = static_cast<int>(fmax(fmin(b, 255), 0));
-	a = static_cast<int>(fmax(fmin(a, 255), 0));
-	glColor4ub(r, g, b, a);
-}
-
 int getdir(std::string dir, std::vector<std::string> &files)
 {
 #ifndef __WIN32__
@@ -119,27 +103,6 @@ void strVectorSortAlpha(std::vector<std::string> *v)
 	} while (change);
 }
 
-const char *readFile(const char *path)
-{
-	std::ifstream in (path,std::ios::in);
-	unsigned int size;
-	GLchar *buf;
-
-	if (!in.is_open()) {
-//		UserError("Error reading file " + (std::string)path + "!");
-		return nullptr;
-	}
-
-	in.seekg(0,in.end);
-	buf = new GLchar[(size = in.tellg()) + 1];
-	in.seekg(0,in.beg);
-	in.read(buf,size);
-	buf[size] = '\0';
-
-	in.close();
-	return buf;
-}
-
 std::string readFile(const std::string& path)
 {
 	std::ifstream in (path, std::ios::in);
@@ -149,7 +112,7 @@ std::string readFile(const std::string& path)
 		UserError("Error reading file " + path);
 
 	in.seekg(0, in.end);
-	buffer.reserve(in.tellg());
+	buffer.resize(in.tellg());
 	in.seekg(0, in.beg);
 	in.read(&buffer[0], buffer.size());
 

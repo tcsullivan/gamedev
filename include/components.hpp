@@ -125,32 +125,35 @@ struct Solid {
 };
 
 struct SpriteData {
-
-	SpriteData(std::string path, vec2 offset):
-		offset(offset) {
-			pic = Texture::loadTexture(path);
-			size = Texture::imageDim(path);
+	
+	SpriteData(std::string path, vec2 off):
+		offset(off) {
+			tex = Texture(path);
+			size = tex.getDim();
+			
 			size_tex = vec2(1.0, 1.0);
 			
 			offset_tex.x = offset.x/size.x;
 			offset_tex.y = offset.y/size.y;
 	}
 
-	SpriteData(std::string path, vec2 offset, vec2 size):
-		offset(offset), size(size) {
-			pic = Texture::loadTexture(path);
-			vec2 tmpsize = Texture::imageDim(path);
+	SpriteData(std::string path, vec2 off, vec2 si):
+		size(si), offset(off) {
+			tex = Texture(path);
+			vec2 tmpsize = tex.getDim();
 
 			size_tex.x = size.x/tmpsize.x;
 			size_tex.y = size.y/tmpsize.y;
+			
 			offset_tex.x = offset.x/tmpsize.x;
 			offset_tex.y = offset.y/tmpsize.y;
 	}
 
-	GLuint pic;
-	vec2 offset;
-	vec2 offset_tex;
+	Texture tex;
 	vec2 size;
+	vec2 offset;
+	
+	vec2 offset_tex;
 	vec2 size_tex;
 };
 
@@ -168,7 +171,7 @@ struct Sprite {
 	Sprite(bool left = false)
 	 	: faceLeft(left) {}
 
-	std::vector<std::pair<SpriteData, vec2>> getSprite() {
+	Frame getSprite() {
 		return sprite;
 	}
 
@@ -210,15 +213,17 @@ struct Sprite {
 		}
 
 		for (auto &s : sprite) {
+			const auto& size = s.first.tex.getDim();
+
 			if (s.second.x < st.x)
 				st.x = s.second.x;
 			if (s.second.y < st.y)
 				st.y = s.second.y;
 
-			if (s.second.x + s.first.size.x > dim.x)
-				dim.x = s.second.x + s.first.size.x;
-			if (s.second.y + s.first.size.y > dim.y)
-				dim.y = s.second.y + s.first.size.y;
+			if (s.second.x + size.x > dim.x)
+				dim.x = s.second.x + size.x;
+			if (s.second.y + size.y > dim.y)
+				dim.y = s.second.y + size.y;
 		}
 
 		return dim;
@@ -321,9 +326,9 @@ public:
 class RenderSystem : public entityx::System<RenderSystem> {
 private:
 	std::string loadTexString;
-	std::atomic<GLuint> loadTexResult;
+	Texture loadTexResult;
 public:
-	GLuint loadTexture(const std::string& file);
+	Texture loadTexture(const std::string& file);
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 };
 

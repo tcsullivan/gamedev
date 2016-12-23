@@ -43,11 +43,8 @@
 // game library includes
 #include <config.hpp>
 
-
-
 // windows stuff
 #ifdef __WIN32__
-typedef unsigned int uint;
 #undef near
 #endif
 
@@ -77,12 +74,9 @@ typedef ivec2 dim2;
  * Creates a coordinate out of floating point integers.
  */
 struct vec2 {
-	float x; /**< The x coordinate */
-	float y; /**< The y coordinate */
+	float x;
+	float y;
 
-	/**
-	 * Constructs a vec2 with the specified coordinates.
-	 */
 	vec2(float _x = 0.0f, float _y = 0.0f)
 		: x(_x), y(_y) {}
 
@@ -105,9 +99,12 @@ struct vec2 {
 		return vec2 (x + v.x, y + v.y);
 	}
 
-	template<typename T>
-	const vec2 operator*(const T &n) {
+	vec2 operator*(const float&n) const {
 		return vec2 (x * n, y * n);
+	}
+
+	vec2 operator/(const float& n) const {
+		return vec2 (x / n, y / n);
 	}
 
 	// std::swap can't work due to being packed
@@ -120,6 +117,10 @@ struct vec2 {
 	inline void swapY(vec2 &v) {
 		float t = y;
 		y = v.y, v.y = t;
+	}
+
+	std::string toString(void) const {
+		return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
 	}
 
 } __attribute__ ((packed));
@@ -187,8 +188,6 @@ public:
 		return{red=a,green=a,blue=a};
 	}
 };
-
-extern GLuint colorIndex;
 
 /**
  * The amount of game ticks that should occur each second.
@@ -263,17 +262,6 @@ extern vec2 offset;
  */
 void DEBUG_prints(const char* file, int line, const char *s,...);
 
-// TODO make sure we don't use these. Then burn them.
-/**
- * Sets color using glColor3ub(), but handles potential overflow.
- */
-void safeSetColor(int r,int g,int b);
-
-/**
- * Sets color using glColor4ub(), but handles potential overflow.
- */
-void safeSetColorA(int r,int g,int b,int a);
-
 unsigned int millis(void);
 
 // reads the names of files in a directory into the given string vector
@@ -283,7 +271,6 @@ int getdir(std::string dir, std::vector<std::string> &files);
 void strVectorSortAlpha(std::vector<std::string> *v);
 
 // reads the given file into a buffer and returns a pointer to the buffer
-const char *readFile(const char *path);
 std::string readFile(const std::string& path);
 std::vector<std::string> readFileA(const std::string& path);
 

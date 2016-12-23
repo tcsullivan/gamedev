@@ -3,265 +3,139 @@
 
 #include <texture.hpp>
 
-/**
- * A structure for keeping track of loaded textures.
- */
-
-typedef struct {
-	std::string name;	/**< The file path of the texture.		*/
-	GLuint tex;			/**< The GLuint for the loaded texture. */
-	dim2 dim;			/**< The dimensions of the texture.		*/
-} texture_t;
-
-struct index_t {
-	Color color;
-	int indexx;
-	int indexy;
-};
-
-// convert any type to octal
-template <typename T>
-uint toOctal(T toConvert)
+namespace Colors
 {
-    int n = 0;
-    uint t = 0;
-    while (toConvert > 0) {
-        t += (pow(10, n++)) * (static_cast<int>(toConvert) % 8);
-        toConvert /= 8;
-    }
-    return t;
+	ColorTex white;
+	ColorTex black;
+	ColorTex red;
+
+	void init(void) {
+		white = ColorTex(Color(255, 255, 255));
+		black = ColorTex(Color(0, 0, 0));
+		red = ColorTex(Color(255, 0, 0));
+	}
 }
 
-/**
- * A vector of all loaded textures.
- *
- * Should a texture be asked to be loaded twice, loadTexture() can reference
- * this array and reuse GLuint's to save memory.
- */
+void loadTexture(const std::string& file, Texture& texture);
 
-static std::vector<texture_t> LoadedTexture;
+Texture::Texture(const std::string& file, const GLuint& t, const vec2& v)
+	: name(file), tex(t), dim(v)
+{
+	if (t == 0xFFFFF && !file.empty())
+		loadTexture(file, *this);
+}
 
-namespace Texture{
-	Color pixels[8][4];
+const std::string& Texture::getName(void) const
+{
+	return name;
+}
 
-	GLuint loadTexture(std::string fileName) {
-		SDL_Surface *image;
+const vec2& Texture::getDim(void) const
+{
+	return dim;
+}
 
-		// check if texture is already loaded
-		for(auto &t : LoadedTexture) {
-			if (t.name == fileName) {
+ColorTex::ColorTex(void)
+{
+	Texture();
+}
+
+ColorTex::ColorTex(const Color& color)
+{
+	unsigned char data[4] = {
+		static_cast<unsigned char>(color.red),
+		static_cast<unsigned char>(color.green),
+		static_cast<unsigned char>(color.blue),
+		static_cast<unsigned char>(color.alpha),
+	};
+
+	GLuint object;
+	glActiveTexture(GL_TEXTURE0);
+	glGenTextures(1, &object);				// Turns "object" into a texture
+	glBindTexture(GL_TEXTURE_2D, object);	// Binds "object" to the top of the stack
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+	Texture("", object, vec2());
+}
+
+static std::vector<Texture> loadedTextures;
+
+void loadTexture(const std::string& file, Texture& texture)
+{
+	auto preloaded =
+		std::find_if(std::begin(loadedTextures), std::end(loadedTextures),
+		[&file](const Texture& t) { return (t.getName() == file); });
+
+	if (preloaded == std::end(loadedTextures)) {
+		auto image = IMG_Load(file.c_str());
+		if (image == nullptr)
+			UserError("File not found: " + file);
 
 #ifdef DEBUG
-				DEBUG_printf("Reusing loaded texture for %s\n", fileName.c_str());
+		DEBUG_printf("Loaded image file: %s\n", file.c_str());
 #endif // DEBUG
 
-				return t.tex;
-			}
-		}
-
-		// load SDL_surface of texture
-		if (!(image = IMG_Load(fileName.c_str())))
-			return 0;
-
-#ifdef DEBUG
-		DEBUG_printf("Loaded image file: %s\n", fileName.c_str());
-#endif // DEBUG
-
-		/*
-		 * Load texture through OpenGL.
-		 */
+		// load texture through OpenGL
 		GLuint object;
 		glGenTextures(1, &object);				// Turns "object" into a texture
 		glBindTexture(GL_TEXTURE_2D, object);	// Binds "object" to the top of the stack
-		glPixelStoref(GL_UNPACK_ALIGNMENT,1);
-
+		glPixelStoref(GL_UNPACK_ALIGNMENT, 1);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	// Sets the "min" filter
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	// The the "max" filter of the stack
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Wrap the texture to the matrix
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); //
-		glTexImage2D(GL_TEXTURE_2D,  // Sets the texture to the image file loaded above
-					 0,
-					 GL_RGBA,
-					 image->w,
-					 image->h,
-					 0,
-					 GL_RGBA,
-					 GL_UNSIGNED_BYTE,
-					 image->pixels
-					);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->w, image->h, 0,
+					 GL_RGBA, GL_UNSIGNED_BYTE, image->pixels);
 
-		// add texture to LoadedTexture
-		LoadedTexture.push_back(texture_t{fileName,object,{image->w,image->h}});
+		// add texture to loadedTextures
+		loadedTextures.emplace_back(file, object, vec2(image->w, image->h));
+
+		texture = loadedTextures.back();
 
 		// free the SDL_Surface
 		SDL_FreeSurface(image);
-
-		return object;
-	}
-
-    GLuint genColor(Color c)
-    {
-        std::string out;
-
-        // add the red
-        out += static_cast<int>(c.red);
-
-        // add the green
-        out += static_cast<int>(c.green);
-
-        // add the blue
-        out += static_cast<int>(c.blue);
-
-        // add the alpha
-        out += static_cast<int>(c.alpha);
-
-        GLuint object;
-
-        glActiveTexture(GL_TEXTURE0);
-        glGenTextures(1,&object);				// Turns "object" into a texture
-		glBindTexture(GL_TEXTURE_2D,object);	// Binds "object" to the top of the stack
-		//glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-
-		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	// Sets the "min" filter
-		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	// The the "max" filter of the stack
-
-		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Wrap the texture to the matrix
-		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); //
-
-		glTexImage2D(GL_TEXTURE_2D,     // Sets the texture to the image file loaded above
-					 0,                 // level
-					 GL_RGBA,           // internal format
-					 1,                 // width
-					 1,                 // height
-					 0,                 // border
-					 GL_RGBA,           // image format
-					 GL_UNSIGNED_BYTE,  // type
-					 out.data()         // source
-					);
-
-        return object;
-    }
-
-	vec2 imageDim(std::string fileName) {
-		for(auto &t : LoadedTexture) {
-			if (t.name == fileName)
-				return vec2(t.dim.x, t.dim.y);
-		}
-		return vec2(0,0);
-	}
-
-	void freeTextures(void) {
-		while(!LoadedTexture.empty()) {
-			glDeleteTextures(1, &LoadedTexture.back().tex);
-			LoadedTexture.pop_back();
-		}
-	}
-
-	#define CINDEX_WIDTH (8*4*3)
-	void initColorIndex() {
-		unsigned int i;
-		GLubyte *buffer;
-		GLfloat *bufferf;
-
-		buffer  = new GLubyte[CINDEX_WIDTH];
-		bufferf = new GLfloat[CINDEX_WIDTH];
-
-		colorIndex = loadTexture("assets/colorIndex.png");
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, colorIndex);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
-
-		for(i = 0; i < CINDEX_WIDTH; i++)
-			bufferf[i] = (float)buffer[i] / 255.0f;
-
-		i = 0;
-		for(unsigned int y = 0; y < 8; y++) {
-			for(unsigned int x = 0; x < 4; x++) {
-					if (i >= CINDEX_WIDTH) {
-						delete[] buffer;
-						delete[] bufferf;
-						return;
-					}
-					pixels[y][x].red = buffer[i++];
-					pixels[y][x].green = buffer[i++];
-					pixels[y][x].blue = buffer[i++];
-			}
-		}
-		delete[] buffer;
-		delete[] bufferf;
-	}
-
-	//sqrt((255-145)^2+(90-145)^2+(0-0)^2);
-	std::vector<index_t>ind;
-	vec2 getIndex(Color c) {
-		for(auto &i : ind) {
-			if (c.red == i.color.red && c.green == i.color.green && c.blue == i.color.blue) {
-				return {float(i.indexx), float(i.indexy)};
-			}
-		}
-		uint buf[2];
-		float buff = 999;
-		float shit = 999;
-		for(uint y = 0; y < 8; y++) {
-			for(uint x = 0; x < 4; x++) {
-				buff = sqrt(pow((pixels[y][x].red-	c.red),  2)+
-							pow((pixels[y][x].green-c.green),2)+
-							pow((pixels[y][x].blue-	c.blue), 2));
-				if (buff < shit) {
-					shit = buff;
-					buf[0] = y;
-					buf[1] = x;
-				}
-			}
-		}
-		ind.push_back({c, (int)buf[1], (int)buf[0]});
-		return {float(buf[1]),float(buf[0])};
+	} else {
+		texture = *preloaded;
 	}
 }
 
-Texturec::Texturec(uint amt, ...) {
-	va_list fNames;
-	texState = 0;
-	va_start(fNames, amt);
-	for (unsigned int i = 0; i < amt; i++) {
-		std::string l = va_arg(fNames, char *);
-		image.push_back(Texture::loadTexture(l));
-		texLoc.push_back(l);
-	}
-	va_end(fNames);
-}
 
-Texturec::Texturec(std::initializer_list<std::string> l)
+TextureIterator::TextureIterator(const std::vector<std::string> &l)
 {
-	texState = 0;
-	std::for_each(l.begin(), l.end(), [&](std::string s) { image.push_back(Texture::loadTexture(s)); texLoc.push_back(s);});
+	for (const auto& s : l)
+		textures.emplace_back(s);
+	position = std::begin(textures);
 }
 
-Texturec::Texturec(std::vector<std::string>v) {
-	texState = 0;
-	std::for_each(v.begin(), v.end(), [&](std::string s) { image.push_back(Texture::loadTexture(s)); texLoc.push_back(s);});
+void TextureIterator::operator++(int) noexcept
+{
+	if (++position >= std::end(textures))
+		position = std::end(textures) - 1;
+	position->use();
 }
 
-Texturec::Texturec(uint amt,const char **paths) {
-	texState = 0;
-	for (unsigned int i = 0; i < amt; i++) {
-		image.push_back(Texture::loadTexture(paths[i]));
-		texLoc.push_back(paths[i]);
+void TextureIterator::operator--(int) noexcept
+{
+	if (--position < std::begin(textures))
+		position = std::begin(textures);
+	position->use();
+}
+
+void TextureIterator::operator()(const int &index)
+{
+	if (index < 0 || index > static_cast<int>(textures.size()))
+		throw std::invalid_argument("texture index out of range");
+
+	position = std::begin(textures) + index;
+	position->use();
+}
+
+
+void unloadTextures(void)
+{
+	while (!loadedTextures.empty()) {
+		loadedTextures.back().destroy();
+		loadedTextures.pop_back();
 	}
 }
 
-Texturec::~Texturec() {
-}
-
-void Texturec::bind(unsigned int bn) {
-	texState = bn;
-	glBindTexture(GL_TEXTURE_2D,image[(int)texState]);
-}
-
-void Texturec::bindNext() {
-	bind(++texState);
-}
-
-void Texturec::bindPrev() {
-	bind(--texState);
-}
