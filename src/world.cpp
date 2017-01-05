@@ -375,6 +375,8 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Grounded>();
 					} else if (tname == "Wander") {
 						entity.assign<Wander>();
+					} else if (tname == "Hop" ) {
+						entity.assign<Hop>();
 					} else if (tname == "Animation") {
 						auto entan = entity.assign<Animate>();
 						auto animx = abcd->FirstChildElement();

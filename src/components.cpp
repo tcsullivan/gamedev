@@ -35,6 +35,8 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 					fl = (direction.x < 0);
 			}
 
+			// make the entity wander
+			// TODO initialX and range?
 			if (entity.has_component<Wander>()) {
 				auto& countdown = entity.component<Wander>()->countdown;
 
@@ -226,6 +228,17 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 							} while((qxml = qxml->NextSiblingElement()));
 						}
 
+						auto xxml = exml->FirstChildElement("option");
+						std::string options;
+						std::vector<int> optionNexts;
+						if (xxml != nullptr) {
+							do {
+								options += '\"' + xxml->StrAttribute("name");
+								optionNexts.emplace_back(xxml->IntAttribute("value"));
+								xxml = xxml->NextSiblingElement();
+							} while (xxml != nullptr);
+						}
+
 						auto cxml = exml->FirstChildElement("content");
 						const char *content;
 						if (cxml == nullptr) {
@@ -235,7 +248,7 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 							while (*++content && isspace(*content));
 						}
 
-						ui::dialogBox(name.name, "", false, content);
+						ui::dialogBox(name.name, options, false, content);
 						ui::waitForDialog();
 
 						if (!questAssignedText.empty())

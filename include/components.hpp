@@ -295,7 +295,12 @@ struct Dialog {
 /**
  * Causes the entity to hop around.
  */
-struct Hop {}; // TODO require wander, for range?
+struct Hop {
+	Hop(float r = 0)
+		: hopRatio(r) {}
+
+	float hopRatio;
+};
 
 /**
  * Causes the entity to wander about.
