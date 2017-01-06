@@ -10,20 +10,20 @@ ParticleSystem::ParticleSystem(int count, bool m)
 	parts.reserve(count);
 }
 
-void ParticleSystem::add(const vec2& pos, const ParticleType& type)
+void ParticleSystem::add(const vec2& pos, const ParticleType& type, const int& timeleft)
 {
 	// TODO not enforce max
 	if (/*max &&*/ parts.size() + 1 >= parts.capacity())
 		return;
 
-	parts.emplace_back(pos, type);
+	parts.emplace_back(pos, type, timeleft);
 }
 
-void ParticleSystem::addMultiple(const int& count, const ParticleType& type, std::function<vec2(void)> f)
+void ParticleSystem::addMultiple(const int& count, const ParticleType& type, std::function<vec2(void)> f, const int& timeleft)
 {
 	int togo = count;
 	while (togo-- > 0)
-		parts.emplace_back(f(), type);
+		parts.emplace_back(f(), type, timeleft);
 }
 
 void ParticleSystem::render(void) const
@@ -113,6 +113,29 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 				p.velocity.y -= 0.001f;
 			break;
 		case ParticleType::Confetti:
+			if (p.velocity.x > -0.01 && p.velocity.x < 0.01) {
+				p.velocity.x = randGet() % 12 / 30.0f - 0.2f;
+			} else {
+				p.velocity.x += (p.velocity.x > 0) ? -0.002f : 0.002f;
+			}
+			p.velocity.y = -0.15f;
+			break;
+		case ParticleType::SmallBlast:
+			if (p.velocity.x == 0) {
+				int degree = randGet() % 100;
+				p.velocity.x = cos(degree) / 4.0f;
+				p.velocity.y = sin(degree) / 4.0f;
+			} else {
+				p.velocity.x += (p.velocity.x > 0) ? -0.001f : 0.001f;
+				p.velocity.x += (p.velocity.y > 0) ? -0.001f : 0.001f;
+				if ((p.velocity.x > -0.01 && p.velocity.x < 0.01) &&
+					(p.velocity.y > -0.01 && p.velocity.y < 0.01)) {
+					p.timeLeft = 0;
+					if (p.timeLeft <= 0)
+						parts.erase(part);
+				}
+			}
+			
 			break;
 		}
 

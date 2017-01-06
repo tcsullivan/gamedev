@@ -208,11 +208,13 @@ int main(int argc, char *argv[])
 			}
 		});
 
+		static float fpsInternal = 0;
+
 		// the debug loop, gets debug screen values
 		std::thread thDebug ([&] {
 			const bool &run = game::engine.shouldRun;
 			while (run) {
-				fps = 1000 / game::time::getDeltaTime(); // TODO really?
+				fps = fpsInternal, fpsInternal = 0;
 				std::this_thread::sleep_for(1s);
 			}
 		});
@@ -220,6 +222,7 @@ int main(int argc, char *argv[])
 		// thre render loop, renders
 		const bool &run = game::engine.shouldRun;
 		while (run) {
+			fpsInternal++;
 			render();
 			game::engine.resetRender(0);
 		}

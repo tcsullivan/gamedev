@@ -1284,7 +1284,6 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 			case SDLK_b:
 				if (debug)
 					posFlag ^= true;
-
 				break;
 			case SDLK_F12:
 				// Make the BYTE array, factor of 3 because it's RBG.

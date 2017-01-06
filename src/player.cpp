@@ -4,6 +4,7 @@
 #include <ui.hpp>
 #include <gametime.hpp>
 #include <world.hpp>
+#include <particle.hpp>
 
 void PlayerSystem::create(void)
 {
@@ -107,6 +108,9 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 		} else if (kc == getControl(3)) {
 			if (game::canSprint)
 				speed = 2.0f;
+
+			game::engine.getSystem<ParticleSystem>()->addMultiple(10, ParticleType::SmallBlast,
+				[&](){ return vec2(loc.x, loc.y); }, 1000);
 		} else if (kc == getControl(4)) {
 			speed = .5;
 		} else if (kc == getControl(5)) {
