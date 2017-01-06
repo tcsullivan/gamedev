@@ -3,21 +3,22 @@
 <npc>
 	<Position value="0.0,100.0" />
 	<Visible value="0.2" />
-	<Sprite> image="assets/NPC.png"
+	<Sprite>
 		<frame>
-			<src id="0" offset="0,0" size="15,20" drawOffset="0,0">assets/NPC.png</src>
-			<src id="1" offset="0,21" size="15,9" drawOffset="-1,14">assets/NPC.png</src>
-			<src id="2" drawOffset="13,6">assets/items/ironSword.png</src>
+			<src limb="0" offset="0,0" size="13,15" drawOffset="0,5">assets/NPC_Sheet.png</src>
+			<src limb="1" offset="13,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>
 		</frame>
 	</Sprite>	
 	<Animation>
-		<movement update="1" changeId="1">
-			<frame>
-				<src offset="0,21" size="15,9" drawOffset="0,13">assets/NPC.png</src>		
-			</frame>
-			<frame>
-				<src offset="0,21" size="15,9" drawOffset="0,13">assets/NPC_Walk.png</src>
-			</frame>
+		<movement>
+			<limb update="1" id="0">
+				<frame>
+					<src offset="0,21" size="15,9" drawOffset="0,13">assets/NPC.png</src>		
+				</frame>
+				<frame>
+					<src offset="0,21" size="15,9" drawOffset="0,13">assets/NPC_Walk.png</src>
+				</frame>
+			</limb>
 		</movement>
 	</Animation>
 	<Direction />

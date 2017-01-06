@@ -80,9 +80,21 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 	Render::worldShader.use();
 
 	en.each<Visible, Sprite, Position>([dt](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {
-		(void)entity;
 		// Verticies and shit
 		float its = 0;
+		
+		float sz;
+		if (entity.has_component<Solid>()) {
+			sz = entity.component<Solid>()->width;
+		}
+		if(sprite.faceLeft) {
+			glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f,1.0f,1.0f));
+			glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f - sz - pos.x * 2.0f, 0.0f, 0.0f));
+
+			glm::mat4 mov = scale * translate;
+			glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(mov));
+		}
+		
 		for (auto &S : sprite.sprite) {
 			auto sp = S.first;
 			auto size = sp.size * game::HLINE;
@@ -97,13 +109,6 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 								   sp.offset_tex.x, 				sp.offset_tex.y + sp.size_tex.y,
 								   sp.offset_tex.x, 				sp.offset_tex.y};
 
-			if(sprite.faceLeft) {
-				glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f,1.0f,1.0f));
-				glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f - size.x - pos.x * 2.0f, 0.0f, 0.0f));
-
-				glm::mat4 mov = scale * translate;
-				glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(mov));
-			}
 
 			GLfloat coords[] = {loc.x, 			loc.y, 			visible.z + its,
 								loc.x + size.x,	loc.y, 			visible.z + its,
@@ -130,11 +135,11 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 
-			glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 			glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 			
 			its-=.01;
 		}
+		glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 	});
 
 	Render::worldShader.disable();
