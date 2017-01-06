@@ -8,11 +8,13 @@ namespace Colors
 	ColorTex white;
 	ColorTex black;
 	ColorTex red;
+	ColorTex blue;
 
 	void init(void) {
 		white = ColorTex(Color(255, 255, 255));
-		black = ColorTex(Color(0, 0, 0));
-		red = ColorTex(Color(255, 0, 0));
+		black = ColorTex(Color(0,   0,   0  ));
+		red   = ColorTex(Color(255, 0,   0  ));
+		blue  = ColorTex(Color(0,   0,   255));
 	}
 }
 

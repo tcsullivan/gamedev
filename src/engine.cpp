@@ -8,6 +8,8 @@
 #include <components.hpp>
 #include <player.hpp>
 #include <quest.hpp>
+#include <particle.hpp>
+#include <weather.hpp>
 
 Engine::Engine(void)
     : shouldRun(true), systems(game::entities, game::events)
@@ -29,6 +31,9 @@ void Engine::init(void) {
 	systems.add<PhysicsSystem>();
 	systems.add<MovementSystem>();
 	systems.add<DialogSystem>();
+
+	systems.add<ParticleSystem>();
+	systems.add<WeatherSystem>();
 
     systems.configure();
 
@@ -57,6 +62,8 @@ void Engine::update(entityx::TimeDelta dt)
 	systems.update<WorldSystem>(dt);
     systems.update<PlayerSystem>(dt);
 	//systems.update<QuestSystem>(dt); // doesn't do anything
+	systems.update<WeatherSystem>(dt);
+	systems.update<ParticleSystem>(dt);
 }
 
 

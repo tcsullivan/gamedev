@@ -28,36 +28,16 @@ enum class WorldBGType : unsigned int {
 };
 
 /**
- * The weather type enum.
- * This enum contains every type of weather currently implemented in the game.
- * Weather is set by the world somewhere.
- */
-enum class WorldWeather : unsigned char {
-	None = 0,	/**< None (sunny) */
-	Rain,		/**< Rain */
-	Snowy		/**< Snow */
-};
-
-/**
- * Strings to represent each type of weather.
- */
-constexpr const char* WorldWeatherString[3] = {
-	"None",
-	"Rainy",
-	"Snowy"
-};
-
-/**
  * The line structure.
  * This structure is used to store the world's ground, stored in vertical
  * lines. Dirt color and grass properties are also kept track of here.
  */
-typedef struct {
+struct WorldData {
     bool          grassUnpressed; /**< squishes grass if false */
     float         grassHeight[2]; /**< height of the two grass blades */
     float         groundHeight;   /**< height of the 'line' */
     unsigned char groundColor;    /**< a value that affects the ground's color */
-} WorldData;
+} __attribute__ ((packed));
 
 /**
  * Defines how many game ticks it takes to go from day to night or vice versa.
@@ -130,11 +110,6 @@ private:
 	WorldData2 world;
 
 	/**
-	 * The current state of weather in the world.
-	 */
-	WorldWeather weather;
-
-	/**
 	 * SDL's object for handling the background music.
 	 */
 	Mix_Music *bgmObj;
@@ -176,21 +151,15 @@ public:
 	inline float getWidth(void) const
 	{ return world.startX * -2.0f; }
 
+	float isAboveGround(const vec2& p) const;
+
 	void receive(const BGMToggleEvent &bte);
 
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 	void render(void);
 
-	inline const std::string getWeatherStr(void) const
-	{ return WorldWeatherString[static_cast<int>(weather)]; }
-
-	inline const WorldWeather& getWeatherId(void) const
-	{ return weather; }
-
 	inline const std::string& getXMLFile(void) const
 	{ return currentXMLFile; }
-
-	void setWeather(const std::string &s);
 
 	void detect(entityx::TimeDelta dt);
 

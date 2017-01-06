@@ -25,6 +25,7 @@ using namespace tinyxml2;
 #include <world.hpp>
 #include <render.hpp>
 #include <ui.hpp>
+#include <particle.hpp>
 
 /**
  * The currently used folder to look for XML files in.
@@ -311,6 +312,7 @@ void render() {
 
 	// draw the world and player
 	game::engine.getSystem<WorldSystem>()->render();
+	game::engine.getSystem<ParticleSystem>()->render();
 
 	// draw the player's inventory
 	//player->inv->draw();
@@ -327,9 +329,10 @@ void render() {
 	if (ui::debug) {
 		auto pos = game::engine.getSystem<PlayerSystem>()->getPosition();
 		ui::putText(offset.x - SCREEN_WIDTH2, (offset.y + SCREEN_HEIGHT2) - ui::fontSize,
-		            "loc: %s\noffset: %s\nfps: %d\nticks: %d\nxml: %s",
-					pos.toString().c_str(), offset.toString().c_str(), fps,
-					game::time::getTickCount(), game::engine.getSystem<WorldSystem>()->getXMLFile().c_str());
+		    "loc: %s\noffset: %s\nfps: %d\nticks: %d\npcount: %d\nxml: %s",
+			pos.toString().c_str(), offset.toString().c_str(), fps,
+			game::time::getTickCount(), game::engine.getSystem<ParticleSystem>()->getCount(),
+			game::engine.getSystem<WorldSystem>()->getXMLFile().c_str());
 	}
 
 	// draw the menu

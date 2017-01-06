@@ -91,11 +91,11 @@ struct vec2 {
 	}
 
 	template<typename T>
-	const vec2 operator+(const T &n) {
+	vec2 operator+(T n) const {
 		return vec2 (x + n, y + n);
 	}
 
-	const vec2 operator+(const vec2 &v) {
+	vec2 operator+(const vec2 &v) {
 		return vec2 (x + v.x, y + v.y);
 	}
 

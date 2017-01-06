@@ -21,6 +21,7 @@ using namespace std::literals::chrono_literals;
 #include <engine.hpp>
 #include <components.hpp>
 #include <player.hpp>
+#include <weather.hpp>
 
 // local library headers
 #include <tinyxml2.h>
@@ -74,12 +75,10 @@ const unsigned int GRASS_HEIGHT = HLINES(4);
 std::string currentXML;
 
 // pathnames of images for world themes
-using StyleList = std::array<std::string, 9>;
-
+using StyleList = std::array<std::string, 8>;
 static const std::vector<StyleList> bgPaths = {
 	{ // Forest
-		"bg.png", 				// daytime background
-		"bgn.png",				// nighttime background
+		"bg.png", 				// sky/background
 		"bgFarMountain.png",	// layer 1 (furthest)
 		"forestTileFar.png",	// layer 2
 		"forestTileBack.png",	// layer 3
@@ -152,6 +151,15 @@ void WorldSystem::generate(int width)
 
     // define x-coordinate of world's leftmost 'line'
     world.startX = HLINES(width * -0.5);
+}
+
+float WorldSystem::isAboveGround(const vec2& p) const
+{
+	int line = std::clamp(static_cast<int>((p.x - world.startX) / game::HLINE),
+		0, static_cast<int>(world.data.size()));
+
+	const auto& gh = world.data[line].groundHeight;
+	return p.y >= gh ? 0 : gh;
 }
 
 static Color ambient;
@@ -279,7 +287,8 @@ void WorldSystem::load(const std::string& file)
 
 		// weather tag
 		else if (tagName == "weather") {
-			setWeather(wxml->GetText());
+			game::engine.getSystem<WeatherSystem>()->setWeather(wxml->GetText());
+			//setWeather(wxml->GetText());
 		}
 
 		// link tags
@@ -641,7 +650,7 @@ loadWorldFromXMLNoSave(std::string path) {
 }*/
 
 WorldSystem::WorldSystem(void)
-	: weather(WorldWeather::None), bgmObj(nullptr) {}
+	: bgmObj(nullptr) {}
 
 WorldSystem::~WorldSystem(void)
 {
@@ -664,10 +673,6 @@ void WorldSystem::render(void)
     // world width in pixels
 	int width = HLINES(world.data.size());
 
-    // used for alpha values of background textures
-    int alpha;
-
-
 	static bool ambientUpdaterStarted = false;
 	if (!ambientUpdaterStarted) {
 		ambientUpdaterStarted = true;
@@ -686,33 +691,11 @@ void WorldSystem::render(void)
 		thAmbient.detach();
 	}
 
-
-	switch (weather) {
-	case WorldWeather::Snowy:
-		alpha = 150;
-		break;
-	case WorldWeather::Rain:
-		alpha = 0;
-		break;
-	default:
-		alpha = 255 - worldShade * 4;
-		break;
-	}
-
 	// shade value for GLSL
 	float shadeAmbient = std::max(0.0f, static_cast<float>(-worldShade) / 50 + 0.5f); // 0 to 1.5f
 
 	if (shadeAmbient > 0.9f)
 		shadeAmbient = 1;
-
-    // draw background images.
-    GLfloat tex_coord[] = { 0.0f, 1.0f,
-                            1.0f, 1.0f,
-                            1.0f, 0.0f,
-
-                            1.0f, 0.0f,
-                            0.0f, 0.0f,
-                            0.0f, 1.0f,};
 
 	// TODO scroll backdrop
 	GLfloat bgOff = game::time::getTickCount() / static_cast<float>(DAY_CYCLE * 2);
@@ -755,16 +738,6 @@ void WorldSystem::render(void)
         offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f
 	};
 
-    GLfloat fron_tex_coord[] = {
-		offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f,
-        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.8f,
-        offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
-
-        offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.8f,
-        offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.8f,
-        offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.8f
-	};
-
 	// rendering!!
 
     glActiveTexture(GL_TEXTURE0);
@@ -785,10 +758,10 @@ void WorldSystem::render(void)
 
 	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, back_tex_coord, scrolling_tex_coord, 6);
 
-	bgTex++;
-	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha) / 255.0f);
-
-	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
+	// no more night bg
+	//bgTex++;
+	//glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha) / 255.0f);
+	//makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
 
 	// TODO make stars dynamic
 	/*static GLuint starTex = Texture::loadTexture("assets/style/classic/bg/star.png");
@@ -1120,18 +1093,6 @@ void WorldSystem::receive(const BGMToggleEvent &bte)
 		bgmObj = Mix_LoadMUS(world.bgm.c_str());
 		Mix_PlayMusic(bgmObj, -1);
 	}
-}
-
-void WorldSystem::setWeather(const std::string &s)
-{
-	for (unsigned int i = 3; i--;) {
-		if (WorldWeatherString[i] == s) {
-			weather = static_cast<WorldWeather>(i);
-			return;
-		}
-	}
-
-	weather = WorldWeather::None;
 }
 
 void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)

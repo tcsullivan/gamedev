@@ -91,6 +91,7 @@ namespace Colors {
 	extern ColorTex white; /**< A solid white texture. */
 	extern ColorTex black; /**< A solid black texture. */
 	extern ColorTex red;   /**< A solid red texture. */
+	extern ColorTex blue;  /**< A solid blue texture. */
 
 	/**
 	 * Creates the colors.
