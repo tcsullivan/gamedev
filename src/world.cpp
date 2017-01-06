@@ -347,9 +347,9 @@ void WorldSystem::load(const std::string& file)
 						if (abcd->Attribute("value") != nullptr)
 							dim = str2coord(abcd->StrAttribute("value"));
 						else
-							dim = entity.component<Sprite>().get()->getSpriteSize() * game::HLINE;
+							dim = entity.component<Sprite>()->getSpriteSize();
 
-						float cdat[2] = {dim.x, dim.y};
+						float cdat[2] = {dim.x * game::HLINE, dim.y * game::HLINE};
 						entity.assign<Solid>(cdat[0], cdat[1]);
 					} else if (tname == "Direction") {
 						vec2 dir;
@@ -393,13 +393,17 @@ void WorldSystem::load(const std::string& file)
 						while (animx) {	
 							std::string animType = animx->Name();
 							if (animType == "movement") {
-								auto frames = developFrame(animx);
-								if (animx->UnsignedAttribute("changeID") != XML_NO_ERROR)
-									idtc = 0;
-								else 
-									idtc = animx->UnsignedAttribute("changeID");
-								for (uint i = 0; i < frames.size(); i++) {
-									entan->frame.push_back(std::make_pair(idtc, frames[i]));
+								auto limbx = animx->FirstChildElement();
+								while (limbx) {
+									auto frames = developFrame(limbx);
+									if (limbx->UnsignedAttribute("changeID") != XML_NO_ERROR)
+										idtc = 0;
+									else 
+										idtc = limbx->UnsignedAttribute("changeID");
+									for (uint i = 0; i < frames.size(); i++) {
+										entan->frame.push_back(std::make_pair(idtc, frames[i]));
+									}
+								limbx = limbx->NextSiblingElement();
 								}
 							}
 							

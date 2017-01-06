@@ -127,10 +127,11 @@ struct Solid {
 struct SpriteData {
 	
 	SpriteData(std::string path, vec2 off):
-		offset(off) {
+		offset(off)	{
 			tex = Texture(path);
 			size = tex.getDim();
-			
+			offset = vec2(0.0f, 0.0f);
+
 			size_tex = vec2(1.0, 1.0);
 			
 			offset_tex.x = offset.x/size.x;
@@ -155,13 +156,14 @@ struct SpriteData {
 	
 	vec2 offset_tex;
 	vec2 size_tex;
+
+	uint limb;
 };
 
 using Frame = std::vector<std::pair<SpriteData, vec2>>;
 
 std::vector<Frame> developFrame(XMLElement*);
 
-//TODO
 /**
  * @struct Sprite
  * @brief If an entity is visible we want to be able to see it.
@@ -202,30 +204,33 @@ struct Sprite {
 	}
 
 	vec2 getSpriteSize() {
-		vec2 st; /** the start location of the sprite */
+		vec2 st; /** the start location of the sprite (bottom left)*/
+		vec2 ed; /** the end ofthe location of the sprite (bottom right)*/
 		vec2 dim; /** how wide the sprite is */
 
 		if (sprite.size()) {
 			st.x = sprite[0].second.x;
 			st.y = sprite[0].second.y;
+
+			ed.x = sprite[0].second.x + sprite[0].first.size.x;
+			ed.y = sprite[0].second.y + sprite[0].first.size.y;
 		} else {
 			return vec2(0.0f, 0.0f);
 		}
 
 		for (auto &s : sprite) {
-			const auto& size = s.first.tex.getDim();
-
 			if (s.second.x < st.x)
 				st.x = s.second.x;
 			if (s.second.y < st.y)
 				st.y = s.second.y;
 
-			if (s.second.x + size.x > dim.x)
-				dim.x = s.second.x + size.x;
-			if (s.second.y + size.y > dim.y)
-				dim.y = s.second.y + size.y;
+			if (s.second.x + s.first.size.x > ed.x)
+				ed.x = s.second.x + s.first.size.x;
+			if (s.second.y + s.first.size.y > ed.y)
+				ed.y = s.second.y + s.first.size.y;
 		}
 
+		dim = vec2(ed.x - st.x, ed.y - st.y);
 		return dim;
 	}
 
@@ -233,10 +238,12 @@ struct Sprite {
 	bool faceLeft;
 };
 
+using Limb = std::vector<std::pair<uint, Frame>>;
+
 //TODO
 struct Animate {
 	// COMMENT
-	std::vector<std::pair<uint, Frame>> frame;
+	Limb frame;
 	// COMMENT	
 	uint index;
 
