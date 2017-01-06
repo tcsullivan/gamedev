@@ -38,14 +38,18 @@ public:
 		(void)dt;
 
 		static auto& partSystem = *game::engine.getSystem<ParticleSystem>();
+		static int newPartDelay = 0; // TODO no
 
 		switch (weather) {
 		case Weather::Sunny:
 			break;
 		case Weather::Rainy:
-			partSystem.add(vec2(offset.x - game::SCREEN_WIDTH / 2 + randGet() % game::SCREEN_WIDTH,
-				offset.y + game::SCREEN_HEIGHT / 2 + 100),
-				ParticleType::Drop);
+			if (newPartDelay++ == 4) {
+				newPartDelay = 0;
+				partSystem.add(vec2(offset.x - game::SCREEN_WIDTH / 2 + randGet() % game::SCREEN_WIDTH,
+					offset.y + game::SCREEN_HEIGHT / 2 + 100),
+					ParticleType::Drop);
+			}
 			break; // TODO
 		case Weather::Snowy:
 			break; // TODO
