@@ -34,7 +34,7 @@ public:
 	void add(const vec2& pos, const ParticleType& type, const int& timeleft = 3000);
 	void addMultiple(const int& count, const ParticleType& type, std::function<vec2(void)> f, const int& timeleft = 3000);
 
-	void render(void) const; 
+	void render(void);
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 
 	int getCount(void) const;

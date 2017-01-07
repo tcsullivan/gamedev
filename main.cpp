@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
 		while (run) {
 			fpsInternal++;
 			render();
-			game::engine.resetRender(0);
+			game::engine.resetRender(0); // TODO stupid
 		}
 
 		// on game end, get back together
@@ -321,7 +321,7 @@ void render() {
 	//player->inv->draw();
 
 	game::engine.render(0);
-	
+
 	// draw the fade overlay
 	ui::drawFade();
 

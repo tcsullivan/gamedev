@@ -26,7 +26,7 @@ void ParticleSystem::addMultiple(const int& count, const ParticleType& type, std
 		parts.emplace_back(f(), type, timeleft);
 }
 
-void ParticleSystem::render(void) const
+void ParticleSystem::render(void)
 {
 	static GLuint particleVBO = 9999, texVBO = 0;
 
@@ -50,9 +50,14 @@ void ParticleSystem::render(void) const
 
 	glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
 
+	// clear dead particles
+	parts.erase(std::remove_if(parts.begin(), parts.end(),
+		[](const Particle& p) { return p.timeLeft <= 0; }), parts.end());
+
 	// copy data into VBO
 	int offset = 0;
 	for (const auto& p : parts) {
+
 		GLfloat coords[18] = {
 			p.location.x, p.location.y, -1,
 			p.location.x, p.location.y + 5, -1,
@@ -61,11 +66,11 @@ void ParticleSystem::render(void) const
 			p.location.x + 5, p.location.y, -1,
 			p.location.x, p.location.y, -1
 		};
-		
+
 		glBufferSubData(GL_ARRAY_BUFFER, offset, 18 * sizeof(GLfloat), coords);
 		offset += 18 * sizeof(GLfloat);
 	}
-	
+
 	Render::worldShader.use();
 	Render::worldShader.enable();
 	Colors::blue.use();
@@ -103,8 +108,6 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 
 		// update timers
 		p.timeLeft -= dt;
-		if (p.timeLeft <= 0)
-			parts.erase(part);
 
 		// update movement
 		switch (p.type) {
@@ -131,11 +134,9 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 				if ((p.velocity.x > -0.01 && p.velocity.x < 0.01) &&
 					(p.velocity.y > -0.01 && p.velocity.y < 0.01)) {
 					p.timeLeft = 0;
-					if (p.timeLeft <= 0)
-						parts.erase(part);
 				}
 			}
-			
+
 			break;
 		}
 
@@ -154,4 +155,3 @@ int ParticleSystem::getCount(void) const
 {
 	return parts.size();
 }
-
