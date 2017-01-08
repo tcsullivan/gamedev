@@ -19,8 +19,10 @@ struct Particle {
 	ParticleType type;
 	int timeLeft;
 
+	//const Texture& color; // TODO
+
 	Particle(vec2 p, ParticleType t = ParticleType::Drop, int tl = 3000)
-		: location(p), type(t), timeLeft(tl) {} // TODO times
+		: location(p), type(t), timeLeft(tl) {}
 } __attribute__ ((packed));
 
 class ParticleSystem : public entityx::System<ParticleSystem> {

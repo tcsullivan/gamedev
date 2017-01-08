@@ -28,71 +28,60 @@ void ParticleSystem::addMultiple(const int& count, const ParticleType& type, std
 
 void ParticleSystem::render(void)
 {
-	static GLuint particleVBO = 9999, texVBO = 0;
+	static GLuint particleVBO = 9999;
+	// six vertices, 3d coord + 2d tex coord = 5
+	constexpr auto entrySize = (6 * 5) * sizeof(GLfloat);
 
 	if (particleVBO == 9999) {
+		// generate VBO
 		glGenBuffers(1, &particleVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
-		glBufferData(GL_ARRAY_BUFFER, parts.capacity() * 18 * sizeof(GLfloat), nullptr,
+		glBufferData(GL_ARRAY_BUFFER, parts.capacity() * entrySize, nullptr,
 			GL_STREAM_DRAW);
-
-		glGenBuffers(1, &texVBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, texVBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, parts.capacity() * 12 * sizeof(GLfloat), nullptr,
-			GL_STATIC_DRAW);
-		int top = (parts.capacity() - 1) * 12 * sizeof(GLfloat), i = 0;
-		unsigned char zero = 0;
-		while (i < top) {
-			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, i, 1, &zero);
-			i++;
-		}
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
 
 	// clear dead particles
 	parts.erase(std::remove_if(parts.begin(), parts.end(),
 		[](const Particle& p) { return p.timeLeft <= 0; }), parts.end());
 
 	// copy data into VBO
+	glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
+
 	int offset = 0;
 	for (const auto& p : parts) {
-
-		GLfloat coords[18] = {
-			p.location.x, p.location.y, -1,
-			p.location.x, p.location.y + 5, -1,
-			p.location.x + 5, p.location.y + 5, -1,
-			p.location.x + 5, p.location.y + 5, -1,
-			p.location.x + 5, p.location.y, -1,
-			p.location.x, p.location.y, -1
+		static const auto hl = game::HLINE;
+		GLfloat coords[30] = {
+			p.location.x,      p.location.y,      -1, 0, 0,
+			p.location.x,      p.location.y + hl, -1, 0, 1,
+			p.location.x + hl, p.location.y + hl, -1, 1, 1,
+			p.location.x + hl, p.location.y + hl, -1, 1, 1,
+			p.location.x + hl, p.location.y,      -1, 0, 1,
+			p.location.x,      p.location.y,      -1, 0, 0
 		};
 
-		glBufferSubData(GL_ARRAY_BUFFER, offset, 18 * sizeof(GLfloat), coords);
-		offset += 18 * sizeof(GLfloat);
+		glBufferSubData(GL_ARRAY_BUFFER, offset, entrySize, coords);
+		offset += entrySize;
 	}
 
+	// begin actual rendering
 	Render::worldShader.use();
 	Render::worldShader.enable();
-	Colors::blue.use();
-	//glUniform4f(Render::worldShader.uniform[WU_tex_color], 0.0f, 0.0f, 1.0f, 1.0f);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
+	Colors::white.use();
 
+	// set coords
 	glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
-	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, texVBO);
-	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE,
+		5 * sizeof(GLfloat), 0);
+	// set tex coords
+	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE,
+		5 * sizeof(GLfloat), reinterpret_cast<void*>(3 * sizeof(GLfloat)));
 
 	glDrawArrays(GL_TRIANGLES, 0, parts.size() * 6);
 
-	glDisableClientState(GL_VERTEX_ARRAY);
-
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	Render::worldShader.disable();
 	Render::worldShader.unuse();
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)

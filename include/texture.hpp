@@ -19,7 +19,7 @@
  * Handles a single texture, loaded from the given file.
  */
 class Texture {
-private:
+protected:
 	std::string name; /**< The name (path) of the loaded file. */
 	GLuint tex;       /**< The GLuint for the loaded texture. */
 	vec2 dim;         /**< The dimensions of the loaded texture. */

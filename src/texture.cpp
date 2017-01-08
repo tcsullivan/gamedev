@@ -52,12 +52,12 @@ ColorTex::ColorTex(const Color& color)
 	};
 
 	GLuint object;
-	glActiveTexture(GL_TEXTURE0);
 	glGenTextures(1, &object);				// Turns "object" into a texture
 	glBindTexture(GL_TEXTURE_2D, object);	// Binds "object" to the top of the stack
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-	Texture("", object, vec2());
+	tex = object;
+	dim = vec2(1, 1);
 }
 
 static std::vector<Texture> loadedTextures;
