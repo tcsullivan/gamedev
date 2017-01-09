@@ -10,20 +10,21 @@ ParticleSystem::ParticleSystem(int count, bool m)
 	parts.reserve(count);
 }
 
-void ParticleSystem::add(const vec2& pos, const ParticleType& type, const int& timeleft)
+void ParticleSystem::add(const vec2& pos, const ParticleType& type, const int& timeleft, const unsigned char& color)
 {
 	// TODO not enforce max
 	if (/*max &&*/ parts.size() + 1 >= parts.capacity())
 		return;
 
-	parts.emplace_back(pos, type, timeleft);
+	parts.emplace_back(pos, type, timeleft, vec2(color / 8 * 0.25f, color % 8 * 0.125f + 0.0625f));
 }
 
-void ParticleSystem::addMultiple(const int& count, const ParticleType& type, std::function<vec2(void)> f, const int& timeleft)
+void ParticleSystem::addMultiple(const int& count, const ParticleType& type, std::function<vec2(void)> f,
+	const int& timeleft, const unsigned char& color)
 {
 	int togo = count;
 	while (togo-- > 0)
-		parts.emplace_back(f(), type, timeleft);
+		parts.emplace_back(f(), type, timeleft, vec2(color / 8 * 0.25f, color % 8 * 0.125f + 0.0625f));
 }
 
 void ParticleSystem::render(void)
@@ -31,6 +32,7 @@ void ParticleSystem::render(void)
 	static GLuint particleVBO = 9999;
 	// six vertices, 3d coord + 2d tex coord = 5
 	constexpr auto entrySize = (6 * 5) * sizeof(GLfloat);
+	static const Texture palette ("assets/colorIndex.png");
 
 	if (particleVBO == 9999) {
 		// generate VBO
@@ -51,12 +53,12 @@ void ParticleSystem::render(void)
 	for (const auto& p : parts) {
 		static const auto hl = game::HLINE;
 		GLfloat coords[30] = {
-			p.location.x,      p.location.y,      -1, 0, 0,
-			p.location.x,      p.location.y + hl, -1, 0, 1,
-			p.location.x + hl, p.location.y + hl, -1, 1, 1,
-			p.location.x + hl, p.location.y + hl, -1, 1, 1,
-			p.location.x + hl, p.location.y,      -1, 0, 1,
-			p.location.x,      p.location.y,      -1, 0, 0
+			p.location.x,      p.location.y,      -1, p.color.x, p.color.y,
+			p.location.x,      p.location.y + hl, -1, p.color.x, p.color.y,
+			p.location.x + hl, p.location.y + hl, -1, p.color.x, p.color.y,
+			p.location.x + hl, p.location.y + hl, -1, p.color.x, p.color.y,
+			p.location.x + hl, p.location.y,      -1, p.color.x, p.color.y,
+			p.location.x,      p.location.y,      -1, p.color.x, p.color.y
 		};
 
 		glBufferSubData(GL_ARRAY_BUFFER, offset, entrySize, coords);
@@ -67,8 +69,6 @@ void ParticleSystem::render(void)
 	Render::worldShader.use();
 	Render::worldShader.enable();
 
-	Colors::white.use();
-
 	// set coords
 	glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
 	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE,
@@ -77,6 +77,7 @@ void ParticleSystem::render(void)
 	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE,
 		5 * sizeof(GLfloat), reinterpret_cast<void*>(3 * sizeof(GLfloat)));
 
+	palette.use();
 	glDrawArrays(GL_TRIANGLES, 0, parts.size() * 6);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

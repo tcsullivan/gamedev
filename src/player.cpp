@@ -110,7 +110,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 				speed = 2.0f;
 
 			game::engine.getSystem<ParticleSystem>()->addMultiple(10, ParticleType::SmallBlast,
-				[&](){ return vec2(loc.x, loc.y); }, 1000);
+				[&](){ return vec2(loc.x, loc.y); }, 500, 7);
 		} else if (kc == getControl(4)) {
 			speed = .5;
 		} else if (kc == getControl(5)) {

@@ -2,6 +2,7 @@
 #define PARTICLE_HPP_
 
 #include <common.hpp>
+#include <texture.hpp>
 
 #include <list>
 
@@ -18,12 +19,11 @@ struct Particle {
 	vec2 velocity;
 	ParticleType type;
 	int timeLeft;
+	vec2 color; // assets/colorIndex.png
 
-	//const Texture& color; // TODO
-
-	Particle(vec2 p, ParticleType t = ParticleType::Drop, int tl = 3000)
-		: location(p), type(t), timeLeft(tl) {}
-} __attribute__ ((packed));
+	Particle(vec2 p, ParticleType t, int tl, vec2 c)
+		: location(p), type(t), timeLeft(tl), color(c) {}
+};// __attribute__ ((packed));
 
 class ParticleSystem : public entityx::System<ParticleSystem> {
 private:
@@ -33,8 +33,10 @@ private:
 public:
 	ParticleSystem(int count = 2048, bool m = false);
 
-	void add(const vec2& pos, const ParticleType& type, const int& timeleft = 3000);
-	void addMultiple(const int& count, const ParticleType& type, std::function<vec2(void)> f, const int& timeleft = 3000);
+	void add(const vec2& pos, const ParticleType& type, const int& timeleft = 3000,
+		const unsigned char& color = 0);
+	void addMultiple(const int& count, const ParticleType& type, std::function<vec2(void)> f,
+		const int& timeleft = 3000, const unsigned char& color = 0);
 
 	void render(void);
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;

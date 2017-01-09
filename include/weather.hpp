@@ -48,7 +48,7 @@ public:
 				newPartDelay = 0;
 				partSystem.add(vec2(offset.x - game::SCREEN_WIDTH / 2 + randGet() % game::SCREEN_WIDTH,
 					offset.y + game::SCREEN_HEIGHT / 2 + 100),
-					ParticleType::Drop);
+					ParticleType::Drop, 3000, 3);
 			}
 			break; // TODO
 		case Weather::Snowy:
@@ -56,7 +56,7 @@ public:
 				newPartDelay = 0;
 				partSystem.add(vec2(offset.x - game::SCREEN_WIDTH / 2 + randGet() % game::SCREEN_WIDTH,
 					offset.y + game::SCREEN_HEIGHT / 2 + 100),
-					ParticleType::Confetti, 6000);
+					ParticleType::Confetti, 6000, 0);
 			}
 			break; // TODO
 		default:
