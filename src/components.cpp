@@ -96,7 +96,7 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 			glm::mat4 mov = scale * translate;
 			glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(mov));
 		}
-		
+
 		for (auto &S : sprite.sprite) {
 			auto sp = S.first;
 			auto size = sp.size * game::HLINE;
@@ -137,8 +137,8 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 
-			glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
-			
+			//glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+
 			its-=.01;
 		}
 		glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));

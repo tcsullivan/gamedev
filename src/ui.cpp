@@ -275,11 +275,12 @@ namespace ui {
 		// draw the character
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, (*ftex)[c - 33]);
-		glUniform1i(Render::textShader.uniform[WU_texture], 0);
-		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, 1.0f);
 
 		Render::textShader.use();
 		Render::textShader.enable();
+
+		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, 1.0f);
+
 		GLfloat tex_coord[] = {
 			0.0, 1.0,				//bottom left
 			1.0, 1.0,				//bottom right

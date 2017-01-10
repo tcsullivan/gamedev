@@ -304,14 +304,16 @@ void render() {
 	// TODO add depth
     glEnable(GL_DEPTH_TEST);
 
-	Render::textShader.use();
-		glUniformMatrix4fv(Render::textShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(ortho));
-    	glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
-	Render::textShader.unuse();
+
     Render::worldShader.use();
 		glUniformMatrix4fv(Render::worldShader.uniform[WU_ortho], 1, GL_FALSE, glm::value_ptr(ortho));
 		glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 	Render::worldShader.unuse();
+
+	Render::textShader.use();
+		glUniformMatrix4fv(Render::textShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(ortho));
+    	glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+	Render::textShader.unuse();
 
 	// draw the world and player
 	game::engine.getSystem<WorldSystem>()->render();

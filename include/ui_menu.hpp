@@ -13,28 +13,24 @@ class menuItem {
 public:
 	int member;
 	Menu *child;
+
+	vec2 loc;
+	dim2 dim;
+	Color color;
+	std::string text;
 	//union {
 		struct {
-			vec2 loc;
-			dim2 dim;
-			Color color;
-
-			std::string text;
 			menuFunc func;
 		} button;
-		struct {
-			vec2 loc;
-			dim2 dim;
-			Color color;
 
+		struct {
 			float minValue;
 			float maxValue;
             float sliderLoc;
-
-			std::string text;
 			float *var;
 		} slider;
 	//};
+
 	menuItem(){}
 	~menuItem(){
 		//button.text = NULL;

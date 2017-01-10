@@ -73,7 +73,7 @@ void initControls(Menu *m)
 	for (const auto &l : cfg) {
 		z = static_cast<SDL_Keycode>(std::stoi(l));
 		setControl(i, z);
-		m->items[i++].button.text += sym2str(z);
+		m->items[i++].text += sym2str(z);
 	}
 }
 
@@ -98,9 +98,9 @@ void setControlF(unsigned int index, menuItem &m)
 	while (e.type != SDL_KEYDOWN);
 
 	setControl(index, e.key.keysym.sym);
-	deleteWord(m.button.text);
+	deleteWord(m.text);
 
-	m.button.text += sym2str(e.key.keysym.sym);
+	m.text += sym2str(e.key.keysym.sym);
 	saveControls();
 }
 
@@ -110,10 +110,10 @@ namespace ui {
             menuItem temp;
 
             temp.member = 0;
-            temp.button.loc = l;
-            temp.button.dim = d;
-            temp.button.color = c;
-            temp.button.text = t;
+            temp.loc = l;
+            temp.dim = d;
+            temp.color = c;
+            temp.text = t;
             temp.button.func = f;
 			temp.child = nullptr;
 
@@ -124,10 +124,10 @@ namespace ui {
             menuItem temp;
 
             temp.member = -1;
-            temp.button.loc = l;
-            temp.button.dim = d;
-            temp.button.color = c;
-            temp.button.text = t;
+            temp.loc = l;
+            temp.dim = d;
+            temp.color = c;
+            temp.text = t;
             temp.button.func = nullptr;
 			temp.child = _child;
 
@@ -138,10 +138,10 @@ namespace ui {
             menuItem temp;
 
             temp.member = -2;
-            temp.button.loc = l;
-            temp.button.dim = d;
-            temp.button.color = c;
-            temp.button.text = t;
+            temp.loc = l;
+            temp.dim = d;
+            temp.color = c;
+            temp.text = t;
             temp.button.func = nullptr;
 			temp.child = nullptr;
 
@@ -152,12 +152,12 @@ namespace ui {
             menuItem temp;
 
             temp.member = 1;
-            temp.slider.loc = l;
-            temp.slider.dim = d;
-            temp.slider.color = c;
+            temp.loc = l;
+            temp.dim = d;
+            temp.color = c;
             temp.slider.minValue = min;
             temp.slider.maxValue = max;
-            temp.slider.text = t;
+            temp.text = t;
             temp.slider.var = v;
             temp.slider.sliderLoc = *v;
 			temp.child = nullptr;
@@ -247,7 +247,6 @@ namespace ui {
 			static const ColorTex back (Color(0, 0, 0, 204));
 
 			//draw the dark transparent background
-            glColor4f(0.0f, 0.0f, 0.0f, .8f);
 			Render::textShader.use();
 
 			back.use();
@@ -261,104 +260,92 @@ namespace ui {
 				// reset the background modifier
 				cMult = 1.0f;
 
+				vec2 loc (offset.x + m.loc.x, offset.y + m.loc.y);
+				vec2 end (loc.x + m.dim.x, loc.y + m.dim.y);
+
 				//if the menu is any type of button
                 if (m.member == 0 || m.member == -1 || m.member == -2) {
                     //tests if the mouse is over the button
-                    if (mouse.x >= offset.x+m.button.loc.x && mouse.x <= offset.x+m.button.loc.x + m.button.dim.x) {
-                        if (mouse.y >= offset.y+m.button.loc.y && mouse.y <= offset.y+m.button.loc.y + m.button.dim.y) {
+                    if ((mouse.x >= loc.x && mouse.x <= end.x) && (mouse.y >= loc.y && mouse.y <= end.y)) {
+						// set the darkness multiplier
+						cMult = 0.6f;
 
-							// set the darkness multiplier
-							cMult = 0.6f;
-
-                            //if the mouse is over the button and clicks
-                            if (clicked) {
-                                switch(m.member) {
-                                    case 0: //normal button
-                                        m.button.func();
-                                        break;
-                                    case -1:
-                                        currentMenu = m.child;
-                                        break;
-                                    case -2:
-                                        currentMenu->gotoParent();
-                                    default:break;
-                                }
+                        //if the mouse is over the button and clicks
+                        if (clicked) {
+                            switch(m.member) {
+                                case 0: //normal button
+                                    m.button.func();
+                                    break;
+                                case -1:
+                                    currentMenu = m.child;
+                                    break;
+                                case -2:
+                                    currentMenu->gotoParent();
+                                default:break;
                             }
                         }
                     }
 
-					ui::drawNiceBoxColor(vec2(offset.x + m.button.loc.x, offset.y + m.button.loc.y),
-							        vec2(offset.x + m.button.loc.x + m.button.dim.x, offset.y + m.button.loc.y + m.button.dim.y), -8.6, Color(cMult, cMult, cMult, 1.0f));
+					ui::drawNiceBoxColor(loc, end, -8.6, Color(cMult, cMult, cMult, 1.0f));
                     //draw the button text
-                    putStringCentered(offset.x + m.button.loc.x + (m.button.dim.x/2),
-                                      (offset.y + m.button.loc.y + (m.button.dim.y/2)) - ui::fontSize/2,
-                                      m.button.text);
+                    putStringCentered(loc.x + (m.dim.x / 2),
+                    	loc.y + (m.dim.y / 2) - (ui::fontSize / 2),
+                        m.text);
 
 					//if element is a slider
-                }else if (m.member == 1) {
+                } else if (m.member == 1) {
                     //combining slider text with variable amount
                     char outSV[32];
-                    sprintf(outSV, "%s: %.1f",m.slider.text.c_str(), *m.slider.var);
+                    sprintf(outSV, "%s: %.1f",m.text.c_str(), *m.slider.var);
+	
+                    float sliderW = m.dim.x, sliderH = m.dim.y;
+                    m.slider.sliderLoc = m.slider.minValue + (*m.slider.var / m.slider.maxValue);
 
-                    float sliderW, sliderH;
-
-                    if (m.slider.dim.y > m.slider.dim.x) {
-                        //width of the slider handle
-                        sliderW = m.slider.dim.x;
-                        sliderH = m.slider.dim.y * .05;
+                    if (sliderH > sliderW) {
+                        sliderH *= 0.05f;
                         //location of the slider handle
-                        m.slider.sliderLoc = m.slider.minValue + (*m.slider.var/m.slider.maxValue)*(m.slider.dim.y-sliderW);
-                    }else{
-                        //width of the slider handle
-                        sliderW = m.slider.dim.x * .05;
-                        sliderH = m.slider.dim.y;
+                        m.slider.sliderLoc *= m.dim.y - sliderW;
+                    } else {
+                        sliderW *= 0.05f;
                         //location of the slider handle
-                        m.slider.sliderLoc = m.slider.minValue + (*m.slider.var/m.slider.maxValue)*(m.slider.dim.x-sliderW);
+                        m.slider.sliderLoc *= m.dim.x - sliderW;
                     }
-                    //draw the background of the slider
-					ui::drawNiceBoxColor(vec2(offset.x + m.slider.loc.x, offset.y + m.slider.loc.y),
-							         vec2(offset.x + m.slider.loc.x + m.slider.dim.x, offset.y + m.slider.loc.y + m.slider.dim.y), -8.6, Color(.5f, .5f, .5f, 1.0f));
+
+					ui::drawNiceBoxColor(loc, end, -8.6, Color(.5f, .5f, .5f, 1.0f));
 
                     //test if mouse is inside of the slider's borders
-                    if (mouse.x >= offset.x+m.slider.loc.x && mouse.x <= offset.x+m.slider.loc.x+m.slider.dim.x) {
-                        if (mouse.y >= offset.y+m.slider.loc.y && mouse.y <= offset.y+m.slider.loc.y+m.slider.dim.y) {
+                    if ((mouse.x >= loc.x && mouse.x <= end.x) && (mouse.y >= loc.y && mouse.y <= end.y)) {
+						// change multiplier background modifier
+						cMult = 0.75f;
 
-							// change multiplier background modifier
-							cMult = 0.75f;
+						//if we are inside the slider and click it will set the slider to that point
+                        if (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                            //change handle location
+                            if (m.dim.y > m.dim.x)
+                                *m.slider.var = ((mouse.y-offset.y) - m.loc.y)/m.dim.y * 100;
+                            else
+                                *m.slider.var = ((mouse.x-offset.x) - m.loc.x)/m.dim.x * 100;
 
-							//if we are inside the slider and click it will set the slider to that point
-                            if (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                                //change handle location
-                                if (m.slider.dim.y > m.slider.dim.x) {
-                                    *m.slider.var = (((mouse.y-offset.y) - m.slider.loc.y)/m.slider.dim.y)*100;
-
-									cMult = 0.5f;
-                                }else{
-                                    *m.slider.var = (((mouse.x-offset.x) - m.slider.loc.x)/m.slider.dim.x)*100;
-
-									cMult = 0.5f;
-                                }
-                            }
-
-                            //makes sure handle can't go below or above min and max values
-                            if (*m.slider.var >= m.slider.maxValue)*m.slider.var = m.slider.maxValue;
-                            else if (*m.slider.var <= m.slider.minValue)*m.slider.var = m.slider.minValue;
+							cMult = 0.5f;
                         }
+
+                        //makes sure handle can't go below or above min and max values
+						*m.slider.var = std::clamp(*m.slider.var, m.slider.minValue, m.slider.maxValue);
                     }
 
 					//draw the slider handle
-					if (m.slider.dim.y > m.slider.dim.x) {
-                        ui::drawNiceBoxColor(vec2(offset.x+m.slider.loc.x, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05)),
-                            	         vec2(offset.x+m.slider.loc.x + sliderW, offset.y+m.slider.loc.y + (m.slider.sliderLoc * 1.05) + sliderH), -8.7, Color(cMult, cMult, cMult, 1.0f));
+					if (m.dim.y > m.dim.x) {
+                        ui::drawNiceBoxColor(vec2(loc.x, loc.y + (m.slider.sliderLoc * 1.05)),
+                        	vec2(loc.x + sliderW, loc.y + (m.slider.sliderLoc * 1.05) + sliderH), -8.7, Color(cMult, cMult, cMult, 1.0f));
 
                         //draw the now combined slider text
-                        putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y*1.05)) - ui::fontSize/2, outSV);
-                    }else{
-                        ui::drawNiceBoxColor(vec2(offset.x+m.slider.loc.x+m.slider.sliderLoc, offset.y+m.slider.loc.y),
-                                         vec2(offset.x+m.slider.loc.x + m.slider.sliderLoc + sliderW, offset.y+m.slider.loc.y + sliderH), -8.7, Color(cMult, cMult, cMult, 1.0f));
+                        putStringCentered(loc.x + (m.dim.x/2), (loc.y + (m.dim.y*1.05)) - ui::fontSize/2, outSV);
+                    } else {
+                        ui::drawNiceBoxColor(vec2(loc.x+m.slider.sliderLoc, loc.y),
+                            vec2(loc.x + m.slider.sliderLoc + sliderW, loc.y + sliderH), -8.7, Color(cMult, cMult, cMult, 1.0f));
 
                         //draw the now combined slider text
-                        putStringCentered(offset.x + m.slider.loc.x + (m.slider.dim.x/2), (offset.y + m.slider.loc.y + (m.slider.dim.y/2)) - ui::fontSize/2, outSV);
+                        putStringCentered(loc.x + (m.dim.x/2), (loc.y + (m.dim.y/2)) - ui::fontSize/2, outSV);
                     }
                 }
             }

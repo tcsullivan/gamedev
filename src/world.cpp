@@ -745,23 +745,18 @@ void WorldSystem::render(void)
 	// rendering!!
 
     glActiveTexture(GL_TEXTURE0);
-    glUniform1i(Render::worldShader.uniform[WU_texture], 0);
-
 	Render::worldShader.use();
+    glUniform1i(Render::worldShader.uniform[WU_texture], 0);
 	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 	glUniform4f(Render::worldShader.uniform[WU_ambient], 1.0, 1.0, 1.0, 1.0);
-
     Render::worldShader.enable();
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
     bgTex(0);
 	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 
-
 	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, back_tex_coord, scrolling_tex_coord, 6);
-
 	// no more night bg
 	//bgTex++;
 	//glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha) / 255.0f);
@@ -800,7 +795,6 @@ void WorldSystem::render(void)
 
 	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 	glUniform4f(Render::worldShader.uniform[WU_ambient], ambient.red, ambient.green, ambient.blue, 1.0);
-
 	Render::worldShader.unuse();
 
     std::vector<vec3> bg_items;
@@ -832,7 +826,6 @@ void WorldSystem::render(void)
 	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, bg_items.data(), bg_tex.data(), bg_items.size());
 
     Render::worldShader.unuse();
-
 	// draw the remaining layers
 	for (int i = 0; i < 4; i++) {
 		bgTex++;

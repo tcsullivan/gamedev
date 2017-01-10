@@ -78,6 +78,7 @@ void ParticleSystem::render(void)
 		5 * sizeof(GLfloat), reinterpret_cast<void*>(3 * sizeof(GLfloat)));
 
 	palette.use();
+	//if(glGetError() != GL_NO_ERROR)abort();
 	glDrawArrays(GL_TRIANGLES, 0, parts.size() * 6);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
