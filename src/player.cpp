@@ -6,6 +6,13 @@
 #include <world.hpp>
 #include <particle.hpp>
 
+static const char *spriteXML =
+	"<Sprite> \
+		<frame> \
+			<src limb='0' offset='0,0' size='19,15' drawOffset='0,0'>assets/cat.png</src> \
+		</frame> \
+	</Sprite>";
+
 void PlayerSystem::create(void)
 {
 	player = game::entities.create();
@@ -17,9 +24,12 @@ void PlayerSystem::create(void)
 	player.assign<Visible>(-0.2f);
 
 	auto sprite = player.assign<Sprite>();
-	sprite->addSpriteSegment(SpriteData("assets/cat.png",
-										vec2(0, 0)),
-							 vec2(0, 0));
+	XMLDocument xmld;
+	xmld.Parse(spriteXML);
+	auto frame = developFrame(xmld.FirstChildElement("Sprite"));
+	if (frame.size() > 0)
+		sprite->sprite = frame.at(0);
+
 	vec2 dim = player.component<Sprite>().get()->getSpriteSize();
 	float cdat[2] = {dim.x, dim.y};
 	player.assign<Solid>(cdat[0], cdat[1]);

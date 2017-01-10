@@ -46,8 +46,8 @@ void ParticleSystem::render(void)
 	// copy data into VBO
 	glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
 
-	int offset = 0;
-	for (const auto& p : parts) {
+	for (unsigned int i = 0, offset = 0; i < parts.size() - 1; i++, offset += entrySize) {
+		const auto& p = parts[i];
 		static const auto& hl = game::HLINE;
 		GLfloat coords[30] = {
 			p.location.x,      p.location.y,      -1, p.color.x, p.color.y,
@@ -59,7 +59,6 @@ void ParticleSystem::render(void)
 		};
 
 		glBufferSubData(GL_ARRAY_BUFFER, offset, entrySize, coords);
-		offset += entrySize;
 	}
 
 	// begin actual rendering
@@ -128,7 +127,7 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 		case ParticleType::SmallPoof:
 			if (p.velocity.x == 0) {
 				p.velocity.y = 0.1f;
-				p.velocity.x = randGet() % 12 / 30.0f - 0.2f;
+				p.velocity.x = randGet() % 10 / 20.0f - 0.25f;
 			} else {
 				p.velocity.x += (p.velocity.x > 0) ? -0.001f : 0.001f;
 				p.velocity.y -= 0.0015f;

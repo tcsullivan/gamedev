@@ -338,7 +338,7 @@ void WorldSystem::load(const std::string& file)
 						auto sprite = entity.assign<Sprite>();
 						auto sprx = abcd;
 						auto frames = developFrame(sprx);
-						if (frames.size())
+						if (frames.size() > 0)
 							sprite->sprite = frames.at(0);
 					} else if (tname == "Portal") {
 						entity.assign<Portal>(wxml->StrAttribute("inside"));
@@ -401,8 +401,8 @@ void WorldSystem::load(const std::string& file)
 										idtc = 0;
 									else 
 										idtc = limbx->UnsignedAttribute("changeID");
-									for (uint i = 0; i < frames.size(); i++) {
-										entan->frame.push_back(std::make_pair(idtc, frames[i]));
+									for (const auto& f : frames) {
+										entan->frame.emplace_back(idtc, f);
 									}
 								limbx = limbx->NextSiblingElement();
 								}
