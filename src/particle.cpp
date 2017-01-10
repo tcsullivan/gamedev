@@ -4,19 +4,17 @@
 #include <render.hpp>
 #include <world.hpp>
 
-ParticleSystem::ParticleSystem(int count, bool m)
-	: max(m)
+ParticleSystem::ParticleSystem(unsigned int max)
+	: maximum(max)
 {
-	parts.reserve(count);
+	parts.reserve(maximum);
 }
 
-void ParticleSystem::add(const vec2& pos, const ParticleType& type, const int& timeleft, const unsigned char& color)
+void ParticleSystem::add(const vec2& pos, const ParticleType& type, const int& timeleft,
+	const unsigned char& color)
 {
-	// TODO not enforce max
-	if (/*max &&*/ parts.size() + 1 >= parts.capacity())
-		return;
-
-	parts.emplace_back(pos, type, timeleft, vec2(color / 8 * 0.25f, color % 8 * 0.125f + 0.0625f));
+	if (parts.size() < maximum)
+		parts.emplace_back(pos, type, timeleft, vec2(color / 8 * 0.25f, color % 8 * 0.125f + 0.0625f));
 }
 
 void ParticleSystem::addMultiple(const int& count, const ParticleType& type, std::function<vec2(void)> f,
@@ -24,22 +22,21 @@ void ParticleSystem::addMultiple(const int& count, const ParticleType& type, std
 {
 	int togo = count;
 	while (togo-- > 0)
-		parts.emplace_back(f(), type, timeleft, vec2(color / 8 * 0.25f, color % 8 * 0.125f + 0.0625f));
+		add(f(), type, timeleft, color);
 }
 
 void ParticleSystem::render(void)
 {
 	static GLuint particleVBO = 9999;
+	static const Texture palette ("assets/colorIndex.png");
 	// six vertices, 3d coord + 2d tex coord = 5
 	constexpr auto entrySize = (6 * 5) * sizeof(GLfloat);
-	static const Texture palette ("assets/colorIndex.png");
 
 	if (particleVBO == 9999) {
 		// generate VBO
 		glGenBuffers(1, &particleVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
-		glBufferData(GL_ARRAY_BUFFER, parts.capacity() * entrySize, nullptr,
-			GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, maximum * entrySize, nullptr,	GL_STREAM_DRAW);
 	}
 
 	// clear dead particles
@@ -51,7 +48,7 @@ void ParticleSystem::render(void)
 
 	int offset = 0;
 	for (const auto& p : parts) {
-		static const auto hl = game::HLINE;
+		static const auto& hl = game::HLINE;
 		GLfloat coords[30] = {
 			p.location.x,      p.location.y,      -1, p.color.x, p.color.y,
 			p.location.x,      p.location.y + hl, -1, p.color.x, p.color.y,
@@ -70,7 +67,6 @@ void ParticleSystem::render(void)
 	Render::worldShader.enable();
 
 	// set coords
-	glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
 	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE,
 		5 * sizeof(GLfloat), 0);
 	// set tex coords
@@ -78,12 +74,11 @@ void ParticleSystem::render(void)
 		5 * sizeof(GLfloat), reinterpret_cast<void*>(3 * sizeof(GLfloat)));
 
 	palette.use();
-	//if(glGetError() != GL_NO_ERROR)abort();
 	glDrawArrays(GL_TRIANGLES, 0, parts.size() * 6);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	Render::worldShader.disable();
 	Render::worldShader.unuse();
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -113,6 +108,7 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 				p.velocity.x += (p.velocity.x > 0) ? -0.002f : 0.002f;
 			}
 			p.velocity.y = -0.15f;
+			p.timeLeft = 1000;
 			break;
 		case ParticleType::SmallBlast:
 			if (p.velocity.x == 0) {
@@ -121,13 +117,22 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 				p.velocity.y = sin(degree) / 4.0f;
 			} else {
 				p.velocity.x += (p.velocity.x > 0) ? -0.001f : 0.001f;
-				p.velocity.x += (p.velocity.y > 0) ? -0.001f : 0.001f;
+				p.velocity.y += (p.velocity.y > 0) ? -0.001f : 0.001f;
 				if ((p.velocity.x > -0.01 && p.velocity.x < 0.01) &&
 					(p.velocity.y > -0.01 && p.velocity.y < 0.01)) {
 					p.timeLeft = 0;
 				}
 			}
 
+			break;
+		case ParticleType::SmallPoof:
+			if (p.velocity.x == 0) {
+				p.velocity.y = 0.1f;
+				p.velocity.x = randGet() % 12 / 30.0f - 0.2f;
+			} else {
+				p.velocity.x += (p.velocity.x > 0) ? -0.001f : 0.001f;
+				p.velocity.y -= 0.0015f;
+			}
 			break;
 		}
 
@@ -137,8 +142,12 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 
 		// world collision
 		auto height = worldSystem.isAboveGround(p.location);
-		if (height != 0)
-			p.location.y = height + 5, p.velocity.y = randGet() % 10 / 40.0f;
+		if (height != 0) {
+			if (p.type == ParticleType::Drop || p.type == ParticleType::SmallPoof)
+				p.location.y = height + 5, p.velocity.y = randGet() % 10 / 40.0f;
+			else 
+				p.timeLeft = 0;
+		}
 	}
 }
 

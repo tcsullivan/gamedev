@@ -11,7 +11,8 @@
 enum class ParticleType : char {
 	Drop,
 	Confetti,
-	SmallBlast
+	SmallBlast,
+	SmallPoof
 };
 
 struct Particle {
@@ -28,10 +29,10 @@ struct Particle {
 class ParticleSystem : public entityx::System<ParticleSystem> {
 private:
 	std::vector<Particle> parts;
-	bool max;
+	unsigned int maximum;
 
 public:
-	ParticleSystem(int count = 2048, bool m = false);
+	ParticleSystem(unsigned int max = 2048);
 
 	void add(const vec2& pos, const ParticleType& type, const int& timeleft = 3000,
 		const unsigned char& color = 0);

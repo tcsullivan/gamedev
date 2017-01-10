@@ -22,6 +22,7 @@ using namespace std::literals::chrono_literals;
 #include <components.hpp>
 #include <player.hpp>
 #include <weather.hpp>
+#include <particle.hpp>
 
 // local library headers
 #include <tinyxml2.h>
@@ -1156,7 +1157,11 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 			} else {
 				loc.y = data[line].groundHeight - 0.001f * dt;
 				vel.y = 0;
-				// TODO ground flag
+				if (!vel.grounded) {
+					vel.grounded = true;
+					game::engine.getSystem<ParticleSystem>()->addMultiple(20, ParticleType::SmallPoof,
+						[&](){ return vec2(loc.x + randGet() % static_cast<int>(dim.width * game::HLINE), loc.y);}, 500, 30);
+				}
 			}
 		}
 

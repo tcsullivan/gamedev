@@ -44,10 +44,11 @@ struct Direction {
 	 * @param x The velocity of the object on the x axis.
 	 * @param y The velocity of the object on the y axis.
 	 */
-	Direction(float x = 0.0f, float y = 0.0f): x(x), y(y) {}
+	Direction(float x = 0.0f, float y = 0.0f): x(x), y(y), grounded(false) {}
 
 	float x; /**< Velocity the object is moving in the x direction, this is added to the position */
 	float y; /**< Velocity the object is moving in the y direction, this is added to the position */
+	bool grounded;
 };
 
 /**

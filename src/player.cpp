@@ -86,6 +86,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 	if ((kc == SDLK_SPACE) && game::canJump && ((vel.y > -0.01) & (vel.y < 0.01))) {
 		loc.y += HLINES(2);
 		vel.y = .4;
+		vel.grounded = false;
 	} else if (!ui::dialogBoxExists || ui::dialogPassive) {
 		if (kc == getControl(0)) {
 			if (!ui::fadeIntensity)
