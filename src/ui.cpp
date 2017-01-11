@@ -309,7 +309,7 @@ namespace ui {
 		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+        glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0); // TODO seg faults
 
 		Render::textShader.disable();
 		Render::textShader.unuse();

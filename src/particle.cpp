@@ -84,12 +84,11 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 {
 	(void)en;
 	(void)ev;
-	(void)dt; // TODO use for time to die
 
 	auto& worldSystem = *game::engine.getSystem<WorldSystem>();
 
-	for (auto part = std::begin(parts); part != std::end(parts); part++) {
-		auto& p = *part;
+	for (unsigned int i = 0; i < parts.size(); i++) {
+		auto& p = parts[i];
 
 		// update timers
 		p.timeLeft -= dt;

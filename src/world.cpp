@@ -763,7 +763,7 @@ void WorldSystem::render(void)
 	//glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha) / 255.0f);
 	//makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
 
-	// TODO make stars dynamic
+	// TODO make stars dynamic (make them particles??)
 	/*static GLuint starTex = Texture::loadTexture("assets/style/classic/bg/star.png");
 	const static float stardim = 24;
 	GLfloat star_coord[star.size() * 5 * 6 + 1];

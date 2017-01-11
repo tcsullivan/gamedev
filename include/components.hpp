@@ -269,11 +269,6 @@ struct Animate {
 	}
 };
 
-//TODO
-struct Input {
-
-};
-
 /**
  * @struct Visible
  * @brief If an entity is visible we want to be able to draw it.

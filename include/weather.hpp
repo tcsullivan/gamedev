@@ -50,15 +50,15 @@ public:
 					offset.y + game::SCREEN_HEIGHT / 2 + 100),
 					ParticleType::Drop, 3000, 3);
 			}
-			break; // TODO
+			break;
 		case Weather::Snowy:
-			if (newPartDelay++ == 4) {
+			if (newPartDelay++ == 6) {
 				newPartDelay = 0;
-				partSystem.add(vec2(offset.x - game::SCREEN_WIDTH / 2 + randGet() % game::SCREEN_WIDTH,
-					offset.y + game::SCREEN_HEIGHT / 2 + 100),
+				partSystem.add(vec2(offset.x - game::SCREEN_WIDTH + randGet() % game::SCREEN_WIDTH * 2,
+					offset.y + game::SCREEN_HEIGHT / 2 + 50),
 					ParticleType::Confetti, 6000, 0);
 			}
-			break; // TODO
+			break;
 		default:
 			break;
 		}
