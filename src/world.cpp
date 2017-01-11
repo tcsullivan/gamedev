@@ -9,7 +9,6 @@
 #include <sstream>
 #include <fstream>
 #include <memory>
-#include <mutex>
 #include <chrono>
 using namespace std::literals::chrono_literals;
 
@@ -56,9 +55,6 @@ extern std::string  xmlFolder;
 
 // wait
 static bool waitToSwap = false;
-
-// particle mutex
-std::mutex partMutex;
 
 // externally referenced in main.cpp
 int worldShade = 0;

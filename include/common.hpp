@@ -45,6 +45,7 @@
 
 // windows stuff
 #ifdef __WIN32__
+using uint = unsigned int;
 #undef near
 #endif
 
