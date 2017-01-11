@@ -162,7 +162,7 @@ float WorldSystem::isAboveGround(const vec2& p) const
 static Color ambient;
 
 bool WorldSystem::save(void)
-{
+{	
 	if (world.indoor)
 		return false;
 
@@ -241,7 +241,7 @@ void WorldSystem::load(const std::string& file)
 	game::engine.getSystem<PlayerSystem>()->create();
 
 	// iterate through tags
-	while (wxml) {
+	while (wxml != nullptr) {
 		std::string tagName = wxml->Name();
 
 		// style tag
@@ -276,7 +276,7 @@ void WorldSystem::load(const std::string& file)
 				UserError("<house> can only be used inside <IndoorWorld>");
 
 			//world.indoorWidth = wxml->FloatAttribute("width");
-			world.indoorTex = render.loadTexture(wxml->StrAttribute("texture"));
+			(void)render;//world.indoorTex = render.loadTexture(wxml->StrAttribute("texture")); // TODO winbloze lol
 			//auto str = wxml->StrAttribute("texture");
 			//auto tex = render.loadTexture(str);
 			//world.indoorTex = tex;

@@ -44,8 +44,13 @@ SDL_Keycode getControl(int index);
 
 #include <entityx/entityx.h>
 
-class InputSystem : public entityx::System<InputSystem> {
+class InputSystem : public entityx::System<InputSystem>, public entityx::Receiver<InputSystem> {
 public:
+	inline void configure(entityx::EventManager &ev) {
+		ev.subscribe<MainSDLEvent>(*this);
+	}
+
+	void receive(const MainSDLEvent& event);
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 };
 

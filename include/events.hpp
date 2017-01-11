@@ -16,6 +16,13 @@ class World;
 /// INPUT EVENTS
 //////////////////////////
 
+struct MainSDLEvent {
+	MainSDLEvent(SDL_Event e)
+		: event(e) {}
+	
+	SDL_Event event;
+};
+
 struct MouseScrollEvent {
  	MouseScrollEvent(int sd = 0)
  		: scrollDistance(sd) {}

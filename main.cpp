@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	// enable v-sync (TODO but 1000 fps?)
-	SDL_GL_SetSwapInterval(1);
+	SDL_GL_SetSwapInterval(0);
 	// hide the cursor
 	SDL_ShowCursor(SDL_DISABLE);
 	// switch to pixel grid
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 					worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 
 					// update fades
-					ui::fadeUpdate();
+					//ui::fadeUpdate();
 
 					// increment game ticker
 					game::time::tick();
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
 				std::this_thread::sleep_for(1ms);
 			}
 		});
-
+		
 		static float fpsInternal = 0;
 
 		// the debug loop, gets debug screen values
@@ -219,12 +219,16 @@ int main(int argc, char *argv[])
 			}
 		});
 
-		// thre render loop, renders
+		// the render loop, renders
 		const bool &run = game::engine.shouldRun;
 		while (run) {
 			fpsInternal++;
 			render();
 			game::engine.resetRender(0); // TODO stupid
+			
+			SDL_Event e;
+			while (SDL_PollEvent(&e))
+				game::events.emit<MainSDLEvent>(e);
 		}
 
 		// on game end, get back together

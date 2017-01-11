@@ -172,7 +172,8 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 			    ((mce.position.y > pos.y) & (mce.position.y < pos.y + dim.height))) {
 
 			if (!dialogRun.load()) {
-				std::thread([&] {
+				// copy entity, windows destroys the original after thread detach
+				std::thread([e, &pos, &dim, &d, &name] {
 					std::string questAssignedText;
 					int newIndex;
 

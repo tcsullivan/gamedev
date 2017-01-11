@@ -39,11 +39,11 @@ cleandata:
 	touch brice.dat
 
 $(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
-	g++ -I. -std=c++11 -c entityx/help/Pool.cc -o out/Pool.o
-	g++ -I. -std=c++11 -c entityx/help/Timer.cc -o out/Timer.o
-	g++ -I. -std=c++11 -c entityx/Event.cc -o out/Event.o
-	g++ -I. -std=c++11 -c entityx/Entity.cc -o out/Entity.o
-	g++ -I. -std=c++11 -c entityx/System.cc -o out/System.o
+	#g++ -I. -std=c++11 -c entityx/help/Pool.cc -o out/Pool.o
+	#g++ -I. -std=c++11 -c entityx/help/Timer.cc -o out/Timer.o
+	#g++ -I. -std=c++11 -c entityx/Event.cc -o out/Event.o
+	#g++ -I. -std=c++11 -c entityx/Entity.cc -o out/Entity.o
+	#g++ -I. -std=c++11 -c entityx/System.cc -o out/System.o
 	
 	@echo "  CXX/LD  main"
 	@$(CXX) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/*.o $(LIBS)
