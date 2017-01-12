@@ -1147,7 +1147,8 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 		const auto& data = world.data;
 		if (loc.y < data[line].groundHeight) {
 			int dir = vel.x < 0 ? -1 : 1;
-			if (line + dir * 2 < static_cast<int>(data.size()) &&
+			auto thing = line + dir * 2;
+			if (thing > 0 && thing < static_cast<int>(data.size()) &&
 			    data[line + dir * 2].groundHeight - 30 > data[line + dir].groundHeight) {
 				loc.x -= (PLAYER_SPEED_CONSTANT + 2.7f) * dir * 2;
 				vel.x = 0;
@@ -1179,12 +1180,15 @@ void WorldSystem::goWorldRight(Position& p, Solid &d)
 {
 	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(5))) {
 		auto& rs = *game::engine.getSystem<RenderSystem>();
-		rs.fadeLock();
+		//rs.fadeLock();
+		ui::toggleBlack();
+		ui::waitForCover();
 		while (waitToSwap)
 			std::this_thread::sleep_for(1ms);
 		load(world.toRight);
 		game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(10));
-		rs.unfade();
+		ui::toggleBlack();
+		//rs.unfade();
 	}
 }
 

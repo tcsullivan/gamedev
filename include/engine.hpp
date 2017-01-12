@@ -40,13 +40,6 @@ public:
 	void init(void);
 
 	/**
-	 * Updates all rendering systems.
-	 * @param dt the delta time
-	 */
-    void render(entityx::TimeDelta dt);
-	void resetRender(entityx::TimeDelta dt);
-
-	/**
 	 * Updates all logic systems.
 	 * @param dt the delta time
 	 */

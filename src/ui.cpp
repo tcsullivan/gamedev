@@ -535,8 +535,8 @@ namespace ui {
 		auto& fi = fadeIntensity;
 		fi = 0;
 
-		//while (fi < 255)
-			//std::this_thread::sleep_for(1ms);
+		while (fi < 255)
+			std::this_thread::sleep_for(1ms);
 			
 		fi = 255;
 	}
@@ -973,6 +973,18 @@ namespace ui {
 			}*/
 			setFontColor(255,255,255,255);
 		}
+
+		if (currentMenu != nullptr)
+			menu::draw();
+
+		// draw the mouse
+		static const Texture mouseTex ("assets/goodmouse.png");
+		Render::textShader.use();
+		glActiveTexture(GL_TEXTURE0);
+		mouseTex.use();
+		Render::useShader(&Render::textShader);
+		Render::drawRect(vec2(ui::mouse.x, ui::mouse.y - 64), vec2(ui::mouse.x + 64, ui::mouse.y), -9.9);
+		Render::textShader.unuse();
 	}
 
 	void closeBox() {
@@ -1017,43 +1029,40 @@ namespace ui {
 	}
 
 	void drawFade(void) {
-		static const auto SCREEN_WIDTH2 = game::SCREEN_WIDTH / 2;
-		static const auto SCREEN_HEIGHT2 = game::SCREEN_HEIGHT / 2;
-
 		if (!fadeIntensity) {
 			if (fontSize != 16)
 				setFontSize(16);
 			return;
 		}
 
-		static const GLfloat tex[] = {
-			0.0, 0.0,
-			1.0, 0.0,
-			0.0, 1.0,
-			1.0, 1.0
+		static const GLfloat tex[12] = {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 		};
 
-        GLfloat backdrop[] = {
-			offset.x - SCREEN_WIDTH2 - 1, offset.y - SCREEN_HEIGHT2, -7.9,
-			offset.x + SCREEN_WIDTH2, offset.y - SCREEN_HEIGHT2, -7.9,
-			offset.x - SCREEN_WIDTH2 - 1, offset.y + SCREEN_HEIGHT2, -7.9,
-			offset.x + SCREEN_WIDTH2, offset.y + SCREEN_HEIGHT2, -7.9
+		vec2 p1 (offset.x - game::SCREEN_WIDTH / 2, offset.y - game::SCREEN_HEIGHT / 2);
+		vec2 p2 (p1.x + game::SCREEN_WIDTH, p1.y + game::SCREEN_HEIGHT);
+        GLfloat backdrop[18] = {
+			p1.x, p1.y, -7.9,
+			p2.x, p1.y, -7.9,
+			p2.x, p2.y, -7.9,
+
+			p2.x, p2.y, -7.9,
+			p1.x, p2.y, -7.9,
+			p1.x, p1.y, -7.9
 		};
 
 		setFontZ(-8.2);
-        glUniform1i(Render::textShader.uniform[WU_texture], 0);
-
 		Render::textShader.use();
 		Render::textShader.enable();
+
 		Colors::black.use();
 		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, fadeIntensity / 255.0f);
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
         glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		Render::textShader.disable();
 		Render::textShader.unuse();
-
 		setFontZ(-8.0);
     }
 

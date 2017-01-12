@@ -38,20 +38,9 @@ void Engine::init(void) {
     systems.configure();
 
     ui::initSounds();
+	ui::menu::init();
 	game::config::update();
 	getSystem<PlayerSystem>()->create();
-}
-
-void Engine::render(entityx::TimeDelta dt)
-{
-    systems.update<RenderSystem>(dt);
-    //systems.update<InventorySystem>(dt); // doesn't do anything...
-
-	ui::fadeUpdate();
-}
-void Engine::resetRender(entityx::TimeDelta dt)
-{
-	systems.update<WindowSystem>(dt);
 }
 
 void Engine::update(entityx::TimeDelta dt)
