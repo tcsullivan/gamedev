@@ -142,12 +142,9 @@ int main(int argc, char *argv[])
 		xmlFolder = "xml/";
 
 	// read in all XML file names in the folder
-	std::vector<std::string> xmlFiles;
+	std::list<std::string> xmlFiles;
 	if (getdir(std::string("./" + xmlFolder).c_str(), xmlFiles))
 		UserError("Error reading XML files!!!");
-
-	// alphabetically sort files
-	strVectorSortAlpha(&xmlFiles);
 
 	// kill the world if needed
 	if (worldReset) {

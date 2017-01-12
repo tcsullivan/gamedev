@@ -54,8 +54,6 @@ using uint = unsigned int;
  */
 #define DEBUG_printf(message, ...) DEBUG_prints(__FILE__, __LINE__, message, __VA_ARGS__)
 
-#define BREAKPOINT __asm__("int $3")
-
 #define coalesce(v1, v2) ((v1 != nullptr) ? v1 : v2)
 
 /**
@@ -193,12 +191,12 @@ public:
 /**
  * The amount of game ticks that should occur each second.
  */
-constexpr const unsigned int TICKS_PER_SEC = 20;
+constexpr unsigned int TICKS_PER_SEC = 20;
 
 /**
  * The amount of milliseconds it takes for a game tick to fire.
  */
-constexpr const float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
+constexpr float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
 
 /**
  * Separates a string into tokens using the given delimiter.
@@ -216,16 +214,6 @@ std::vector<std::string> StringTokenizer(const std::string& str, char delim);
  * @return the vec2 of the values passed in the string
  */
 vec2 str2coord(std::string s);
-
-/**
- * A function to draw a colored box for OpenGL.
- * To use it, the lower left hand and upper right hand coords are given.
- *
- * @param the lower left coordinate
- * @param the upper right coordinate
- * @param the z coordinate
- */
-void drawRect(vec2 ll, vec2 ur, float z);
 
 /**
  * Returns a measurement in HLINEs
@@ -252,7 +240,7 @@ inline T HLINES(const T &n)
 #define randGet rand
 
 // defines pi for calculations that need it.
-constexpr const float PI = 3.1415926535f;
+constexpr float PI = 3.1415926535f;
 
 // references the variable in main.cpp, used for drawing with the player
 extern vec2 offset;
@@ -266,10 +254,7 @@ void DEBUG_prints(const char* file, int line, const char *s,...);
 unsigned int millis(void);
 
 // reads the names of files in a directory into the given string vector
-int getdir(std::string dir, std::vector<std::string> &files);
-
-// sorts a vector of strings alphabetically
-void strVectorSortAlpha(std::vector<std::string> *v);
+int getdir(std::string dir, std::list<std::string>& files);
 
 // reads the given file into a buffer and returns a pointer to the buffer
 std::string readFile(const std::string& path);

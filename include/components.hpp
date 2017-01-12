@@ -335,9 +335,20 @@ class RenderSystem : public entityx::System<RenderSystem> {
 private:
 	std::string loadTexString;
 	Texture loadTexResult;
+
+	float fadeIntensity;
+	bool fadeIn;
 public:
+	RenderSystem(void)
+		: fadeIntensity(1), fadeIn(true) {}
+
 	Texture loadTexture(const std::string& file);
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+
+	void fade(void);
+	void fadeLock(void);
+	void unfade(void);
+	void unfadeLock(void);
 };
 
 class DialogSystem : public entityx::System<DialogSystem>, public entityx::Receiver<DialogSystem> {

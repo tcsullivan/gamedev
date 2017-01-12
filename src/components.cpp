@@ -12,6 +12,8 @@
 
 #include <atomic>
 
+using namespace std::literals::chrono_literals;
+
 static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -66,8 +68,32 @@ Texture RenderSystem::loadTexture(const std::string& file)
 	loadTexString = file;
 	loadTexResult = Texture();
 	while (loadTexResult.isEmpty())
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		std::this_thread::sleep_for(1ms);
 	return loadTexResult;
+}
+
+void RenderSystem::fade(void)
+{
+	fadeIn = false, fadeIntensity = 0;
+}
+
+void RenderSystem::fadeLock(void)
+{
+	fade();
+	while (fadeIntensity < 1)
+		std::this_thread::sleep_for(1ms);
+}
+
+void RenderSystem::unfade(void)
+{
+	fadeIn = true, fadeIntensity = 1;
+}
+
+void RenderSystem::unfadeLock(void)
+{
+	fade();
+	while (fadeIntensity > 0)
+		std::this_thread::sleep_for(1ms);
 }
 
 void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -79,7 +105,14 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 		loadTexString.clear();
 	}
 
+	// update fade system
+	if (fadeIn && fadeIntensity > 0)
+		fadeIntensity -= 0.01f;
+	else if(!fadeIn && fadeIntensity < 1)
+		fadeIntensity += 0.01f;
+	
 	Render::worldShader.use();
+	Render::worldShader.enable();
 
 	en.each<Visible, Sprite, Position>([dt](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {
 		// Verticies and shit
@@ -131,7 +164,6 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 			sp.tex.use();
 
 			glUniform1i(Render::worldShader.uniform[WU_texture], 0);
-			Render::worldShader.enable();
 
 			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
 			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
@@ -153,6 +185,32 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 		ui::setFontZ(-5.0);
 		ui::putStringCentered(pos.x + dim.width / 2, pos.y - ui::fontSize - HLINES(0.5), name.name);
 	});
+
+	// draw fade
+	static const GLfloat tex[8] = {
+		0, 0, 0, 0, 0, 0, 0, 0
+	};
+
+	auto SCREEN_WIDTH2 = game::SCREEN_WIDTH / 2, SCREEN_HEIGHT2 = game::SCREEN_HEIGHT / 2;
+	GLfloat coord[12] = {
+		offset.x - SCREEN_WIDTH2 - 1, offset.y - SCREEN_HEIGHT2, -7.9,
+		offset.x + SCREEN_WIDTH2,     offset.y - SCREEN_HEIGHT2, -7.9,
+		offset.x - SCREEN_WIDTH2 - 1, offset.y + SCREEN_HEIGHT2, -7.9,
+		offset.x + SCREEN_WIDTH2,     offset.y + SCREEN_HEIGHT2, -7.9
+	};
+
+	Render::textShader.use();
+	Render::textShader.enable();
+
+	Colors::black.use();
+	glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, fadeIntensity);
+	glUniform1i(Render::textShader.uniform[WU_texture], 0);
+	glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coord);
+	glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+	glDrawArrays(GL_QUADS, 0, 4);
+
+	Render::textShader.disable();
+	Render::textShader.unuse();
 }
 
 void DialogSystem::configure(entityx::EventManager &ev)

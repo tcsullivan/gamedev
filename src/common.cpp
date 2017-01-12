@@ -18,8 +18,10 @@
 #endif // __WIN32__
 
 unsigned int millis(void) {
-	std::chrono::system_clock::time_point now=std::chrono::system_clock::now();
-	return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+	using namespace std::chrono;
+
+	auto now = system_clock::now();
+	return duration_cast<milliseconds>(now.time_since_epoch()).count();
 }
 
 
@@ -37,7 +39,7 @@ std::vector<std::string> StringTokenizer(const std::string& str, char delim)
 	std::string token;
 
 	while (getline(is, token, delim))
-		tokens.push_back(token);
+		tokens.emplace_back(token);
 
 	return tokens;
 }
@@ -51,56 +53,41 @@ void DEBUG_prints(const char* file, int line, const char *s,...)
 	va_end(args);
 }
 
-int getdir(std::string dir, std::vector<std::string> &files)
+int getdir(std::string dir, std::list<std::string>& files)
 {
 #ifndef __WIN32__
-    DIR *dp;
-    struct dirent *dirp;
-    if (!(dp = opendir(dir.c_str()))) {
-        std::cout <<"Error ("<<errno<<") opening "<<dir<<std::endl;
-        return errno;
-    }
-    while((dirp = readdir(dp)))
-        files.push_back(std::string(dirp->d_name));
+	auto dp = opendir(dir.c_str());
+	if (dp == nullptr)
+		UserError("Couldn\'t open folder: " + dir);
+
+	auto dirp = readdir(dp);
+	while (dirp != nullptr) {
+		files.emplace_back(dirp->d_name);
+		dirp = readdir(dp);
+	}
+
     closedir(dp);
 #else
-	HANDLE dirh;
-	WIN32_FIND_DATA file_data;
+	WIN32_FIND_DATA fileData;
+	auto dirh = FindFirstFile((dir + "/*").c_str(), &fileData);
+	if (dirh == INVALID_HANDLE_VALUE)
+		UserError("Couldn\'t open folder: " + dir);
 
-	if ((dirh = FindFirstFile((dir + "/*").c_str(), &file_data)) == INVALID_HANDLE_VALUE)
-        return -1; /* No files found */
+	do {
+		auto fileName = fileData.cFileName;
 
-    do {
-        const std::string file_name = file_data.cFileName;
-        const std::string full_file_name = dir + file_name;
-        const bool is_directory = (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+		if (fileName[0] == '.')
+			continue;
 
-        if (file_name[0] == '.')
-            continue;
-
-        if (is_directory)
-            continue;
-
-        files.push_back(file_name);
-    } while (FindNextFile(dirh, &file_data));
+		if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+			files.emplace_back(fileName);
+    } while (FindNextFile(dirh, &fileData));
 
     FindClose(dirh);
 #endif // __WIN32__
-	return 0;
-}
 
-void strVectorSortAlpha(std::vector<std::string> *v)
-{
-	static bool change;
-	do {
-		change = false;
-		for (unsigned int i=0; i < v->size() - 1; i++) {
-			if (v[0][i] > v[0][i + 1]) {
-				std::swap(v[0][i], v[0][i + 1]);
-				change = true;
-			}
-		}
-	} while (change);
+	files.sort();
+	return 0;
 }
 
 std::string readFile(const std::string& path)

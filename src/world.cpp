@@ -1178,13 +1178,13 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 void WorldSystem::goWorldRight(Position& p, Solid &d)
 {
 	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(5))) {
-		ui::toggleBlack();
-		ui::waitForCover();
+		auto& rs = *game::engine.getSystem<RenderSystem>();
+		rs.fadeLock();
 		while (waitToSwap)
 			std::this_thread::sleep_for(1ms);
 		load(world.toRight);
 		game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(10));
-		ui::toggleBlack();
+		rs.unfade();
 	}
 }
 
