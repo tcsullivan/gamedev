@@ -70,6 +70,38 @@ public:
 	}
 };
 
+#include <atomic>
+#include <chrono>
+
+class LockableEntityManager : public entityx::EntityManager {
+private:
+	std::atomic_bool locked;
+	
+public:
+	LockableEntityManager(entityx::EventManager& ev)
+		: EntityManager(ev) {
+		locked.store(false);
+	}
+	
+	void lock(void) {
+		while (locked.load())
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		
+		locked.store(true);
+	}
+	
+	void unlock(void) {
+		locked.store(false);
+	}
+	
+	bool try_lock(void) {
+		if (locked.load())
+			return false;
+		
+		locked.store(true);
+		return true;
+	}
+};
 
 namespace game {
 	/**
@@ -80,8 +112,8 @@ namespace game {
 	/**
 	 * Handles entity data.
 	 */
-    extern entityx::EntityManager entities;
-
+    extern LockableEntityManager entities;
+	
 	/**
 	 * An instance of the main game engine.
 	 */

@@ -162,6 +162,7 @@ void DialogSystem::configure(entityx::EventManager &ev)
 
 void DialogSystem::receive(const MouseClickEvent &mce)
 {
+	game::entities.lock();
 	game::entities.each<Position, Solid, Dialog, Name>(
 		[&](entityx::Entity e, Position &pos, Solid &dim, Dialog &d, Name &name) {
 			static std::atomic_bool dialogRun;
@@ -270,6 +271,7 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 			}
 		}
 	});
+	game::entities.unlock();
 }
 
 void DialogSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)

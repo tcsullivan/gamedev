@@ -535,10 +535,8 @@ namespace ui {
 		auto& fi = fadeIntensity;
 		fi = 0;
 
-		while (fi < 255) {
-			fadeUpdate();
-			std::this_thread::sleep_for(1ms);
-		}
+		//while (fi < 255)
+			//std::this_thread::sleep_for(1ms);
 			
 		fi = 255;
 	}

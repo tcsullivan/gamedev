@@ -171,6 +171,7 @@ bool WorldSystem::save(void)
 	// signature?
 	save << "831998 ";
 
+	game::entities.lock();
 	game::entities.each<Position>([&](entityx::Entity entity, Position& pos) {
 		// save position
 		save << "p " << pos.x << ' ' << pos.y << ' ';
@@ -179,6 +180,7 @@ bool WorldSystem::save(void)
 		if (entity.has_component<Dialog>())
 			save << "d " << entity.component<Dialog>()->index << ' ';
 	});
+	game::entities.unlock();
 
 	save.close();
 	return true;
@@ -237,6 +239,7 @@ void WorldSystem::load(const std::string& file)
 
 	world.toLeft = world.toRight = "";
 	currentXMLFile = file;
+	game::entities.lock();
 	game::entities.reset();
 	game::engine.getSystem<PlayerSystem>()->create();
 
@@ -456,6 +459,7 @@ void WorldSystem::load(const std::string& file)
 	}
 
 	game::events.emit<BGMToggleEvent>();
+	game::entities.unlock();
 }
 
 /*
@@ -1104,32 +1108,30 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 void WorldSystem::detect(entityx::TimeDelta dt)
 {
+	game::entities.lock();
 	game::entities.each<Grounded, Position, Solid>(
 		[&](entityx::Entity e, Grounded &g, Position &loc, Solid &dim) {
-			(void)e;
-			if (!g.grounded) {
-				// get the line the entity is on
-				int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world.startX) / game::HLINE),
-									  0,
-									  static_cast<int>(world.data.size()));
-
+		(void)e;
+		if (!g.grounded) {
+			// get the line the entity is on
+			int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world.startX) / game::HLINE),
+				0, static_cast<int>(world.data.size()));
 				// make sure entity is above ground
-				const auto& data = world.data;
-				if (loc.y != data[line].groundHeight) {
-					loc.y = data[line].groundHeight;
-					e.remove<Grounded>();
-				}
+			const auto& data = world.data;
+			if (loc.y != data[line].groundHeight) {
+				loc.y = data[line].groundHeight;
+				e.remove<Grounded>();
 			}
-
-		});
+		}
+	});
 
 	game::entities.each<Direction, Physics>(
 		[&](entityx::Entity e, Direction &vel, Physics &phys) {
-			(void)e;
-			// handle gravity
-        	if (vel.y > -2.0f)
-				vel.y -= (GRAVITY_CONSTANT * phys.g) * dt;
-		});
+		(void)e;
+		// handle gravity
+        if (vel.y > -2.0f)
+			vel.y -= (GRAVITY_CONSTANT * phys.g) * dt;
+	});
 
 	game::entities.each<Position, Direction, Solid>(
 	    [&](entityx::Entity e, Position &loc, Direction &vel, Solid &dim) {
@@ -1139,8 +1141,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 
 		// get the line the entity is on
 		int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world.startX) / game::HLINE),
-		                      0,
-		                      static_cast<int>(world.data.size()));
+			0, static_cast<int>(world.data.size()));
 
 		// make sure entity is above ground
 		const auto& data = world.data;
@@ -1171,6 +1172,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 			loc.x = -(static_cast<int>(world.startX)) - dim.width - game::HLINE;
 		}
 	});
+	game::entities.unlock();
 }
 
 void WorldSystem::goWorldRight(Position& p, Solid &d)
@@ -1208,17 +1210,18 @@ void WorldSystem::goWorldPortal(Position& p)
 		p.x = world.outdoorCoords.x; // ineffective, player is regen'd
 		p.y = world.outdoorCoords.y;
 	} else {
+		game::entities.lock();
 		game::entities.each<Position, Solid, Portal>(
 			[&](entityx::Entity entity, Position& loc, Solid &dim, Portal &portal) {
-				(void)entity;
-				if (!(portal.toFile.empty()) && p.x > loc.x && p.x < loc.x + dim.width)  {
-					file = portal.toFile;
-					world.outdoor = currentXMLFile;
-					world.outdoorCoords = vec2(loc.x + dim.width / 2, 100);
-					return;
-				}
+			(void)entity;
+			if (!(portal.toFile.empty()) && p.x > loc.x && p.x < loc.x + dim.width)  {
+				file = portal.toFile;
+				world.outdoor = currentXMLFile;
+				world.outdoorCoords = vec2(loc.x + dim.width / 2, 100);
+				return;
 			}
-		);
+		});
+		game::entities.unlock();
 	}
 
 	if (!file.empty()) {
