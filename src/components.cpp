@@ -306,12 +306,12 @@ std::vector<Frame> developFrame(XMLElement* xml)
 				std::string sname = sxml->Name();
 				if (sname == "src") {
 					foffset = (sxml->Attribute("offset") != nullptr) ? 
-						str2coord(sxml->Attribute("offset")) : vec2(0,0);
+						sxml->StrAttribute("offset") : vec2(0,0);
 					fdraw = (sxml->Attribute("drawOffset") != nullptr) ?
-						str2coord(sxml->Attribute("drawOffset")) : vec2(0,0);
+						sxml->StrAttribute("drawOffset") : vec2(0,0);
 
 					if (sxml->Attribute("size") != nullptr) {
-						fsize = str2coord(sxml->Attribute("size"));
+						fsize = sxml->Attribute("size");
 						tmpf.push_back(std::make_pair(SpriteData(sxml->GetText(), foffset, fsize), fdraw));
 					} else {
 						tmpf.push_back(std::make_pair(SpriteData(sxml->GetText(), foffset), fdraw));

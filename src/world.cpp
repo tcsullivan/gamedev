@@ -324,9 +324,9 @@ void WorldSystem::load(const std::string& file)
 						vec2 coords;
 
 						if (wxml->Attribute("position") != nullptr) {
-							coords = str2coord(wxml->StrAttribute("position"));
+							coords = wxml->StrAttribute("position");
 						} else {
-							coords = str2coord(abcd->StrAttribute("value"));
+							coords = abcd->StrAttribute("value");
 						}
 
 						float cdat[2] = {coords.x, coords.y};
@@ -345,7 +345,7 @@ void WorldSystem::load(const std::string& file)
 						vec2 dim;
 
 						if (abcd->Attribute("value") != nullptr)
-							dim = str2coord(abcd->StrAttribute("value"));
+							dim = abcd->StrAttribute("value");
 						else
 							dim = entity.component<Sprite>()->getSpriteSize();
 
@@ -355,9 +355,9 @@ void WorldSystem::load(const std::string& file)
 						vec2 dir;
 
 						if (wxml->Attribute("direction") != nullptr) {
-							dir = str2coord(wxml->StrAttribute("direction"));
+							dir = wxml->StrAttribute("direction");
 						} else if (wxml->Attribute("value") != nullptr) {
-							dir = str2coord(wxml->StrAttribute("value"));
+							dir = wxml->StrAttribute("value");
 						} else {
 							dir = vec2(0,0);
 						}
@@ -669,9 +669,8 @@ void WorldSystem::render(void)
 	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-	const ivec2 backgroundOffset = ivec2 {
-        static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2
-    };
+	const vector2<int> backgroundOffset
+		(static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2);
 
 	int iStart, iEnd, pOffset;
 
@@ -1179,8 +1178,6 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 void WorldSystem::goWorldRight(Position& p, Solid &d)
 {
 	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(5))) {
-		auto& rs = *game::engine.getSystem<RenderSystem>();
-		//rs.fadeLock();
 		ui::toggleBlack();
 		ui::waitForCover();
 		while (waitToSwap)
@@ -1188,7 +1185,6 @@ void WorldSystem::goWorldRight(Position& p, Solid &d)
 		load(world.toRight);
 		game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(10));
 		ui::toggleBlack();
-		//rs.unfade();
 	}
 }
 

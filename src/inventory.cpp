@@ -2,10 +2,10 @@
 
 #include <common.hpp>
 #include <events.hpp>
-#include <texture.hpp>
-#include <render.hpp>
+//#include <texture.hpp>
+//#include <render.hpp>
 
-constexpr const char* ICON_TEX_FILE_PATH = "config/invIcons.txt";
+constexpr const char* iconTexturePath = "config/invIcons.txt";
 
 static std::vector<Texture> iconTextures;
 
@@ -16,7 +16,7 @@ void InventorySystem::configure(entityx::EventManager &ev)
 
 void InventorySystem::loadIcons(void) {
     iconTextures.clear();
-    auto icons = readFileA(ICON_TEX_FILE_PATH);
+    auto icons = readFileA(iconTexturePath);
     for (const auto& s : icons)
         iconTextures.push_back(s);
 }

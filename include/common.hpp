@@ -55,73 +55,10 @@ using uint = unsigned int;
 
 #define coalesce(v1, v2) ((v1 != nullptr) ? v1 : v2)
 
-/**
- * Creates a coordinate of integers.
- */
-typedef struct {
-	int x; /**< The x coordinate */
-	int y; /**< The y coordinate */
-} ivec2;
+#include <vector2.hpp>
 
-/**
- * A pair of x and y for dimensions (i.e. width and height).
- */
-typedef ivec2 dim2;
-
-/**
- * Creates a coordinate out of floating point integers.
- */
-struct vec2 {
-	float x;
-	float y;
-
-	vec2(float _x = 0.0f, float _y = 0.0f)
-		: x(_x), y(_y) {}
-
-	bool operator==(const vec2 &v) const {
-		return (x == v.x) && (y == v.y);
-	}
-
-	template<typename T>
-	const vec2 operator=(const T &n) {
-		x = y = n;
-		return *this;
-	}
-
-	template<typename T>
-	vec2 operator+(T n) const {
-		return vec2 (x + n, y + n);
-	}
-
-	vec2 operator+(const vec2 &v) {
-		return vec2 (x + v.x, y + v.y);
-	}
-
-	vec2 operator*(const float&n) const {
-		return vec2 (x * n, y * n);
-	}
-
-	vec2 operator/(const float& n) const {
-		return vec2 (x / n, y / n);
-	}
-
-	// std::swap can't work due to being packed
-
-	inline void swapX(vec2 &v) {
-		float t = x;
-		x = v.x, v.x = t;
-	}
-
-	inline void swapY(vec2 &v) {
-		float t = y;
-		y = v.y, v.y = t;
-	}
-
-	std::string toString(void) const {
-		return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
-	}
-
-} __attribute__ ((packed));
+using vec2 = vector2<float>;
+using dim2 = vector2<int>;
 
 /**
  * A structure for three-dimensional points.
@@ -133,8 +70,7 @@ struct vec3 {
 
 	vec3(float _x = 0.0f, float _y = 0.0f, float _z = 1.0f)
 		: x(_x), y(_y), z(_z) {}
-
-} __attribute__ ((packed));
+};
 
 /**
  * This structure contains two sets of coordinates for ray drawing.
@@ -155,35 +91,15 @@ public:
 	float blue;  /**< The amount of blue */
 	float alpha; /**< Transparency */
 
-    Color() {
-		red = green = blue = alpha = 0.0f;
+	Color(float r = 0, float g = 0, float b = 0, float a = 255)
+		: red(r), green(g), blue(b), alpha(a) {}
+
+	Color operator-(const float& a) {
+		return Color(red - a, green - a, blue - a, alpha);
 	}
 
-	Color(float r, float g ,float b) {
-		red = r;
-		green = g;
-		blue = b;
-        alpha = 255;
-	}
-
-    Color(float r, float g, float b, float a) {
-        red = r;
-        green = g;
-        blue = b;
-        alpha = a;
-    }
-
-	Color operator-=(float a) {
-		red -= a;
-		green -= a;
-		blue -= a;
-		return{red+a,green+a,blue+a};
-	}
-	Color operator+=(float a) {
-		return{red+a,green+a,blue+a};
-	}
-	Color operator=(float a) {
-		return{red=a,green=a,blue=a};
+	Color operator+(const float& a) {
+		return Color(red + a, green + a, blue + a, alpha);
 	}
 };
 
@@ -205,14 +121,6 @@ constexpr float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
  * @return a vector of the tokens
  */
 std::vector<std::string> StringTokenizer(const std::string& str, char delim);
-
-/**
- * Seperates a string like, "23,12" to a vec2.
- * 
- * @param s the string to parse
- * @return the vec2 of the values passed in the string
- */
-vec2 str2coord(std::string s);
 
 /**
  * Returns a measurement in HLINEs

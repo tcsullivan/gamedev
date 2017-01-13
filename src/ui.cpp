@@ -650,8 +650,8 @@ namespace ui {
 		auto stride = 5 * sizeof(GLfloat);
 
 		// we always want to make sure c1 is lower left and c2 is upper right
-		if (c1.x > c2.x) c1.swapX(c2); // std::swap(c1.x, c2.y);
-		if (c1.y > c2.y) c1.swapY(c2); // std::swap(c1.y, c2.y);
+		if (c1.x > c2.x) std::swap(c1.x, c2.x);
+		if (c1.y > c2.y) std::swap(c1.y, c2.y);
 
 		// if the box is too small, we will not be able to draw it
 		if (c2.x - c1.x < (boxCornerDim.x) || c2.y - c1.y < (boxCornerDim.y))

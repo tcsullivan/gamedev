@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
 	// read in all XML file names in the folder
 	std::list<std::string> xmlFiles;
-	if (getdir(std::string("./" + xmlFolder).c_str(), xmlFiles))
+	if (getdir(std::string("./" + xmlFolder), xmlFiles))
 		UserError("Error reading XML files!!!");
 
 	// kill the world if needed
