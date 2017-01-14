@@ -17,13 +17,13 @@ enum class ParticleType : char {
 
 struct Particle {
 	int timeLeft;
+	ParticleType type;
 	vec2 velocity;
 	vec2 location;
-	ParticleType type;
 	vec2 color; // assets/colorIndex.png
 
 	Particle(vec2 p, ParticleType t, int tl, vec2 c)
-		: timeLeft(tl), location(p), type(t), color(c) {}
+		: timeLeft(tl), type(t), location(p), color(c) {}
 };
 
 class ParticleSystem : public entityx::System<ParticleSystem> {

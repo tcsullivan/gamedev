@@ -79,7 +79,7 @@ void init(void)
 			+ reinterpret_cast<const char *>(glewGetErrorString(glewError)));
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);               // anti-aliasing
-	SDL_GL_SetSwapInterval(0);                                 // v-sync
+	SDL_GL_SetSwapInterval(1);                                 // v-sync
 	SDL_ShowCursor(SDL_DISABLE);                               // hide the cursor
 	glViewport(0, 0, game::SCREEN_WIDTH, game::SCREEN_HEIGHT); // pixel coordinates
 	glEnable(GL_BLEND);                                        // alpha enabling

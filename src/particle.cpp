@@ -89,6 +89,7 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 
 	for (unsigned int i = 0; i < parts.size(); i++) {
 		auto& p = parts[i];
+		auto& vel = p.velocity;
 
 		// update timers
 		if (p.timeLeft > 0)
@@ -97,7 +98,6 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			continue;
 
 		// update movement
-		auto& vel = p.velocity;
 		switch (p.type) {
 		case ParticleType::Drop:
 			if (vel.y > -.6)

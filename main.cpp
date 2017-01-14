@@ -21,6 +21,31 @@ using namespace std::literals::chrono_literals;
 #include <render.hpp>
 #include <ui.hpp>
 
+class GameThread : public entityx::Receiver<GameThread> {
+private:
+	std::atomic_bool die;
+	bool running;
+	std::thread thread;
+
+public:
+	template<typename F>
+	GameThread(F&& func) {
+		die.store(false);
+		running = true;
+		thread = std::thread([this](F&& f) {
+			while (!die.load())
+				f();
+			running = false;
+		}, std::forward<F>(func));
+	}
+
+	void stop(void) {
+		die.store(true);
+		while (running)
+			std::this_thread::sleep_for(2ms);
+	}
+};
+
 /**
  * The currently used folder to look for XML files in.
  */
@@ -112,43 +137,36 @@ int main(int argc, char *argv[])
 
 	if (!worldDontReallyRun) {
 		// the main loop, in all of its gloriousness...
-		std::thread thMain ([&] {
-			const bool &run = game::engine.shouldRun;
-			while (run) {
-				game::time::mainLoopHandler();
+		GameThread gtMain ([&] {
+			game::time::mainLoopHandler();
 
-				if (game::time::tickHasPassed()) {
-					// calculate the world shading value
-					extern int worldShade; // TODO kill
-					worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
+			if (game::time::tickHasPassed()) {
+				// calculate the world shading value
+				extern int worldShade; // TODO kill
+				worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 
-					// update fades
-					ui::fadeUpdate();
+				// update fades
+				ui::fadeUpdate();
 
-					// increment game ticker
-					game::time::tick();
-				}
-
-				while (!eventQueue.empty()) {
-					game::events.emit<MainSDLEvent>(eventQueue.back());
-					eventQueue.pop_back();
-				}
-
-				game::engine.update(game::time::getDeltaTime());
-
-				std::this_thread::sleep_for(1ms);
+				// increment game ticker
+				game::time::tick();
 			}
+
+			while (!eventQueue.empty()) {
+				game::events.emit<MainSDLEvent>(eventQueue.back());
+				eventQueue.pop_back();
+			}
+
+			game::engine.update(game::time::getDeltaTime());
+			std::this_thread::sleep_for(1ms);
 		});
 		
 		static int fps = 0, fpsInternal = 0;
 
 		// the debug loop, gets debug screen values
-		std::thread thDebug ([&] {
-			const bool &run = game::engine.shouldRun;
-			while (run) {
-				fps = fpsInternal, fpsInternal = 0;
-				std::this_thread::sleep_for(1s);
-			}
+		GameThread gtDebug ([&] {
+			fps = fpsInternal, fpsInternal = 0;
+			std::this_thread::sleep_for(1s);
 		});
 
 		// the render loop, renders
@@ -163,8 +181,8 @@ int main(int argc, char *argv[])
 		}
 
 		// on game end, get back together
-		thMain.join();
-		thDebug.join();
+		gtMain.stop();
+		gtDebug.stop();
 		//game::engine.getSystem<WorldSystem>()->thAmbient.join(); // segfault or something
 	}
 
