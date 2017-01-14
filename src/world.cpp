@@ -98,14 +98,6 @@ static const std::string buildPaths[] = {
 	"brazzier.png"
 };
 
-// alpha-related values used for world drawing? nobody knows...
-static const float bgDraw[4][3]={
-	{ 100, 240, 0.6  },
-	{ 150, 250, 0.4  },
-	{ 200, 255, 0.25 },
-	{ 255, 255, 0.1  }
-};
-
 /* ----------------------------------------------------------------------------
 ** Functions section
 ** --------------------------------------------------------------------------*/
@@ -827,9 +819,12 @@ void WorldSystem::render(void)
 
     Render::worldShader.unuse();
 	// draw the remaining layers
+	static const float alphas[4] = {
+		0.6, 0.4, 0.25, 0.1
+	};
 	for (int i = 0; i < 4; i++) {
 		bgTex++;
-		auto xcoord = offset.x * bgDraw[i][2];
+		auto xcoord = offset.x * alphas[i];
 
 		bg_items.clear();
 		bg_tex.clear();

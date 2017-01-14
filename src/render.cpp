@@ -99,14 +99,16 @@ void render(const int& fps)
 
 } // namespace render
 
+#include <engine.hpp>
+#include <gametime.hpp>
+#include <inventory.hpp>
+#include <particle.hpp>
+#include <player.hpp>
 #include <ui.hpp>
 #include <window.hpp>
 #include <world.hpp>
-#include <engine.hpp>
-#include <particle.hpp>
-#include <player.hpp>
+
 #include <entityx/entityx.h>
-#include <gametime.hpp>
 
 void preRender(void)
 {
@@ -171,6 +173,8 @@ void render(const int& fps)
 	game::engine.getSystem<ParticleSystem>()->render();
 
 	game::engine.getSystem<RenderSystem>()->render();
+
+	game::engine.getSystem<InventorySystem>()->render();
 
 	// draw the debug overlay if desired
 	if (ui::debug) {

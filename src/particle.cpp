@@ -91,52 +91,54 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 		auto& p = parts[i];
 
 		// update timers
-		p.timeLeft -= dt;
+		if (p.timeLeft > 0)
+			p.timeLeft -= dt;
+		else
+			continue;
 
 		// update movement
+		auto& vel = p.velocity;
 		switch (p.type) {
 		case ParticleType::Drop:
-			if (p.velocity.y > -.6)
-				p.velocity.y -= 0.001f;
+			if (vel.y > -.6)
+				vel.y -= 0.001f;
 			break;
 		case ParticleType::Confetti:
-			if (p.velocity.x > -0.01 && p.velocity.x < 0.01) {
-				p.velocity.x = randGet() % 12 / 30.0f - 0.2f;
+			if (vel.x > -0.01 && vel.x < 0.01) {
+				vel.x = randGet() % 12 / 30.0f - 0.2f;
+				vel.y = -0.15f;
 			} else {
-				p.velocity.x += (p.velocity.x > 0) ? -0.002f : 0.002f;
+				vel.x += (vel.x > 0) ? -0.002f : 0.002f;
 			}
-			p.velocity.y = -0.15f;
-			p.timeLeft = 1000;
 			break;
 		case ParticleType::SmallBlast:
-			if (p.velocity.x == 0) {
+			if (vel.x == 0) {
 				int degree = randGet() % 100;
-				p.velocity.x = cos(degree) / 4.0f;
-				p.velocity.y = sin(degree) / 4.0f;
+				vel.x = cos(degree) / 4.0f;
+				vel.y = sin(degree) / 4.0f;
 			} else {
-				p.velocity.x += (p.velocity.x > 0) ? -0.001f : 0.001f;
-				p.velocity.y += (p.velocity.y > 0) ? -0.001f : 0.001f;
-				if ((p.velocity.x > -0.01 && p.velocity.x < 0.01) &&
-					(p.velocity.y > -0.01 && p.velocity.y < 0.01)) {
+				vel.x += (vel.x > 0) ? -0.001f : 0.001f;
+				vel.y += (vel.y > 0) ? -0.001f : 0.001f;
+				if ((vel.x > -0.01 && vel.x < 0.01) &&
+					(vel.y > -0.01 && vel.y < 0.01)) {
 					p.timeLeft = 0;
 				}
 			}
-
 			break;
 		case ParticleType::SmallPoof:
-			if (p.velocity.x == 0) {
-				p.velocity.y = 0.1f;
-				p.velocity.x = randGet() % 10 / 20.0f - 0.25f;
+			if (vel.x == 0) {
+				vel.y = 0.1f;
+				vel.x = randGet() % 10 / 20.0f - 0.25f;
 			} else {
-				p.velocity.x += (p.velocity.x > 0) ? -0.001f : 0.001f;
-				p.velocity.y -= 0.0015f;
+				vel.x += (vel.x > 0) ? -0.001f : 0.001f;
+				vel.y -= 0.0015f;
 			}
 			break;
 		}
 
 		// really update movement
-		p.location.x += p.velocity.x * dt;
-		p.location.y += p.velocity.y * dt;
+		p.location.x += vel.x * dt;
+		p.location.y += vel.y * dt;
 
 		// world collision
 		auto height = worldSystem.isAboveGround(p.location);

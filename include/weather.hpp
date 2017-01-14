@@ -56,7 +56,7 @@ public:
 				newPartDelay = 0;
 				partSystem.add(vec2(offset.x - game::SCREEN_WIDTH + randGet() % game::SCREEN_WIDTH * 2,
 					offset.y + game::SCREEN_HEIGHT / 2 + 50),
-					ParticleType::Confetti, 6000, 0);
+					ParticleType::Confetti, 10000, 0);
 			}
 			break;
 		default:

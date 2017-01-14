@@ -23,7 +23,7 @@ void Engine::init(void) {
     systems.add<WindowSystem>();
     systems.add<RenderSystem>();
 	systems.add<InputSystem>();
-    //systems.add<InventorySystem>();
+    systems.add<InventorySystem>();
     systems.add<WorldSystem>();
     systems.add<PlayerSystem>();
 	systems.add<QuestSystem>();
