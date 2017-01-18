@@ -20,29 +20,29 @@ using namespace std::literals::chrono_literals;
 #include <world.hpp>
 #include <render.hpp>
 #include <ui.hpp>
+#include <inventory.hpp>
 
 class GameThread : public entityx::Receiver<GameThread> {
 private:
 	std::atomic_bool die;
-	bool running;
 	std::thread thread;
 
 public:
 	template<typename F>
 	GameThread(F&& func) {
 		die.store(false);
-		running = true;
 		thread = std::thread([this](F&& f) {
 			while (!die.load())
 				f();
-			running = false;
 		}, std::forward<F>(func));
+	}
+
+	~GameThread(void) {
+		thread.join();
 	}
 
 	void stop(void) {
 		die.store(true);
-		while (running)
-			std::this_thread::sleep_for(2ms);
 	}
 };
 
@@ -132,6 +132,10 @@ int main(int argc, char *argv[])
 	// actually start the game //
 	//                         //
 	/////////////////////////////
+
+
+	game::engine.getSystem<InventorySystem>()->add("Debug", 3);
+
 
 	std::list<SDL_Event> eventQueue;
 
