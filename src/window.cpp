@@ -95,11 +95,7 @@ void WindowSystem::receive(const ScreenshotEvent &scr)
 	std::cout << "Triggered\n";
 }
 
-void WindowSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
+void WindowSystem::render(void)
 {
-    (void)en;
-    (void)ev;
-    (void)dt;
-
     SDL_GL_SwapWindow(window);
 }

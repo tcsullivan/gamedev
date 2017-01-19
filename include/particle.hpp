@@ -9,22 +9,22 @@
 #include <entityx/entityx.h>
 
 enum class ParticleType : char {
-	Drop,
-	Confetti,
-	SmallBlast,
-	SmallPoof
+	Drop       = 1,
+	Confetti   = 2,
+	SmallBlast = 4,
+	SmallPoof  = 8
 };
 
 struct Particle {
-	vec2 location;
-	vec2 velocity;
-	ParticleType type;
 	int timeLeft;
+	ParticleType type;
+	vec2 velocity;
+	vec2 location;
 	vec2 color; // assets/colorIndex.png
 
 	Particle(vec2 p, ParticleType t, int tl, vec2 c)
-		: location(p), type(t), timeLeft(tl), color(c) {}
-};// __attribute__ ((packed));
+		: timeLeft(tl), type(t), location(p), color(c) {}
+};
 
 class ParticleSystem : public entityx::System<ParticleSystem> {
 private:

@@ -10,6 +10,10 @@ namespace Colors
 	ColorTex red;
 	ColorTex blue;
 
+	GLfloat texCoord[12] = {
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	};
+
 	void init(void) {
 		white = ColorTex(Color(255, 255, 255));
 		black = ColorTex(Color(0,   0,   0  ));

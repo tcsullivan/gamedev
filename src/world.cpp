@@ -9,7 +9,6 @@
 #include <sstream>
 #include <fstream>
 #include <memory>
-#include <mutex>
 #include <chrono>
 using namespace std::literals::chrono_literals;
 
@@ -57,9 +56,6 @@ extern std::string  xmlFolder;
 // wait
 static bool waitToSwap = false;
 
-// particle mutex
-std::mutex partMutex;
-
 // externally referenced in main.cpp
 int worldShade = 0;
 
@@ -100,14 +96,6 @@ static const std::string buildPaths[] = {
     "fountain1.png",
     "lampPost1.png",
 	"brazzier.png"
-};
-
-// alpha-related values used for world drawing? nobody knows...
-static const float bgDraw[4][3]={
-	{ 100, 240, 0.6  },
-	{ 150, 250, 0.4  },
-	{ 200, 255, 0.25 },
-	{ 255, 255, 0.1  }
 };
 
 /* ----------------------------------------------------------------------------
@@ -166,7 +154,7 @@ float WorldSystem::isAboveGround(const vec2& p) const
 static Color ambient;
 
 bool WorldSystem::save(void)
-{
+{	
 	if (world.indoor)
 		return false;
 
@@ -175,6 +163,7 @@ bool WorldSystem::save(void)
 	// signature?
 	save << "831998 ";
 
+	game::entities.lock();
 	game::entities.each<Position>([&](entityx::Entity entity, Position& pos) {
 		// save position
 		save << "p " << pos.x << ' ' << pos.y << ' ';
@@ -183,6 +172,7 @@ bool WorldSystem::save(void)
 		if (entity.has_component<Dialog>())
 			save << "d " << entity.component<Dialog>()->index << ' ';
 	});
+	game::entities.unlock();
 
 	save.close();
 	return true;
@@ -241,11 +231,12 @@ void WorldSystem::load(const std::string& file)
 
 	world.toLeft = world.toRight = "";
 	currentXMLFile = file;
+	game::entities.lock();
 	game::entities.reset();
 	game::engine.getSystem<PlayerSystem>()->create();
 
 	// iterate through tags
-	while (wxml) {
+	while (wxml != nullptr) {
 		std::string tagName = wxml->Name();
 
 		// style tag
@@ -280,7 +271,7 @@ void WorldSystem::load(const std::string& file)
 				UserError("<house> can only be used inside <IndoorWorld>");
 
 			//world.indoorWidth = wxml->FloatAttribute("width");
-			world.indoorTex = render.loadTexture(wxml->StrAttribute("texture"));
+			(void)render;//world.indoorTex = render.loadTexture(wxml->StrAttribute("texture")); // TODO winbloze lol
 			//auto str = wxml->StrAttribute("texture");
 			//auto tex = render.loadTexture(str);
 			//world.indoorTex = tex;
@@ -325,9 +316,9 @@ void WorldSystem::load(const std::string& file)
 						vec2 coords;
 
 						if (wxml->Attribute("position") != nullptr) {
-							coords = str2coord(wxml->StrAttribute("position"));
+							coords = wxml->StrAttribute("position");
 						} else {
-							coords = str2coord(abcd->StrAttribute("value"));
+							coords = abcd->StrAttribute("value");
 						}
 
 						float cdat[2] = {coords.x, coords.y};
@@ -346,7 +337,7 @@ void WorldSystem::load(const std::string& file)
 						vec2 dim;
 
 						if (abcd->Attribute("value") != nullptr)
-							dim = str2coord(abcd->StrAttribute("value"));
+							dim = abcd->StrAttribute("value");
 						else
 							dim = entity.component<Sprite>()->getSpriteSize();
 
@@ -356,9 +347,9 @@ void WorldSystem::load(const std::string& file)
 						vec2 dir;
 
 						if (wxml->Attribute("direction") != nullptr) {
-							dir = str2coord(wxml->StrAttribute("direction"));
+							dir = wxml->StrAttribute("direction");
 						} else if (wxml->Attribute("value") != nullptr) {
-							dir = str2coord(wxml->StrAttribute("value"));
+							dir = wxml->StrAttribute("value");
 						} else {
 							dir = vec2(0,0);
 						}
@@ -480,6 +471,7 @@ void WorldSystem::load(const std::string& file)
 	}
 
 	game::events.emit<BGMToggleEvent>();
+	game::entities.unlock();
 }
 
 /*
@@ -689,9 +681,8 @@ void WorldSystem::render(void)
 	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-	const ivec2 backgroundOffset = ivec2 {
-        static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2
-    };
+	const vector2<int> backgroundOffset
+		(static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2);
 
 	int iStart, iEnd, pOffset;
 
@@ -783,7 +774,7 @@ void WorldSystem::render(void)
 	//glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha) / 255.0f);
 	//makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
 
-	// TODO make stars dynamic
+	// TODO make stars dynamic (make them particles??)
 	/*static GLuint starTex = Texture::loadTexture("assets/style/classic/bg/star.png");
 	const static float stardim = 24;
 	GLfloat star_coord[star.size() * 5 * 6 + 1];
@@ -848,9 +839,12 @@ void WorldSystem::render(void)
 
     Render::worldShader.unuse();
 	// draw the remaining layers
+	static const float alphas[4] = {
+		0.6, 0.4, 0.25, 0.1
+	};
 	for (int i = 0; i < 4; i++) {
 		bgTex++;
-		auto xcoord = offset.x * bgDraw[i][2];
+		auto xcoord = offset.x * alphas[i];
 
 		bg_items.clear();
 		bg_tex.clear();
@@ -1128,32 +1122,30 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 void WorldSystem::detect(entityx::TimeDelta dt)
 {
+	game::entities.lock();
 	game::entities.each<Grounded, Position, Solid>(
 		[&](entityx::Entity e, Grounded &g, Position &loc, Solid &dim) {
-			(void)e;
-			if (!g.grounded) {
-				// get the line the entity is on
-				int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world.startX) / game::HLINE),
-									  0,
-									  static_cast<int>(world.data.size()));
-
+		(void)e;
+		if (!g.grounded) {
+			// get the line the entity is on
+			int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world.startX) / game::HLINE),
+				0, static_cast<int>(world.data.size()));
 				// make sure entity is above ground
-				const auto& data = world.data;
-				if (loc.y != data[line].groundHeight) {
-					loc.y = data[line].groundHeight;
-					e.remove<Grounded>();
-				}
+			const auto& data = world.data;
+			if (loc.y != data[line].groundHeight) {
+				loc.y = data[line].groundHeight;
+				e.remove<Grounded>();
 			}
-
-		});
+		}
+	});
 
 	game::entities.each<Direction, Physics>(
 		[&](entityx::Entity e, Direction &vel, Physics &phys) {
-			(void)e;
-			// handle gravity
-        	if (vel.y > -2.0f)
-				vel.y -= (GRAVITY_CONSTANT * phys.g) * dt;
-		});
+		(void)e;
+		// handle gravity
+        if (vel.y > -2.0f)
+			vel.y -= (GRAVITY_CONSTANT * phys.g) * dt;
+	});
 
 	game::entities.each<Position, Direction, Solid>(
 	    [&](entityx::Entity e, Position &loc, Direction &vel, Solid &dim) {
@@ -1163,14 +1155,14 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 
 		// get the line the entity is on
 		int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world.startX) / game::HLINE),
-		                      0,
-		                      static_cast<int>(world.data.size()));
+			0, static_cast<int>(world.data.size()));
 
 		// make sure entity is above ground
 		const auto& data = world.data;
 		if (loc.y < data[line].groundHeight) {
 			int dir = vel.x < 0 ? -1 : 1;
-			if (line + dir * 2 < static_cast<int>(data.size()) &&
+			auto thing = line + dir * 2;
+			if (thing > 0 && thing < static_cast<int>(data.size()) &&
 			    data[line + dir * 2].groundHeight - 30 > data[line + dir].groundHeight) {
 				loc.x -= (PLAYER_SPEED_CONSTANT + 2.7f) * dir * 2;
 				vel.x = 0;
@@ -1195,6 +1187,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 			loc.x = -(static_cast<int>(world.startX)) - dim.width - game::HLINE;
 		}
 	});
+	game::entities.unlock();
 }
 
 void WorldSystem::goWorldRight(Position& p, Solid &d)
@@ -1232,17 +1225,18 @@ void WorldSystem::goWorldPortal(Position& p)
 		p.x = world.outdoorCoords.x; // ineffective, player is regen'd
 		p.y = world.outdoorCoords.y;
 	} else {
+		game::entities.lock();
 		game::entities.each<Position, Solid, Portal>(
 			[&](entityx::Entity entity, Position& loc, Solid &dim, Portal &portal) {
-				(void)entity;
-				if (!(portal.toFile.empty()) && p.x > loc.x && p.x < loc.x + dim.width)  {
-					file = portal.toFile;
-					world.outdoor = currentXMLFile;
-					world.outdoorCoords = vec2(loc.x + dim.width / 2, 100);
-					return;
-				}
+			(void)entity;
+			if (!(portal.toFile.empty()) && p.x > loc.x && p.x < loc.x + dim.width)  {
+				file = portal.toFile;
+				world.outdoor = currentXMLFile;
+				world.outdoorCoords = vec2(loc.x + dim.width / 2, 100);
+				return;
 			}
-		);
+		});
+		game::entities.unlock();
 	}
 
 	if (!file.empty()) {

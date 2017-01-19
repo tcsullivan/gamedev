@@ -12,7 +12,6 @@
     <npc name="Bob" hasDialog="true" position="50.0,100.0"/>
     <structure type="1" position="300.0,100.0"/>
     <structure inside="bobshouse.xml" type="1" position="10.0,100.0"/>
-    <chest/>
 </World>
 
 <Dialog name="Bob">

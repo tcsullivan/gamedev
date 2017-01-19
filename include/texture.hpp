@@ -93,6 +93,8 @@ namespace Colors {
 	extern ColorTex red;   /**< A solid red texture. */
 	extern ColorTex blue;  /**< A solid blue texture. */
 
+	extern GLfloat texCoord[12];
+
 	/**
 	 * Creates the colors.
 	 */

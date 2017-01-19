@@ -69,11 +69,12 @@ namespace Render {
     extern Shader worldShader;
     extern Shader textShader;
 
-    void initShaders(void);
-
     void useShader(Shader *s);
 
     void drawRect(vec2 ll, vec2 ur, float z);
+
+	void init(void);
+	void render(const int& fps);
 }
 
 #endif // RENDER_HPP_

@@ -1,15 +1,9 @@
 #include <gametime.hpp>
 
-#include <common.hpp>
+#include <common.hpp> // millis
 
 static unsigned int tickCount = 0;
-static float deltaTime = 1;
-
-// millisecond timers
-static unsigned int currentTime = 0;
-static unsigned int prevTime;
-
-static float accum = 0.0f;
+static unsigned int deltaTime = 1;
 
 namespace game {
     namespace time {
@@ -34,15 +28,19 @@ namespace game {
         }
 
         void mainLoopHandler(void) {
-        	if (!currentTime)
-        		currentTime = prevTime = millis();
+			static unsigned int cur = 0, prev;
 
-        	currentTime = millis();
-        	deltaTime	= currentTime - prevTime;
-        	prevTime	= currentTime;
+			if (cur == 0)
+				cur = prev = millis();
+
+			cur = millis();
+			deltaTime = cur - prev;
+			prev = cur;
         }
 
         bool tickHasPassed(void) {
+			static unsigned int accum = 0;
+
             accum += deltaTime;
             if (accum > MSEC_PER_TICK) {
         		accum = 0.0f;

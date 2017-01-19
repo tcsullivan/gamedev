@@ -12,6 +12,8 @@
 
 #include <atomic>
 
+using namespace std::literals::chrono_literals;
+
 static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -67,22 +69,22 @@ Texture RenderSystem::loadTexture(const std::string& file)
 	loadTexString = file;
 	loadTexResult = Texture();
 	while (loadTexResult.isEmpty())
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		std::this_thread::sleep_for(1ms);
 	return loadTexResult;
 }
 
-void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
+void RenderSystem::render(void)
 {
-	(void)ev;
-
 	if (!loadTexString.empty()) {
 		loadTexResult = Texture(loadTexString);
 		loadTexString.clear();
 	}
-
+	
 	Render::worldShader.use();
+	Render::worldShader.enable();
 
-	en.each<Visible, Sprite, Position>([dt](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {
+	game::entities.lock();
+	game::entities.each<Visible, Sprite, Position>([](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {
 		// Verticies and shit
 		float its = 0;
 		
@@ -134,7 +136,6 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 			sp.tex.use();
 
 			glUniform1i(Render::worldShader.uniform[WU_texture], 0);
-			Render::worldShader.enable();
 
 			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
 			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
@@ -150,12 +151,13 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 	Render::worldShader.disable();
 	Render::worldShader.unuse();
 
-	en.each<Visible, Position, Solid, Name>([](entityx::Entity e, Visible &v, Position &pos, Solid& dim, Name &name) {
+	game::entities.each<Visible, Position, Solid, Name>([](entityx::Entity e, Visible &v, Position &pos, Solid& dim, Name &name) {
 		(void)e;
 		(void)v;
 		ui::setFontZ(-5.0);
 		ui::putStringCentered(pos.x + dim.width / 2, pos.y - ui::fontSize - HLINES(0.5), name.name);
 	});
+	game::entities.unlock();
 }
 
 void DialogSystem::configure(entityx::EventManager &ev)
@@ -165,6 +167,7 @@ void DialogSystem::configure(entityx::EventManager &ev)
 
 void DialogSystem::receive(const MouseClickEvent &mce)
 {
+	game::entities.lock();
 	game::entities.each<Position, Solid, Dialog, Name>(
 		[&](entityx::Entity e, Position &pos, Solid &dim, Dialog &d, Name &name) {
 			static std::atomic_bool dialogRun;
@@ -175,7 +178,8 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 			    ((mce.position.y > pos.y) & (mce.position.y < pos.y + dim.height))) {
 
 			if (!dialogRun.load()) {
-				std::thread([&] {
+				// copy entity, windows destroys the original after thread detach
+				std::thread([e, &pos, &dim, &d, &name] {
 					std::string questAssignedText;
 					int newIndex;
 
@@ -272,6 +276,7 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 			}
 		}
 	});
+	game::entities.unlock();
 }
 
 void DialogSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -308,12 +313,12 @@ std::vector<Frame> developFrame(XMLElement* xml)
 				std::string sname = sxml->Name();
 				if (sname == "src") {
 					foffset = (sxml->Attribute("offset") != nullptr) ? 
-						str2coord(sxml->Attribute("offset")) : vec2(0,0);
+						sxml->StrAttribute("offset") : vec2(0,0);
 					fdraw = (sxml->Attribute("drawOffset") != nullptr) ?
-						str2coord(sxml->Attribute("drawOffset")) : vec2(0,0);
+						sxml->StrAttribute("drawOffset") : vec2(0,0);
 					
 					if (sxml->Attribute("size") != nullptr) {
-						fsize = str2coord(sxml->Attribute("size"));
+						fsize = sxml->StrAttribute("size");
 						sd = new SpriteData(sxml->GetText(), foffset, fsize);
 					} else {
 						sd = new SpriteData(sxml->GetText(), foffset);

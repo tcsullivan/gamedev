@@ -320,11 +320,6 @@ struct Animate {
 	}
 };
 
-//TODO
-struct Input {
-
-};
-
 /**
  * @struct Visible
  * @brief If an entity is visible we want to be able to draw it.
@@ -391,9 +386,12 @@ class RenderSystem : public entityx::System<RenderSystem> {
 private:
 	std::string loadTexString;
 	Texture loadTexResult;
+
 public:
 	Texture loadTexture(const std::string& file);
-	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override
+	{ (void)en; (void)ev; (void)dt; }
+	void render(void);
 };
 
 class DialogSystem : public entityx::System<DialogSystem>, public entityx::Receiver<DialogSystem> {

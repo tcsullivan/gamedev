@@ -309,7 +309,7 @@ namespace ui {
 		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
+        glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0); // TODO seg faults
 
 		Render::textShader.disable();
 		Render::textShader.unuse();
@@ -534,8 +534,10 @@ namespace ui {
 	void waitForCover(void) {
 		auto& fi = fadeIntensity;
 		fi = 0;
+
 		while (fi < 255)
 			std::this_thread::sleep_for(1ms);
+			
 		fi = 255;
 	}
 
@@ -648,8 +650,8 @@ namespace ui {
 		auto stride = 5 * sizeof(GLfloat);
 
 		// we always want to make sure c1 is lower left and c2 is upper right
-		if (c1.x > c2.x) c1.swapX(c2); // std::swap(c1.x, c2.y);
-		if (c1.y > c2.y) c1.swapY(c2); // std::swap(c1.y, c2.y);
+		if (c1.x > c2.x) std::swap(c1.x, c2.x);
+		if (c1.y > c2.y) std::swap(c1.y, c2.y);
 
 		// if the box is too small, we will not be able to draw it
 		if (c2.x - c1.x < (boxCornerDim.x) || c2.y - c1.y < (boxCornerDim.y))
@@ -971,6 +973,18 @@ namespace ui {
 			}*/
 			setFontColor(255,255,255,255);
 		}
+
+		if (currentMenu != nullptr)
+			menu::draw();
+
+		// draw the mouse
+		static const Texture mouseTex ("assets/goodmouse.png");
+		Render::textShader.use();
+		glActiveTexture(GL_TEXTURE0);
+		mouseTex.use();
+		Render::useShader(&Render::textShader);
+		Render::drawRect(vec2(ui::mouse.x, ui::mouse.y - 64), vec2(ui::mouse.x + 64, ui::mouse.y), -9.9);
+		Render::textShader.unuse();
 	}
 
 	void closeBox() {
@@ -1015,43 +1029,40 @@ namespace ui {
 	}
 
 	void drawFade(void) {
-		static const auto SCREEN_WIDTH2 = game::SCREEN_WIDTH / 2;
-		static const auto SCREEN_HEIGHT2 = game::SCREEN_HEIGHT / 2;
-
 		if (!fadeIntensity) {
 			if (fontSize != 16)
 				setFontSize(16);
 			return;
 		}
 
-		static const GLfloat tex[] = {
-			0.0, 0.0,
-			1.0, 0.0,
-			0.0, 1.0,
-			1.0, 1.0
+		static const GLfloat tex[12] = {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 		};
 
-        GLfloat backdrop[] = {
-			offset.x - SCREEN_WIDTH2 - 1, offset.y - SCREEN_HEIGHT2, -7.9,
-			offset.x + SCREEN_WIDTH2, offset.y - SCREEN_HEIGHT2, -7.9,
-			offset.x - SCREEN_WIDTH2 - 1, offset.y + SCREEN_HEIGHT2, -7.9,
-			offset.x + SCREEN_WIDTH2, offset.y + SCREEN_HEIGHT2, -7.9
+		vec2 p1 (offset.x - game::SCREEN_WIDTH / 2, offset.y - game::SCREEN_HEIGHT / 2);
+		vec2 p2 (p1.x + game::SCREEN_WIDTH, p1.y + game::SCREEN_HEIGHT);
+        GLfloat backdrop[18] = {
+			p1.x, p1.y, -7.9,
+			p2.x, p1.y, -7.9,
+			p2.x, p2.y, -7.9,
+
+			p2.x, p2.y, -7.9,
+			p1.x, p2.y, -7.9,
+			p1.x, p1.y, -7.9
 		};
 
 		setFontZ(-8.2);
-        glUniform1i(Render::textShader.uniform[WU_texture], 0);
-
 		Render::textShader.use();
 		Render::textShader.enable();
+
 		Colors::black.use();
 		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, fadeIntensity / 255.0f);
         glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
         glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		Render::textShader.disable();
 		Render::textShader.unuse();
-
 		setFontZ(-8.0);
     }
 
@@ -1168,148 +1179,143 @@ namespace ui {
 
 using namespace ui;
 
+void InputSystem::receive(const MainSDLEvent& event)
+{
+	if (currentMenu != nullptr)
+		return;
+	
+	const auto& e = event.event;
+	auto& ev = game::events;
+	
+	switch (e.type) {
+	// escape - quit game
+	case SDL_QUIT:
+		game::endGame();
+		break;
+
+	// window events - used for resizing and stuff
+	case SDL_WINDOWEVENT:
+		switch (e.window.event) {
+		case SDL_WINDOWEVENT_RESIZED:
+			std::cout << "Window " << e.window.windowID << " resized to: " << e.window.data1 << ", " << e.window.data2 << std::endl;
+			auto w = e.window.data1;
+			auto h = e.window.data2;
+			ev.emit<WindowResizeEvent>(w,h);
+			break;
+		}
+		break;
+
+	// mouse movement - update mouse vector
+	case SDL_MOUSEMOTION:
+		premouse.x=e.motion.x;
+		premouse.y=e.motion.y;
+		break;
+
+	//case SDL_MOUSEBUTTONUP:
+	case SDL_MOUSEBUTTONDOWN:
+		if (currentMenu != nullptr)
+			break;
+
+		ev.emit<MouseClickEvent>(mouse, e.button.button);
+
+		// run actions?
+		//if ((action::make = e.button.button & SDL_BUTTON_RIGHT))
+		//	/*player->inv->invHover =*/ edown = false;
+
+		textToDraw.clear();
+
+		if (dialogBoxExists || pageTexReady) {
+			// right click advances dialog
+			if ((e.button.button & SDL_BUTTON_RIGHT))
+				dialogAdvance();
+		} else {
+			// left click uses item
+			if (e.button.button & SDL_BUTTON_LEFT) {
+				/*if ((ent = currentWorld->getNearMob(*player)) != nullptr) {
+					player->inv->currentAddInteract(ent);
+				}
+					player->inv->useCurrent();*/
+			}
+
+		}
+		break;
+
+	case SDL_MOUSEWHEEL:
+		ev.emit<MouseScrollEvent>(e.wheel.y);
+		break;
+
+	// key presses
+	case SDL_KEYDOWN:
+		ev.emit<KeyDownEvent>(SDL_KEY);
+		switch(SDL_KEY){
+			case SDLK_t:
+				game::time::tick(100);
+				break;
+		}
+		break;
+	
+	// key release
+	case SDL_KEYUP:
+		ev.emit<KeyUpEvent>(SDL_KEY);
+
+		if (SDL_KEY == SDLK_ESCAPE)
+			ui::menu::toggle();
+
+		if (SDL_KEY == SDLK_q) {
+			/*auto item = player->inv->getCurrentItem();
+			if (item != nullptr) {
+				if (player->inv->takeItem(item->name, 1) == 0)
+					currentWorld->addObject(item->name, "o shit waddup",
+											player->loc.x + player->width / 2, player->loc.y + player->height / 2);
+			}*/
+		} else if (SDL_KEY == SDLK_h) {
+			quest::toggle();
+		} else switch (SDL_KEY) {
+		case SDLK_F3:
+			debug ^= true;
+			break;
+		case SDLK_BACKSLASH:
+			dialogBoxExists = false;
+			break;
+		case SDLK_b:
+			if (debug)
+				posFlag ^= true;
+			break;
+		case SDLK_F12:
+			// Make the BYTE array, factor of 3 because it's RBG.
+			/*static GLubyte* pixels;
+			pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
+			glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+			takeScreenshot(pixels);*/
+
+			ev.emit<ScreenshotEvent>(game::SCREEN_WIDTH, game::SCREEN_HEIGHT);
+
+			std::cout << "Took screenshot" << std::endl;
+			break;
+		case SDLK_UP:
+			//player->inv->setSelectionUp();
+			break;
+		case SDLK_DOWN:
+			//player->inv->setSelectionDown();
+			break;
+		default:
+			break;
+		}
+		break;
+		
+	default:
+		break;
+		
+	}
+}
+
 void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
 	(void)en;
 	(void)ev;
 	(void)dt;
-
-	if (currentMenu != nullptr)
-		return;
-
-	auto SCREEN_WIDTH = game::SCREEN_WIDTH;
-	auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
-
-	SDL_Event e;
-
+	
 	// update mouse coords
-	mouse.x = premouse.x + offset.x - (SCREEN_WIDTH / 2);
-	mouse.y = (offset.y + SCREEN_HEIGHT / 2) - premouse.y;
-
-	while(SDL_PollEvent(&e)) {
-		switch(e.type) {
-
-		// escape - quit game
-		case SDL_QUIT:
-			game::endGame();
-			break;
-
-		// window events - used for resizing and stuff
-		case SDL_WINDOWEVENT:
-			switch (e.window.event) {
-			case SDL_WINDOWEVENT_RESIZED:
-				std::cout << "Window " << e.window.windowID << " resized to: " << e.window.data1 << ", " << e.window.data2 << std::endl;
-				auto w = e.window.data1;
-				auto h = e.window.data2;
-				ev.emit<WindowResizeEvent>(w,h);
-				break;
-			}
-			break;
-
-
-		// mouse movement - update mouse vector
-		case SDL_MOUSEMOTION:
-			premouse.x=e.motion.x;
-			premouse.y=e.motion.y;
-			break;
-
-		//case SDL_MOUSEBUTTONUP:
-
-		case SDL_MOUSEBUTTONDOWN:
-			if (currentMenu != nullptr)
-				break;
-
-			ev.emit<MouseClickEvent>(mouse, e.button.button);
-
-			// run actions?
-			//if ((action::make = e.button.button & SDL_BUTTON_RIGHT))
-			//	/*player->inv->invHover =*/ edown = false;
-
-			textToDraw.clear();
-
-			if (dialogBoxExists || pageTexReady) {
-				// right click advances dialog
-				if ((e.button.button & SDL_BUTTON_RIGHT))
-					dialogAdvance();
-			} else {
-				// left click uses item
-				if (e.button.button & SDL_BUTTON_LEFT) {
-					/*if ((ent = currentWorld->getNearMob(*player)) != nullptr) {
-						player->inv->currentAddInteract(ent);
-					}
-						player->inv->useCurrent();*/
-				}
-
-			}
-			break;
-
-		case SDL_MOUSEWHEEL:
-			ev.emit<MouseScrollEvent>(e.wheel.y);
-			break;
-
-		// key presses
-		case SDL_KEYDOWN:
-			ev.emit<KeyDownEvent>(SDL_KEY);
-			switch(SDL_KEY){
-				case SDLK_t:
-					game::time::tick(100);
-					break;
-			}
-			break;
-		/*
-		 *	KEYUP
-		*/
-
-		case SDL_KEYUP:
-			ev.emit<KeyUpEvent>(SDL_KEY);
-
-			if (SDL_KEY == SDLK_ESCAPE)
-				ui::menu::toggle();
-
-			if (SDL_KEY == SDLK_q) {
-				/*auto item = player->inv->getCurrentItem();
-				if (item != nullptr) {
-					if (player->inv->takeItem(item->name, 1) == 0)
-						currentWorld->addObject(item->name, "o shit waddup",
-												player->loc.x + player->width / 2, player->loc.y + player->height / 2);
-				}*/
-			} else if (SDL_KEY == SDLK_h) {
-				quest::toggle();
-			} else switch (SDL_KEY) {
-			case SDLK_F3:
-				debug ^= true;
-				break;
-			case SDLK_BACKSLASH:
-				dialogBoxExists = false;
-				break;
-			case SDLK_b:
-				if (debug)
-					posFlag ^= true;
-				break;
-			case SDLK_F12:
-				// Make the BYTE array, factor of 3 because it's RBG.
-				/*static GLubyte* pixels;
-				pixels = new GLubyte[ 3 * SCREEN_WIDTH * SCREEN_HEIGHT];
-				glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-				takeScreenshot(pixels);*/
-
-				ev.emit<ScreenshotEvent>(game::SCREEN_WIDTH, game::SCREEN_HEIGHT);
-
-				std::cout << "Took screenshot" << std::endl;
-				break;
-			case SDLK_UP:
-				//player->inv->setSelectionUp();
-				break;
-			case SDLK_DOWN:
-				//player->inv->setSelectionDown();
-				break;
-			default:
-				break;
-			}
-
-			break;
-		default:
-			break;
-		}
-	}
+	mouse.x = premouse.x + offset.x - (game::SCREEN_WIDTH / 2);
+	mouse.y = (offset.y + game::SCREEN_HEIGHT / 2) - premouse.y;
 }

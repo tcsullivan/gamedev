@@ -22,5 +22,5 @@
 <item name="Crude Arrow"    type="Arrow"    damage="1"  maxStackSize="99"   sprite="assets/items/arrow_crude.png"/>
 
 <!-- UTILITIES -->
-<item name="Rusty Lantern"	type="Light"			 radius="150" color="255|255|255" sprite="assets/items/rusty_lantern.png"/>
+<!--<item name="Rusty Lantern"	type="Light"			 radius="150" color="255|255|255" sprite="assets/items/rusty_lantern.png"/>-->
 <item name="Mossy Torch" 	type="Light" fire="true" radius="150" color="245|220|200" sprite="assets/items/basic_torch.png"/>

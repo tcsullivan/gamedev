@@ -23,7 +23,7 @@ void Engine::init(void) {
     systems.add<WindowSystem>();
     systems.add<RenderSystem>();
 	systems.add<InputSystem>();
-    //systems.add<InventorySystem>();
+    systems.add<InventorySystem>();
     systems.add<WorldSystem>();
     systems.add<PlayerSystem>();
 	systems.add<QuestSystem>();
@@ -38,20 +38,9 @@ void Engine::init(void) {
     systems.configure();
 
     ui::initSounds();
+	ui::menu::init();
 	game::config::update();
 	getSystem<PlayerSystem>()->create();
-}
-
-void Engine::render(entityx::TimeDelta dt)
-{
-    systems.update<RenderSystem>(dt);
-    //systems.update<InventorySystem>(dt); // doesn't do anything...
-
-	ui::fadeUpdate();
-}
-void Engine::resetRender(entityx::TimeDelta dt)
-{
-	systems.update<WindowSystem>(dt);
 }
 
 void Engine::update(entityx::TimeDelta dt)
@@ -69,7 +58,7 @@ void Engine::update(entityx::TimeDelta dt)
 
 namespace game {
 	entityx::EventManager events;
-	entityx::EntityManager entities (events);
+	LockableEntityManager entities (events);
 	//SpriteLoader sprite_l;
 
     Engine engine;

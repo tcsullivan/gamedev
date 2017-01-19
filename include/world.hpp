@@ -37,7 +37,7 @@ struct WorldData {
     float         grassHeight[2]; /**< height of the two grass blades */
     float         groundHeight;   /**< height of the 'line' */
     unsigned char groundColor;    /**< a value that affects the ground's color */
-} __attribute__ ((packed));
+};
 
 /**
  * Defines how many game ticks it takes to go from day to night or vice versa.
@@ -171,8 +171,8 @@ public:
 	WorldData2 worldData;
 
 	void generate(int width = 0);
-	void addHole(const unsigned int& start, const unsigned int& end);
-	void addHill(const ivec2& peak, const unsigned int& width);
+	//void addHole(const unsigned int& start, const unsigned int& end);
+	//void addHill(const ivec2& peak, const unsigned int& width);
 
 	bool save(void);
 	void load(const std::string& file);
