@@ -77,4 +77,7 @@ struct vector2 {
 	}
 };
 
+using vec2 = vector2<float>;
+using dim2 = vector2<int>;
+
 #endif // VECTOR2_HPP_

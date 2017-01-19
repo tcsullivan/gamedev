@@ -1,7 +1,12 @@
+#include <texture.hpp>
+
 #include <algorithm>
 #include <string>
 
-#include <texture.hpp>
+#include <SDL2/SDL_image.h>
+
+#include <debug.hpp>
+#include <error.hpp>
 
 namespace Colors
 {

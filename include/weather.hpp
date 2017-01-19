@@ -1,10 +1,14 @@
 #ifndef WEATHER_HPP_
 #define WEATHER_HPP_
 
+#include <string>
+
 #include <entityx/entityx.h>
 
-#include <common.hpp>
+#include <config.hpp>
 #include <particle.hpp>
+
+extern vec2 offset;
 
 /**
  * The weather type enum.

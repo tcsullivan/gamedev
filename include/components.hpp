@@ -5,15 +5,18 @@
  * this allows the entity to change stats or skills on the go. This also allows every "object"
  * the be an entity, and it gives the game a much better customizability over xml.
  */
-
 #ifndef COMPONENTS_HPP
 #define COMPONENTS_HPP
 
-#include <entityx/entityx.h>
-#include <common.hpp>
-#include <texture.hpp>
+#include <string>
+#include <vector>
+
 #include <events.hpp>
-#include <atomic>
+#include <random.hpp>
+#include <texture.hpp>
+#include <vector2.hpp>
+
+#include <entityx/entityx.h>
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
@@ -158,7 +161,7 @@ struct SpriteData {
 	vec2 offset_tex;
 	vec2 size_tex;
 
-	uint limb;
+	unsigned int limb;
 };
 
 using Frame = std::vector<std::pair<SpriteData, vec2>>;

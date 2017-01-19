@@ -6,6 +6,10 @@
 #include <istream>
 
 #include <common.hpp>
+#include <error.hpp>
+#include <fileio.hpp>
+
+extern std::vector<std::string> StringTokenizer(const std::string& str, char delim);
 
 static std::unordered_map<std::string, std::string> brice;
 

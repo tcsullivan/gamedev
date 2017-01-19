@@ -6,7 +6,14 @@
 #ifndef TEXTURE_HPP_
 #define TEXTURE_HPP_
 
-#include <common.hpp>
+#include <string>
+#include <vector>
+
+#include <GL/glew.h> // must
+#include <SDL2/SDL_opengl.h>
+
+#include <color.hpp>
+#include <vector2.hpp>
 
 /**
  * When defined, DEBUG allows extra messages to be printed to the terminal for

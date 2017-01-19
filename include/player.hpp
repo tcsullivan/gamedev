@@ -2,16 +2,15 @@
  * @file player.hpp
  * @brief The player system
  */
-
 #ifndef PLAYER_HPP_
 #define PLAYER_HPP_
 
 #include <entityx/entityx.h>
 
+#include <components.hpp>
 #include <events.hpp>
 #include <engine.hpp>
-#include <components.hpp>
-#include <common.hpp>
+#include <vector2.hpp>
 
 /**
  * The constant velocity the player is given when moved with the arrow keys.

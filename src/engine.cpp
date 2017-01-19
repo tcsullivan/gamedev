@@ -4,6 +4,7 @@
 #include <world.hpp>
 #include <window.hpp>
 #include <ui.hpp>
+#include <ui_menu.hpp>
 #include <inventory.hpp>
 #include <components.hpp>
 #include <player.hpp>

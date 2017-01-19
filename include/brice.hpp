@@ -2,7 +2,6 @@
  * @file brice.hpp
  * @brief A system for saving player information.
  */
-
 #ifndef BRICE_H_
 #define BRICE_H_
 

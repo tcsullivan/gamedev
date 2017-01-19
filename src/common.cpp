@@ -1,10 +1,15 @@
 #include <common.hpp>
 
 #include <cstring>
+#include <cstdarg>
 #include <cstdio>
 #include <chrono>
 #include <fstream>
+#include <iostream>
+#include <list>
 #include <sstream>
+
+#include <error.hpp>
 
 #ifndef __WIN32__
 

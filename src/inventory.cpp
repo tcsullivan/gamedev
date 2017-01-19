@@ -1,23 +1,32 @@
 #include <inventory.hpp>
 
 #include <common.hpp>
-#include <events.hpp>
-#include <texture.hpp>
+#include <error.hpp>
 #include <render.hpp>
 #include <ui.hpp>
 
+#include <forward_list>
 #include <unordered_map>
 
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
-constexpr const char* itemsPath = "config/items.xml";
+extern vec2 offset;
 
 static std::unordered_map<std::string, Item> itemList;
+constexpr const char* itemsPath = "config/items.xml";
+
+static bool fullInventory = false;
+
+constexpr int          entrySize = 70;
+constexpr int          hotbarSize = 4;
+constexpr float        inventoryZ = -6.0f;
+constexpr unsigned int rowSize = 8;
 
 void InventorySystem::configure(entityx::EventManager &ev)
 {
     ev.subscribe<KeyDownEvent>(*this);
+	ev.subscribe<MouseClickEvent>(*this);
 }
 
 void InventorySystem::loadItems(void) {
@@ -43,24 +52,43 @@ void InventorySystem::update(entityx::EntityManager &en, entityx::EventManager &
 
 void InventorySystem::render(void)
 {
+	int size = items.size();
+
 	// calculate positions
-	items.front().loc = vec2(offset.x - 35 * items.size(), offset.y - game::SCREEN_HEIGHT / 2);
-	for (unsigned int i = 1; i < items.size(); i++)
-		items[i].loc = vec2(items[i - 1].loc.x + 70, items[i - 1].loc.y);
+	items.front().loc = vec2(offset.x - entrySize / 2 * hotbarSize, offset.y + game::SCREEN_HEIGHT / 2 - entrySize);
+	for (unsigned int i = 1; i < hotbarSize; i++)
+		items[i].loc = vec2(items[i - 1].loc.x + entrySize, items[i - 1].loc.y);
+
+	ui::drawNiceBox(items[0].loc - 10, items[hotbarSize - 1].loc + vec2(entrySize + 4, entrySize + 10), inventoryZ);
+
+	if (fullInventory) {
+		vec2 start (offset.x - entrySize * rowSize / 2, offset.y + game::SCREEN_HEIGHT / 2 - 180);
+		for (unsigned int i = hotbarSize; i < items.size(); i++) {
+			items[i].loc = vec2(start.x + entrySize * ((i - hotbarSize) % rowSize), start.y);
+			if ((i - hotbarSize) % rowSize == rowSize - 1)
+				start.y -= entrySize;
+		}
+
+		ui::drawNiceBox(items[items.size() - rowSize].loc - 10, items[hotbarSize + rowSize - 1].loc + (entrySize + 4), inventoryZ);
+	} else {
+		size = hotbarSize;
+	}
 
 	// draw items
-	for (const auto& i : items) {
+	for (int n = 0; n < size; n++) {
+		auto &i = items[n];
+
 		// draw the slot
 		Render::textShader.use();
 		Render::textShader.enable();
 
 		Colors::black.use();
-		glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, .8);
+		glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, .6);
 		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, Colors::texCoord);
-		vec2 end = i.loc + 64;
+		vec2 end = i.loc + entrySize - 6;
 		GLfloat coords[18] = {
-			i.loc.x, i.loc.y, -7, end.x, i.loc.y, -7, end.x, end.y, -7,
-			end.x, end.y, -7, i.loc.x, end.y, -7, i.loc.x, i.loc.y, -7
+			i.loc.x, i.loc.y, inventoryZ - 0.1, end.x, i.loc.y, inventoryZ - 0.1, end.x, end.y, inventoryZ - 0.1,
+			end.x, end.y, inventoryZ - 0.1, i.loc.x, end.y, inventoryZ - 0.1, i.loc.x, i.loc.y, inventoryZ - 0.1
 		};
 		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -73,12 +101,12 @@ void InventorySystem::render(void)
 			glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
 			vec2 end = i.loc + i.item->sprite.getDim();
 			GLfloat coords[18] = {
-				i.loc.x, i.loc.y, -7.1, end.x, i.loc.y, -7.1, end.x, end.y, -7.1,
-				end.x, end.y, -7.1, i.loc.x, end.y, -7.1, i.loc.x, i.loc.y, -7.1
+				i.loc.x, i.loc.y, inventoryZ - 0.2, end.x, i.loc.y, inventoryZ - 0.2, end.x, end.y, inventoryZ - 0.2,
+				end.x, end.y, inventoryZ - 0.2, i.loc.x, end.y, inventoryZ - 0.2, i.loc.x, i.loc.y, inventoryZ - 0.2
 			};
 			glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
-			ui::setFontZ(-7.2);
+			ui::setFontZ(-7.2); // TODO fix z's
 			ui::putText(i.loc.x, i.loc.y, std::to_string(i.count).c_str());
 			ui::setFontZ(-6);
 		}
@@ -88,18 +116,81 @@ void InventorySystem::render(void)
 	Render::textShader.unuse();
 }
 
+void InventorySystem::receive(const MouseClickEvent &mce)
+{
+	(void)mce;	
+}
+
 void InventorySystem::receive(const KeyDownEvent &kde)
 {
-    (void)kde;
+    if (kde.keycode == SDLK_e) {
+		fullInventory ^= true;
+	}
 }
 
 void InventorySystem::add(const std::string& name, int count)
 {
-	for (auto& i : items) {
-		if (i.count == 0) {
-			i.item = &itemList[name];
-			i.count = count;
+	auto i = std::find_if(items.begin(), items.end(),
+		[&name](const InventoryEntry& ie) {
+			// either matching item that isn't filled, or empty slow
+			return (ie.item != nullptr && ie.item->name == name && ie.count < ie.item->stackSize) || ie.count == 0;
+		});
+
+	if (i != items.end()) {
+		auto& ie = *i;
+
+		// update the slot
+		if (ie.item == nullptr) {
+			ie.item = &itemList[name];
+			ie.count = count;
+		} else {
+			ie.count += count;
+		}
+
+		// handle overflow
+		if (ie.count > ie.item->stackSize) {
+			int diff = ie.count - ie.item->stackSize;
+			ie.count = ie.item->stackSize;
+			add(name, diff);
+		}
+	}
+}
+
+bool InventorySystem::take(const std::string& name, int count)
+{
+	using InvIter = std::vector<InventoryEntry>::iterator;
+	std::forward_list<InvIter> toDelete;
+	InvIter next = items.begin();
+	int taken = 0;
+
+	while (taken < count) {
+		auto i = std::find_if(next, items.end(),
+			[&name](const InventoryEntry& ie) {
+				return ie.item != nullptr && ie.item->name == name;
+			});
+
+		if (i == items.end())
+			break;
+
+		toDelete.push_front(i);
+		taken += i->count;
+	}	
+
+	if (taken < count)
+		return false;
+
+	for (auto& ii : toDelete) {
+		if (count > ii->count) {
+			ii->item = nullptr;
+			count -= ii->count;
+			ii->count = 0;
+		} else {
+			ii->count -= count;
+			if (ii->count == 0)
+				ii->item = nullptr;
 			break;
 		}
 	}
+
+	return true;
 }

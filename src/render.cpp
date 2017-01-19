@@ -1,6 +1,13 @@
 #include <render.hpp>
 
+#include <iostream>
+
+#include <config.hpp>
+#include <error.hpp>
+#include <glm.hpp>
 #include <texture.hpp>
+
+extern vec2 offset;
 
 static Shader *currentShader = nullptr;
 

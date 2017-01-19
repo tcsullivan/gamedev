@@ -1,6 +1,7 @@
 #include <gametime.hpp>
 
 #include <common.hpp> // millis
+#include <config.hpp>
 
 static unsigned int tickCount = 0;
 static unsigned int deltaTime = 1;

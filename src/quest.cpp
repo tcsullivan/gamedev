@@ -1,7 +1,8 @@
 #include <quest.hpp>
-#include <common.hpp>
 
 #include <algorithm>
+
+extern std::vector<std::string> StringTokenizer(const std::string& str, char delim);
 
 void QuestSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {

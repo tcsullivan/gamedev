@@ -1,5 +1,14 @@
 #include <ui.hpp>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+#include <bmpimage.hpp>
+#include <debug.hpp>
+#include <error.hpp>
+#include <ui_menu.hpp>
+#include <vector3.hpp>
+
 #include <ui_quest.hpp>
 #include <brice.hpp>
 #include <world.hpp>
@@ -12,6 +21,7 @@
 #include <player.hpp>
 
 #include <chrono>
+
 using namespace std::literals::chrono_literals;
 
 extern Menu *currentMenu;
@@ -40,24 +50,19 @@ SDL_Keycode getControl(int index)
 static FT_Library   ftl;
 static FT_Face      ftf;
 
-typedef struct {
+struct FT_Info {
 	vec2 wh;
 	vec2 bl;
 	vec2 ad;
-} FT_Info;
+	GLuint tex;
 
-static std::vector<FT_Info> ftdat16 (93, { { 0, 0 }, { 0, 0 }, { 0, 0 } });
-static std::vector<GLuint>  ftex16  (93, 0);
-static bool ft16loaded = false;
+	FT_Info(void)
+		: tex(0) {}
+};
 
-static std::vector<FT_Info> ftdat24 (93, { { 0, 0 }, { 0, 0 }, { 0, 0 } });
-static std::vector<GLuint>  ftex24  (93, 0);
-static bool ft24loaded = false;
+static std::vector<FT_Info> ftData (93);
 
-static auto *ftdat = &ftdat16;
-static auto *ftex  = &ftex16;
-
-static Color fontColor (255, 255, 255, 255);
+static Color fontColor (255, 255, 255);
 
 /*
  *	Variables for dialog boxes / options.
@@ -87,13 +92,15 @@ Mix_Chunk *sanic;
 static GLuint pageTex = 0;
 static bool   pageTexReady = false;
 
-void loadFontSize(int size, std::vector<GLuint> &tex, std::vector<FT_Info> &dat)
+void loadFontSize(int size, std::vector<FT_Info> &data)
 {
-	FT_Set_Pixel_Sizes(ftf,0,size);
+	FT_Set_Pixel_Sizes(ftf, 0, size);
 
 	// pre-render 'all' the characters
-	glDeleteTextures(93, tex.data());
-	glGenTextures(93, tex.data());		//	Generate new texture name/locations?
+	for (auto& d : data) {
+		glDeleteTextures(1, &d.tex);
+		glGenTextures(1, &d.tex);    //	Generate new texture name/locations?
+	}
 
 	for (char i = 33; i < 126; i++) {
 		// load the character from the font family file
@@ -101,7 +108,7 @@ void loadFontSize(int size, std::vector<GLuint> &tex, std::vector<FT_Info> &dat)
 			UserError("Error! Unsupported character " + i);
 
 		// transfer the character's bitmap (?) to a texture for rendering
-		glBindTexture(GL_TEXTURE_2D, tex[i - 33]);
+		glBindTexture(GL_TEXTURE_2D, data[i - 33].tex);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S , GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T , GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER , GL_LINEAR);
@@ -118,7 +125,7 @@ void loadFontSize(int size, std::vector<GLuint> &tex, std::vector<FT_Info> &dat)
 		for (auto j = buf.size(); j--;)
 			buf[j] ^= !g->bitmap.buffer[j] ? buf[j] : 0;
 
-		auto& d = dat[i - 33];
+		auto& d = data[i - 33];
 		d.wh.x = g->bitmap.width;
 		d.wh.y = g->bitmap.rows;
 		d.bl.x = g->bitmap_left;
@@ -220,9 +227,6 @@ namespace ui {
 #ifdef DEBUG
 		DEBUG_printf("Using font %s\n",ttf);
 #endif // DEBUG
-
-		ft16loaded = false;
-		ft24loaded = false;
 	}
 
 	/*
@@ -230,17 +234,8 @@ namespace ui {
 	*/
 
 	void setFontSize(unsigned int size) {
-		auto& loaded = (size == 16) ? ft16loaded : ft24loaded;
-		auto& tex = (size == 16) ? ftex16 : ftex24;
-		auto& dat = (size == 16) ? ftdat16 : ftdat24;
-
-		if (!loaded) {
-			loadFontSize(fontSize = size, tex, dat);
-			loaded = true;
-		}
-		ftex = &tex;
-		ftdat = &dat;
 		fontSize = size;
+		loadFontSize(size, ftData);
 	}
 
 	/*
@@ -261,7 +256,7 @@ namespace ui {
 	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
 	 */
 	vec2 putChar(float xx,float yy,char c){
-		const auto& ch = (*ftdat)[c - 33];
+		const auto& ch = ftData[c - 33];
 		int x = xx, y = yy;
 
 		// get dimensions of the rendered character
@@ -274,7 +269,7 @@ namespace ui {
 
 		// draw the character
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, (*ftex)[c - 33]);
+		glBindTexture(GL_TEXTURE_2D, ch.tex);
 
 		Render::textShader.use();
 		Render::textShader.enable();
@@ -381,7 +376,7 @@ namespace ui {
 				width += fontSize / 2;
 				break;
 			default:
-				width += (*ftdat)[i].wh.x + fontSize * 0.1f;
+				width += ftData[i].wh.x + fontSize * 0.1f;
 				break;
 			}
 		} while(s[++i]);
@@ -974,8 +969,7 @@ namespace ui {
 			setFontColor(255,255,255,255);
 		}
 
-		if (currentMenu != nullptr)
-			menu::draw();
+		menu::draw();
 
 		// draw the mouse
 		static const Texture mouseTex ("assets/goodmouse.png");
@@ -1181,9 +1175,6 @@ using namespace ui;
 
 void InputSystem::receive(const MainSDLEvent& event)
 {
-	if (currentMenu != nullptr)
-		return;
-	
 	const auto& e = event.event;
 	auto& ev = game::events;
 	
@@ -1213,9 +1204,6 @@ void InputSystem::receive(const MainSDLEvent& event)
 
 	//case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
-		if (currentMenu != nullptr)
-			break;
-
 		ev.emit<MouseClickEvent>(mouse, e.button.button);
 
 		// run actions?

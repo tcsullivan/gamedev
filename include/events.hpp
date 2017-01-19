@@ -8,7 +8,9 @@
 #include <SDL2/SDL.h>
 
 #include <string>
-#include <common.hpp>
+
+#include <config.hpp>
+#include <vector2.hpp>
 
 class World;
 

@@ -71,4 +71,26 @@ namespace game {
 	}
 }
 
+/**
+ * The amount of game ticks that should occur each second.
+ */
+constexpr unsigned int TICKS_PER_SEC = 20;
+
+/**
+ * The amount of milliseconds it takes for a game tick to fire.
+ */
+constexpr float MSEC_PER_TICK = 1000.0f / TICKS_PER_SEC;
+
+/**
+ * Returns a measurement in HLINEs
+ *
+ * @param the number of HLINEs, integer or decimal
+ * @return the number in HLINEs
+ */
+template<typename T>
+inline T HLINES(const T &n)
+{
+	return (static_cast<T>(game::HLINE) * n);
+}
+
 #endif //CONFIG_H
