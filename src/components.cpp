@@ -26,9 +26,12 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 		if (entity.has_component<Animate>() && entity.has_component<Sprite>()) {
 			auto animate = entity.component<Animate>();
 			auto sprite =  entity.component<Sprite>();
-			
-			animate->updateAnimation(1, sprite->sprite, dt);
-		}
+		
+			if (direction.x)	
+				animate->updateAnimation(1, sprite->sprite, dt);
+			else
+				animate->firstFrame(1, sprite->sprite);
+			}
 		if (entity.has_component<Dialog>() && entity.component<Dialog>()->talking) {
 			direction.x = 0;
 		} else {

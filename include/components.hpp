@@ -255,6 +255,22 @@ struct Limb {
 		frame.push_back(fr);
 	}
 
+	void firstFrame(Frame& duckmyass) {
+		// loop through the spritedata of the sprite we wanna change
+		for (auto &d : duckmyass) {
+			// if the sprite data is the same limb as this limb
+			if (d.first.limb == limbID) {
+				// rotate through (for safety) the first frame to set the limb
+				for (auto &fa : frame.at(0)) {
+					if (fa.first.limb == limbID) {
+						d.first = fa.first;
+						d.second = fa.second;
+					}
+				}
+			}
+		}
+	}
+
 	void nextFrame(Frame& duckmyass, float dt) {
 		updateCurrent -= dt;
 		if (updateCurrent <= 0) {
@@ -306,8 +322,13 @@ struct Animate {
 
 	// COMMENT
 
-	void firstFrame(Frame &sprite) {
-		(void)sprite;
+	void firstFrame(uint updateType, Frame &sprite) {
+		uint upid = updateType; //^see todo
+		for (auto &l : limb) {
+			if (l.updateType == upid) {
+				l.firstFrame(sprite);
+			}
+		}
 	}
 	 //TODO make updateType an enum
 	void updateAnimation(uint updateType, Frame& sprite, float dt) {
