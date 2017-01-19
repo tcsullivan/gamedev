@@ -25,3 +25,4 @@ do
 done
 
 echo "Found" $TODO_COUNT "TODOs."
+vim TODOS

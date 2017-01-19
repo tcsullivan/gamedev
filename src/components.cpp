@@ -21,11 +21,12 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 		position.x += direction.x * dt;
 		position.y += direction.y * dt;
 
-		/*if (entity.has_component<Animate>() && entity.has_component<Sprite>()) {
+		if (entity.has_component<Animate>() && entity.has_component<Sprite>()) {
 			auto animate = entity.component<Animate>();
-			entity.component<Sprite>()->sprite = 
-				(direction.x != 0) ? animate->nextFrame() : animate->firstFrame();
-		}*/
+			auto sprite =  entity.component<Sprite>();
+			
+			animate->updateAnimation(1, sprite->sprite, dt);
+		}
 		if (entity.has_component<Dialog>() && entity.component<Dialog>()->talking) {
 			direction.x = 0;
 		} else {
@@ -86,9 +87,11 @@ void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 		float its = 0;
 		
 		float sz;
-		if (entity.has_component<Solid>()) {
+		if (entity.has_component<Solid>())
 			sz = entity.component<Solid>()->width;
-		}
+		else 
+			sz = sprite.getSpriteSize().x;
+
 		if(sprite.faceLeft) {
 			glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f,1.0f,1.0f));
 			glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f - sz - pos.x * 2.0f, 0.0f, 0.0f));
@@ -282,10 +285,15 @@ std::vector<Frame> developFrame(XMLElement* xml)
 {
 	Frame tmpf;
 	std::vector<Frame> tmp;
+	SpriteData* sd;	
+
+	uint limb = 0;
 
 	vec2 foffset;
 	vec2 fsize;
 	vec2 fdraw;
+
+	tmp.clear();
 
 	// this is the xml elements first child. It will only be the <frame> tag
 	auto framexml = xml->FirstChildElement();
@@ -294,7 +302,6 @@ std::vector<Frame> developFrame(XMLElement* xml)
 		std::string defframe = framexml->Name();
 		if (defframe == "frame") {
 			tmpf.clear();
-			tmp.clear();
 			// the xml element to parse each src of the frames
 			auto sxml = framexml->FirstChildElement();
 			while (sxml) {
@@ -304,17 +311,22 @@ std::vector<Frame> developFrame(XMLElement* xml)
 						str2coord(sxml->Attribute("offset")) : vec2(0,0);
 					fdraw = (sxml->Attribute("drawOffset") != nullptr) ?
 						str2coord(sxml->Attribute("drawOffset")) : vec2(0,0);
-
+					
 					if (sxml->Attribute("size") != nullptr) {
 						fsize = str2coord(sxml->Attribute("size"));
-						tmpf.push_back(std::make_pair(SpriteData(sxml->GetText(), foffset, fsize), fdraw));
+						sd = new SpriteData(sxml->GetText(), foffset, fsize);
 					} else {
-						tmpf.push_back(std::make_pair(SpriteData(sxml->GetText(), foffset), fdraw));
+						sd = new SpriteData(sxml->GetText(), foffset);
 					}
+					if (sxml->QueryUnsignedAttribute("limb", &limb) == XML_NO_ERROR) 
+						sd->limb = limb;
+					tmpf.push_back(std::make_pair(*sd, fdraw));
 				}
 				sxml = sxml->NextSiblingElement();
 			}
-			tmp.push_back(tmpf);
+			// we don't want segfault
+			if (tmpf.size())
+				tmp.push_back(tmpf);
 		}
 		// if it's not a frame we don't care
 

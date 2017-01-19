@@ -232,6 +232,8 @@ struct Sprite {
 		}
 
 		dim = vec2(ed.x - st.x, ed.y - st.y);
+		dim.x *= game::HLINE;
+		dim.y *= game::HLINE;
 		return dim;
 	}
 
@@ -239,12 +241,62 @@ struct Sprite {
 	bool faceLeft;
 };
 
-using Limb = std::vector<std::pair<uint, Frame>>;
+/**
+ * @struct Limb
+ * @brief Storage of frames for the limbs of a sprite.
+ * This will allow us to only update a certain limb. This was we can do mulitple animation types at once.
+ */
+struct Limb {
+	Limb() {
+	}
 
-//TODO
+	// adds frame to the back of the frame stack
+	void addFrame(Frame fr) {
+		frame.push_back(fr);
+	}
+
+	void nextFrame(Frame& duckmyass, float dt) {
+		updateCurrent -= dt;
+		if (updateCurrent <= 0) {
+			updateCurrent = updateRate;
+		} else {
+			return;
+		}
+
+
+		if (index < frame.size() - 1)
+			index++;
+		else
+			index = 0;
+		
+		for (auto &d : duckmyass) {
+			if (d.first.limb == limbID) {
+				for (auto &fa : frame.at(index)) {
+					if (fa.first.limb == limbID) {
+						d.first = fa.first;
+						d.second = fa.second;
+					}
+				}
+			}
+		}
+
+	}
+
+	float updateRate; /**< How often we will change each frame. */
+	float updateCurrent; /**< How much has been updated in the current frame. */
+	uint updateType; /**< What the updateRate will base it's updates off of.
+						ie: Movement, attacking, jumping. */
+	uint limbID; /**< The id of the limb we will be updating */
+	
+	uint index = 0; /**< The current sprite being used for the limb. */
+
+	std::vector<Frame> frame; /**< The multiple frames of each limb. */
+};
+
+//TODO kill clyne
 struct Animate {
 	// COMMENT
-	Limb frame;
+	std::vector<Limb> limb;
 	// COMMENT	
 	uint index;
 
@@ -253,19 +305,18 @@ struct Animate {
 	}
 
 	// COMMENT
-	void nextFrame(Frame sprite) {
-		if (index < frame.size() - 1) {
-			index++;
-		} else {
-			index = 0;
-		}
-		auto fa = frame.at(index);
-		if (sprite.size() > fa.first-1)
-			sprite.at(fa.first) = fa.second.at(fa.first);
-	}
 
-	void firstFrame(Frame sprite) {
-		sprite = frame.at(0).second;
+	void firstFrame(Frame &sprite) {
+		(void)sprite;
+	}
+	 //TODO make updateType an enum
+	void updateAnimation(uint updateType, Frame& sprite, float dt) {
+		uint upid = updateType; //^see todo
+		for (auto &l : limb) {
+			if (l.updateType == upid) {
+				l.nextFrame(sprite, dt);
+			}
+		}
 	}
 };
 

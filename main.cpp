@@ -106,9 +106,9 @@ int main(int argc, char *argv[])
 	// some basic OpenGL setup stuff
 	//
 
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
 	// enable v-sync (TODO but 1000 fps?)
-	SDL_GL_SetSwapInterval(1);
+	SDL_GL_SetSwapInterval(0);
 	// hide the cursor
 	SDL_ShowCursor(SDL_DISABLE);
 	// switch to pixel grid

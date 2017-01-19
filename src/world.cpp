@@ -350,7 +350,7 @@ void WorldSystem::load(const std::string& file)
 						else
 							dim = entity.component<Sprite>()->getSpriteSize();
 
-						float cdat[2] = {dim.x * game::HLINE, dim.y * game::HLINE};
+						float cdat[2] = {dim.x, dim.y};
 						entity.assign<Solid>(cdat[0], cdat[1]);
 					} else if (tname == "Direction") {
 						vec2 dir;
@@ -390,19 +390,39 @@ void WorldSystem::load(const std::string& file)
 					} else if (tname == "Animation") {
 						auto entan = entity.assign<Animate>();
 						auto animx = abcd->FirstChildElement();
-						uint idtc = 0;
+						
+						uint limbid 		= 0;
+						float limbupdate 	= 0;
+						uint limbupdatetype = 0;
+						
 						while (animx) {	
 							std::string animType = animx->Name();
 							if (animType == "movement") {
+								limbupdatetype = 1;
 								auto limbx = animx->FirstChildElement();
 								while (limbx) {
-									auto frames = developFrame(limbx);
-									if (limbx->UnsignedAttribute("changeID") != XML_NO_ERROR)
-										idtc = 0;
-									else 
-										idtc = limbx->UnsignedAttribute("changeID");
-									for (const auto& f : frames) {
-										entan->frame.emplace_back(idtc, f);
+									std::string limbHopefully = limbx->Name();
+									if (limbHopefully == "limb") {
+										auto frames = developFrame(limbx);
+										
+										entan->limb.push_back(Limb());
+										entan->limb.back().updateType = limbupdatetype;
+
+										if (limbx->QueryUnsignedAttribute("id", &limbid) == XML_NO_ERROR) {
+											entan->limb.back().limbID = limbid;
+										}
+										if (limbx->QueryFloatAttribute("update", &limbupdate) == XML_NO_ERROR) {
+											entan->limb.back().updateRate = limbupdate;
+										}
+										
+										// place our newly developed frames in the entities animation stack
+										for (auto &f : frames) {
+											entan->limb.back().addFrame(f);
+											for (auto &fr : entan->limb.back().frame) {
+												for (auto &sd : fr)
+													sd.first.limb = limbid;
+											}
+										}
 									}
 								limbx = limbx->NextSiblingElement();
 								}
@@ -1160,7 +1180,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 				if (!vel.grounded) {
 					vel.grounded = true;
 					game::engine.getSystem<ParticleSystem>()->addMultiple(20, ParticleType::SmallPoof,
-						[&](){ return vec2(loc.x + randGet() % static_cast<int>(dim.width * game::HLINE), loc.y);}, 500, 30);
+						[&](){ return vec2(loc.x + randGet() % static_cast<int>(dim.width), loc.y);}, 500, 30);
 				}
 			}
 		}

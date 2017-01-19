@@ -9,7 +9,8 @@
 static const char *spriteXML =
 	"<Sprite> \
 		<frame> \
-			<src limb='0' offset='0,0' size='19,15' drawOffset='0,0'>assets/cat.png</src> \
+			<src limb='0' offset='0,0' size='15,23' drawOffset='0,9'>assets/player/player.png</src> \
+			<src limb='1' offset='15,0' size='12,11' drawOffset='2,0'>assets/player/player.png</src>\
 		</frame> \
 	</Sprite>";
 
@@ -22,14 +23,12 @@ void PlayerSystem::create(void)
 	//player.assign<Physics>(-0.001f);
 	player.assign<Physics>(1);
 	player.assign<Visible>(-0.2f);
-
 	auto sprite = player.assign<Sprite>();
 	XMLDocument xmld;
 	xmld.Parse(spriteXML);
 	auto frame = developFrame(xmld.FirstChildElement("Sprite"));
 	if (frame.size() > 0)
 		sprite->sprite = frame.at(0);
-
 	vec2 dim = player.component<Sprite>().get()->getSpriteSize();
 	float cdat[2] = {dim.x, dim.y};
 	player.assign<Solid>(cdat[0], cdat[1]);

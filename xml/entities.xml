@@ -11,12 +11,36 @@
 	</Sprite>	
 	<Animation>
 		<movement>
-			<limb update="1" id="0">
+			<limb update="250.0" id="1">
 				<frame>
-					<src offset="0,21" size="15,9" drawOffset="0,13">assets/NPC.png</src>		
+					<src offset="13,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>		
 				</frame>
 				<frame>
-					<src offset="0,21" size="15,9" drawOffset="0,13">assets/NPC_Walk.png</src>
+					<src offset="22,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>
+				</frame>
+				<frame>
+					<src offset="31,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>
+				</frame>
+				<frame>
+					<src offset="40,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>
+				</frame>
+				<frame>
+					<src offset="49,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>
+				</frame>
+				<frame>
+					<src offset="58,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>
+				</frame>
+				<frame>
+					<src offset="67,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>
+				</frame>
+				<frame>
+					<src offset="76,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>
+				</frame>
+				<frame>
+					<src offset="85,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>
+				</frame>
+				<frame>
+					<src offset="94,0" size="9,6" drawOffset="3,0">assets/NPC_Sheet.png</src>
 				</frame>
 			</limb>
 		</movement>
@@ -43,7 +67,7 @@
 </structure>
 
 <chest>
-	<Position value="0.0,100.0" />
+	<Position value="1000.0,100.0" />
 	<Visible value="0.15" />
 	<Sprite>
 		<frame>
