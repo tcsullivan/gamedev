@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <events.hpp>
+#include <inventory.hpp>
 #include <random.hpp>
 #include <texture.hpp>
 #include <vector2.hpp>
@@ -64,7 +65,7 @@ struct Physics {
 	 * Constructor that sets the gravity constant, if not specified it becomes 0.
 	 * @param g The non default gravity constant.
 	 */
-	Physics(float g = 0.0f): g(g) {}
+	Physics(float g = 1.0f): g(g) {}
 
 	float g; /**< The gravity constant, how fast the object falls */
 };
@@ -103,6 +104,13 @@ struct Name {
 	Name(std::string n = "") : name(n) {}
 
 	std::string name;
+};
+
+struct ItemDrop {
+	ItemDrop(InventoryEntry& ie)
+		: item(ie) {}
+
+	InventoryEntry item;
 };
 
 /**
@@ -152,6 +160,14 @@ struct SpriteData {
 			
 			offset_tex.x = offset.x/tmpsize.x;
 			offset_tex.y = offset.y/tmpsize.y;
+	}
+
+	SpriteData(Texture t)
+		: tex(t) {
+		size_tex = 1;
+		offset_tex = 0;
+		size = tex.getDim();
+		offset = 0;
 	}
 
 	Texture tex;

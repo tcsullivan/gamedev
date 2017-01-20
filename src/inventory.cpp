@@ -1,6 +1,8 @@
 #include <inventory.hpp>
 
 #include <common.hpp>
+#include <components.hpp>
+#include <engine.hpp>
 #include <error.hpp>
 #include <render.hpp>
 #include <ui.hpp>
@@ -126,12 +128,26 @@ void InventorySystem::render(void)
 
 void InventorySystem::receive(const MouseClickEvent &mce)
 {
-	int end = fullInventory ? items.size() : hotbarSize;
-	movingItem = -1;
-	for (int i = 0;	i < end; i++) {
-		if (mce.position > items[i].loc && mce.position < items[i].loc + entrySize) {
-			movingItem = i;
-			break;
+	if (mce.button == SDL_BUTTON_RIGHT) {
+		game::entities.each<ItemDrop>([&](entityx::Entity e, ItemDrop& id) {
+			auto& posComp = *e.component<Position>();
+			auto& dimComp = *e.component<Solid>();
+			vec2 sta (posComp.x, posComp.y);
+			vec2 end (sta.x + dimComp.width, sta.y + dimComp.height);
+
+			if (mce.position > sta && mce.position < end) {
+				add(id.item.item->name, id.item.count);
+				e.destroy();
+			}
+		});
+	} else {
+		int end = fullInventory ? items.size() : hotbarSize;
+		movingItem = -1;
+		for (int i = 0;	i < end; i++) {
+			if (mce.position > items[i].loc && mce.position < items[i].loc + entrySize) {
+				movingItem = i;
+				break;
+			}
 		}
 	}
 }
@@ -149,9 +165,27 @@ void InventorySystem::receive(const MouseReleaseEvent &mre)
 					items[movingItem].item = nullptr;
 					items[movingItem].count = 0;
 				}
-				break;
+
+				movingItem = -1;
+				return;
 			}
 		}
+
+		auto e = game::entities.create();
+		e.assign<Position>(mre.position.x, mre.position.y);
+		e.assign<Direction>(0, 1);
+		e.assign<ItemDrop>(items[movingItem]);
+		e.assign<Sprite>();
+		e.component<Sprite>()->addSpriteSegment(
+			SpriteData(items[movingItem].item->sprite), vec2(0, 0));
+		auto dim = items[movingItem].item->sprite.getDim();
+		e.assign<Solid>(HLINES(dim.x), HLINES(dim.y));
+		e.assign<Visible>();
+		e.assign<Physics>();
+
+		items[movingItem].item = nullptr;
+		items[movingItem].count = 0;
+
 		movingItem = -1;
 	}
 }

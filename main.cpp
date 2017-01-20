@@ -131,8 +131,7 @@ int main(int argc, char *argv[])
 	/////////////////////////////
 
 
-	game::engine.getSystem<InventorySystem>()->add("Debug", 3);
-	game::engine.getSystem<InventorySystem>()->take("Debug", 2);
+	game::engine.getSystem<InventorySystem>()->add("Debug", 9);
 
 	std::list<SDL_Event> eventQueue;
 
