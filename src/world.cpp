@@ -12,6 +12,12 @@
 #include <chrono>
 using namespace std::literals::chrono_literals;
 
+#include <common.hpp>
+#include <debug.hpp>
+#include <error.hpp>
+#include <fileio.hpp>
+#include <vector3.hpp>
+
 // local game headers
 #include <ui.hpp>
 #include <gametime.hpp>
@@ -369,7 +375,8 @@ void WorldSystem::load(const std::string& file)
 
 						entity.assign<Physics>(g);
 					} else if (tname == "Name") {
-						entity.assign<Name>(coalesce(wxml->Attribute("name"), abcd->Attribute("value")));
+						auto name = wxml->Attribute("name");
+						entity.assign<Name>( name != nullptr ? name : abcd->Attribute("value"));
 					} else if (tname == "Dialog") {
 						entity.assign<Dialog>((wxml->BoolAttribute("hasDialog") ? 0 : 9999));
 					} else if (tname == "Grounded") {

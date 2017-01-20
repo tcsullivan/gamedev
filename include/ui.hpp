@@ -1,48 +1,26 @@
-/* ----------------------------------------------------------------------------
-** The user interface system.
-**
-** This file contains everything user-interface related.
-** --------------------------------------------------------------------------*/
-#ifndef UI_H
-#define UI_H
+/**
+ * @file ui.hpp
+ * @brief the user interface system.
+ */
+#ifndef UI_HPP_
+#define UI_HPP_
+
+#include <cstdarg>
+#include <string>
+
+#include <entityx/entityx.h>
+#include <GL/glew.h>
+#include <SDL2/SDL_opengl.h>
+
+#include <color.hpp>
+#include <events.hpp>
+#include <vector2.hpp>
 
 #define DEBUG
 #define SDL_KEY e.key.keysym.sym
 
-/* ----------------------------------------------------------------------------
-** Includes section
-** --------------------------------------------------------------------------*/
-
-// standard library headers
-#include <cstdarg>
-#include <cstdint>
-#include <thread>
-
-// local game headers
-#include <common.hpp>
-#include <config.hpp>
-//#include <inventory.hpp>
-#include <ui_menu.hpp>
-#include <events.hpp>
-
-// local library headers
-#include <SDL2/SDL_opengl.h>
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
-#ifndef __WIN32__
-#	include <bmpimage.hpp>
-#endif // __WIN32__
-
-/* ----------------------------------------------------------------------------
-** The UI namespace
-** --------------------------------------------------------------------------*/
-
 void setControl(int index, SDL_Keycode key);
 SDL_Keycode getControl(int index);
-
-#include <entityx/entityx.h>
 
 class InputSystem : public entityx::System<InputSystem>, public entityx::Receiver<InputSystem> {
 public:
@@ -168,4 +146,4 @@ namespace ui {
 	void takeScreenshot(GLubyte *pixels);
 }
 
-#endif // UI_H
+#endif // UI_HPP_

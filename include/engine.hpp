@@ -6,10 +6,12 @@
 #ifndef ENGINE_HPP_
 #define ENGINE_HPP_
 
-#include <entityx/entityx.h>
-#include <entityx/deps/Dependencies.h>
+#include <atomic>
+#include <chrono>
+#include <thread>
 
-#include <texture.hpp>
+#include <entityx/entityx.h>
+
 #include <components.hpp>
 #include <events.hpp>
 
@@ -62,9 +64,6 @@ public:
 		shouldRun = !(gee.really);
 	}
 };
-
-#include <atomic>
-#include <chrono>
 
 class LockableEntityManager : public entityx::EntityManager {
 private:

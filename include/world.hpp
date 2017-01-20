@@ -2,22 +2,23 @@
  * @file  world.hpp
  * @brief The world system
  */
+#ifndef WORLD_HPP_
+#define WORLD_HPP_
 
-#ifndef WORLD_H
-#define WORLD_H
+#include <string>
+#include <thread>
+#include <vector>
 
-// library includes
+#include <SDL2/SDL_mixer.h>
 #include <entityx/entityx.h>
 
-// local game includes
-#include <common.hpp>
-#include <coolarray.hpp>
+#include <tinyxml2.h>
+using namespace tinyxml2;
+
+#include <components.hpp>
 #include <events.hpp>
 #include <texture.hpp>
-#include <components.hpp>
-#include <tinyxml2.h>
-
-using namespace tinyxml2;
+#include <vector2.hpp>
 
 /**
  * The background type enum.
@@ -178,4 +179,4 @@ public:
 	void load(const std::string& file);
 };
 
-#endif // WORLD_H
+#endif // WORLD_HPP_

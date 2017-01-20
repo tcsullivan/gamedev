@@ -9,6 +9,8 @@
 #include <world.hpp>
 #include <brice.hpp>
 #include <quest.hpp>
+#include <glm.hpp>
+#include <fileio.hpp>
 
 #include <atomic>
 

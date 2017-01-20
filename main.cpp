@@ -15,6 +15,8 @@ using namespace std::literals::chrono_literals;
 #include <config.hpp>
 #include <common.hpp>
 #include <engine.hpp>
+#include <error.hpp>
+#include <fileio.hpp>
 #include <gametime.hpp>
 #include <window.hpp>
 #include <world.hpp>
@@ -50,11 +52,6 @@ public:
  * The currently used folder to look for XML files in.
  */
 std::string xmlFolder = "xml/";
-
-/**
- * The current menu, if any are open (TODO why is this here)
- */
-Menu *currentMenu;
 
 /**
  * The current center of the screen, updated in main render.
@@ -134,8 +131,7 @@ int main(int argc, char *argv[])
 	/////////////////////////////
 
 
-	game::engine.getSystem<InventorySystem>()->add("Debug", 3);
-
+	game::engine.getSystem<InventorySystem>()->add("Debug", 9);
 
 	std::list<SDL_Event> eventQueue;
 

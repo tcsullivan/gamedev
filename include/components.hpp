@@ -5,15 +5,19 @@
  * this allows the entity to change stats or skills on the go. This also allows every "object"
  * the be an entity, and it gives the game a much better customizability over xml.
  */
-
 #ifndef COMPONENTS_HPP
 #define COMPONENTS_HPP
 
-#include <entityx/entityx.h>
-#include <common.hpp>
-#include <texture.hpp>
+#include <string>
+#include <vector>
+
 #include <events.hpp>
-#include <atomic>
+#include <inventory.hpp>
+#include <random.hpp>
+#include <texture.hpp>
+#include <vector2.hpp>
+
+#include <entityx/entityx.h>
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
@@ -61,7 +65,7 @@ struct Physics {
 	 * Constructor that sets the gravity constant, if not specified it becomes 0.
 	 * @param g The non default gravity constant.
 	 */
-	Physics(float g = 0.0f): g(g) {}
+	Physics(float g = 1.0f): g(g) {}
 
 	float g; /**< The gravity constant, how fast the object falls */
 };
@@ -100,6 +104,13 @@ struct Name {
 	Name(std::string n = "") : name(n) {}
 
 	std::string name;
+};
+
+struct ItemDrop {
+	ItemDrop(InventoryEntry& ie)
+		: item(ie) {}
+
+	InventoryEntry item;
 };
 
 /**
@@ -151,6 +162,14 @@ struct SpriteData {
 			offset_tex.y = offset.y/tmpsize.y;
 	}
 
+	SpriteData(Texture t)
+		: tex(t) {
+		size_tex = 1;
+		offset_tex = 0;
+		size = tex.getDim();
+		offset = 0;
+	}
+
 	Texture tex;
 	vec2 size;
 	vec2 offset;
@@ -158,7 +177,7 @@ struct SpriteData {
 	vec2 offset_tex;
 	vec2 size_tex;
 
-	uint limb;
+	unsigned int limb;
 };
 
 using Frame = std::vector<std::pair<SpriteData, vec2>>;

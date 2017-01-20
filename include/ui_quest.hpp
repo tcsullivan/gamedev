@@ -2,12 +2,13 @@
  * @file ui_quest.hpp
  * @brief Handles UI elements related to quests.
  */
-
 #ifndef UI_QUEST_HPP_
 #define UI_QUEST_HPP_
 
 #include <ui.hpp>
-#include <common.hpp>
+#include <vector2.hpp>
+
+extern vec2 offset;
 
 namespace ui {
 	namespace quest {

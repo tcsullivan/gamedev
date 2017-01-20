@@ -13,6 +13,7 @@
 #include <GL/glew.h>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 
 char* file_read(const char* filename);
 void print_log(GLuint object);

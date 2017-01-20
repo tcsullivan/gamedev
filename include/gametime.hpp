@@ -2,7 +2,6 @@
  * @file gametime.hpp
  * @brief Handles time related operations
  */
-
 #ifndef GAMETIME_H_
 #define GAMETIME_H_
 

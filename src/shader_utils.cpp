@@ -1,9 +1,8 @@
+#include <shader_utils.hpp>
+
 #include <iostream>
 #include <vector>
 using namespace std;
-
-#include <shader_utils.hpp>
-//#include <SDL_opengles2.h>
 
 /**
  * Store all the file's contents in memory, useful to pass shaders

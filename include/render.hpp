@@ -6,8 +6,8 @@
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 
-#include <common.hpp>
 #include <shader_utils.hpp>
+#include <vector2.hpp>
 
 /**
  * @class Shader

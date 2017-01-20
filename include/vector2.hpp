@@ -71,10 +71,21 @@ struct vector2 {
 		return (x == v.x) && (y == v.y);
 	}
 
+	bool operator>(const vector2<T>& v) const {
+		return (x > v.x) && (y > v.y);
+	}
+
+	bool operator<(const vector2<T>& v) const {
+		return (x < v.x) && (y < v.y);
+	}
+
 	// other functions
 	std::string toString(void) const {
 		return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
 	}
 };
+
+using vec2 = vector2<float>;
+using dim2 = vector2<int>;
 
 #endif // VECTOR2_HPP_

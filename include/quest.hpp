@@ -2,7 +2,6 @@
  * @file quest.hpp
  * Quest handling.
  */
-
 #ifndef QUEST_HPP_
 #define QUEST_HPP_
 

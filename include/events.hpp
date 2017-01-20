@@ -8,7 +8,9 @@
 #include <SDL2/SDL.h>
 
 #include <string>
-#include <common.hpp>
+
+#include <config.hpp>
+#include <vector2.hpp>
 
 class World;
 
@@ -32,6 +34,14 @@ struct MouseScrollEvent {
 
 struct MouseClickEvent {
 	MouseClickEvent(vec2 pos, int b)
+		: position(pos), button(b) {}
+
+	vec2 position;
+	int button;
+};
+
+struct MouseReleaseEvent {
+	MouseReleaseEvent(vec2 pos, int b)
 		: position(pos), button(b) {}
 
 	vec2 position;

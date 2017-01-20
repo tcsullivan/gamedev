@@ -1,10 +1,10 @@
 #ifndef PARTICLE_HPP_
 #define PARTICLE_HPP_
 
-#include <common.hpp>
 #include <texture.hpp>
+#include <vector2.hpp>
 
-#include <list>
+#include <vector>
 
 #include <entityx/entityx.h>
 

@@ -1,12 +1,16 @@
 #include <ui_menu.hpp>
 
+#include <common.hpp>
 #include <engine.hpp>
+#include <fileio.hpp>
 #include <render.hpp>
 #include <texture.hpp>
 
 #include <fstream>
 
-extern Menu *currentMenu;
+extern vec2 offset;
+
+static Menu* currentMenu = nullptr;
 
 static Menu pauseMenu;
 static Menu optionsMenu;
@@ -14,24 +18,10 @@ static Menu controlsMenu;
 
 void Menu::gotoParent(void)
 {
-	if (!parent) {
-		currentMenu = nullptr;
+	if (parent == nullptr)
 		game::config::update();
-	} else {
+	else
 		currentMenu = parent;
-	}
-}
-
-inline void segFault(void)
-{
-	++*((int *)0);
-}
-
-void quitGame(void)
-{
-	game::config::update();
-	game::config::save();
-	game::endGame();
 }
 
 std::string& deleteWord(std::string& s)
@@ -106,93 +96,109 @@ void setControlF(unsigned int index, menuItem &m)
 
 namespace ui {
     namespace menu {
-        menuItem createButton(vec2 l, dim2 d, Color c, const char* t, menuFunc f) {
-            menuItem temp;
+        menuItem createButton(vec2 l, dim2 d, Color c, const char* t, MenuAction f) {
+            menuItem temp (l, d, c, t);
 
             temp.member = 0;
-            temp.loc = l;
-            temp.dim = d;
-            temp.color = c;
-            temp.text = t;
             temp.button.func = f;
-			temp.child = nullptr;
 
             return temp;
         }
 
-        menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t, Menu *_child) {
-            menuItem temp;
+        menuItem createChildButton(vec2 l, dim2 d, Color c, const char* t, Menu* _child) {
+            menuItem temp (l, d, c, t, _child);
 
             temp.member = -1;
-            temp.loc = l;
-            temp.dim = d;
-            temp.color = c;
-            temp.text = t;
             temp.button.func = nullptr;
-			temp.child = _child;
 
             return temp;
         }
 
         menuItem createParentButton(vec2 l, dim2 d, Color c, const char* t) {
-            menuItem temp;
+            menuItem temp (l, d, c, t);
 
             temp.member = -2;
-            temp.loc = l;
-            temp.dim = d;
-            temp.color = c;
-            temp.text = t;
             temp.button.func = nullptr;
-			temp.child = nullptr;
 
             return temp;
         }
 
         menuItem createSlider(vec2 l, dim2 d, Color c, float min, float max, const char* t, float* v) {
-            menuItem temp;
+            menuItem temp (l, d, c, t);
 
             temp.member = 1;
-            temp.loc = l;
-            temp.dim = d;
-            temp.color = c;
             temp.slider.minValue = min;
             temp.slider.maxValue = max;
-            temp.text = t;
             temp.slider.var = v;
             temp.slider.sliderLoc = *v;
-			temp.child = nullptr;
 
             return temp;
         }
 
 		void init(void) {
+			dim2 obSize (256, 75);
+			Color black (0, 0, 0);
 			// Create the main pause menu
-			pauseMenu.items.push_back(ui::menu::createParentButton({-128,100},{256,75},{0.0f,0.0f,0.0f}, "Resume"));
-			pauseMenu.items.push_back(ui::menu::createChildButton({-128, 0},{256,75},{0.0f,0.0f,0.0f}, "Options", &optionsMenu));
-			pauseMenu.items.push_back(ui::menu::createChildButton({-128,-100},{256,75},{0.0f,0.0f,0.0f}, "Controls", &controlsMenu));
-			pauseMenu.items.push_back(ui::menu::createButton({-128,-200},{256,75},{0.0f,0.0f,0.0f}, "Save and Quit", quitGame));
-			pauseMenu.items.push_back(ui::menu::createButton({-128,-300},{256,75},{0.0f,0.0f,0.0f}, "Segfault", segFault));
+			pauseMenu.items.push_back(ui::menu::createParentButton(
+				vec2(-128, 100), obSize, black, "Resume"));
+
+			pauseMenu.items.push_back(ui::menu::createChildButton(
+				vec2(-128, 0), obSize, black, "Options", &optionsMenu));
+
+			pauseMenu.items.push_back(ui::menu::createChildButton(
+				vec2(-128, -100), obSize, black, "Controls", &controlsMenu));
+
+			pauseMenu.items.push_back(ui::menu::createButton(
+				vec2(-128, -200), obSize, black, "Save and Quit",
+				[]() {
+					game::config::update(); // TODO necessary?
+					game::config::save();
+					game::endGame();
+				} ));
+
+			pauseMenu.items.push_back(ui::menu::createButton(
+				vec2(-128, -300), obSize, black, "Segfault",
+				[]() { ++*((int *)0); } ));
 
 			// Create the options (sound) menu
-			optionsMenu.items.push_back(ui::menu::createSlider({0-static_cast<float>(game::SCREEN_WIDTH)/4,0-(512/2)}, {50,512}, {0.0f, 0.0f, 0.0f}, 0, 100, "Master", &game::config::VOLUME_MASTER));
-			optionsMenu.items.push_back(ui::menu::createSlider({-200,100}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "Music", &game::config::VOLUME_MUSIC));
-			optionsMenu.items.push_back(ui::menu::createSlider({-200,000}, {512,50}, {0.0f, 0.0f, 0.0f}, 0, 100, "SFX", &game::config::VOLUME_SFX));
+			optionsMenu.items.push_back(ui::menu::createSlider(
+				vec2(-static_cast<float>(game::SCREEN_WIDTH) / 4, -(512/2)), dim2(50, 512),
+				black, 0, 100, "Master", &game::config::VOLUME_MASTER));
+			optionsMenu.items.push_back(ui::menu::createSlider(
+				vec2(-200, 100), dim2(512, 50), black, 0, 100, "Music", &game::config::VOLUME_MUSIC));
+			optionsMenu.items.push_back(ui::menu::createSlider(
+				vec2(-200, 0), dim2(512, 50), black, 0, 100, "SFX", &game::config::VOLUME_SFX));
+
 			optionsMenu.parent = &pauseMenu;
 
 			// Create the controls menu
-			controlsMenu.items.push_back(ui::menu::createButton({-450,300}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Up: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(0, controlsMenu.items[0]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Left: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(1, controlsMenu.items[1]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Right: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(2, controlsMenu.items[2]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,0}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Sprint: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(3, controlsMenu.items[3]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,-100}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Creep: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(4, controlsMenu.items[4]); };
-			controlsMenu.items.push_back(ui::menu::createButton({-450,-200}, {400, 75}, {0.0f, 0.0f, 0.0f}, "Inventory: ", nullptr));
-			controlsMenu.items.back().button.func = [](){ setControlF(5, controlsMenu.items[5]); };
+			dim2 cbSize (400, 75);
+			controlsMenu.items.push_back(ui::menu::createButton(
+				vec2(-450, 300), cbSize, black, "Up: ",
+				[]() { setControlF(0, controlsMenu.items[0]); } ));
+
+			controlsMenu.items.push_back(ui::menu::createButton(
+				vec2(-450, 200), cbSize, black, "Left: ",
+				[]() { setControlF(1, controlsMenu.items[1]); } ));
+
+			controlsMenu.items.push_back(ui::menu::createButton(
+				vec2(-450, 100), cbSize, black, "Right: ",
+				[]() { setControlF(2, controlsMenu.items[2]); } ));
+
+			controlsMenu.items.push_back(ui::menu::createButton(
+				vec2(-450, 0), cbSize, black, "Sprint: ",
+				[]() { setControlF(3, controlsMenu.items[3]); } ));
+
+			controlsMenu.items.push_back(ui::menu::createButton(
+				vec2(-450, -100), cbSize, black, "Creep: ",
+				[]() { setControlF(4, controlsMenu.items[4]); } ));
+
+			controlsMenu.items.push_back(ui::menu::createButton(
+				vec2(-450, -200), cbSize, black, "Inventory: ",
+				[]() { setControlF(5, controlsMenu.items[5]); } ));
+
 			controlsMenu.parent = &pauseMenu;
+
 			initControls(&controlsMenu);
 		}
 
@@ -201,8 +207,11 @@ namespace ui {
 		}
 
         void draw(void) {
-			auto SCREEN_WIDTH = game::SCREEN_WIDTH;
-			auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
+			if (currentMenu == nullptr)
+				return;
+
+			auto& SCREEN_WIDTH = game::SCREEN_WIDTH;
+			auto& SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
             SDL_Event e;
 
