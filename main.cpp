@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 				worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 
 				// update fades
-				ui::fadeUpdate();
+				//ui::fadeUpdate();
 
 				// increment game ticker
 				game::time::tick();
@@ -167,6 +167,11 @@ int main(int argc, char *argv[])
 		GameThread gtDebug ([&] {
 			fps = fpsInternal, fpsInternal = 0;
 			std::this_thread::sleep_for(1s);
+		});
+
+		GameThread gtFade ([&] {
+			ui::fadeUpdate();
+			std::this_thread::sleep_for(20ms);
 		});
 
 		// the render loop, renders
