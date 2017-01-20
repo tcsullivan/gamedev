@@ -9,10 +9,63 @@
 static const char *spriteXML =
 	"<Sprite> \
 		<frame> \
-			<src limb='0' offset='0,0' size='15,23' drawOffset='0,9'>assets/player/player.png</src> \
-			<src limb='1' offset='15,0' size='12,11' drawOffset='2,0'>assets/player/player.png</src>\
+			<src limb='0' offset='0,0' size='15,16' drawOffset='0,9'>assets/player/player.png</src> \
+			<src limb='1' offset='0,16' size='13,12' drawOffset='0,20'>assets/player/player.png</src>\
+			<src limb='2' offset='15,0' size='14,11' drawOffset='1,0'>assets/player/player.png</src>\
+			<src limb='3' offset='15,14' size='15,13' drawOffset='0,9'>assets/player/player.png</src>\
 		</frame> \
 	</Sprite>";
+
+static const char *animationXML = 
+	"<Animation>\
+		<movement>\
+			<limb update='60.0' id='2'>\
+				<frame>\
+					<src offset='15,0' size='14,11' drawOffset='1,0'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='29,0' size='14,11' drawOffset='1,0'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='43,0' size='14,11' drawOffset='1,0'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='57,0' size='14,11' drawOffset='1,0'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='71,0' size='14,11' drawOffset='1,0'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='85,0' size='14,11' drawOffset='1,0'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='99,0' size='14,11' drawOffset='1,0'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='113,0' size='14,11' drawOffset='1,0'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='127,0' size='14,11' drawOffset='1,0'>assets/player/player.png</src>\
+				</frame>\
+			</limb>\
+		</movement>\
+		<movement>\
+			<limb update='250.0' id='3'>\
+				<frame>\
+					<src offset='15,14' size='15,13' drawOffset='0,9'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='32,14' size='14,13' drawOffset='0,9'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='50,14' size='14,13' drawOffset='0,9'>assets/player/player.png</src>\
+				</frame>\
+				<frame>\
+					<src offset='68,14' size='17,13' drawOffset='-1,9'>assets/player/player.png</src>\
+				</frame>\
+			</limb>\
+		</movement>\
+	</Animation>";
 
 void PlayerSystem::create(void)
 {
@@ -32,6 +85,51 @@ void PlayerSystem::create(void)
 	vec2 dim = player.component<Sprite>().get()->getSpriteSize();
 	float cdat[2] = {dim.x, dim.y};
 	player.assign<Solid>(cdat[0], cdat[1]);
+
+	// handle player animation
+	xmld.Parse(animationXML);
+	auto entan = player.assign<Animate>();
+	auto animx = xmld.FirstChildElement()->FirstChildElement();
+	
+	uint limbid 		= 0;
+	float limbupdate 	= 0;
+	uint limbupdatetype = 0;
+	
+	while (animx) {	
+		std::string animType = animx->Name();
+		std::cout << animx->Name() << std::endl;
+		if (animType == "movement") {
+			limbupdatetype = 1;
+			auto limbx = animx->FirstChildElement();
+			while (limbx) {
+				std::string limbHopefully = limbx->Name();
+				if (limbHopefully == "limb") {
+					auto frames = developFrame(limbx);
+					
+					entan->limb.push_back(Limb());
+					entan->limb.back().updateType = limbupdatetype;
+
+					if (limbx->QueryUnsignedAttribute("id", &limbid) == XML_NO_ERROR) {
+						entan->limb.back().limbID = limbid;
+					}
+					if (limbx->QueryFloatAttribute("update", &limbupdate) == XML_NO_ERROR) {
+						entan->limb.back().updateRate = limbupdate;
+					}
+					
+					// place our newly developed frames in the entities animation stack
+					for (auto &f : frames) {
+						entan->limb.back().addFrame(f);
+						for (auto &fr : entan->limb.back().frame) {
+							for (auto &sd : fr)
+								sd.first.limb = limbid;
+						}
+					}
+				}
+			limbx = limbx->NextSiblingElement();
+			}
+		}
+		animx = animx->NextSiblingElement();
+	}
 }
 
 void PlayerSystem::configure(entityx::EventManager &ev)
