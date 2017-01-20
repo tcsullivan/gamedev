@@ -71,6 +71,14 @@ struct vector2 {
 		return (x == v.x) && (y == v.y);
 	}
 
+	bool operator>(const vector2<T>& v) const {
+		return (x > v.x) && (y > v.y);
+	}
+
+	bool operator<(const vector2<T>& v) const {
+		return (x < v.x) && (y < v.y);
+	}
+
 	// other functions
 	std::string toString(void) const {
 		return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";

@@ -23,10 +23,13 @@ constexpr int          hotbarSize = 4;
 constexpr float        inventoryZ = -6.0f;
 constexpr unsigned int rowSize = 8;
 
+static int movingItem = -1;
+
 void InventorySystem::configure(entityx::EventManager &ev)
 {
     ev.subscribe<KeyDownEvent>(*this);
 	ev.subscribe<MouseClickEvent>(*this);
+	ev.subscribe<MouseReleaseEvent>(*this);
 }
 
 void InventorySystem::loadItems(void) {
@@ -99,16 +102,21 @@ void InventorySystem::render(void)
 			i.item->sprite.use();
 			static const GLfloat tex[12] = {0,1,1,1,1,0,1,0,0,0,0,1};
 			glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
-			vec2 end = i.loc + i.item->sprite.getDim();
+
+			vec2 sta ((n == movingItem) ? ui::mouse - i.item->sprite.getDim() / 2 : i.loc);
+			vec2 end = (n == movingItem) ? ui::mouse + i.item->sprite.getDim() / 2 : i.loc + i.item->sprite.getDim();
 			GLfloat coords[18] = {
-				i.loc.x, i.loc.y, inventoryZ - 0.2, end.x, i.loc.y, inventoryZ - 0.2, end.x, end.y, inventoryZ - 0.2,
-				end.x, end.y, inventoryZ - 0.2, i.loc.x, end.y, inventoryZ - 0.2, i.loc.x, i.loc.y, inventoryZ - 0.2
+				sta.x, sta.y, inventoryZ - 0.2, end.x, sta.y, inventoryZ - 0.2, end.x, end.y, inventoryZ - 0.2,
+				end.x, end.y, inventoryZ - 0.2, sta.x, end.y, inventoryZ - 0.2, sta.x, sta.y, inventoryZ - 0.2
 			};
 			glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
+			if (n == movingItem)
+				glUniform4f(Render::textShader.uniform[WU_tex_color], .8, .8, 1, .8);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			ui::setFontZ(-7.2); // TODO fix z's
-			ui::putText(i.loc.x, i.loc.y, std::to_string(i.count).c_str());
+			ui::putText(sta.x, sta.y, std::to_string(i.count).c_str());
 			ui::setFontZ(-6);
+			glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, 1);
 		}
 	}
 
@@ -118,7 +126,34 @@ void InventorySystem::render(void)
 
 void InventorySystem::receive(const MouseClickEvent &mce)
 {
-	(void)mce;	
+	int end = fullInventory ? items.size() : hotbarSize;
+	movingItem = -1;
+	for (int i = 0;	i < end; i++) {
+		if (mce.position > items[i].loc && mce.position < items[i].loc + entrySize) {
+			movingItem = i;
+			break;
+		}
+	}
+}
+
+void InventorySystem::receive(const MouseReleaseEvent &mre)
+{
+	if (movingItem != -1) {
+		int end = fullInventory ? items.size() : hotbarSize;
+		for (int i = 0;	i < end; i++) {
+			if (mre.position > items[i].loc && mre.position < items[i].loc + entrySize) {
+				if (items[i].count > 0) {
+					std::swap(items[movingItem], items[i]);
+				} else {
+					items[i] = items[movingItem];
+					items[movingItem].item = nullptr;
+					items[movingItem].count = 0;
+				}
+				break;
+			}
+		}
+		movingItem = -1;
+	}
 }
 
 void InventorySystem::receive(const KeyDownEvent &kde)

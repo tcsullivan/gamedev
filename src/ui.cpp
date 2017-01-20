@@ -1202,7 +1202,10 @@ void InputSystem::receive(const MainSDLEvent& event)
 		premouse.y=e.motion.y;
 		break;
 
-	//case SDL_MOUSEBUTTONUP:
+	case SDL_MOUSEBUTTONUP:
+		ev.emit<MouseReleaseEvent>(mouse, e.button.button);
+		break;
+
 	case SDL_MOUSEBUTTONDOWN:
 		ev.emit<MouseClickEvent>(mouse, e.button.button);
 

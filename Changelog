@@ -1093,3 +1093,20 @@ Late June (6/16/2016 - 6/27/2016)
 	- created render.cpp, moved shader management to there
 	- this game will be kinda decent now???
 	- input bugs, because we're awful
+
+
+
+
+1/19/2017:
+==========
+
+	What's been happening:
+
+	- major rewrite, full on EntityX
+	- everything is actually decent now
+	- keeping an eye on optimization, perf, ...
+	- basically no segfaults? like what the heck
+	- new inventory system
+	- new entity animation system
+	- almost ready to really get some story work done
+

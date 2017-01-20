@@ -86,6 +86,7 @@ public:
     void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
     void receive(const KeyDownEvent &kde);
 	void receive(const MouseClickEvent &mce);
+	void receive(const MouseReleaseEvent &mce);
 
 	void render(void);
 

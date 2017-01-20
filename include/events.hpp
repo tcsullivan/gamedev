@@ -40,6 +40,14 @@ struct MouseClickEvent {
 	int button;
 };
 
+struct MouseReleaseEvent {
+	MouseReleaseEvent(vec2 pos, int b)
+		: position(pos), button(b) {}
+
+	vec2 position;
+	int button;
+};
+
 struct KeyDownEvent {
     KeyDownEvent(SDL_Keycode kc = 0)
         : keycode(kc) {}
