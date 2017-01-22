@@ -1107,7 +1107,7 @@ namespace ui {
 
 		std::vector<GLubyte> bgr (SCREEN_WIDTH * SCREEN_HEIGHT * 3, 0);
 
-		for(uint x = 0; x < SCREEN_WIDTH*SCREEN_HEIGHT*3; x+=3) {
+		for(unsigned int x = 0; x < SCREEN_WIDTH*SCREEN_HEIGHT*3; x+=3) {
 			bgr[x] = pixels[x+2];
 			bgr[x+1] = pixels[x+1];
 			bgr[x+2] = pixels[x];

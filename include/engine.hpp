@@ -8,7 +8,7 @@
 
 #include <atomic>
 #include <chrono>
-#include <thread>
+#include <thread.hpp>
 
 #include <entityx/entityx.h>
 

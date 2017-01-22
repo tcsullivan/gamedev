@@ -297,7 +297,7 @@ std::vector<Frame> developFrame(XMLElement* xml)
 	std::vector<Frame> tmp;
 	SpriteData* sd;	
 
-	uint limb = 0;
+	unsigned int limb = 0;
 
 	vec2 foffset;
 	vec2 fsize;

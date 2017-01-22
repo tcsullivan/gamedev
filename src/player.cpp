@@ -91,9 +91,9 @@ void PlayerSystem::create(void)
 	auto entan = player.assign<Animate>();
 	auto animx = xmld.FirstChildElement()->FirstChildElement();
 	
-	uint limbid 		= 0;
+	unsigned int limbid 		= 0;
 	float limbupdate 	= 0;
-	uint limbupdatetype = 0;
+	unsigned int limbupdatetype = 0;
 	
 	while (animx) {	
 		std::string animType = animx->Name();

@@ -6,7 +6,6 @@
 #define WORLD_HPP_
 
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <SDL2/SDL_mixer.h>
@@ -18,6 +17,7 @@ using namespace tinyxml2;
 #include <components.hpp>
 #include <events.hpp>
 #include <texture.hpp>
+#include <thread.hpp>
 #include <vector2.hpp>
 
 /**

@@ -23,20 +23,17 @@ CXXOBJ    = $(patsubst $(CXXSRCDIR)/%.cpp, $(CXXOUTDIR)/%.o, $(CXXSRC))
 
 EXEC = main
 
-all: $(EXEC)
+all: SPECIAL:=-ggdb game
 
-dirty:
-	rm -rf out/world.o
+release: SPECIAL = -static
+release: LIBS += -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid
+release: game
+
+game: $(EXEC)
 
 clean:
 	rm -f $(EXEC)
 	rm -f out/*.o
-
-cleandata:
-	rm -rf xml/*.dat
-	rm -rf storyXML/*.dat
-	rm brice.dat
-	touch brice.dat
 
 $(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
 	g++ -I. -std=c++11 -c entityx/help/Pool.cc -o out/Pool.o
@@ -46,7 +43,7 @@ $(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
 	g++ -I. -std=c++11 -c entityx/System.cc -o out/System.o
 	
 	@echo "  CXX/LD  main"
-	@$(CXX) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/*.o $(LIBS)
+	@$(CXX) $(SPECIAL) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/*.o $(LIBS)
 	@rm -rf xml/*.dat
 	@rm -rf storyXML/*.dat
 

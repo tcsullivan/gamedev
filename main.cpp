@@ -24,30 +24,6 @@ using namespace std::literals::chrono_literals;
 #include <ui.hpp>
 #include <inventory.hpp>
 
-class GameThread : public entityx::Receiver<GameThread> {
-private:
-	std::atomic_bool die;
-	std::thread thread;
-
-public:
-	template<typename F>
-	GameThread(F&& func) {
-		die.store(false);
-		thread = std::thread([this](F&& f) {
-			while (!die.load())
-				f();
-		}, std::forward<F>(func));
-	}
-
-	~GameThread(void) {
-		thread.join();
-	}
-
-	void stop(void) {
-		die.store(true);
-	}
-};
-
 /**
  * The currently used folder to look for XML files in.
  */
@@ -188,6 +164,7 @@ int main(int argc, char *argv[])
 		// on game end, get back together
 		gtMain.stop();
 		gtDebug.stop();
+		gtFade.stop();
 		//game::engine.getSystem<WorldSystem>()->thAmbient.join(); // segfault or something
 	}
 

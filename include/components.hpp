@@ -319,11 +319,11 @@ struct Limb {
 
 	float updateRate; /**< How often we will change each frame. */
 	float updateCurrent; /**< How much has been updated in the current frame. */
-	uint updateType; /**< What the updateRate will base it's updates off of.
+	unsigned int updateType; /**< What the updateRate will base it's updates off of.
 						ie: Movement, attacking, jumping. */
-	uint limbID; /**< The id of the limb we will be updating */
+	unsigned int limbID; /**< The id of the limb we will be updating */
 	
-	uint index = 0; /**< The current sprite being used for the limb. */
+	unsigned int index = 0; /**< The current sprite being used for the limb. */
 
 	std::vector<Frame> frame; /**< The multiple frames of each limb. */
 };
@@ -333,7 +333,7 @@ struct Animate {
 	// COMMENT
 	std::vector<Limb> limb;
 	// COMMENT	
-	uint index;
+	unsigned int index;
 
 	Animate(){
 		index = 0;
@@ -341,8 +341,8 @@ struct Animate {
 
 	// COMMENT
 
-	void firstFrame(uint updateType, Frame &sprite) {
-		uint upid = updateType; //^see todo
+	void firstFrame(unsigned int updateType, Frame &sprite) {
+		unsigned int upid = updateType; //^see todo
 		for (auto &l : limb) {
 			if (l.updateType == upid) {
 				l.firstFrame(sprite);
@@ -350,8 +350,8 @@ struct Animate {
 		}
 	}
 	 //TODO make updateType an enum
-	void updateAnimation(uint updateType, Frame& sprite, float dt) {
-		uint upid = updateType; //^see todo
+	void updateAnimation(unsigned int updateType, Frame& sprite, float dt) {
+		unsigned int upid = updateType; //^see todo
 		for (auto &l : limb) {
 			if (l.updateType == upid) {
 				l.nextFrame(sprite, dt);

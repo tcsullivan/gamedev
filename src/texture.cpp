@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <string>
+#include <stdexcept>
 
 #include <SDL2/SDL_image.h>
 

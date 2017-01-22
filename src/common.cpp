@@ -8,17 +8,16 @@
 #include <iostream>
 #include <list>
 #include <sstream>
+#include <vector>
 
 #include <error.hpp>
+#include <texture.hpp>
 
 #ifndef __WIN32__
 
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
-#include <vector>
-
-#include <texture.hpp>
 
 #endif // __WIN32__
 
