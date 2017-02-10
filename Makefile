@@ -25,10 +25,6 @@ EXEC = main
 
 all: SPECIAL:=-ggdb game
 
-release: SPECIAL = -static
-release: LIBS += -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid
-release: game
-
 game: $(EXEC)
 
 clean:

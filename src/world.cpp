@@ -203,19 +203,24 @@ void WorldSystem::load(const std::string& file)
 		UserError("XML Error: Failed to parse file (not your fault though..?)");
 
 	// include headers
+	std::vector<std::string> toAdd;
 	auto ixml = xmlDoc.FirstChildElement("include");
 	while (ixml != nullptr) {
 		auto file = ixml->Attribute("file");
 
 		if (file != nullptr) {
 			DEBUG_printf("Including file: %s\n", file);
-			xmlRaw.append(readFile(xmlFolder + file));
+			toAdd.emplace_back(xmlFolder + file);
+			//xmlRaw.append(readFile(xmlFolder + file));
 		} else {
 			UserError("XML Error: <include> tag file not given");
 		}
 
-		break;//ixml = ixml->NextSiblingElement();
+		ixml = ixml->NextSiblingElement("include");
 	}
+
+	for (const auto& f : toAdd)
+		xmlRaw.append(readFile(f)); 
 
 	if (xmlDoc.Parse(xmlRaw.data()) != XML_NO_ERROR)
 		UserError("XML Error:");
@@ -385,6 +390,8 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Wander>();
 					} else if (tname == "Hop" ) {
 						entity.assign<Hop>();
+					} else if (tname == "Aggro" ) {
+						entity.assign<Aggro>(abcd->Attribute("arena"));
 					} else if (tname == "Animation") {
 						auto entan = entity.assign<Animate>();
 						auto animx = abcd->FirstChildElement();

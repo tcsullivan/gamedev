@@ -22,7 +22,7 @@ static bool fullInventory = false;
 
 constexpr int          entrySize = 70;
 constexpr int          hotbarSize = 4;
-constexpr float        inventoryZ = -6.0f;
+constexpr float        inventoryZ = -5.0f;
 constexpr unsigned int rowSize = 8;
 
 static int movingItem = -1;
@@ -100,7 +100,7 @@ void InventorySystem::render(void)
 		glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, 1);
 
 		// draw the item
-		if (i.item != nullptr) {
+		if (i.item != nullptr && i.count > 0) {
 			i.item->sprite.use();
 			static const GLfloat tex[12] = {0,1,1,1,1,0,1,0,0,0,0,1};
 			glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
@@ -115,7 +115,7 @@ void InventorySystem::render(void)
 			if (n == movingItem)
 				glUniform4f(Render::textShader.uniform[WU_tex_color], .8, .8, 1, .8);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
-			ui::setFontZ(-7.2); // TODO fix z's
+			ui::setFontZ(inventoryZ - 0.3); // TODO fix z's
 			ui::putText(sta.x, sta.y, std::to_string(i.count).c_str());
 			ui::setFontZ(-6);
 			glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, 1);
@@ -144,6 +144,9 @@ void InventorySystem::receive(const MouseClickEvent &mce)
 		int end = fullInventory ? items.size() : hotbarSize;
 		movingItem = -1;
 		for (int i = 0;	i < end; i++) {
+			if (items[i].item == nullptr || items[i].count == 0)
+				continue;
+
 			if (mce.position > items[i].loc && mce.position < items[i].loc + entrySize) {
 				movingItem = i;
 				break;

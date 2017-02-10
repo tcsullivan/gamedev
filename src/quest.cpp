@@ -2,7 +2,20 @@
 
 #include <algorithm>
 
-extern std::vector<std::string> StringTokenizer(const std::string& str, char delim);
+std::vector<std::string> StringTokenizer(const std::string& str, char delim);
+
+std::vector<std::string> split(std::string s, const std::string& delim)
+{
+	std::vector<std::string> res;
+
+	while (!s.empty()) {
+		auto pos = s.find(delim);
+		res.emplace_back(s.substr(0, pos));
+		s = s.substr(pos + 1);
+	}
+
+	return res;
+}
 
 void QuestSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {

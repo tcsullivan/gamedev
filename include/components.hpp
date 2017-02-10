@@ -409,6 +409,16 @@ struct Wander {
 };
 
 /**
+ * Causes the entity to get mad at the player, charge and fight.
+ */
+struct Aggro {
+	Aggro(const std::string& a)
+		: arena(a) {}
+
+	std::string arena;
+};
+
+/**
  * SYSTEMS
  */
 

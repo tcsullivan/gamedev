@@ -53,6 +53,22 @@
 	<Wander />
 </npc>
 
+<skirl>
+	<Position value="300.0,100.0" />
+	<Visible value="0.2" />
+	<Sprite>
+		<frame>
+			<src limb="0" offset="0,0" size="48,24" drawOffset="0,0">assets/skirl.png</src>
+		</frame>
+	</Sprite>
+	<Direction />
+	<Solid />
+	<Physics />
+	<Name value="SKIRL" />
+	<Wander />
+	<Aggro arena="bobshouse.xml" />
+</skirl>
+
 <structure>
 	<Position value="0.0,100.0" />
 	<Visible value="0.25" />

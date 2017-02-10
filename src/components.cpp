@@ -6,11 +6,13 @@
 #include <render.hpp>
 #include <ui.hpp>
 #include <engine.hpp>
+#include <error.hpp>
 #include <world.hpp>
 #include <brice.hpp>
 #include <quest.hpp>
 #include <glm.hpp>
 #include <fileio.hpp>
+#include <player.hpp>
 
 #include <atomic>
 
@@ -45,7 +47,18 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 
 			// make the entity wander
 			// TODO initialX and range?
-			if (entity.has_component<Wander>()) {
+			if (entity.has_component<Aggro>()) {
+				auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
+				if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
+					ui::toggleWhiteFast();
+					ui::waitForCover(); // TODO thread safe call to load world?
+					//game::engine.getSystem<WorldSystem>()->load(entity.component<Aggro>()->arena);
+					ui::toggleWhiteFast();
+					entity.destroy();
+				} else {
+					direction.x = (ppos.x > position.x) ? .05 : -.05;
+				}
+			} else if (entity.has_component<Wander>()) {
 				auto& countdown = entity.component<Wander>()->countdown;
 
 				if (countdown > 0) {
@@ -210,6 +223,15 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 							do game::setValue(oxml->StrAttribute("id"), oxml->StrAttribute("value"));
 							while ((oxml = oxml->NextSiblingElement()));
 							game::briceUpdate();
+						}
+
+						auto ixml = exml->FirstChildElement("give");
+						if (ixml != nullptr) {
+							do {
+								game::engine.getSystem<InventorySystem>()->add(
+									ixml->StrAttribute("name"), ixml->IntAttribute("count"));
+								ixml = ixml->NextSiblingElement();
+							} while (ixml != nullptr);
 						}
 
 						auto qxml = exml->FirstChildElement("quest");

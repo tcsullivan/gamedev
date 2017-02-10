@@ -36,7 +36,7 @@ void ParticleSystem::render(void)
 		// generate VBO
 		glGenBuffers(1, &particleVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
-		glBufferData(GL_ARRAY_BUFFER, maximum * entrySize, nullptr,	GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, maximum * entrySize, nullptr,	GL_DYNAMIC_DRAW);
 	}
 
 	// clear dead particles
@@ -46,7 +46,7 @@ void ParticleSystem::render(void)
 	// copy data into VBO
 	glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
 
-	for (unsigned int i = 0, offset = 0; i < parts.size() - 1; i++, offset += entrySize) {
+	for (unsigned int i = 0, offset = 0; i < parts.size(); i++, offset += entrySize) {
 		const auto& p = parts[i];
 		static const auto& hl = game::HLINE;
 		GLfloat coords[30] = {

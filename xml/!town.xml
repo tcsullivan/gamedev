@@ -12,17 +12,20 @@
     <npc name="Bob" hasDialog="true" position="50.0,100.0"/>
     <structure type="1" position="300.0,100.0"/>
     <structure inside="bobshouse.xml" type="1" position="10.0,100.0"/>
+	<skirl />
 </World>
 
 <Dialog name="Bob">
     <text id="0" nextid="1" pause="true">
-        <give id="Dank MayMay" count="10"/>
+        <give name="Dank MayMay" count="10"/>
         <content>
 			Hey there! The name's Bob. Good to see you've finally woken up from your nap by the cliff there... lol
 		</content>
     </text>
     <text id="1" pause="true">
-        <quest assign="Check out m&apos;swag, man!" desc="Go inside Bob&apos;s house and check out the stuff he has."/>
+        <quest assign="Check out m&apos;swag, man!" desc="Go inside Bob&apos;s house and check out the stuff he has.">
+			Debug, 5
+		</quest>
         <content>
 			Looks like you've got yourself pretty empty handed... you know, I have a simple solution for that. Come on inside, I have somethin' to show you.
 		</content>
