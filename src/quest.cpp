@@ -1,7 +1,8 @@
 #include <quest.hpp>
 
 #include <algorithm>
-#include <sstream>
+
+#include <tokens.hpp>
 
 void QuestSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
@@ -12,7 +13,13 @@ void QuestSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 int QuestSystem::assign(std::string title, std::string desc, std::string req)
 {
-	(void)req;
+	for (auto s : tokens(req, ',')) {
+		s.erase(std::remove_if(s.begin(), s.end(),
+			[](char c) { return isspace(c); }), s.end());
+
+		std::cout << s << '\n';
+	}
+
 	current.emplace_back(title, desc);
 	return 0;
 }

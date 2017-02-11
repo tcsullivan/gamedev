@@ -1,63 +1,34 @@
 #include <world.hpp>
 
-/* ----------------------------------------------------------------------------
-** Includes section
-** --------------------------------------------------------------------------*/
-
 // standard library headers
 #include <algorithm>
-#include <sstream>
 #include <fstream>
 #include <memory>
+#include <sstream>
+
 #include <chrono>
 using namespace std::literals::chrono_literals;
-
-#include <common.hpp>
-#include <debug.hpp>
-#include <error.hpp>
-#include <fileio.hpp>
-#include <vector3.hpp>
-
-// local game headers
-#include <ui.hpp>
-#include <gametime.hpp>
-
-#include <render.hpp>
-#include <engine.hpp>
-#include <components.hpp>
-#include <player.hpp>
-#include <weather.hpp>
-#include <particle.hpp>
 
 // local library headers
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
-void makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(
-		unsigned size, void *coordAddr, void *texAddr, unsigned triCount
-	)
-{
-	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, size, coordAddr);
-	glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, size, texAddr  );
-	glDrawArrays(GL_TRIANGLES, 0, triCount);
-}
+// game headers
+#include <common.hpp>
+#include <components.hpp>
+#include <debug.hpp>
+#include <engine.hpp>
+#include <error.hpp>
+#include <fileio.hpp>
+#include <gametime.hpp>
+#include <player.hpp>
+#include <particle.hpp>
+#include <render.hpp>
+#include <ui.hpp>
+#include <vector3.hpp>
+#include <weather.hpp>
 
-void makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(
-		unsigned size, void *coordAddr, void *texAddr, unsigned triCount
-	)
-{
-	Render::worldShader.enable();
-
-	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(size, coordAddr, texAddr, triCount);
-
-	Render::worldShader.disable();
-}
-
-/* ----------------------------------------------------------------------------
-** Variables section
-** --------------------------------------------------------------------------*/
-
-extern std::string  xmlFolder;
+extern std::string xmlFolder;
 
 // wait
 static bool waitToSwap = false;
@@ -75,11 +46,11 @@ constexpr const float GROUND_HILLINESS      =  10.0f;
 const unsigned int GRASS_HEIGHT = HLINES(4);
 
 // the path of the currently loaded XML file, externally referenced in places
-std::string currentXML;
+static std::string currentXML;
 
 // pathnames of images for world themes
-using StyleList = std::array<std::string, 8>;
-static const std::vector<StyleList> bgPaths = {
+//using StyleList = std::string[8];
+constexpr const char* bgPaths[1][8] = {
 	{ // Forest
 		"bg.png", 				// sky/background
 		"bgFarMountain.png",	// layer 1 (furthest)
@@ -93,7 +64,7 @@ static const std::vector<StyleList> bgPaths = {
 };
 
 // pathnames of structure textures
-static const std::string buildPaths[] = {
+constexpr const char* buildPaths[] = {
     "townhall.png",
 	"house1.png",
     "house2.png",
@@ -113,17 +84,14 @@ void WorldSystem::generate(int width)
 	float geninc = 0;
 
     // allocate space for world
-    world.data = std::vector<WorldData> (width + GROUND_HILLINESS, WorldData { false, {0, 0}, 0, 0 });
+    world.data = std::vector<WorldData> (width + GROUND_HILLINESS);
 
     // prepare for generation
     world.data[0].groundHeight = GROUND_HEIGHT_INITIAL;
     auto wditer = std::begin(world.data) + GROUND_HILLINESS;
 
 	if (world.indoor) {
-		for (auto &l : world.data) {
-			l.groundHeight = GROUND_HEIGHT_MINIMUM + 5;
-			l.groundColor = 4;
-		}
+		std::fill(world.data.begin(), world.data.end(), WorldData {true, {0, 0}, GROUND_HEIGHT_MINIMUM + 5, 4});
 	} else {
 	    // give every GROUND_HILLINESSth entry a groundHeight value
 	    for (; wditer < std::end(world.data); wditer += GROUND_HILLINESS)
@@ -261,9 +229,7 @@ void WorldSystem::load(const std::string& file)
 
 			bgFiles.clear();
 
-			const auto& files = bgPaths[static_cast<int>(world.style)];
-
-			for (const auto& f : files)
+			for (const auto& f : bgPaths[styleNo])
 				bgFiles.push_back(world.styleFolder + "bg/" + f);
 
 			bgTex = TextureIterator(bgFiles);
@@ -781,7 +747,10 @@ void WorldSystem::render(void)
     bgTex(0);
 	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 
-	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, back_tex_coord, scrolling_tex_coord, 6);
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, back_tex_coord);
+	glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 0, scrolling_tex_coord);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
 	// no more night bg
 	//bgTex++;
 	//glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha) / 255.0f);
@@ -848,7 +817,13 @@ void WorldSystem::render(void)
     Render::worldShader.use();
 	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.01);
 
-	makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, bg_items.data(), bg_tex.data(), bg_items.size());
+	Render::worldShader.enable();
+
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, &bg_items[0]);
+	glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 0, &bg_tex[0]);
+	glDrawArrays(GL_TRIANGLES, 0, bg_items.size());
+
+	Render::worldShader.disable();
 
     Render::worldShader.unuse();
 	// draw the remaining layers
@@ -900,8 +875,13 @@ void WorldSystem::render(void)
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions_JustDrawThis(0, bg_items.data(), &bg_tex[0], bg_items.size());
+		Render::worldShader.enable();
 
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, bg_items.data());
+		glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 0, &bg_tex[0]);
+		glDrawArrays(GL_TRIANGLES, 0, bg_items.size());
+
+		Render::worldShader.disable();
         Render::worldShader.unuse();
 	}
 
