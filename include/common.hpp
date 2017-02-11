@@ -5,6 +5,9 @@
 #ifndef COMMON_HPP_
 #define COMMON_HPP_
 
+#include <algorithm>
+#include <cctype>
+
 // windows stuff
 #ifdef __WIN32__
 using uint = unsigned int;

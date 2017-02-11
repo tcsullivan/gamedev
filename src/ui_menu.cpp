@@ -20,8 +20,8 @@ void Menu::gotoParent(void)
 {
 	if (parent == nullptr)
 		game::config::update();
-	else
-		currentMenu = parent;
+	
+	currentMenu = parent;
 }
 
 std::string& deleteWord(std::string& s)

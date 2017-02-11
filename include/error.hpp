@@ -4,9 +4,12 @@
 #include <string>
 #include <iostream>
 
-inline void UserError(const std::string& why)
+#define UserError(w) _UserError(__FILE__, __LINE__, w)
+#define UserAssert(c, e) if (!(c)) { UserError(e); }
+
+inline void _UserError(const char* file, int line, const std::string& why)
 {
-	std::cout << "User error: " << why << "!\n";
+	std::cout << file << ':' << line << ": error: " << why << "!\n";
 	abort();
 }
 

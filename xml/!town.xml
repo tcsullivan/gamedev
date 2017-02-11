@@ -4,8 +4,7 @@
 <World>
     <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
     <generation width="320"/>
-	<weather>Snowy</weather>
-    <time>6000</time>
+	<weather>Sunny</weather>
     <link right="!town2.xml"/>
     <spawnx>-300</spawnx>
     <npc name="Sanc" hasDialog="true"/>

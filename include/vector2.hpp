@@ -66,6 +66,11 @@ struct vector2 {
 		return vector2<T>(x / n, y / n);
 	}
 
+	vector2<T> operator/=(const T& n) {
+		x /= n, y /= n;
+		return *this;
+	}
+
 	// compare
 	bool operator==(const vector2<T>& v) const {
 		return (x == v.x) && (y == v.y);

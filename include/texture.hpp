@@ -41,8 +41,11 @@ public:
 	 * @param file the path to the desired texture
 	 * @param t the GLuint for the texture, if known
 	 * @param v the size of the texture, if known
+	 * @param hline if true, divides texture dim. by HLINE
 	 */
 	Texture(const std::string& file = "", const GLuint& t = 0xFFFFF, const vec2& v = vec2(0, 0));
+
+	Texture(const std::string& file, bool hline);
 
 	/**
 	 * Gets the name (path) of the loaded texture.

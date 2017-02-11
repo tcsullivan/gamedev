@@ -104,8 +104,7 @@ void loadFontSize(int size, std::vector<FT_Info> &data)
 
 	for (char i = 33; i < 126; i++) {
 		// load the character from the font family file
-		if (FT_Load_Char(ftf, i, FT_LOAD_RENDER))
-			UserError("Error! Unsupported character " + i);
+		UserAssert(!FT_Load_Char(ftf, i, FT_LOAD_RENDER), "Error! Unsupported character " + i);
 
 		// transfer the character's bitmap (?) to a texture for rendering
 		glBindTexture(GL_TEXTURE_2D, data[i - 33].tex);
@@ -191,8 +190,7 @@ namespace ui {
 	*/
 
 	void initFonts(void) {
-		if (FT_Init_FreeType(&ftl))
-			UserError("Couldn't initialize freetype.");
+		UserAssert(!FT_Init_FreeType(&ftl), "Couldn't initialize freetype.");
 
 #ifdef DEBUG
 		DEBUG_printf("Initialized FreeType2.\n", nullptr);
@@ -221,8 +219,8 @@ namespace ui {
 	*/
 
 	void setFontFace(const char *ttf) {
-		if (FT_New_Face(ftl, ttf, 0, &ftf))
-			UserError("Error! Couldn't open " + (std::string)ttf + ".");
+		UserAssert(!FT_New_Face(ftl, ttf, 0, &ftf), "Error! Couldn't open " +
+			std::string(ttf) + ".");
 
 #ifdef DEBUG
 		DEBUG_printf("Using font %s\n",ttf);

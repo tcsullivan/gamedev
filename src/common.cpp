@@ -61,8 +61,7 @@ int getdir(std::string dir, std::list<std::string>& files)
 {
 #ifndef __WIN32__
 	auto dp = opendir(dir.c_str());
-	if (dp == nullptr)
-		UserError("Couldn\'t open folder: " + dir);
+	UserAssert(dp != nullptr, "Couldn\'t open folder: " + dir);
 
 	auto dirp = readdir(dp);
 	while (dirp != nullptr) {
@@ -74,8 +73,7 @@ int getdir(std::string dir, std::list<std::string>& files)
 #else
 	WIN32_FIND_DATA fileData;
 	auto dirh = FindFirstFile((dir + "/*").c_str(), &fileData);
-	if (dirh == INVALID_HANDLE_VALUE)
-		UserError("Couldn\'t open folder: " + dir);
+	UserAssert(dirh != INVALID_HANDLE_VALUE, "Couldn\'t open folder: " + dir);
 
 	do {
 		auto fileName = fileData.cFileName;
@@ -99,8 +97,7 @@ std::string readFile(const std::string& path)
 	std::ifstream in (path, std::ios::in);
 	std::string buffer;
 
-	if (!in.is_open())
-		UserError("Error reading file " + path);
+	UserAssert(in.is_open(), "Error reading file " + path);
 
 	in.seekg(0, in.end);
 	buffer.resize(in.tellg());
@@ -117,8 +114,7 @@ std::vector<std::string> readFileA(const std::string& path)
 	std::vector<std::string> lines;
 	std::string line;
 
-	if (!in.is_open())
-		UserError("Error reading file " + path);
+	UserAssert(in.is_open(), "Error reading file " + path);
 
 	while(std::getline(in, line))
 		lines.push_back(line);
@@ -127,8 +123,3 @@ std::vector<std::string> readFileA(const std::string& path)
 	return lines;
 }
 
-void UserError(std::string reason)
-{
-    std::cout << "User error: " << reason << "!\n";
-    abort();
-}

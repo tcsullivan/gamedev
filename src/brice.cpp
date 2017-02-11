@@ -49,8 +49,7 @@ namespace game {
 		std::ofstream out ("brice.dat", std::ios::out | std::ios::binary);
 		std::string data = std::to_string(brice.size()) + '\n';
 
-		if (!out.is_open())
-			UserError("Cannot open brice data file");
+		UserAssert(out.is_open(), "Cannot open brice data file");
 
 		for (const auto& i : brice) {
 			data.append(i.first  + '\n');

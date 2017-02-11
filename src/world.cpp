@@ -199,14 +199,15 @@ void WorldSystem::load(const std::string& file)
 	auto xmlRaw = readFile(xmlPath);
 
 	// let tinyxml parse the file
-	if (xmlDoc.Parse(xmlRaw.data()) != XML_NO_ERROR)
-		UserError("XML Error: Failed to parse file (not your fault though..?)");
+	UserAssert(xmlDoc.Parse(xmlRaw.data()) == XML_NO_ERROR,
+		"XML Error: Failed to parse file (not your fault though..?)");
 
 	// include headers
 	std::vector<std::string> toAdd;
 	auto ixml = xmlDoc.FirstChildElement("include");
 	while (ixml != nullptr) {
 		auto file = ixml->Attribute("file");
+		UserAssert(file != nullptr, "XML Error: <include> tag file not given");
 
 		if (file != nullptr) {
 			DEBUG_printf("Including file: %s\n", file);
@@ -222,8 +223,8 @@ void WorldSystem::load(const std::string& file)
 	for (const auto& f : toAdd)
 		xmlRaw.append(readFile(f)); 
 
-	if (xmlDoc.Parse(xmlRaw.data()) != XML_NO_ERROR)
-		UserError("XML Error:");
+	UserAssert(xmlDoc.Parse(xmlRaw.data()) == XML_NO_ERROR,
+		"XML Error: failed to append includes");
 
 	// look for an opening world tag
 	auto wxml = xmlDoc.FirstChildElement("World");
@@ -232,12 +233,9 @@ void WorldSystem::load(const std::string& file)
 		world.indoor = false;
 	} else {
 		wxml = xmlDoc.FirstChildElement("IndoorWorld");
-		if (wxml != nullptr) {
-			wxml = wxml->FirstChildElement();
-			world.indoor = true;
-		} else {
-			UserError("XML Error: Cannot find a <World> or <IndoorWorld> tag in " + xmlPath);
-		}
+		UserAssert(wxml != nullptr, "XML Error: Cannot find a <World> or <IndoorWorld> tag in " + xmlPath);
+		wxml = wxml->FirstChildElement();
+		world.indoor = true;
 	}
 
 	world.toLeft = world.toRight = "";
@@ -282,10 +280,10 @@ void WorldSystem::load(const std::string& file)
 				UserError("<house> can only be used inside <IndoorWorld>");
 
 			//world.indoorWidth = wxml->FloatAttribute("width");
-			(void)render;//world.indoorTex = render.loadTexture(wxml->StrAttribute("texture")); // TODO winbloze lol
-			//auto str = wxml->StrAttribute("texture");
-			//auto tex = render.loadTexture(str);
-			//world.indoorTex = tex;
+			world.indoorTex = render.loadTexture(wxml->StrAttribute("texture")); // TODO winbloze lol
+			auto str = wxml->StrAttribute("texture");
+			auto tex = render.loadTexture(str);
+			world.indoorTex = tex;
 		}
 
 		// weather tag
@@ -728,10 +726,11 @@ void WorldSystem::render(void)
 		shadeAmbient = 1;
 
 	// TODO scroll backdrop
-	GLfloat bgOff = game::time::getTickCount() / static_cast<float>(DAY_CYCLE * 2);
+	//GLfloat bgOff = game::time::getTickCount() / static_cast<float>(DAY_CYCLE * 2);
+	GLfloat bgOff = -0.5f * cos(PI / DAY_CYCLE * game::time::getTickCount()) + 0.5f;
 
 	GLfloat topS = .125f + bgOff;
-	GLfloat bottomS = 0.0f + bgOff;
+	GLfloat bottomS = bgOff;
 
 	if (topS < 0.0f)
 		topS += 1.0f;

@@ -6,6 +6,7 @@
 
 #include <SDL2/SDL_image.h>
 
+#include <config.hpp>
 #include <debug.hpp>
 #include <error.hpp>
 
@@ -35,6 +36,13 @@ Texture::Texture(const std::string& file, const GLuint& t, const vec2& v)
 {
 	if (t == 0xFFFFF && !file.empty())
 		loadTexture(file, *this);
+}
+
+Texture::Texture(const std::string& file, bool hline)
+{
+	loadTexture(file, *this);
+	if (hline)
+		dim /= game::HLINE;
 }
 
 const std::string& Texture::getName(void) const
@@ -80,8 +88,7 @@ void loadTexture(const std::string& file, Texture& texture)
 
 	if (preloaded == std::end(loadedTextures)) {
 		auto image = IMG_Load(file.c_str());
-		if (image == nullptr)
-			UserError("File not found: " + file);
+		UserAssert(image != nullptr, "File not found: " + file);
 
 #ifdef DEBUG
 		DEBUG_printf("Loaded image file: %s\n", file.c_str());

@@ -88,18 +88,23 @@ Texture RenderSystem::loadTexture(const std::string& file)
 	loadTexResult = Texture();
 	while (loadTexResult.isEmpty())
 		std::this_thread::sleep_for(1ms);
-	return loadTexResult;
+	auto t = loadTexResult;
+	loadTexResult = Texture();
+	return t;
 }
 
 void RenderSystem::render(void)
 {
 	if (!loadTexString.empty()) {
-		loadTexResult = Texture(loadTexString);
+		loadTexResult = Texture(loadTexString, true);
 		loadTexString.clear();
 	}
 	
 	Render::worldShader.use();
 	Render::worldShader.enable();
+
+	if (!loadTexResult.isEmpty())
+		return;
 
 	game::entities.lock();
 	game::entities.each<Visible, Sprite, Position>([](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {

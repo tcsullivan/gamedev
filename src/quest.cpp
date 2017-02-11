@@ -1,21 +1,7 @@
 #include <quest.hpp>
 
 #include <algorithm>
-
-std::vector<std::string> StringTokenizer(const std::string& str, char delim);
-
-std::vector<std::string> split(std::string s, const std::string& delim)
-{
-	std::vector<std::string> res;
-
-	while (!s.empty()) {
-		auto pos = s.find(delim);
-		res.emplace_back(s.substr(0, pos));
-		s = s.substr(pos + 1);
-	}
-
-	return res;
-}
+#include <sstream>
 
 void QuestSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
@@ -26,10 +12,7 @@ void QuestSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 int QuestSystem::assign(std::string title, std::string desc, std::string req)
 {
-	const auto& reqs = StringTokenizer(req, ',');
-	for (const auto& s : reqs)
-		std::cout << s << '\n';
-
+	(void)req;
 	current.emplace_back(title, desc);
 	return 0;
 }

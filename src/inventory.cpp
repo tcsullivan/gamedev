@@ -39,8 +39,7 @@ void InventorySystem::loadItems(void) {
 	doc.LoadFile(itemsPath);
 
 	auto item = doc.FirstChildElement("item");
-	if (item == nullptr)
-		UserError("No items found");
+	UserAssert(item != nullptr, "No items found");
 
 	do {
 		itemList.emplace(item->StrAttribute("name"), item);

@@ -81,9 +81,8 @@ void init(void)
 #endif
 
 	auto glewError = glewInit();
-	if (glewError != GLEW_OK)
-		UserError(std::string("GLEW was not able to initialize! Error: ")
-			+ reinterpret_cast<const char *>(glewGetErrorString(glewError)));
+	UserAssert(glewError == GLEW_OK, std::string("GLEW was not able to initialize! Error: ")
+		+ reinterpret_cast<const char *>(glewGetErrorString(glewError)));
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);               // anti-aliasing
 	SDL_GL_SetSwapInterval(1);                                 // v-sync

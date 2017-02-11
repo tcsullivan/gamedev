@@ -1,8 +1,11 @@
 #include <particle.hpp>
 
 #include <engine.hpp>
+#include <error.hpp>
 #include <render.hpp>
 #include <world.hpp>
+
+#include <mutex>
 
 ParticleSystem::ParticleSystem(unsigned int max)
 	: maximum(max)
@@ -27,17 +30,21 @@ void ParticleSystem::addMultiple(const int& count, const ParticleType& type, std
 
 void ParticleSystem::render(void)
 {
-	static GLuint particleVBO = 9999;
+	static GLuint particleVBO;
 	static const Texture palette ("assets/colorIndex.png");
 	// six vertices, 3d coord + 2d tex coord = 5
 	constexpr auto entrySize = (6 * 5) * sizeof(GLfloat);
 
-	if (particleVBO == 9999) {
+	static std::once_flag init;
+	std::call_once(init, [this](GLuint& vbo) {
 		// generate VBO
-		glGenBuffers(1, &particleVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
+		glGenBuffers(1, &vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, maximum * entrySize, nullptr,	GL_DYNAMIC_DRAW);
-	}
+	}, particleVBO);
+
+	if (parts.empty())
+		return;
 
 	// clear dead particles
 	parts.erase(std::remove_if(parts.begin(), parts.end(),
@@ -45,6 +52,9 @@ void ParticleSystem::render(void)
 
 	// copy data into VBO
 	glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
+
+	auto vbobuf = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	UserAssert(vbobuf != nullptr, "Failed to map the particle VBO");
 
 	for (unsigned int i = 0, offset = 0; i < parts.size(); i++, offset += entrySize) {
 		const auto& p = parts[i];
@@ -58,8 +68,11 @@ void ParticleSystem::render(void)
 			p.location.x,      p.location.y,      -1, p.color.x, p.color.y
 		};
 
-		glBufferSubData(GL_ARRAY_BUFFER, offset, entrySize, coords);
+		//glBufferSubData(GL_ARRAY_BUFFER, offset, entrySize, coords);
+		std::memcpy((void *)((unsigned long)vbobuf + offset), coords, entrySize);
 	}
+
+	UserAssert(glUnmapBuffer(GL_ARRAY_BUFFER) == GL_TRUE, "Failed to unmap the particle VBO");
 
 	// begin actual rendering
 	Render::worldShader.use();
