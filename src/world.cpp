@@ -137,7 +137,6 @@ bool WorldSystem::save(void)
 	// signature?
 	save << "831998 ";
 
-	game::entities.lock();
 	game::entities.each<Position>([&](entityx::Entity entity, Position& pos) {
 		// save position
 		save << "p " << pos.x << ' ' << pos.y << ' ';
@@ -146,7 +145,6 @@ bool WorldSystem::save(void)
 		if (entity.has_component<Dialog>())
 			save << "d " << entity.component<Dialog>()->index << ' ';
 	});
-	game::entities.unlock();
 
 	save.close();
 	return true;
@@ -204,11 +202,14 @@ void WorldSystem::load(const std::string& file)
 		UserAssert(wxml != nullptr, "XML Error: Cannot find a <World> or <IndoorWorld> tag in " + xmlPath);
 		wxml = wxml->FirstChildElement();
 		world.indoor = true;
+		if (world.outdoor.empty()) {
+			world.outdoor = currentXMLFile;
+			world.outdoorCoords = vec2(0, 100);
+		}
 	}
 
 	world.toLeft = world.toRight = "";
 	currentXMLFile = file;
-	game::entities.lock();
 	game::entities.reset();
 	game::engine.getSystem<PlayerSystem>()->create();
 
@@ -449,7 +450,6 @@ void WorldSystem::load(const std::string& file)
 	}
 
 	game::events.emit<BGMToggleEvent>();
-	game::entities.unlock();
 }
 
 /*
@@ -1115,7 +1115,6 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 void WorldSystem::detect(entityx::TimeDelta dt)
 {
-	game::entities.lock();
 	game::entities.each<Grounded, Position, Solid>(
 		[&](entityx::Entity e, Grounded &g, Position &loc, Solid &dim) {
 		(void)e;
@@ -1180,7 +1179,6 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 			loc.x = -(static_cast<int>(world.startX)) - dim.width - game::HLINE;
 		}
 	});
-	game::entities.unlock();
 }
 
 void WorldSystem::goWorldRight(Position& p, Solid &d)
@@ -1218,7 +1216,6 @@ void WorldSystem::goWorldPortal(Position& p)
 		p.x = world.outdoorCoords.x; // ineffective, player is regen'd
 		p.y = world.outdoorCoords.y;
 	} else {
-		game::entities.lock();
 		game::entities.each<Position, Solid, Portal>(
 			[&](entityx::Entity entity, Position& loc, Solid &dim, Portal &portal) {
 			(void)entity;
@@ -1229,7 +1226,6 @@ void WorldSystem::goWorldPortal(Position& p)
 				return;
 			}
 		});
-		game::entities.unlock();
 	}
 
 	if (!file.empty()) {

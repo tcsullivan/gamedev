@@ -31,7 +31,8 @@ std::bitset<entityx::MAX_COMPONENTS> Entity::component_mask() const {
   return manager_->component_mask(id_);
 }
 
-EntityManager::EntityManager(EventManager &event_manager) : event_manager_(event_manager) {
+EntityManager::EntityManager(EventManager &event_manager)
+	: event_manager_(event_manager) {
 }
 
 EntityManager::~EntityManager() {
@@ -46,6 +47,7 @@ void EntityManager::reset() {
   for (BaseComponentHelper *helper : component_helpers_) {
     if (helper) delete helper;
   }
+
   component_pools_.clear();
   component_helpers_.clear();
   entity_component_mask_.clear();

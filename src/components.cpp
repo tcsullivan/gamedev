@@ -22,8 +22,10 @@ static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
+	std::string arena;
+
 	(void)ev;
-	en.each<Position, Direction>([dt](entityx::Entity entity, Position &position, Direction &direction) {
+	en.each<Position, Direction>([&arena, dt](entityx::Entity entity, Position &position, Direction &direction) {
 		position.x += direction.x * dt;
 		position.y += direction.y * dt;
 
@@ -49,15 +51,10 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			// TODO initialX and range?
 			if (entity.has_component<Aggro>()) {
 				auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
-				if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
-					ui::toggleWhiteFast();
-					ui::waitForCover(); // TODO thread safe call to load world?
-					//game::engine.getSystem<WorldSystem>()->load(entity.component<Aggro>()->arena);
-					ui::toggleWhiteFast();
-					entity.destroy();
-				} else {
+				if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width)
+					arena = entity.component<Aggro>()->arena;
+				else
 					direction.x = (ppos.x > position.x) ? .05 : -.05;
-				}
 			} else if (entity.has_component<Wander>()) {
 				auto& countdown = entity.component<Wander>()->countdown;
 
@@ -70,6 +67,13 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			}
 		}
 	});
+
+	if (!arena.empty()) {
+		ui::toggleWhiteFast();
+		ui::waitForCover();
+		game::engine.getSystem<WorldSystem>()->load(arena);
+		ui::toggleWhiteFast();
+	}
 }
 
 void PhysicsSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -106,7 +110,6 @@ void RenderSystem::render(void)
 	if (!loadTexResult.isEmpty())
 		return;
 
-	game::entities.lock();
 	game::entities.each<Visible, Sprite, Position>([](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {
 		// Verticies and shit
 		float its = 0;
@@ -180,7 +183,6 @@ void RenderSystem::render(void)
 		ui::setFontZ(-5.0);
 		ui::putStringCentered(pos.x + dim.width / 2, pos.y - ui::fontSize - HLINES(0.5), name.name);
 	});
-	game::entities.unlock();
 }
 
 void DialogSystem::configure(entityx::EventManager &ev)
@@ -190,7 +192,6 @@ void DialogSystem::configure(entityx::EventManager &ev)
 
 void DialogSystem::receive(const MouseClickEvent &mce)
 {
-	game::entities.lock();
 	game::entities.each<Position, Solid, Dialog, Name>(
 		[&](entityx::Entity e, Position &pos, Solid &dim, Dialog &d, Name &name) {
 			static std::atomic_bool dialogRun;
@@ -308,7 +309,6 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 			}
 		}
 	});
-	game::entities.unlock();
 }
 
 void DialogSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
