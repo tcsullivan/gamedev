@@ -7,6 +7,7 @@
 
 #include <entityx/entityx.h>
 
+#include <forward_list>
 #include <string>
 #include <vector>
 
@@ -21,6 +22,10 @@ struct Quest
 
 	std::string name; /**< the quest's title */
 	std::string desc; /**< the quest's description */
+
+	using Req = std::pair<std::string, int>;
+	std::forward_list<Req> reqs; /**< the quest's item requirements */
+	std::forward_list<Req> rewards; /**< the quest's rewards */
 };
 
 /**

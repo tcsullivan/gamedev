@@ -240,11 +240,12 @@ bool InventorySystem::take(const std::string& name, int count)
 				return ie.item != nullptr && ie.item->name == name;
 			});
 
-		if (i == items.end())
+		if (i >= items.end())
 			break;
 
 		toDelete.push_front(i);
 		taken += i->count;
+		next = i + 1;
 	}	
 
 	if (taken < count)

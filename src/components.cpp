@@ -257,7 +257,7 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 								else {
 									qname = qxml->Attribute("check");
 									if (qname != nullptr) {
-										if (qname != nullptr && qsys->hasQuest(qname) && qsys->finish(qname) == 0) {
+										if (qname != nullptr && qsys->finish(qname) == 0) {
 											d.index = 9999;
 										} else {
 											ui::dialogBox(name.name, "", false, "Finish my quest u nug");
