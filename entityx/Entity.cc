@@ -27,6 +27,11 @@ void Entity::destroy() {
   invalidate();
 }
 
+void Entity::kill(void) {
+  assign<Killed>();
+}
+
+
 std::bitset<entityx::MAX_COMPONENTS> Entity::component_mask() const {
   return manager_->component_mask(id_);
 }

@@ -82,21 +82,30 @@ void WindowSystem::receive(const WindowResizeEvent &wre)
 
 #include <ui.hpp>
 
+#include <atomic>
+
+static std::atomic_bool doScreenshot;
+
 void WindowSystem::receive(const ScreenshotEvent &scr)
 {
-	// Make the BYTE array, factor of 3 because it's RBG.
-	static GLubyte* pixels;
-	pixels = new GLubyte[ 3 * scr.w * scr.h];
-	//glReadPixels(0, 0, scr.w, scr.h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-	for(int i = 0; i < (3 * scr.w * scr.h); i++) {
-		pixels[i] = 255;
-	}
-
-	ui::takeScreenshot(pixels);
-	std::cout << "Triggered\n";
+	(void)scr;
+	doScreenshot.store(true);
 }
 
 void WindowSystem::render(void)
 {
+	if (doScreenshot.load()) {
+		doScreenshot.store(false);
+		// Make the BYTE array, factor of 3 because it's RBG.
+		static GLubyte* pixels;
+		int count = 3 * game::SCREEN_WIDTH * game::SCREEN_HEIGHT;
+		pixels = new GLubyte[count];
+		glReadPixels(0, 0, game::SCREEN_WIDTH, game::SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+		//for(int i = 0; i < count; i++)
+		//	pixels[i] = 255;
+		ui::takeScreenshot(pixels);
+		std::cout << "Triggered\n";
+	}
+
     SDL_GL_SwapWindow(window);
 }

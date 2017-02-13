@@ -72,10 +72,10 @@ void PlayerSystem::create(void)
 	player = game::entities.create();
 	player.assign<Position>(0.0f, 100.0f);
 	player.assign<Direction>(0.0f, 0.0f);
-	// The new g value is a multiplier for the gravity constant. This allows for air resistance simulation.
 	//player.assign<Physics>(-0.001f);
 	player.assign<Physics>(1);
 	player.assign<Visible>(-0.2f);
+	player.assign<Health>(100);
 	auto sprite = player.assign<Sprite>();
 	XMLDocument xmld;
 	xmld.Parse(spriteXML);

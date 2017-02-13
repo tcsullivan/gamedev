@@ -144,7 +144,10 @@ bool WorldSystem::save(void)
 		// save dialog, if exists
 		if (entity.has_component<Dialog>())
 			save << "d " << entity.component<Dialog>()->index << ' ';
-	});
+
+		if (entity.has_component<Health>())
+			save << "h " << entity.component<Health>()->health << ' ';
+	}, true);
 
 	save.close();
 	return true;
@@ -159,6 +162,9 @@ void WorldSystem::load(const std::string& file)
 	// check for empty file name
 	if (file.empty())
 		return;
+
+	// insert smiley face showing teeth as if we're doing something bad
+	save();
 
 	// load file data to string
 	auto xmlPath = xmlFolder + file;
@@ -355,6 +361,8 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Wander>();
 					} else if (tname == "Hop" ) {
 						entity.assign<Hop>();
+					} else if (tname == "Health") {
+						entity.assign<Health>();
 					} else if (tname == "Aggro" ) {
 						entity.assign<Aggro>(abcd->Attribute("arena"));
 					} else if (tname == "Animation") {
@@ -435,10 +443,13 @@ void WorldSystem::load(const std::string& file)
 			save >> pos->x >> pos->y;
 			save >> id;
 
-			while (id != 'p') {
+			while (!save.eof() && id != 'p') {
 				switch (id) {
 				case 'd':
 					save >> entity.component<Dialog>()->index;
+					break;
+				case 'h':
+					save >> entity.component<Health>()->health;
 					break;
 				}
 
@@ -1115,6 +1126,13 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 
 void WorldSystem::detect(entityx::TimeDelta dt)
 {
+	game::entities.each<Health>(
+		[](entityx::Entity e, Health& h) {
+		if (h.health <= 0)
+			e.kill();
+			//e.destroy();
+	});
+
 	game::entities.each<Grounded, Position, Solid>(
 		[&](entityx::Entity e, Grounded &g, Position &loc, Solid &dim) {
 		(void)e;

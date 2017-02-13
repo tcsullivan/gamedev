@@ -46,7 +46,7 @@ class EntityManager;
 template <typename C, typename EM = EntityManager>
 class ComponentHandle;
 
-
+struct Killed {};
 
 /** A convenience handle around an Entity::Id.
  *
@@ -165,6 +165,8 @@ public:
   void destroy();
 
   std::bitset<entityx::MAX_COMPONENTS> component_mask() const;
+
+  void kill();
 
  private:
   EntityManager *manager_ = nullptr;
@@ -462,11 +464,13 @@ class EntityManager : entityx::help::NonCopyable {
   public:
     template <typename T> struct identity { typedef T type; };
 
-    void each(typename identity<std::function<void(Entity entity, Components&...)>>::type f) {
+    void each(typename identity<std::function<void(Entity entity, Components&...)>>::type f, bool dead = false) {
       static std::mutex locked;
       locked.lock();
-      for (auto it : *this)
-        f(it, *(it.template component<Components>().get())...);
+      for (auto it : *this) {
+        if (dead || !it.has_component<Killed>())
+          f(it, *(it.template component<Components>().get())...);
+      }
       locked.unlock();
     }
 
@@ -766,8 +770,8 @@ class EntityManager : entityx::help::NonCopyable {
   template <typename T> struct identity { typedef T type; };
 
   template <typename ... Components>
-  void each(typename identity<std::function<void(Entity entity, Components&...)>>::type f) {
-    return entities_with_components<Components...>().each(f);
+  void each(typename identity<std::function<void(Entity entity, Components&...)>>::type f, bool dead = false) {
+    return entities_with_components<Components...>().each(f, dead);
   }
 
   /**

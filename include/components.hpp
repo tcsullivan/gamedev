@@ -88,10 +88,11 @@ struct Health {
 	/**
 	 * Constructor that sets the variables, with 0 health as default.
 	 */
-	Health(int h = 0, int m = 0) : health(h), maxHealth(m) {}
+	Health(int m = 1, int h = 0)
+		: health(h != 0 ? h : m), maxHealth(m) {}
 
-	int health;
-	int maxHealth;
+	int health; /**< The current amount of health */
+	int maxHealth; /**< The maximum amount of health */
 };
 
 struct Portal {

@@ -51,9 +51,13 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			// TODO initialX and range?
 			if (entity.has_component<Aggro>()) {
 				auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
-				if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width)
-					arena = entity.component<Aggro>()->arena;
-				else
+				if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
+					auto& h = entity.component<Health>()->health;
+					if (h > 0) {
+						arena = entity.component<Aggro>()->arena;
+						h = 0;
+					}
+				} else
 					direction.x = (ppos.x > position.x) ? .05 : -.05;
 			} else if (entity.has_component<Wander>()) {
 				auto& countdown = entity.component<Wander>()->countdown;
@@ -164,7 +168,7 @@ void RenderSystem::render(void)
 			glUniform1i(Render::worldShader.uniform[WU_texture], 0);
 
 			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
-			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0 ,tex_coord);
+			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 
 			//glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
@@ -172,6 +176,26 @@ void RenderSystem::render(void)
 			its-=.01;
 		}
 		glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+
+		if (entity.has_component<Health>()) {
+			float width = entity.component<Solid>()->width;
+			auto& health = *entity.component<Health>();
+			width /= health.health / health.maxHealth;
+
+			GLfloat health_coord[] = {
+				pos.x, pos.y, -9, 0, 0,
+				pos.x + width, pos.y, -9, 0, 0,
+				pos.x + width, pos.y - 5, -9, 0, 0,
+				pos.x + width, pos.y - 5, -9, 0, 0,
+				pos.x, pos.y - 5, -9, 0, 0,
+				pos.x, pos.y, -9, 0, 0,
+			};
+
+			Colors::red.use();
+			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), health_coord);
+			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), health_coord + 3);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
 	});
 
 	Render::worldShader.disable();
