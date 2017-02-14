@@ -88,48 +88,7 @@ void PlayerSystem::create(void)
 
 	// handle player animation
 	xmld.Parse(animationXML);
-	auto entan = player.assign<Animate>();
-	auto animx = xmld.FirstChildElement()->FirstChildElement();
-	
-	unsigned int limbid 		= 0;
-	float limbupdate 	= 0;
-	unsigned int limbupdatetype = 0;
-	
-	while (animx) {	
-		std::string animType = animx->Name();
-		std::cout << animx->Name() << std::endl;
-		if (animType == "movement") {
-			limbupdatetype = 1;
-			auto limbx = animx->FirstChildElement();
-			while (limbx) {
-				std::string limbHopefully = limbx->Name();
-				if (limbHopefully == "limb") {
-					auto frames = developFrame(limbx);
-					
-					entan->limb.push_back(Limb());
-					entan->limb.back().updateType = limbupdatetype;
-
-					if (limbx->QueryUnsignedAttribute("id", &limbid) == XML_NO_ERROR) {
-						entan->limb.back().limbID = limbid;
-					}
-					if (limbx->QueryFloatAttribute("update", &limbupdate) == XML_NO_ERROR) {
-						entan->limb.back().updateRate = limbupdate;
-					}
-					
-					// place our newly developed frames in the entities animation stack
-					for (auto &f : frames) {
-						entan->limb.back().addFrame(f);
-						for (auto &fr : entan->limb.back().frame) {
-							for (auto &sd : fr)
-								sd.first.limb = limbid;
-						}
-					}
-				}
-			limbx = limbx->NextSiblingElement();
-			}
-		}
-		animx = animx->NextSiblingElement();
-	}
+	player.assign<Animate>(nullptr, xmld.FirstChildElement());
 }
 
 void PlayerSystem::configure(entityx::EventManager &ev)

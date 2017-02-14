@@ -153,6 +153,16 @@ bool WorldSystem::save(void)
 	return true;
 }
 
+static std::vector<entityx::Entity::Id> savedEntities;
+
+void WorldSystem::fight(entityx::Entity entity)
+{
+	savedEntities.clear();
+	savedEntities.emplace_back(entity.id());
+	load(entity.component<Aggro>()->arena);
+	entity.remove<Aggro>();
+}
+
 void WorldSystem::load(const std::string& file)
 {
 	auto& render = *game::engine.getSystem<RenderSystem>();
@@ -216,8 +226,21 @@ void WorldSystem::load(const std::string& file)
 
 	world.toLeft = world.toRight = "";
 	currentXMLFile = file;
-	game::entities.reset();
-	game::engine.getSystem<PlayerSystem>()->create();
+
+	//game::entities.reset();
+	if (!savedEntities.empty()) {
+		savedEntities.emplace_back(game::engine.getSystem<PlayerSystem>()->getId());
+		game::entities.each<Position>(
+			[&](entityx::Entity entity, Position& p) {
+			(void)p;
+			if (std::find(savedEntities.begin(), savedEntities.end(), entity.id())
+				== savedEntities.end())
+				entity.destroy();
+		}, true);
+	} else {
+		game::entities.reset();
+		game::engine.getSystem<PlayerSystem>()->create();
+	}
 
 	// iterate through tags
 	while (wxml != nullptr) {
@@ -294,121 +317,41 @@ void WorldSystem::load(const std::string& file)
 				while (abcd) {
 					std::string tname = abcd->Name();
 
-					if (tname == "Position") {
-						vec2 coords;
-
-						if (wxml->Attribute("position") != nullptr) {
-							coords = wxml->StrAttribute("position");
-						} else {
-							coords = abcd->StrAttribute("value");
+					if (tname == "Position")
+						entity.assign<Position>(wxml, abcd);
+					else if (tname == "Visible")
+						entity.assign<Visible>(wxml, abcd);
+					else if (tname == "Sprite")
+						entity.assign<Sprite>(wxml, abcd);
+					else if (tname == "Portal")
+						entity.assign<Portal>(wxml, abcd);
+					else if (tname == "Solid") {
+						auto solid = entity.assign<Solid>(wxml, abcd);
+						if (solid->width == 0 && solid->height == 0) {
+							auto dim = entity.component<Sprite>()->getSpriteSize();
+							entity.remove<Solid>();
+							entity.assign<Solid>(dim.x, dim.y);
 						}
-
-						float cdat[2] = {coords.x, coords.y};
-						entity.assign<Position>(cdat[0], cdat[1]);
-					} else if (tname == "Visible") {
-						entity.assign<Visible>(abcd->FloatAttribute("value"));
-					} else if (tname == "Sprite") {
-						auto sprite = entity.assign<Sprite>();
-						auto sprx = abcd;
-						auto frames = developFrame(sprx);
-						if (frames.size() > 0)
-							sprite->sprite = frames.at(0);
-					} else if (tname == "Portal") {
-						entity.assign<Portal>(wxml->StrAttribute("inside"));
-					} else if (tname == "Solid") {
-						vec2 dim;
-
-						if (abcd->Attribute("value") != nullptr)
-							dim = abcd->StrAttribute("value");
-						else
-							dim = entity.component<Sprite>()->getSpriteSize();
-
-						float cdat[2] = {dim.x, dim.y};
-						entity.assign<Solid>(cdat[0], cdat[1]);
-					} else if (tname == "Direction") {
-						vec2 dir;
-
-						if (wxml->Attribute("direction") != nullptr) {
-							dir = wxml->StrAttribute("direction");
-						} else if (wxml->Attribute("value") != nullptr) {
-							dir = wxml->StrAttribute("value");
-						} else {
-							dir = vec2(0,0);
-						}
-
-						float cdat[2] = {dir.x, dir.y};
-						entity.assign<Direction>(cdat[0], cdat[1]);
-					} else if (tname == "Physics") {
-						float g;
-
-						if (wxml->Attribute("gravity") != nullptr) {
-							g = wxml->FloatAttribute("gravity");
-						} else if (wxml->Attribute("value") != nullptr) {
-							g = wxml->FloatAttribute("value");
-						} else {
-							g = 1.0f;
-						}
-
-						entity.assign<Physics>(g);
-					} else if (tname == "Name") {
-						auto name = wxml->Attribute("name");
-						entity.assign<Name>( name != nullptr ? name : abcd->Attribute("value"));
-					} else if (tname == "Dialog") {
-						entity.assign<Dialog>((wxml->BoolAttribute("hasDialog") ? 0 : 9999));
-					} else if (tname == "Grounded") {
-						entity.assign<Grounded>();
-					} else if (tname == "Wander") {
+					} else if (tname == "Direction")
+						entity.assign<Direction>(wxml, abcd);
+					else if (tname == "Physics")
+						entity.assign<Physics>(wxml, abcd);
+					else if (tname == "Name")
+						entity.assign<Name>(wxml, abcd);
+					else if (tname == "Dialog")
+						entity.assign<Dialog>(wxml, abcd);
+					else if (tname == "Grounded")
+						entity.assign<Grounded>(); // no need to pass xmls...
+					else if (tname == "Wander")
 						entity.assign<Wander>();
-					} else if (tname == "Hop" ) {
+					else if (tname == "Hop")
 						entity.assign<Hop>();
-					} else if (tname == "Health") {
-						entity.assign<Health>();
-					} else if (tname == "Aggro" ) {
-						entity.assign<Aggro>(abcd->Attribute("arena"));
-					} else if (tname == "Animation") {
-						auto entan = entity.assign<Animate>();
-						auto animx = abcd->FirstChildElement();
-						
-						uint limbid 		= 0;
-						float limbupdate 	= 0;
-						uint limbupdatetype = 0;
-						
-						while (animx) {	
-							std::string animType = animx->Name();
-							if (animType == "movement") {
-								limbupdatetype = 1;
-								auto limbx = animx->FirstChildElement();
-								while (limbx) {
-									std::string limbHopefully = limbx->Name();
-									if (limbHopefully == "limb") {
-										auto frames = developFrame(limbx);
-										
-										entan->limb.push_back(Limb());
-										entan->limb.back().updateType = limbupdatetype;
-
-										if (limbx->QueryUnsignedAttribute("id", &limbid) == XML_NO_ERROR) {
-											entan->limb.back().limbID = limbid;
-										}
-										if (limbx->QueryFloatAttribute("update", &limbupdate) == XML_NO_ERROR) {
-											entan->limb.back().updateRate = limbupdate;
-										}
-										
-										// place our newly developed frames in the entities animation stack
-										for (auto &f : frames) {
-											entan->limb.back().addFrame(f);
-											for (auto &fr : entan->limb.back().frame) {
-												for (auto &sd : fr)
-													sd.first.limb = limbid;
-											}
-										}
-									}
-								limbx = limbx->NextSiblingElement();
-								}
-							}
-							
-							animx = animx->NextSiblingElement();
-						}
-					}
+					else if (tname == "Health")
+						entity.assign<Health>(wxml, abcd);
+					else if (tname == "Aggro")
+						entity.assign<Aggro>(wxml, abcd);
+					else if (tname == "Animation")
+						entity.assign<Animate>(wxml, abcd);
 
 					abcd = abcd->NextSiblingElement();
 				}
@@ -906,7 +849,7 @@ void WorldSystem::render(void)
     iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / game::HLINE) - GROUND_HILLINESS),
 	                    0, static_cast<int>(world.data.size()));
 	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / game::HLINE) + 2),
-                      0, static_cast<int>(world.data.size()));
+                      0, static_cast<int>(world.data.size() - GROUND_HILLINESS));
 
     // draw the dirt
 	waitToSwap = true;

@@ -38,6 +38,7 @@ public:
 	 * Creates the player, adding it to the entity system.
 	 */
 	void create(void);
+	inline auto getId(void) const { return player.id(); }
 
 	/**
 	 * Configures events for use with the entity system.

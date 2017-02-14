@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include <error.hpp>
 #include <events.hpp>
 #include <inventory.hpp>
 #include <random.hpp>
@@ -22,19 +23,52 @@
 using namespace tinyxml2;
 
 /**
+ * @class Component
+ * @brief A base class for all components, insures all components have similar
+ * base functionalities.
+ */
+class Component : public entityx::Component<Component> {
+public:
+	/**
+	 * Constructs the component from the two given XML tags.
+	 *
+	 * Components can get information from two places: where the entity is defined
+	 * (it's implementation, e.g. in town.xml) or from the tag's definition (e.g. entities.xml).
+	 * The definition tag should be used for default values.
+	 *
+	 * @param imp tag for the implementation of the entity
+	 * @param def tag for the definition of the component
+	 */
+	virtual void fromXML(XMLElement* imp, XMLElement* def) = 0;
+};
+
+/**
  * @struct Position
  * @brief Stores the position of an entity on the xy plane.
  */
-struct Position {
+struct Position : public Component {
 	/**
 	 * Constructor that sets the position of the object, if nothing is passed it will default to 0.
 	 * @param x The x position the object will be placed at.
 	 * @param y the y position the object will be placed at.
 	 */
 	Position(float x = 0.0f, float y = 0.0f): x(x), y(y) {}
+	Position(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
 	float x; /**< The x position in the world */
 	float y; /**< The y position in the world */
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		vec2 c;
+		if (imp->Attribute("position") != nullptr)
+			c = imp->StrAttribute("position");
+		else
+			c = def->StrAttribute("value");
+
+		x = c.x, y = c.y;
+	}
 };
 
 /**
@@ -42,17 +76,33 @@ struct Position {
  * @brief Store an entities velocity.
  * This allows the entity to move throughout the world.
  */
-struct Direction {
+struct Direction : public Component {
 	/**
 	 * Constructor that sets the velocity, if no position is passed, it defaults to (0,0).
 	 * @param x The velocity of the object on the x axis.
 	 * @param y The velocity of the object on the y axis.
 	 */
 	Direction(float x = 0.0f, float y = 0.0f): x(x), y(y), grounded(false) {}
+	Direction(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
 	float x; /**< Velocity the object is moving in the x direction, this is added to the position */
 	float y; /**< Velocity the object is moving in the y direction, this is added to the position */
 	bool grounded;
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		vec2 c;
+		if (imp->Attribute("direction") != nullptr) {
+			c = imp->StrAttribute("direction");
+		} else if (def->Attribute("value") != nullptr) {
+			c = def->StrAttribute("value");
+		} else {
+			c = vec2(0, 0);
+		}
+
+		x = c.x, y = c.y, grounded = false;
+	}
 };
 
 /**
@@ -60,14 +110,24 @@ struct Direction {
  * @brief Allows and entity to react to gravity and frictions.
  * When an entity inherits this component it will react with gravity and move with friction.
  */
-struct Physics {
+struct Physics : public Component {
 	/**
 	 * Constructor that sets the gravity constant, if not specified it becomes 0.
 	 * @param g The non default gravity constant.
 	 */
 	Physics(float g = 1.0f): g(g) {}
+	Physics(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
 	float g; /**< The gravity constant, how fast the object falls */
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		if (imp->QueryFloatAttribute("gravity", &g) != XML_NO_ERROR) {
+			if (def->QueryFloatAttribute("value", &g) != XML_NO_ERROR)
+				g = 1.0f;
+		}
+	}
 };
 
 /**
@@ -75,36 +135,77 @@ struct Physics {
  * @brief Places an entity without physics on the ground.
  * This is used so we don't have to update the physics of a non-moving object every loop.
  */
-struct Grounded {
-	//TODO possibly make a way to change this
-	bool grounded = false;
+struct Grounded : public Component {
+	Grounded(bool g = false)
+		: grounded(g) {}
+	Grounded(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
+
+	bool grounded;
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)imp;
+		(void)def;
+		grounded = false;
+	}
 };
 
 /**
  * @struct Health
  * @brief Gives and entity health and stuff.
  */
-struct Health {
+struct Health : public Component {
 	/**
-	 * Constructor that sets the variables, with 0 health as default.
+	 * Constructor that sets the variables, with 1 health as default.
 	 */
 	Health(int m = 1, int h = 0)
 		: health(h != 0 ? h : m), maxHealth(m) {}
+	Health(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
 	int health; /**< The current amount of health */
 	int maxHealth; /**< The maximum amount of health */
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)imp;
+		(void)def;
+		// TODO
+		health = maxHealth = 1;
+	}
 };
 
-struct Portal {
-	Portal(std::string tf = "") : toFile(tf) {}
+struct Portal : public Component {
+	Portal(std::string tf = "")
+		: toFile(tf) {}
+	Portal(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
 	std::string toFile;
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)def;
+		toFile = imp->StrAttribute("inside");
+	}
 };
 
-struct Name {
-	Name(std::string n = "") : name(n) {}
+struct Name : public Component {
+	Name(std::string n = "")
+		: name(n) {}
+	Name(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
 	std::string name;
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		auto n = imp->Attribute("name");
+
+		// TODO check def's nullness	
+		name = n != nullptr ? n : def->Attribute("value");
+	}
 };
 
 struct ItemDrop {
@@ -119,22 +220,36 @@ struct ItemDrop {
  * @brief Allows an entity to collide with other objects.
  * When an entity has this component it can collide with the world and other objects.
  */
-struct Solid {
+struct Solid : public Component {
 	/**
 	 * Constructor that sets the entities dimensions based on what is passed.
 	 * @param w The desired width of the entity.
 	 * @param h The desired height of the entity.
 	 */
-	Solid(float w = 0.0f, float h = 0.0f): width(w), height(h) {offset = 0.0f; passable = true; }
-	//Solid(float w = 0.0f, float h = 0.0f, vec2 offset = 0.0f): width(w), height(h), offset(offset) {passable = true; }
+	Solid(float w = 0.0f, float h = 0.0f)
+		: width(w), height(h), offset(0), passable(true) {}
+	Solid(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
-	void Passable(bool v) {passable = v;}
-	bool Passable(void)   {return passable;}
+	void Passable(bool v) { passable = v; }
+	bool Passable(void)   { return passable; }
 
 	float width; /**< The width of the entity in units */
 	float height; /**< The height of the entity in units */
 	vec2 offset; /**< This allows us to make the hitbox in any spot */
 	bool passable; /**< This determines whether or not one can pass by the entity */
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)imp;
+		vec2 c;
+		if (def->Attribute("value") != nullptr)
+			c = def->StrAttribute("value");
+		else
+			c = vec2(0, 0);
+
+		width = c.x, height = c.y, offset = 0, passable = true;
+	}
 };
 
 struct SpriteData {
@@ -190,9 +305,12 @@ std::vector<Frame> developFrame(XMLElement*);
  * @brief If an entity is visible we want to be able to see it.
  * Each entity is given a sprite, a sprite can consist of manu frames or pieces to make one.
  */
-struct Sprite {
+struct Sprite : public Component {
 	Sprite(bool left = false)
 	 	: faceLeft(left) {}
+	Sprite(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
 	Frame getSprite() {
 		return sprite;
@@ -259,6 +377,13 @@ struct Sprite {
 
 	Frame sprite;
 	bool faceLeft;
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)imp;
+		auto frames = developFrame(def);
+		if (!frames.empty())
+			sprite = frames.at(0);
+	}
 };
 
 /**
@@ -330,7 +455,7 @@ struct Limb {
 };
 
 //TODO kill clyne
-struct Animate {
+struct Animate : public Component {
 	// COMMENT
 	std::vector<Limb> limb;
 	// COMMENT	
@@ -338,6 +463,10 @@ struct Animate {
 
 	Animate(){
 		index = 0;
+	}
+
+	Animate(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
 	}
 
 	// COMMENT
@@ -359,30 +488,96 @@ struct Animate {
 			}
 		}
 	}
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)imp;
+
+		auto animx = def->FirstChildElement();
+		uint limbid = 0;
+		float limbupdate = 0;
+		uint limbupdatetype = 0;
+
+		while (animx != nullptr) {
+			if (std::string(animx->Name()) == "movement") {
+				limbupdatetype = 1;
+
+				auto limbx = animx->FirstChildElement();
+				while (limbx != nullptr) {
+					if (std::string(limbx->Name()) == "limb") {
+						auto frames = developFrame(limbx);
+						limb.push_back(Limb());
+						auto& newLimb = limb.back();
+						newLimb.updateType = limbupdatetype;
+
+						if (limbx->QueryUnsignedAttribute("id", &limbid) == XML_NO_ERROR)
+							newLimb.limbID = limbid;
+						if (limbx->QueryFloatAttribute("update", &limbupdate) == XML_NO_ERROR)
+							newLimb.updateRate = limbupdate;
+								
+						// place our newly developed frames in the entities animation stack
+						for (auto &f : frames) {
+							newLimb.addFrame(f);
+							for (auto &fr : newLimb.frame) {
+								for (auto &sd : fr)
+									sd.first.limb = limbid;
+							}
+						}
+					}
+
+					limbx = limbx->NextSiblingElement();
+				}
+			}
+				
+			animx = animx->NextSiblingElement();
+		}
+	}
 };
 
 /**
  * @struct Visible
  * @brief If an entity is visible we want to be able to draw it.
  */
-struct Visible {
+struct Visible : public Component {
 	/**
 	 * @brief Decide what layer to draw the entity on.
 	 * When stuff is drawn, it is drawn on a "layer". This layer gives more of a 3D effect to the world.
 	 * @param z The desired "layer" of the entity.
 	 */
 	Visible(float z = 0.0f): z(z) {}
+	Visible(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
 	float z; /**< The value along the z axis the entity will be drawn on */
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)imp;
+		if (def->QueryFloatAttribute("value", &z) != XML_NO_ERROR)
+			z = 0;
+	}
 };
 
-struct Dialog {
+struct Dialog : public Component {
 	Dialog(int idx = 0)
 		: index(idx), rindex((idx == 9999) ? randGet() : idx), talking(false) {}
+	Dialog(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
 	int index;
 	int rindex;
 	bool talking;
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)def;
+		bool hasDialog;
+		if (imp->QueryBoolAttribute("hasDialog", &hasDialog) != XML_NO_ERROR)
+			hasDialog = false;
+
+		index = hasDialog ? 0 : 9999;
+		rindex = (index == 9999) ? randGet() : index;
+		talking = false;
+	}
 };
 
 // movement styles
@@ -412,11 +607,20 @@ struct Wander {
 /**
  * Causes the entity to get mad at the player, charge and fight.
  */
-struct Aggro {
+struct Aggro : public Component {
 	Aggro(const std::string& a)
 		: arena(a) {}
+	Aggro(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
 
 	std::string arena;
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)imp;
+		// TODO null check..?, imp given
+		arena = def->StrAttribute("arena");
+	}
 };
 
 /**

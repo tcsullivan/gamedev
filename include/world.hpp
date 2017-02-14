@@ -177,6 +177,8 @@ public:
 
 	bool save(void);
 	void load(const std::string& file);
+
+	void fight(entityx::Entity entity);
 };
 
 #endif // WORLD_HPP_

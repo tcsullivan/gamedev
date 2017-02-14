@@ -22,10 +22,11 @@ static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
-	std::string arena;
+	bool fight = false;
+	entityx::Entity toFight;
 
 	(void)ev;
-	en.each<Position, Direction>([&arena, dt](entityx::Entity entity, Position &position, Direction &direction) {
+	en.each<Position, Direction>([&](entityx::Entity entity, Position &position, Direction &direction) {
 		position.x += direction.x * dt;
 		position.y += direction.y * dt;
 
@@ -52,11 +53,12 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			if (entity.has_component<Aggro>()) {
 				auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
 				if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
-					auto& h = entity.component<Health>()->health;
-					if (h > 0) {
-						arena = entity.component<Aggro>()->arena;
-						h = 0;
-					}
+					//auto& h = entity.component<Health>()->health;
+					//if (h > 0) {
+						fight = true;
+						toFight = entity;
+					//	h = 0;
+					//}
 				} else
 					direction.x = (ppos.x > position.x) ? .05 : -.05;
 			} else if (entity.has_component<Wander>()) {
@@ -72,10 +74,10 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 		}
 	});
 
-	if (!arena.empty()) {
+	if (fight) {
 		ui::toggleWhiteFast();
 		ui::waitForCover();
-		game::engine.getSystem<WorldSystem>()->load(arena);
+		game::engine.getSystem<WorldSystem>()->fight(toFight);
 		ui::toggleWhiteFast();
 	}
 }

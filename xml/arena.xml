@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<World>
+    <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
+    <generation width="200"/>
+    <time>6000</time>
+</World>

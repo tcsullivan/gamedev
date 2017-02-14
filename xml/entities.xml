@@ -67,7 +67,7 @@
 	<Physics />
 	<Name value="SKIRL" />
 	<Wander />
-	<Aggro arena="bobshouse.xml" />
+	<Aggro arena="arena.xml" />
 </skirl>
 
 <structure>
