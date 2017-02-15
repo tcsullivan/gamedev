@@ -1103,14 +1103,6 @@ namespace ui {
 		auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 		auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-		std::vector<GLubyte> bgr (SCREEN_WIDTH * SCREEN_HEIGHT * 3, 0);
-
-		for(unsigned int x = 0; x < SCREEN_WIDTH*SCREEN_HEIGHT*3; x+=3) {
-			bgr[x] = pixels[x+2];
-			bgr[x+1] = pixels[x+1];
-			bgr[x+2] = pixels[x];
-		}
-
 		time_t epoch = time(nullptr);
 		struct tm* timen = localtime(&epoch);
 
@@ -1161,7 +1153,7 @@ namespace ui {
 
 		fwrite(&bmfh, 1,sizeof(BITMAPFILEHEADER),bmp);
 		fwrite(&bmih, 1,sizeof(BITMAPINFOHEADER),bmp);
-		fwrite(&bgr, 1,3*SCREEN_WIDTH*SCREEN_HEIGHT,bmp);
+		fwrite(pixels, 1,3*SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(GLubyte),bmp);
 
 		delete[] pixels;
 

@@ -157,10 +157,27 @@ static std::vector<entityx::Entity::Id> savedEntities;
 
 void WorldSystem::fight(entityx::Entity entity)
 {
-	savedEntities.clear();
+	std::string exit = currentXMLFile;
+
 	savedEntities.emplace_back(entity.id());
 	load(entity.component<Aggro>()->arena);
+	savedEntities.clear();
+
+	entity.component<Health>()->health = entity.component<Health>()->maxHealth;
 	entity.remove<Aggro>();
+
+	auto door = game::entities.create();
+	door.assign<Position>(0, 100);
+	door.assign<Grounded>();
+	door.assign<Visible>(-5);
+	door.assign<Portal>(exit);
+
+	auto sprite = door.assign<Sprite>();
+	Texture dtex ("assets/style/classic/door.png");
+	sprite->addSpriteSegment(SpriteData(dtex), 0);
+
+	auto dim = sprite->getSpriteSize();
+	door.assign<Solid>(dim.x, dim.y);
 }
 
 void WorldSystem::load(const std::string& file)
@@ -173,7 +190,7 @@ void WorldSystem::load(const std::string& file)
 	if (file.empty())
 		return;
 
-	// insert smiley face showing teeth as if we're doing something bad
+	// save the current world's data
 	save();
 
 	// load file data to string

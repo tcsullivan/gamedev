@@ -53,12 +53,12 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			if (entity.has_component<Aggro>()) {
 				auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
 				if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
-					//auto& h = entity.component<Health>()->health;
-					//if (h > 0) {
+					auto& h = entity.component<Health>()->health;
+					if (h > 0) {
 						fight = true;
 						toFight = entity;
-					//	h = 0;
-					//}
+						h = 0;
+					}
 				} else
 					direction.x = (ppos.x > position.x) ? .05 : -.05;
 			} else if (entity.has_component<Wander>()) {
