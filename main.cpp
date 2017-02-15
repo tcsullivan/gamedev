@@ -27,7 +27,7 @@ using namespace std::literals::chrono_literals;
 /**
  * The currently used folder to look for XML files in.
  */
-std::string xmlFolder = "xml/";
+std::string xmlFolder = "./xml/";
 
 /**
  * The current center of the screen, updated in main render.
@@ -80,6 +80,16 @@ int main(int argc, char *argv[])
 
 	// kill the world if needed
 	if (worldReset) {
+		for (const auto& s : xmlFiles) {
+			if (s.find(".dat", s.size() - 4) != std::string::npos) {
+				std::string re = xmlFolder;
+				re.append(s);
+				auto r = re.c_str();
+				std::cout << "Removing " << r << "...\n";
+				std::remove(r);
+			}
+		}
+
 		// TODO TODO TODO we do xml/*.dat now... kill that
 		game::briceClear();
 	}

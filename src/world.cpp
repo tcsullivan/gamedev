@@ -191,7 +191,8 @@ void WorldSystem::load(const std::string& file)
 		return;
 
 	// save the current world's data
-	save();
+	if (!currentXMLFile.empty())
+		save();
 
 	// load file data to string
 	auto xmlPath = xmlFolder + file;
