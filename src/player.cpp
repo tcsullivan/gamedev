@@ -5,6 +5,7 @@
 #include <gametime.hpp>
 #include <world.hpp>
 #include <particle.hpp>
+#include <attack.hpp>
 
 static const char *spriteXML =
 	"<Sprite> \
@@ -70,6 +71,7 @@ static const char *animationXML =
 void PlayerSystem::create(void)
 {
 	player = game::entities.create();
+	player.assign<Player>();
 	player.assign<Position>(0.0f, 100.0f);
 	player.assign<Direction>(0.0f, 0.0f);
 	//player.assign<Physics>(-0.001f);
@@ -198,6 +200,8 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 	} else if (kc == SDLK_t) {
 		game::time::tick(50);
 	}
+	if (kc == SDLK_j)
+		game::events.emit<AttackEvent>(vec2(loc.x, loc.y), AttackType::ShortSlash);
 }
 
 vec2 PlayerSystem::getPosition(void) const

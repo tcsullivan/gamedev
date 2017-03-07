@@ -62,7 +62,7 @@
 		</frame>
 	</Sprite>
 	<Direction />
-	<Health />
+	<Health value="200" />
 	<Solid />
 	<Physics />
 	<Name value="SKIRL" />

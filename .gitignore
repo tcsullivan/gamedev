@@ -6,3 +6,5 @@ brice.dat
 config/settings.xml
 setup.mk
 TODOS
+out/*
+screenshots/*

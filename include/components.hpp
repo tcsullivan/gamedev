@@ -172,7 +172,9 @@ struct Health : public Component {
 		(void)imp;
 		(void)def;
 		// TODO
-		health = maxHealth = 1;
+		if (def->QueryIntAttribute("value", &health) != XML_NO_ERROR)
+			health = 1;
+		maxHealth = health;
 	}
 };
 
@@ -207,6 +209,8 @@ struct Name : public Component {
 		name = n != nullptr ? n : def->Attribute("value");
 	}
 };
+
+struct Player {};
 
 struct ItemDrop {
 	ItemDrop(InventoryEntry& ie)

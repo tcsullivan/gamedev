@@ -84,6 +84,10 @@ struct vector2 {
 		return (x < v.x) && (y < v.y);
 	}
 
+	bool operator<=(const T& n) const {
+		return (x <= n) && (y <= n);
+	}
+
 	// other functions
 	std::string toString(void) const {
 		return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";

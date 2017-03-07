@@ -182,7 +182,7 @@ void RenderSystem::render(void)
 		if (entity.has_component<Health>()) {
 			float width = entity.component<Solid>()->width;
 			auto& health = *entity.component<Health>();
-			width /= health.health / health.maxHealth;
+			width *= health.health / static_cast<float>(health.maxHealth);
 
 			GLfloat health_coord[] = {
 				pos.x, pos.y, -9, 0, 0,

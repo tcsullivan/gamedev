@@ -11,6 +11,7 @@
 #include <quest.hpp>
 #include <particle.hpp>
 #include <weather.hpp>
+#include <attack.hpp>
 
 Engine::Engine(void)
     : shouldRun(true), systems(game::entities, game::events)
@@ -35,6 +36,7 @@ void Engine::init(void) {
 
 	systems.add<ParticleSystem>();
 	systems.add<WeatherSystem>();
+	systems.add<AttackSystem>();
 
     systems.configure();
 
@@ -54,6 +56,7 @@ void Engine::update(entityx::TimeDelta dt)
 	//systems.update<QuestSystem>(dt); // doesn't do anything
 	systems.update<WeatherSystem>(dt);
 	systems.update<ParticleSystem>(dt);
+	systems.update<AttackSystem>(dt);
 }
 
 
