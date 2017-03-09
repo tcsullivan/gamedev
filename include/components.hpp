@@ -257,12 +257,12 @@ struct Solid : public Component {
 };
 
 struct SpriteData {
+	SpriteData(void) = default;
 	
 	SpriteData(std::string path, vec2 off):
 		offset(off)	{
 			tex = Texture(path);
 			size = tex.getDim();
-			offset = vec2(0.0f, 0.0f);
 
 			size_tex = vec2(1.0, 1.0);
 			
@@ -448,7 +448,7 @@ struct Limb {
 	}
 
 	float updateRate; /**< How often we will change each frame. */
-	float updateCurrent; /**< How much has been updated in the current frame. */
+	float updateCurrent = 0; /**< How much has been updated in the current frame. */
 	unsigned int updateType; /**< What the updateRate will base it's updates off of.
 						ie: Movement, attacking, jumping. */
 	unsigned int limbID; /**< The id of the limb we will be updating */

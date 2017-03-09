@@ -126,7 +126,7 @@ void RenderSystem::render(void)
 		else 
 			sz = sprite.getSpriteSize().x;
 
-		if(sprite.faceLeft) {
+		if (sprite.faceLeft) {
 			glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f,1.0f,1.0f));
 			glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f - sz - pos.x * 2.0f, 0.0f, 0.0f));
 
@@ -348,7 +348,7 @@ std::vector<Frame> developFrame(XMLElement* xml)
 {
 	Frame tmpf;
 	std::vector<Frame> tmp;
-	SpriteData* sd;	
+	SpriteData sd;	
 
 	unsigned int limb = 0;
 
@@ -377,13 +377,13 @@ std::vector<Frame> developFrame(XMLElement* xml)
 					
 					if (sxml->Attribute("size") != nullptr) {
 						fsize = sxml->StrAttribute("size");
-						sd = new SpriteData(sxml->GetText(), foffset, fsize);
+						sd = SpriteData(sxml->GetText(), foffset, fsize);
 					} else {
-						sd = new SpriteData(sxml->GetText(), foffset);
+						sd = SpriteData(sxml->GetText(), foffset);
 					}
 					if (sxml->QueryUnsignedAttribute("limb", &limb) == XML_NO_ERROR) 
-						sd->limb = limb;
-					tmpf.push_back(std::make_pair(*sd, fdraw));
+						sd.limb = limb;
+					tmpf.push_back(std::make_pair(sd, fdraw));
 				}
 				sxml = sxml->NextSiblingElement();
 			}

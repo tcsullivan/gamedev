@@ -28,7 +28,7 @@
 class Texture {
 protected:
 	std::string name; /**< The name (path) of the loaded file. */
-	GLuint tex;       /**< The GLuint for the loaded texture. */
+	GLuint tex = 0;   /**< The GLuint for the loaded texture. */
 	vec2 dim;         /**< The dimensions of the loaded texture. */
 
 public:
