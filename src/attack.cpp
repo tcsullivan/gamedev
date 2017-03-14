@@ -33,11 +33,12 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 					(void)e;
 					if (e.has_component<Player>())
 						return;
-					vec2 eloc (pos.x + dim.width / 2, pos.y + dim.height / 2);
-					if (abs(eloc.x - a.pos.x) <= shortSlashLength) {
+
+					if ((pos.x > a.pos.x && pos.x < a.pos.x + shortSlashLength) || 
+						(pos.x + dim.width < a.pos.x && pos.x + dim.width > a.pos.x - shortSlashLength)) {
 						h.health -= a.power;
-						game::engine.getSystem<ParticleSystem>()->addMultiple(10, ParticleType::SmallBlast,
-							[&](){ return eloc; }, 500, 7);
+						game::engine.getSystem<ParticleSystem>()->addMultiple(10, ParticleType::DownSlash,
+							[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 					}
 				}
 			);

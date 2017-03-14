@@ -173,10 +173,10 @@ void WorldSystem::fight(entityx::Entity entity)
 	door.assign<Portal>(exit);
 
 	auto sprite = door.assign<Sprite>();
-	Texture dtex ("assets/style/classic/door.png");
+	auto dtex = game::engine.getSystem<RenderSystem>()->loadTexture("assets/style/classic/door.png");
 	sprite->addSpriteSegment(SpriteData(dtex), 0);
 
-	auto dim = sprite->getSpriteSize();
+	auto dim = HLINES(sprite->getSpriteSize());
 	door.assign<Solid>(dim.x, dim.y);
 }
 

@@ -9,10 +9,11 @@
 #include <entityx/entityx.h>
 
 enum class ParticleType : char {
-	Drop       = 1,
-	Confetti   = 2,
-	SmallBlast = 4,
-	SmallPoof  = 8
+	Drop,
+	Confetti,
+	SmallBlast,
+	SmallPoof,
+	DownSlash
 };
 
 struct Particle {

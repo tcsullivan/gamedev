@@ -140,11 +140,17 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			break;
 		case ParticleType::SmallPoof:
 			if (vel.x == 0) {
-				vel.y = 0.1f;
 				vel.x = randGet() % 10 / 20.0f - 0.25f;
+				vel.y = 0.1f;
 			} else {
 				vel.x += (vel.x > 0) ? -0.001f : 0.001f;
 				vel.y -= 0.0015f;
+			}
+			break;
+		case ParticleType::DownSlash:
+			if (vel.x == 0) {
+				vel.x = 0.2f * (randGet() % 16 - 8) / 10.0f;
+				vel.y = -vel.x;
 			}
 			break;
 		}

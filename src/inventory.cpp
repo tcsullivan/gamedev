@@ -4,6 +4,7 @@
 #include <components.hpp>
 #include <engine.hpp>
 #include <error.hpp>
+#include <player.hpp>
 #include <render.hpp>
 #include <ui.hpp>
 
@@ -78,6 +79,8 @@ void InventorySystem::render(void)
 		size = hotbarSize;
 	}
 
+	static const GLfloat tex[12] = {0,1,1,1,1,0,1,0,0,0,0,1};
+
 	// draw items
 	for (int n = 0; n < size; n++) {
 		auto &i = items[n];
@@ -101,11 +104,18 @@ void InventorySystem::render(void)
 		// draw the item
 		if (i.item != nullptr && i.count > 0) {
 			i.item->sprite.use();
-			static const GLfloat tex[12] = {0,1,1,1,1,0,1,0,0,0,0,1};
 			glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
 
-			vec2 sta ((n == movingItem) ? ui::mouse - i.item->sprite.getDim() / 2 : i.loc);
-			vec2 end = (n == movingItem) ? ui::mouse + i.item->sprite.getDim() / 2 : i.loc + i.item->sprite.getDim();
+			auto& dim = i.item->sprite.getDim();
+			vec2 truDim;
+			if (dim.x >= dim.y)
+				truDim.x = entrySize - 6, truDim.y = truDim.x * dim.y / dim.x;
+			else
+				truDim.y = entrySize - 6, truDim.x = truDim.y * dim.x / dim.y;
+
+			vec2 loc (i.loc.x + ((entrySize - 6) / 2 - truDim.x / 2), i.loc.y);
+			vec2 sta ((n == movingItem) ? ui::mouse - truDim / 2 : loc);
+			vec2 end = (n == movingItem) ? ui::mouse + truDim / 2 : loc + truDim;
 			GLfloat coords[18] = {
 				sta.x, sta.y, inventoryZ - 0.2, end.x, sta.y, inventoryZ - 0.2, end.x, end.y, inventoryZ - 0.2,
 				end.x, end.y, inventoryZ - 0.2, sta.x, end.y, inventoryZ - 0.2, sta.x, sta.y, inventoryZ - 0.2
@@ -115,10 +125,29 @@ void InventorySystem::render(void)
 				glUniform4f(Render::textShader.uniform[WU_tex_color], .8, .8, 1, .8);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			ui::setFontZ(inventoryZ - 0.3); // TODO fix z's
-			ui::putText(sta.x, sta.y, std::to_string(i.count).c_str());
+			ui::putText(i.loc.x, i.loc.y, std::to_string(i.count).c_str());
 			ui::setFontZ(-6);
 			glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, 1);
 		}
+	}
+
+	if (items[0].item != nullptr && items[0].count > 0) {
+		Render::textShader.use();
+		Render::textShader.enable();
+		
+		auto& i = items[0];
+		i.item->sprite.use();
+		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+
+		auto pos = game::engine.getSystem<PlayerSystem>()->getPosition();
+		vec2 sta (pos.x, pos.y);
+		vec2 end (sta + (i.item->sprite.getDim() * game::HLINE));
+		GLfloat coords[18] = {
+			sta.x, sta.y, -8, end.x, sta.y, -8, end.x, end.y, -8,
+			end.x, end.y, -8, sta.x, end.y, -8, sta.x, sta.y, -8
+		};
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	Render::textShader.disable();

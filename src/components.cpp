@@ -106,7 +106,7 @@ Texture RenderSystem::loadTexture(const std::string& file)
 void RenderSystem::render(void)
 {
 	if (!loadTexString.empty()) {
-		loadTexResult = Texture(loadTexString, true);
+		loadTexResult = Texture(loadTexString, false);
 		loadTexString.clear();
 	}
 	
