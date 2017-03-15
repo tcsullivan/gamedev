@@ -13,6 +13,12 @@ inline T abs(const T& n) {
 	return n >= 0 ? n : -n;
 }
 
+bool inrange(float point, float left, float right, float range)
+{
+	return (left < point + range && left > point - range) ||
+		(right < point + range && right > point - range) ||
+		(point > left && point < right);
+}
 
 void AttackSystem::receive(const AttackEvent& ae)
 {
@@ -34,10 +40,9 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 					if (e.has_component<Player>())
 						return;
 
-					if ((pos.x > a.pos.x && pos.x < a.pos.x + shortSlashLength) || 
-						(pos.x + dim.width < a.pos.x && pos.x + dim.width > a.pos.x - shortSlashLength)) {
+					if (inrange(a.pos.x, pos.x, pos.x + dim.width, shortSlashLength)) {
 						h.health -= a.power;
-						game::engine.getSystem<ParticleSystem>()->addMultiple(10, ParticleType::DownSlash,
+						game::engine.getSystem<ParticleSystem>()->addMultiple(15, ParticleType::DownSlash,
 							[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 					}
 				}

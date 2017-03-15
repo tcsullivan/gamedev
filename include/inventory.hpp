@@ -63,24 +63,46 @@ struct InventoryEntry {
 		: item(nullptr), count(0) {}
 };
 
+struct UseItemEvent {
+	Item* item;
+	vec2 curs;
+
+	UseItemEvent(Item* i, vec2 c)
+		: item(i), curs(c) {}
+};
+
 /**
  * @class InventorySystem
  * Handles the player's inventory system.
  */
 class InventorySystem : public entityx::System<InventorySystem>, public entityx::Receiver<InventorySystem> {
 private:
+	constexpr static const char* itemsPath = "config/items.xml";
+	constexpr static int entrySize = 70;
+	constexpr static int hotbarSize = 4;
+	constexpr static float inventoryZ = -5.0f;
+	constexpr static unsigned int rowSize = 8;
+
+	/**
+	 * A 'database' of all existing items.
+	 */
+	std::unordered_map<std::string, Item> itemList;
+
 	/**
 	 * A vector for the player's inventory slots.
 	 */
     std::vector<InventoryEntry> items;
 
-    void loadItems(void);
 
+	vec2 hotStart, hotEnd;
+	vec2 fullStart, fullEnd;
+
+	int movingItem = -1;
+	bool fullInventory = false;
+
+	void loadItems(void);
 public:
-    InventorySystem(int size = 20) {
-		items.resize(size);
-		loadItems();
-	}
+    InventorySystem(int size = 20);
 
     void configure(entityx::EventManager &ev);
     void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;

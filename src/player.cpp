@@ -97,6 +97,7 @@ void PlayerSystem::configure(entityx::EventManager &ev)
 {
     ev.subscribe<KeyUpEvent>(*this);
     ev.subscribe<KeyDownEvent>(*this);
+	ev.subscribe<UseItemEvent>(*this);
 }
 
 void PlayerSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) {
@@ -200,12 +201,20 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 	} else if (kc == SDLK_t) {
 		game::time::tick(50);
 	}
-	if (kc == SDLK_j)
-		game::events.emit<AttackEvent>(vec2(loc.x, loc.y), AttackType::ShortSlash);
 }
 
 vec2 PlayerSystem::getPosition(void) const
 {
 	auto& loc = *game::entities.component<Position>(player.id()).get();
     return vec2(loc.x, loc.y);
+}
+
+void PlayerSystem::receive(const UseItemEvent& uie)
+{
+	if (uie.item->type == "Sword") {
+		auto loc = getPosition();
+		auto &solid = *player.component<Solid>().get();
+		loc.x += solid.width / 2, loc.y += solid.height / 2;
+		game::events.emit<AttackEvent>(loc, AttackType::ShortSlash);
+	}
 }

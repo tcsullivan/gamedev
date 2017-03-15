@@ -16,17 +16,15 @@ using namespace tinyxml2;
 
 extern vec2 offset;
 
-static std::unordered_map<std::string, Item> itemList;
-constexpr const char* itemsPath = "config/items.xml";
+inline bool isGoodEntry(const InventoryEntry& ie) {
+	return (ie.item != nullptr) && (ie.count > 0);
+}
 
-static bool fullInventory = false;
-
-constexpr int          entrySize = 70;
-constexpr int          hotbarSize = 4;
-constexpr float        inventoryZ = -5.0f;
-constexpr unsigned int rowSize = 8;
-
-static int movingItem = -1;
+InventorySystem::InventorySystem(int size)
+{
+	items.resize(size);
+	loadItems();
+}
 
 void InventorySystem::configure(entityx::EventManager &ev)
 {
@@ -64,7 +62,9 @@ void InventorySystem::render(void)
 	for (unsigned int i = 1; i < hotbarSize; i++)
 		items[i].loc = vec2(items[i - 1].loc.x + entrySize, items[i - 1].loc.y);
 
-	ui::drawNiceBox(items[0].loc - 10, items[hotbarSize - 1].loc + vec2(entrySize + 4, entrySize + 10), inventoryZ);
+	hotStart = items[0].loc - 10;
+	hotEnd = items[hotbarSize - 1].loc + vec2(entrySize + 4, entrySize + 10);
+	ui::drawNiceBox(hotStart, hotEnd, inventoryZ);
 
 	if (fullInventory) {
 		vec2 start (offset.x - entrySize * rowSize / 2, offset.y + game::SCREEN_HEIGHT / 2 - 180);
@@ -74,7 +74,9 @@ void InventorySystem::render(void)
 				start.y -= entrySize;
 		}
 
-		ui::drawNiceBox(items[items.size() - rowSize].loc - 10, items[hotbarSize + rowSize - 1].loc + (entrySize + 4), inventoryZ);
+		fullStart = items[items.size() - rowSize].loc - 10;
+		fullEnd = items[hotbarSize + rowSize - 1].loc + (entrySize + 4);
+		ui::drawNiceBox(fullStart, fullEnd, inventoryZ);
 	} else {
 		size = hotbarSize;
 	}
@@ -102,7 +104,7 @@ void InventorySystem::render(void)
 		glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, 1);
 
 		// draw the item
-		if (i.item != nullptr && i.count > 0) {
+		if (isGoodEntry(i)) {
 			i.item->sprite.use();
 			glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
 
@@ -131,7 +133,7 @@ void InventorySystem::render(void)
 		}
 	}
 
-	if (items[0].item != nullptr && items[0].count > 0) {
+	if (isGoodEntry(items[0])) {
 		Render::textShader.use();
 		Render::textShader.enable();
 		
@@ -168,17 +170,22 @@ void InventorySystem::receive(const MouseClickEvent &mce)
 				e.destroy();
 			}
 		});
-	} else {
-		int end = fullInventory ? items.size() : hotbarSize;
-		movingItem = -1;
-		for (int i = 0;	i < end; i++) {
-			if (items[i].item == nullptr || items[i].count == 0)
-				continue;
+	} else if (mce.button == SDL_BUTTON_LEFT) {
+		if ((mce.position > hotStart && mce.position < hotEnd) ||
+			(fullInventory && mce.position > fullStart && mce.position < fullEnd)) {
+			int end = fullInventory ? items.size() : hotbarSize;
+			movingItem = -1;
+			for (int i = 0;	i < end; i++) {
+				if (!isGoodEntry(items[i]))
+					continue;
 
-			if (mce.position > items[i].loc && mce.position < items[i].loc + entrySize) {
-				movingItem = i;
-				break;
+				if (mce.position > items[i].loc && mce.position < items[i].loc + entrySize) {
+					movingItem = i;
+					break;
+				}
 			}
+		} else if (isGoodEntry(items[0])) {
+			game::events.emit<UseItemEvent>(items[0].item, mce.position);
 		}
 	}
 }
@@ -189,7 +196,7 @@ void InventorySystem::receive(const MouseReleaseEvent &mre)
 		int end = fullInventory ? items.size() : hotbarSize;
 		for (int i = 0;	i < end; i++) {
 			if (mre.position > items[i].loc && mre.position < items[i].loc + entrySize) {
-				if (items[i].count > 0) {
+				if (isGoodEntry(items[i])) {
 					std::swap(items[movingItem], items[i]);
 				} else {
 					items[i] = items[movingItem];
@@ -240,7 +247,7 @@ void InventorySystem::add(const std::string& name, int count)
 		auto& ie = *i;
 
 		// update the slot
-		if (ie.item == nullptr) {
+		if (!isGoodEntry(ie)) {
 			ie.item = &itemList[name];
 			ie.count = count;
 		} else {
@@ -266,7 +273,7 @@ bool InventorySystem::take(const std::string& name, int count)
 	while (taken < count) {
 		auto i = std::find_if(next, items.end(),
 			[&name](const InventoryEntry& ie) {
-				return ie.item != nullptr && ie.item->name == name;
+				return isGoodEntry(ie) && ie.item->name == name;
 			});
 
 		if (i >= items.end())

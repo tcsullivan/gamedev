@@ -62,6 +62,8 @@ public:
 	 */
     void receive(const KeyDownEvent&);
 
+	void receive(const UseItemEvent&);
+
 	/**
 	 * Gets the player's position.
 	 * @return the player's position

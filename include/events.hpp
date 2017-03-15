@@ -12,8 +12,6 @@
 #include <config.hpp>
 #include <vector2.hpp>
 
-class World;
-
 //////////////////////////
 /// INPUT EVENTS
 //////////////////////////
@@ -76,6 +74,8 @@ struct GameEndEvent {
 //////////////////////////
 /// WORLD EVENTS
 //////////////////////////
+
+class World;
 
 struct BGMToggleEvent {
     BGMToggleEvent(std::string f = "", World *w = nullptr)
