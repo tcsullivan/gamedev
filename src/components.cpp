@@ -144,18 +144,17 @@ void RenderSystem::render(void)
 								   sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y,
 								   sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y + sp.size_tex.y,
 
+								   sp.offset_tex.x, 				sp.offset_tex.y,
 								   sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y + sp.size_tex.y,
-								   sp.offset_tex.x, 				sp.offset_tex.y + sp.size_tex.y,
-								   sp.offset_tex.x, 				sp.offset_tex.y};
-
-
+								   sp.offset_tex.x, 				sp.offset_tex.y + sp.size_tex.y};
+			
 			GLfloat coords[] = {loc.x, 			loc.y, 			visible.z + its,
 								loc.x + size.x,	loc.y, 			visible.z + its,
 								loc.x + size.x, loc.y + size.y, visible.z + its,
 
-								loc.x + size.x,	loc.y + size.y, visible.z + its,
-								loc.x, 			loc.y + size.y, visible.z + its,
-								loc.x, 			loc.y, 			visible.z + its};
+								loc.x,			loc.y, 			visible.z + its,
+								loc.x + size.x, loc.y + size.y, visible.z + its,
+								loc.x, 			loc.y + size.y, visible.z + its};
 
 
 			// make the entity hit flash red
