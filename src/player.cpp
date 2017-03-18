@@ -211,10 +211,40 @@ vec2 PlayerSystem::getPosition(void) const
 
 void PlayerSystem::receive(const UseItemEvent& uie)
 {
-	if (uie.item->type == "Sword") {
-		auto loc = getPosition();
-		auto &solid = *player.component<Solid>().get();
-		loc.x += solid.width / 2, loc.y += solid.height / 2;
-		game::events.emit<AttackEvent>(loc, AttackType::ShortSlash);
+	static std::atomic_bool cool (true);
+
+	if (cool.load()) {
+		if (uie.item->sound != nullptr)
+			Mix_PlayChannel(0, uie.item->sound, 0);
+
+		if (uie.item->type == "Sword") {
+			auto loc = getPosition();
+			auto &solid = *player.component<Solid>().get();
+			loc.x += solid.width / 2, loc.y += solid.height / 2;
+			game::events.emit<AttackEvent>(loc, AttackType::ShortSlash);
+		} else if (uie.item->type == "Bow") {
+			if (game::engine.getSystem<InventorySystem>()->take("Arrow", 1)) {
+				auto e = game::entities.create();
+				auto pos = getPosition();
+				e.assign<Position>(pos.x, pos.y + 10);
+
+				auto angle = std::atan2(uie.curs.y - pos.y, uie.curs.x - pos.x);
+				e.assign<Direction>(1 * std::cos(angle), 1 * std::sin(angle));
+
+				e.assign<Visible>(-5);
+				e.assign<Physics>();
+				auto sprite = e.assign<Sprite>();
+				auto tex = game::engine.getSystem<InventorySystem>()->getItem("Arrow");
+				sprite->addSpriteSegment(SpriteData(tex.sprite), 0);
+				auto dim = HLINES(sprite->getSpriteSize());
+				e.assign<Solid>(dim.x, dim.y);
+			}
+		}
+
+		/*cool.store(false);
+		std::thread([&](void) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(uie.item->cooldown));
+			cool.store(true);
+		}).detach();*/
 	}
 }

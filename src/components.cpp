@@ -50,7 +50,7 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 
 			// make the entity wander
 			// TODO initialX and range?
-			if (entity.has_component<Aggro>()) {
+			if (0 && entity.has_component<Aggro>()) {
 				auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
 				if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
 					auto& h = entity.component<Health>()->health;

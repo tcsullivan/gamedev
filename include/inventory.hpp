@@ -7,6 +7,7 @@
 
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_mixer.h>
 
 #include <string>
 #include <vector>
@@ -28,6 +29,8 @@ struct Item {
 	int value;        /**< The value/worth of the item */
 	int stackSize;    /**< The stack size of the item */
 	Texture sprite;   /**< The texture for the item (in inventory) */
+	Mix_Chunk* sound; /**< The sound to play on item use */
+	int cooldown;
 
 	Item(void)
 		: value(0), stackSize(1) {}
@@ -36,7 +39,7 @@ struct Item {
 	 * Constructs an item from XML.
 	 * @param the xml element (<item />)
 	 */
-	Item(XMLElement *e) {
+	Item(XMLElement* e) {
 		name = e->StrAttribute("name");
 		type = e->StrAttribute("type");
 		
@@ -46,6 +49,19 @@ struct Item {
 		e->QueryIntAttribute("maxStackSize", &stackSize);
 		
 		sprite = Texture(e->StrAttribute("sprite"));
+
+		if (e->Attribute("sound") != nullptr)
+			sound = Mix_LoadWAV(e->Attribute("sound"));
+		else
+			sound = nullptr;
+
+		cooldown = 250;
+		e->QueryIntAttribute("cooldown", &cooldown);
+	}
+
+	~Item(void) {
+		if (sound != nullptr)
+			Mix_FreeChunk(sound);
 	}
 };
 
@@ -128,6 +144,10 @@ public:
 	 * @return true if the operation could be completed
 	 */
 	bool take(const std::string& name, int count);
+
+	inline Item getItem(const std::string& s) {
+		return itemList[s];
+	}
 };
 
 #endif // INVENTORY_HPP_

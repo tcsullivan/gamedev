@@ -1096,7 +1096,7 @@ namespace ui {
 		fadeWhite   = true;
 		fadeFast    = true;
 
-		Mix_PlayChannel(1, battleStart, 0);
+		//Mix_PlayChannel(1, battleStart, 0);
 	}
 
     void takeScreenshot(GLubyte* pixels) {

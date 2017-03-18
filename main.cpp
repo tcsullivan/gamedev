@@ -117,7 +117,9 @@ int main(int argc, char *argv[])
 	/////////////////////////////
 
 
-	game::engine.getSystem<InventorySystem>()->add("Wood Sword", 9);
+	game::engine.getSystem<InventorySystem>()->add("Wood Sword", 1);
+	game::engine.getSystem<InventorySystem>()->add("Hunters Bow", 1);
+	game::engine.getSystem<InventorySystem>()->add("Arrow", 40);
 
 	std::list<SDL_Event> eventQueue;
 

@@ -34,6 +34,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 	for (const auto& a : attacks) {
 		switch (a.type) {
 		case AttackType::ShortSlash:
+		case AttackType::LongSlash:
 			en.each<Position, Solid, Health>(
 				[&a](entityx::Entity e, Position& pos, Solid& dim, Health& h) {
 					(void)e;
@@ -47,8 +48,6 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 					}
 				}
 			);
-			break;
-		case AttackType::LongSlash:
 			break;
 		default:
 			break;
