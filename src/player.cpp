@@ -238,6 +238,7 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 				sprite->addSpriteSegment(SpriteData(tex.sprite), 0);
 				auto dim = HLINES(sprite->getSpriteSize());
 				e.assign<Solid>(dim.x, dim.y);
+				e.assign<Hit>(10);
 			}
 		}
 

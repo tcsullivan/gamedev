@@ -610,6 +610,18 @@ struct Aggro : public Component {
 	}
 };
 
+struct Hit : public Component {
+	Hit(int d)
+		: damage(d) {}
+
+	int damage;
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)imp;
+		(void)def;
+	}
+};
+
 /**
  * SYSTEMS
  */

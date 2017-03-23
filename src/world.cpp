@@ -14,6 +14,7 @@ using namespace std::literals::chrono_literals;
 using namespace tinyxml2;
 
 // game headers
+#include <attack.hpp>
 #include <common.hpp>
 #include <components.hpp>
 #include <debug.hpp>
@@ -1140,6 +1141,11 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 			} else {
 				loc.y = data[line].groundHeight - 0.001f * dt;
 				vel.y = 0;
+				if (e.has_component<Hit>()) {
+					game::events.emit<AttackEvent>(vec2(loc.x, loc.y),
+						AttackType::ShortSlash, e.component<Hit>()->damage);
+					e.destroy();
+				}
 				if (!vel.grounded) {
 					vel.grounded = true;
 					game::engine.getSystem<ParticleSystem>()->addMultiple(20, ParticleType::SmallPoof,
