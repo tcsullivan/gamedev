@@ -9,7 +9,8 @@
 
 enum class AttackType : char {
 	ShortSlash,
-	LongSlash
+	LongSlash,
+	SmallBoom
 };
 
 struct AttackEvent {

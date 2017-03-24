@@ -1143,7 +1143,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 				vel.y = 0;
 				if (e.has_component<Hit>()) {
 					game::events.emit<AttackEvent>(vec2(loc.x, loc.y),
-						AttackType::ShortSlash, e.component<Hit>()->damage);
+						AttackType::SmallBoom, e.component<Hit>()->damage);
 					e.destroy();
 				}
 				if (!vel.grounded) {

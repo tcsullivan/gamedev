@@ -49,6 +49,21 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 				}
 			);
 			break;
+		case AttackType::SmallBoom:
+			en.each<Position, Solid, Health>(
+				[&a](entityx::Entity e, Position& pos, Solid& dim, Health& h) {
+					(void)e;
+					if (e.has_component<Player>())
+						return;
+
+					if (inrange(a.pos.x, pos.x, pos.x + dim.width, shortSlashLength)) {
+						h.health -= a.power;
+						game::engine.getSystem<ParticleSystem>()->addMultiple(15, ParticleType::SmallBlast,
+							[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
+					}
+				}
+			);
+			break;
 		default:
 			break;
 		}
