@@ -13,6 +13,7 @@
     <structure type="1" position="300.0,100.0"/>
     <structure inside="bobshouse.xml" type="1" position="10.0,100.0"/>
 	<skirl />
+	<skirl />
 </World>
 
 <Dialog name="Bob">

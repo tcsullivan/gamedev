@@ -242,10 +242,10 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 			}
 		}
 
-		/*cool.store(false);
-		std::thread([&](void) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(uie.item->cooldown));
+		cool.store(false);
+		std::thread([&](unsigned int ms) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 			cool.store(true);
-		}).detach();*/
+		}, uie.item->cooldown).detach();
 	}
 }
