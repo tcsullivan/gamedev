@@ -27,8 +27,8 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 
 	(void)ev;
 	en.each<Position, Direction>([&](entityx::Entity entity, Position &position, Direction &direction) {
-		position.x += direction.x * dt;
-		position.y += direction.y * dt;
+		position.x += HLINES(direction.x) * dt;
+		position.y += HLINES(direction.y) * dt;
 
 		if (entity.has_component<Animate>() && entity.has_component<Sprite>()) {
 			auto animate = entity.component<Animate>();
@@ -38,7 +38,7 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 				animate->updateAnimation(1, sprite->sprite, dt);
 			else
 				animate->firstFrame(1, sprite->sprite);
-			}
+		}
 		if (entity.has_component<Dialog>() && entity.component<Dialog>()->talking) {
 			direction.x = 0;
 		} else {
@@ -60,7 +60,7 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 						h = 0;
 					}
 				} else
-					direction.x = (ppos.x > position.x) ? .05 : -.05;
+					direction.x = (ppos.x > position.x) ? .01 : -.01;
 			} else if (entity.has_component<Wander>()) {
 				auto& countdown = entity.component<Wander>()->countdown;
 
@@ -68,7 +68,7 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 					countdown--;
 				} else {
 					countdown = 5000 + randGet() % 10 * 100;
-					direction.x = (randGet() % 3 - 1) * 0.02f;
+					direction.x = (randGet() % 3 - 1) * 0.004f;
 				}
 			}
 		}

@@ -3,8 +3,8 @@
 #include <engine.hpp>
 #include <particle.hpp>
 
-constexpr int shortSlashLength = 100;
-constexpr int longSlashLength = 200;
+constexpr int shortSlashLength = 20;
+constexpr int longSlashLength = 40;
 
 // math helpers because we don't trust stdlib
 template<typename T>
@@ -41,7 +41,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 					if (e.has_component<Player>())
 						return;
 
-					if (inrange(a.pos.x, pos.x, pos.x + dim.width, shortSlashLength)) {
+					if (inrange(a.pos.x, pos.x, pos.x + dim.width, HLINES(shortSlashLength))) {
 						h.health -= a.power;
 						game::engine.getSystem<ParticleSystem>()->addMultiple(15, ParticleType::DownSlash,
 							[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
@@ -56,7 +56,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 					if (e.has_component<Player>())
 						return;
 
-					if (inrange(a.pos.x, pos.x, pos.x + dim.width, shortSlashLength)) {
+					if (inrange(a.pos.x, pos.x, pos.x + dim.width, 0)) {
 						h.health -= a.power;
 						game::engine.getSystem<ParticleSystem>()->addMultiple(15, ParticleType::SmallBlast,
 							[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);

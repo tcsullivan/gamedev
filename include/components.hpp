@@ -98,7 +98,7 @@ struct Physics : public Component {
 	 * Constructor that sets the gravity constant, if not specified it becomes 0.
 	 * @param g The non default gravity constant.
 	 */
-	Physics(float g = 1.0f): g(g) {}
+	Physics(float g = 0.2f): g(g) {}
 	Physics(XMLElement* imp, XMLElement* def) {
 		fromXML(imp, def);
 	}
@@ -108,7 +108,7 @@ struct Physics : public Component {
 	void fromXML(XMLElement* imp, XMLElement* def) final {
 		if (imp->QueryFloatAttribute("gravity", &g) != XML_NO_ERROR) {
 			if (def->QueryFloatAttribute("value", &g) != XML_NO_ERROR)
-				g = 1.0f;
+				g = 0.2f;
 		}
 	}
 };

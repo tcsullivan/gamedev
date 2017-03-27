@@ -75,7 +75,7 @@ void PlayerSystem::create(void)
 	player.assign<Position>(0.0f, 100.0f);
 	player.assign<Direction>(0.0f, 0.0f);
 	//player.assign<Physics>(-0.001f);
-	player.assign<Physics>(1);
+	player.assign<Physics>();
 	player.assign<Visible>(-0.2f);
 	player.assign<Health>(100);
 	auto sprite = player.assign<Sprite>();
@@ -154,7 +154,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 
 	if ((kc == SDLK_SPACE) && game::canJump && ((vel.y > -0.01) & (vel.y < 0.01))) {
 		loc.y += HLINES(2);
-		vel.y = .4;
+		vel.y = 0.05f;
 		vel.grounded = false;
 	} else if (!ui::dialogBoxExists || ui::dialogPassive) {
 		if (kc == getControl(0)) {
@@ -229,7 +229,7 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 				e.assign<Position>(pos.x, pos.y + 10);
 
 				auto angle = std::atan2(uie.curs.y - pos.y, uie.curs.x - pos.x);
-				e.assign<Direction>(1 * std::cos(angle), 1 * std::sin(angle));
+				e.assign<Direction>(0.25f * std::cos(angle), 0.25f * std::sin(angle));
 
 				e.assign<Visible>(-5);
 				e.assign<Physics>();
