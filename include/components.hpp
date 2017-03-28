@@ -611,10 +611,11 @@ struct Aggro : public Component {
 };
 
 struct Hit : public Component {
-	Hit(int d)
-		: damage(d) {}
+	Hit(int d, bool p = false)
+		: damage(d), pierce(p) {}
 
 	int damage;
+	bool pierce;
 
 	void fromXML(XMLElement* imp, XMLElement* def) final {
 		(void)imp;

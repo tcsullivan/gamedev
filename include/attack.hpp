@@ -13,11 +13,12 @@ enum class AttackType : char {
 };
 
 struct AttackEvent {
-	AttackEvent(vec2 p, AttackType at, int pow = 10)
-		: pos(p), type(at), power(pow) {}
+	AttackEvent(vec2 p, AttackType at, bool fp, int pow = 10)
+		: pos(p), type(at), fromplayer(fp), power(pow) {}
 
 	vec2 pos;
 	AttackType type;
+	bool fromplayer;
 	int power;
 };
 

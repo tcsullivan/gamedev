@@ -1089,9 +1089,10 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 {
 	game::entities.each<Health>(
 		[](entityx::Entity e, Health& h) {
-		if (h.health <= 0)
+		if (h.health <= 0) {
 			e.kill();
 			//e.destroy();
+		}
 	});
 
 	game::entities.each<Grounded, Position, Solid>(

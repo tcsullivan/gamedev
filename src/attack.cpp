@@ -39,18 +39,16 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 	(void)ev;
 	(void)dt;
 
-	auto pid = game::engine.getSystem<PlayerSystem>()->getId();
-
 	// handle attacking entities
 	en.each<Hit, Position>([&](entityx::Entity p, Hit& hit, Position& ppos) {
 		bool die = false;
 		en.each<Health, Position, Solid>([&](entityx::Entity e, Health& health, Position& pos, Solid& dim) {
-			if (e.id() != pid && inrange(ppos.x, pos.x, pos.x + dim.width) && inrange(ppos.y, pos.y - 2, pos.y + dim.height)) {
+			if (!e.has_component<Player>() && inrange(ppos.x, pos.x, pos.x + dim.width) && inrange(ppos.y, pos.y - 2, pos.y + dim.height)) {
 				health.health -= hit.damage;
 				game::engine.getSystem<ParticleSystem>()->addMultiple(15, ParticleType::SmallBlast,
 					[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
-				die = true;
-			} else if (game::engine.getSystem<WorldSystem>()->isAboveGround(vec2(ppos.x, ppos.y)))
+				die = !hit.pierce;
+			} else if (game::engine.getSystem<WorldSystem>()->isAboveGround(vec2(ppos.x, ppos.y - 5)))
 				die = true;
 		});
 
@@ -65,8 +63,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 		case AttackType::LongSlash:
 			en.each<Position, Solid, Health>(
 				[&a](entityx::Entity e, Position& pos, Solid& dim, Health& h) {
-					(void)e;
-					if (e.has_component<Player>())
+					if (!(e.has_component<Player>() ^ a.fromplayer))
 						return;
 
 					if (inrange(a.pos.x, pos.x, pos.x + dim.width, HLINES(shortSlashLength)) &&

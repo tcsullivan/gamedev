@@ -105,6 +105,9 @@ void PlayerSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
     (void)ev;
     (void)dt;
 
+	if (player.component<Health>()->health <= 0)
+		abort();
+
     auto& vel = *player.component<Direction>().get();
 
     if (moveLeft & !moveRight)
@@ -221,7 +224,7 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 			auto loc = getPosition();
 			auto &solid = *player.component<Solid>().get();
 			loc.x += solid.width / 2, loc.y += solid.height / 2;
-			game::events.emit<AttackEvent>(loc, AttackType::ShortSlash);
+			game::events.emit<AttackEvent>(loc, AttackType::ShortSlash, true);
 		} else if (uie.item->type == "Bow") {
 			if (game::engine.getSystem<InventorySystem>()->take("Arrow", 1)) {
 				auto e = game::entities.create();
@@ -238,7 +241,7 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 				sprite->addSpriteSegment(SpriteData(tex.sprite), 0);
 				auto dim = HLINES(sprite->getSpriteSize());
 				e.assign<Solid>(dim.x, dim.y);
-				e.assign<Hit>(10);
+				e.assign<Hit>(10, false);
 			}
 		}
 
