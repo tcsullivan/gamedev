@@ -62,12 +62,11 @@
 		</frame>
 	</Sprite>
 	<Direction />
-	<Health value="5" />
+	<Health value="50" />
 	<Solid />
 	<Physics />
 	<Name value="SKIRL" />
 	<Wander />
-	<Aggro arena="arena.xml" />
 </skirl>
 
 <structure>

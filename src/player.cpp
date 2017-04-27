@@ -149,8 +149,6 @@ void PlayerSystem::receive(const KeyUpEvent &kue)
 
 void PlayerSystem::receive(const KeyDownEvent &kde)
 {
-	static auto& worldSystem = *game::engine.getSystem<WorldSystem>();
-
 	auto kc = kde.keycode;
 	auto& loc = *player.component<Position>().get();
 	auto& vel = *player.component<Direction>().get();
@@ -159,24 +157,24 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 		loc.y += HLINES(2);
 		vel.y = 0.05f;
 		vel.grounded = false;
-	} else if (!ui::dialogBoxExists || ui::dialogPassive) {
+	} else if (!UISystem::isDialog()) {
 		if (kc == getControl(0)) {
-			if (!ui::fadeIntensity)
-				worldSystem.goWorldPortal(loc);
+			if (!UISystem::isFading())
+				WorldSystem::goWorldPortal(loc);
 
 		} else if (kc == getControl(1)) {
-			if (!ui::fadeEnable) {
+			if (!UISystem::isFading()) {
                 moveLeft = true;
 				moveRight = false;
 
-				worldSystem.goWorldLeft(loc);
+				WorldSystem::goWorldLeft(loc);
 			}
 		} else if (kc == getControl(2)) {
-			if (!ui::fadeEnable) {
+			if (!UISystem::isFading()) {
 				moveLeft = false;
                 moveRight = true;
 
-				worldSystem.goWorldRight(loc, *player.component<Solid>().get());
+				WorldSystem::goWorldRight(loc, *player.component<Solid>().get());
    			}
 		} else if (kc == getControl(3)) {
 			if (game::canSprint)

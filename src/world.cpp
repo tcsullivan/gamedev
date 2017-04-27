@@ -28,6 +28,15 @@ using namespace tinyxml2;
 #include <vector3.hpp>
 #include <weather.hpp>
 
+WorldData2               WorldSystem::world;
+Mix_Music*               WorldSystem::bgmObj;
+std::string              WorldSystem::bgmCurrent;
+std::vector<std::string> WorldSystem::bgFiles;
+TextureIterator          WorldSystem::bgTex;
+XMLDocument              WorldSystem::xmlDoc;
+std::string              WorldSystem::currentXMLFile;
+std::thread              WorldSystem::thAmbient;
+
 extern std::string xmlFolder;
 
 // wait
@@ -116,7 +125,7 @@ void WorldSystem::generate(int width)
     world.startX = HLINES(width * -0.5);
 }
 
-float WorldSystem::isAboveGround(const vec2& p) const
+float WorldSystem::isAboveGround(const vec2& p) 
 {
 	int line = std::clamp(static_cast<int>((p.x - world.startX) / game::HLINE),
 		0, static_cast<int>(world.data.size()));
@@ -379,11 +388,6 @@ void WorldSystem::load(const std::string& file)
 			}
 		}
 
-		// hill creation
-		/*else if (tagName == "hill") {
-			addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
-		}*/
-
 		wxml = wxml->NextSiblingElement();
 	}
 
@@ -617,7 +621,9 @@ loadWorldFromXMLNoSave(std::string path) {
 }*/
 
 WorldSystem::WorldSystem(void)
-	: bgmObj(nullptr) {}
+{
+	bgmObj = nullptr;
+}
 
 WorldSystem::~WorldSystem(void)
 {
@@ -1152,9 +1158,11 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 
 		// insure that the entity doesn't fall off either edge of the world.
         if (loc.x < world.startX) {
+			std::cout << "Left!\n";
 			vel.x = 0;
 			loc.x = world.startX + HLINES(0.5f);
 		} else if (loc.x + dim.width + game::HLINE > -(static_cast<int>(world.startX))) {
+			std::cout << "Right\n";
 			vel.x = 0;
 			loc.x = -(static_cast<int>(world.startX)) - dim.width - game::HLINE;
 		}
@@ -1164,26 +1172,26 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 void WorldSystem::goWorldRight(Position& p, Solid &d)
 {
 	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(5))) {
-		ui::toggleBlack();
-		ui::waitForCover();
+		UISystem::fadeToggle();
+		UISystem::waitForCover();
 		while (waitToSwap)
 			std::this_thread::sleep_for(1ms);
 		load(world.toRight);
 		game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(10));
-		ui::toggleBlack();
+		UISystem::fadeToggle();
 	}
 }
 
 void WorldSystem::goWorldLeft(Position& p)
 {
 	if (!(world.toLeft.empty()) && (p.x < world.startX + HLINES(10))) {
-		ui::toggleBlack();
-		ui::waitForCover();
+		UISystem::fadeToggle();
+		UISystem::waitForCover();
 		while (waitToSwap)
 			std::this_thread::sleep_for(1ms);
 		load(world.toLeft);
 		game::engine.getSystem<PlayerSystem>()->setX(world.startX * -1 - HLINES(15));
-		ui::toggleBlack();
+		UISystem::fadeToggle();
 	}
 }
 
@@ -1209,11 +1217,11 @@ void WorldSystem::goWorldPortal(Position& p)
 	}
 
 	if (!file.empty()) {
-		ui::toggleBlack();
-		ui::waitForCover();
+		UISystem::fadeToggle();
+		UISystem::waitForCover();
 		while (waitToSwap)
 			std::this_thread::sleep_for(1ms);
 		load(file);
-		ui::toggleBlack();
+		UISystem::fadeToggle();
 	}
 }

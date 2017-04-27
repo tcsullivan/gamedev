@@ -108,36 +108,36 @@ private:
 	/**
 	 * The world's data.
 	 */
-	WorldData2 world;
+	static WorldData2 world;
 
 	/**
 	 * SDL's object for handling the background music.
 	 */
-	Mix_Music *bgmObj;
-	std::string bgmCurrent;
+	static Mix_Music *bgmObj;
+	static std::string bgmCurrent;
 
 	/**
 	 * Paths of files to get stylized textures from.
 	 */
-	std::vector<std::string> bgFiles;
+	static std::vector<std::string> bgFiles;
 
 	/**
 	 * Allows for iteration between background textures, for rendering.
 	 */
-	TextureIterator bgTex;
+	static TextureIterator bgTex;
 
 	/**
 	 * An object to handle and parse world XML files.
 	 */
-	XMLDocument xmlDoc;
+	static XMLDocument xmlDoc;
 
 	/**
 	 * The file path to the currently loaded world.
 	 */
-	std::string currentXMLFile;
+	static std::string currentXMLFile;
 
 public:
-	std::thread thAmbient;
+	static std::thread thAmbient;
 
 	explicit WorldSystem(void);
 	~WorldSystem(void);
@@ -146,37 +146,32 @@ public:
 		ev.subscribe<BGMToggleEvent>(*this);
 	}
 
-	inline XMLDocument* getXML(void)
+	static inline XMLDocument* getXML(void)
 	{ return &xmlDoc; }
 
-	inline float getWidth(void) const
+	static inline float getWidth(void) //const
 	{ return world.startX * -2.0f; }
 
-	float isAboveGround(const vec2& p) const;
+	static inline const std::string& getXMLFile(void) //const
+	{ return currentXMLFile; }
+
+	static float isAboveGround(const vec2& p); //const;
 
 	void receive(const BGMToggleEvent &bte);
-
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
-	void render(void);
+	static void render(void);
 
-	inline const std::string& getXMLFile(void) const
-	{ return currentXMLFile; }
 
 	void detect(entityx::TimeDelta dt);
 
-	void goWorldLeft(Position& p);
-	void goWorldRight(Position& p, Solid &d);
-	void goWorldPortal(Position& p);
+	static void goWorldLeft(Position& p);
+	static void goWorldRight(Position& p, Solid &d);
+	static void goWorldPortal(Position& p);
 
-	// worlddata2 stuff
-	WorldData2 worldData;
+	static void generate(int width = 0);
 
-	void generate(int width = 0);
-	//void addHole(const unsigned int& start, const unsigned int& end);
-	//void addHill(const ivec2& peak, const unsigned int& width);
-
-	bool save(void);
-	void load(const std::string& file);
+	static bool save(void);
+	static void load(const std::string& file);
 
 	void fight(entityx::Entity entity);
 };

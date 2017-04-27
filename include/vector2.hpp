@@ -35,8 +35,18 @@ struct vector2 {
 		return vector2<T>(x + v.x, y + v.y);
 	}
 
+	template<typename T2>
+	vector2<T> operator+(const vector2<T2>& v) const {
+		return vector2<T>(x + v.x, y + v.y);
+	}
+
 	vector2<T> operator+(const T& n) const {
 		return vector2<T>(x + n, y + n);
+	}
+
+	vector2<T> operator+=(const vector2<T>& v) {
+		x += v.x, y += v.y;
+		return *this;
 	}
 
 	// subtraction

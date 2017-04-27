@@ -8,6 +8,7 @@
 #include <ui.hpp>
 #include <engine.hpp>
 #include <error.hpp>
+#include <font.hpp>
 #include <world.hpp>
 #include <brice.hpp>
 #include <quest.hpp>
@@ -23,7 +24,7 @@ static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
-	bool fight = false;
+	//bool fight = false;
 	entityx::Entity toFight;
 
 	(void)ev;
@@ -78,12 +79,12 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 		}
 	});
 
-	if (fight) {
-		ui::toggleWhiteFast();
-		ui::waitForCover();
-		game::engine.getSystem<WorldSystem>()->fight(toFight);
-		ui::toggleWhiteFast();
-	}
+//	if (fight) {
+//		UISystem::fadeToggleFast();
+//		UISystem::waitForCover();
+		//game::engine.getSystem<WorldSystem>()->fight(toFight);
+//		UISystem::fadeToggleFast();
+//	}
 }
 
 void PhysicsSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -209,8 +210,8 @@ void RenderSystem::render(void)
 	game::entities.each<Visible, Position, Solid, Name>([](entityx::Entity e, Visible &v, Position &pos, Solid& dim, Name &name) {
 		(void)e;
 		(void)v;
-		ui::setFontZ(-5.0);
-		ui::putStringCentered(pos.x + dim.width / 2, pos.y - ui::fontSize - HLINES(0.5), name.name);
+		FontSystem::setFontZ(-5.0f);
+		UISystem::putStringCentered(vec2(pos.x + dim.width / 2, pos.y - FontSystem::getSize() - HLINES(0.5)), name.name);
 	});
 }
 
@@ -236,15 +237,15 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 					std::string questAssignedText;
 					int newIndex;
 
-					auto exml = game::engine.getSystem<WorldSystem>()->getXML()->FirstChildElement("Dialog");
+					auto exml = WorldSystem::getXML()->FirstChildElement("Dialog");
 					dialogRun.store(true);
 
 					if (e.has_component<Direction>())
 						d.talking = true;
 
 					if (d.index == 9999) {
-						ui::dialogBox(name.name, "", false, randomDialog[d.rindex % randomDialog.size()]);
-						ui::waitForDialog();
+						UISystem::dialogBox(name.name, /*"", false,*/ randomDialog[d.rindex % randomDialog.size()]);
+						UISystem::waitForDialog();
 					} else if (exml != nullptr) {
 						while (exml->StrAttribute("name") != name.name)
 							exml = exml->NextSiblingElement();
@@ -290,8 +291,8 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 										if (qname != nullptr && qsys->finish(qname) == 0) {
 											d.index = 9999;
 										} else {
-											ui::dialogBox(name.name, "", false, "Finish my quest u nug");
-											ui::waitForDialog();
+											UISystem::dialogBox(name.name, /*"", false,*/ "Finish my quest u nug");
+											UISystem::waitForDialog();
 											return;
 										}
 									//	oldidx = d.index;
@@ -307,6 +308,8 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 						std::vector<int> optionNexts;
 						if (xxml != nullptr) {
 							do {
+								UISystem::dialogAddOption(xxml->StrAttribute("name"));
+
 								options += '\"' + xxml->StrAttribute("name");
 								optionNexts.emplace_back(xxml->IntAttribute("value"));
 								xxml = xxml->NextSiblingElement();
@@ -322,11 +325,13 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 							while (*++content && isspace(*content));
 						}
 
-						ui::dialogBox(name.name, options, false, content);
-						ui::waitForDialog();
+						UISystem::dialogBox(name.name, /*options, false,*/ content);
+						UISystem::waitForDialog();
+						UISystem::waitForDialog();
 
 						if (!questAssignedText.empty())
-							ui::passiveImportantText(5000, ("Quest assigned:\n\"" + questAssignedText + "\"").c_str());
+							UISystem::dialogImportant("Quest assigned:\n\"" + questAssignedText + "\"");
+							//passiveImportantText(5000, ("Quest assigned:\n\"" + questAssignedText + "\"").c_str());
 
 						if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
 							d.index = newIndex;

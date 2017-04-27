@@ -48,7 +48,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 				game::engine.getSystem<ParticleSystem>()->addMultiple(15, ParticleType::SmallBlast,
 					[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 				die = !hit.pierce;
-			} else if (game::engine.getSystem<WorldSystem>()->isAboveGround(vec2(ppos.x, ppos.y - 5)))
+			} else if (WorldSystem::isAboveGround(vec2(ppos.x, ppos.y - 5)))
 				die = true;
 		});
 

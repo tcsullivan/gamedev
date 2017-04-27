@@ -1,6 +1,7 @@
 #include <engine.hpp>
 
 #include <config.hpp>
+#include <font.hpp>
 #include <world.hpp>
 #include <window.hpp>
 #include <ui.hpp>
@@ -38,7 +39,16 @@ void Engine::init(void) {
 	systems.add<WeatherSystem>();
 	systems.add<AttackSystem>();
 
+	systems.add<UISystem>();
+
     systems.configure();
+
+	// init ui
+
+	FontSystem::init(game::config::fontFamily);
+	FontSystem::setFontSize(16);
+	FontSystem::setFontColor(1, 1, 1);
+	FontSystem::setFontZ(-6.0f);
 
     ui::initSounds();
 	ui::menu::init();
@@ -57,6 +67,7 @@ void Engine::update(entityx::TimeDelta dt)
 	systems.update<WeatherSystem>(dt);
 	systems.update<ParticleSystem>(dt);
 	systems.update<AttackSystem>(dt);
+	//systems.update<UISystem>(dt);
 }
 
 

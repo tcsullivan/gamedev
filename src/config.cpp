@@ -22,6 +22,7 @@ namespace game {
 		float VOLUME_SFX;
 
 		std::string xmlFolder;
+		std::string fontFamily;
 
 		void read(void) {
 			xml.LoadFile("config/settings.xml");
@@ -49,8 +50,8 @@ namespace game {
 			if (xmlFolder.empty())
 				xmlFolder = "xml/";
 
-			ui::initFonts();
-			ui::setFontFace(xml.FirstChildElement("font")->Attribute("path"));
+			// FONT SETUP
+			fontFamily = xml.FirstChildElement("font")->Attribute("path");
 
 			if (xml.FirstChildElement("debug"))
 				ui::debug = ui::posFlag = true;

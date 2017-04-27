@@ -17,6 +17,7 @@ using namespace std::literals::chrono_literals;
 #include <engine.hpp>
 #include <error.hpp>
 #include <fileio.hpp>
+#include <font.hpp>
 #include <gametime.hpp>
 #include <window.hpp>
 #include <world.hpp>
@@ -95,16 +96,15 @@ int main(int argc, char *argv[])
 	}
 
 	// either load the given XML, or find one
-	auto worldSys = game::engine.getSystem<WorldSystem>();
 	if (!worldActuallyUseThisXMLFile.empty()) {
-		worldSys->load(worldActuallyUseThisXMLFile);
+		WorldSystem::load(worldActuallyUseThisXMLFile);
 	} else {
 		// load the first valid XML file for the world
 		for (const auto &xf : xmlFiles) {
 			if (xf[0] != '.') {
 				// read it in
 				std::cout << "File to load: " << xf << '\n';
-				worldSys->load(xf);
+				WorldSystem::load(xf);
 				break;
 			}
 		}
@@ -133,9 +133,6 @@ int main(int argc, char *argv[])
 				extern int worldShade; // TODO kill
 				worldShade = 50 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 
-				// update fades
-				//ui::fadeUpdate();
-
 				// increment game ticker
 				game::time::tick();
 			}
@@ -157,10 +154,10 @@ int main(int argc, char *argv[])
 			std::this_thread::sleep_for(1s);
 		});
 
-		GameThread gtFade ([&] {
+		/*GameThread gtFade ([&] {
 			ui::fadeUpdate();
 			std::this_thread::sleep_for(20ms);
-		});
+		});*/
 
 		// the render loop, renders
 		const bool &run = game::engine.shouldRun;
@@ -176,19 +173,18 @@ int main(int argc, char *argv[])
 		// on game end, get back together
 		gtMain.stop();
 		gtDebug.stop();
-		gtFade.stop();
+		//gtFade.stop();
 		//game::engine.getSystem<WorldSystem>()->thAmbient.join(); // segfault or something
 	}
 
 	// save
 	game::briceSave();
-	worldSys->save();
+	WorldSystem::save();
 
 	// exit
     Mix_HaltMusic();
     Mix_CloseAudio();
 
-	ui::destroyFonts();
     unloadTextures();
 
 	game::engine.getSystem<WindowSystem>()->die();
