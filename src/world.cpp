@@ -36,6 +36,7 @@ TextureIterator          WorldSystem::bgTex;
 XMLDocument              WorldSystem::xmlDoc;
 std::string              WorldSystem::currentXMLFile;
 std::thread              WorldSystem::thAmbient;
+std::vector<vec2>        WorldSystem::stars;
 
 extern std::string xmlFolder;
 
@@ -123,6 +124,15 @@ void WorldSystem::generate(int width)
 
     // define x-coordinate of world's leftmost 'line'
     world.startX = HLINES(width * -0.5);
+
+	// gen. star coordinates
+	if (stars.empty()) {
+		stars.resize(game::SCREEN_WIDTH / 30);
+		for (auto& s : stars) {
+			s.x = world.startX + (randGet() % (int)HLINES(width));
+			s.y = game::SCREEN_HEIGHT - (randGet() % (int)HLINES(game::SCREEN_HEIGHT / 1.3f));
+		}
+	}
 }
 
 float WorldSystem::isAboveGround(const vec2& p) 
@@ -445,76 +455,6 @@ loadWorldFromXMLNoSave(std::string path) {
 	const char *ptr;
 	std::string name, sptr;
 
-    // iterate through world tags
-	while (wxml) {
-		newEntity = nullptr;
-		name = wxml->Name();
-
-   		// set spawn x for player
-		else if (name == "spawnx" && !(loadedLeft | loadedRight)) {
-			player->loc.x = std::stoi(wxml->GetText());
-		}
-
-        // mob creation
-        else if (name == "rabbit") {
-            newEntity = new Rabbit();
-        } else if (name == "bird") {
-            newEntity = new Bird();
-        } else if (name == "trigger") {
-        	newEntity = new Trigger();
-        } else if (name == "door") {
-            newEntity = new Door();
-        } else if (name == "page") {
-            newEntity = new Page();
-        } else if (name == "cat") {
-            newEntity = new Cat();
-        } else if (name == "chest") {
-			newEntity = new Chest();
-		}
-
-        // npc creation
-        else if (name == "npc") {
-			newEntity = new NPC();
-		}
-
-        // structure creation
-        else if (name == "structure") {
-			newEntity = new Structures();
-		}
-
-		// hill creation
-		else if (name == "hill") {
-			tmp->addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
-		}
-
-		if (newEntity != nullptr) {
-			//bool alive = true;
-			//if (wxml->QueryBoolAttribute("alive", &alive) != XML_NO_ERROR || alive) {
-				switch (newEntity->type) {
-				case NPCT:
-					tmp->addNPC(dynamic_cast<NPC *>(newEntity));
-					break;
-				case MOBT:
-					tmp->addMob(dynamic_cast<Mob *>(newEntity), vec2 {0, 0});
-					break;
-				case STRUCTURET:
-					tmp->addStructure(dynamic_cast<Structures *>(newEntity));
-					break;
-				default:
-					break;
-				}
-
-				std::swap(currentXML, _currentXML);
-				std::swap(currentXMLRaw, _currentXMLRaw);
-				newEntity->createFromXML(wxml, tmp);
-				std::swap(currentXML, _currentXML);
-				std::swap(currentXMLRaw, _currentXMLRaw);
-			//}
-		}
-
-		wxml = wxml->NextSiblingElement();
-	}
-
 	Village *vptr;
 	Structures *s;
 
@@ -608,13 +548,6 @@ loadWorldFromXMLNoSave(std::string path) {
 
 		//go to the next element in the village block
 		vil = vil->NextSiblingElement();
-	}
-
-	if (!loadedLeft && !loadedRight) {
-		currentXML = _currentXML;
-		currentXMLRaw = _currentXMLRaw;
-	} else {
-		delete _currentXMLDoc;
 	}
 
 	return tmp;
@@ -735,16 +668,16 @@ void WorldSystem::render(void)
 	//makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
 
 	// TODO make stars dynamic (make them particles??)
-	/*static GLuint starTex = Texture::loadTexture("assets/style/classic/bg/star.png");
+	static const Texture starTex ("assets/style/classic/bg/star.png"); // TODO why in theme, not just std.?
 	const static float stardim = 24;
-	GLfloat star_coord[star.size() * 5 * 6 + 1];
-    GLfloat *si = &star_coord[0];
+	GLfloat* star_coord = new GLfloat[stars.size() * 5 * 6 + 1];
+    GLfloat* si = &star_coord[0];
 
 	if (worldShade > 0) {
 
 		auto xcoord = offset.x * 0.9f;
 
-		for (auto &s : star) {
+		for (auto &s : stars) {
 			float data[30] = {
 				s.x + xcoord, s.y, 9.7, 0, 0,
 				s.x + xcoord + stardim, s.y, 9.7, 1, 0,
@@ -757,11 +690,13 @@ void WorldSystem::render(void)
 			std::memcpy(si, data, sizeof(float) * 30);
 			si += 30;
 		}
-		glBindTexture(GL_TEXTURE_2D, starTex);
-		glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
+		starTex.use();
+		glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3);
 
-		makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(5 * sizeof(GLfloat), &star_coord[0], &star_coord[3], star.size() * 6);
-	}*/
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[0]);
+		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[3]);
+		glDrawArrays(GL_TRIANGLES, 0, stars.size() * 6);
+	}
 
 	Render::worldShader.disable();
 

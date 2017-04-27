@@ -136,6 +136,8 @@ private:
 	 */
 	static std::string currentXMLFile;
 
+	static std::vector<vec2> stars;
+
 public:
 	static std::thread thAmbient;
 

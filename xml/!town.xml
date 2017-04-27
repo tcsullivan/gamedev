@@ -4,7 +4,7 @@
 <World>
     <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
     <generation width="320"/>
-	<weather>Snowy</weather>
+	<weather>Sunny</weather>
     <link right="!town2.xml"/>
     <spawnx>-300</spawnx>
 	<time>8000</time>

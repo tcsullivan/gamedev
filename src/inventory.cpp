@@ -212,7 +212,7 @@ void InventorySystem::receive(const MouseReleaseEvent &mre)
 
 		auto e = game::entities.create();
 		e.assign<Position>(mre.position.x, mre.position.y);
-		e.assign<Direction>(0, 0.4f);
+		e.assign<Direction>(0, 0.1f);
 		e.assign<ItemDrop>(items[movingItem]);
 		e.assign<Sprite>();
 		e.component<Sprite>()->addSpriteSegment(
