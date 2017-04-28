@@ -171,6 +171,8 @@ void preRender(void)
 	Render::textShader.unuse();
 }
 
+extern std::size_t getUsedMem(void);
+extern int balance;
 void render(const int& fps)
 {
 	preRender();
@@ -187,10 +189,10 @@ void render(const int& fps)
 	if (ui::debug) {
 		auto pos = game::engine.getSystem<PlayerSystem>()->getPosition();
 		UISystem::putText(vec2(offset.x - game::SCREEN_WIDTH / 2, (offset.y + game::SCREEN_HEIGHT / 2) - FontSystem::getSize()),
-		    "loc: %s\noffset: %s\nfps: %d\nticks: %d\npcount: %d\nxml: %s",
+		    "loc: %s\noffset: %s\nfps: %d\nticks: %d\npcount: %d\nxml: %s\nmem: %llukb (%d)",
 			pos.toString().c_str(), offset.toString().c_str(), fps,
 			game::time::getTickCount(), game::engine.getSystem<ParticleSystem>()->getCount(),
-			WorldSystem::getXMLFile().c_str()
+			WorldSystem::getXMLFile().c_str(), getUsedMem() / 1024, balance
 			);
 	}
 

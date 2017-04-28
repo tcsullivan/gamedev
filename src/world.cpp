@@ -700,6 +700,8 @@ void WorldSystem::render(void)
 		glDrawArrays(GL_TRIANGLES, 0, stars.size() * 6);
 	}
 
+	delete[] star_coord;
+
 	Render::worldShader.disable();
 
 	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);

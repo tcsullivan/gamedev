@@ -193,3 +193,72 @@ int main(int argc, char *argv[])
 
     return 0; // Calls everything passed to atexit
 }
+
+constexpr int memEntries = 2048;
+
+static void* mems[memEntries];
+static std::size_t sizs[memEntries];
+
+int balance = 0;
+
+std::size_t getUsedMem(void)
+{
+	std::size_t total = 0;
+	for (int i = 0; i < memEntries; i++)
+		total += sizs[i];
+
+	return total;
+}
+
+void *operator new(std::size_t n) throw (std::bad_alloc)
+{
+	auto buf = std::malloc(n);
+	balance++;
+
+	if (buf == nullptr)
+		throw std::bad_alloc();
+
+	for (int i = 0; i < memEntries; i++) {
+		if (mems[i] == nullptr) {
+			mems[i] = buf;
+			sizs[i] = n;
+			break;
+		}
+	}
+
+	return buf;
+}
+
+void operator delete(void* p) throw ()
+{
+	if (p != nullptr) {
+		std::free(p);
+		balance--;
+
+		for (int i = 0; i < memEntries; i++) {
+			if (mems[i] == p) {
+				mems[i] = nullptr;
+				sizs[i] = 0;
+				break;
+			}
+		}
+	}
+}
+
+void operator delete(void* p, std::size_t n) throw ()
+{
+	(void)n;
+
+	if (p != nullptr) {
+		std::free(p);
+		balance--;
+
+		for (int i = 0; i < memEntries; i++) {
+			if (mems[i] == p) {
+				mems[i] = nullptr;
+				sizs[i] = 0;
+				break;
+			}
+		}
+	}
+}
