@@ -166,8 +166,10 @@ int main(int argc, char *argv[])
 			Render::render(fps);
 			
 			SDL_Event e;
-			while (SDL_PollEvent(&e))
+			while (SDL_PollEvent(&e)) {
+				ui::handleGLEvent(e);
 				eventQueue.push_back(e);
+			}
 		}
 
 		// on game end, get back together

@@ -623,6 +623,22 @@ struct Hit : public Component {
 	}
 };
 
+struct Trigger : public Component {
+	Trigger(const std::string& t)
+		: text(t) {}
+	Trigger(XMLElement* imp, XMLElement* def) {
+		fromXML(imp, def);
+	}
+
+	std::string text;
+
+	void fromXML(XMLElement* imp, XMLElement* def) final {
+		(void)imp;
+		(void)def;
+		text = "You got me!";
+	}
+};
+
 /**
  * SYSTEMS
  */

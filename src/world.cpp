@@ -389,6 +389,8 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Aggro>(wxml, abcd);
 					else if (tname == "Animation")
 						entity.assign<Animate>(wxml, abcd);
+					else if (tname == "Trigger")
+						entity.assign<Trigger>(wxml, abcd);
 
 					abcd = abcd->NextSiblingElement();
 				}

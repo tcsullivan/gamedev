@@ -50,11 +50,9 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 					fl = (direction.x < 0);
 			}
 
-			// make the entity wander
-			// TODO initialX and range?
-			if (entity.has_component<Aggro>()) {
-				auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
-				if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
+			auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
+			if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
+				if (entity.has_component<Aggro>()) {
 					auto dim = entity.component<Solid>();
 					ev.emit<AttackEvent>(vec2(position.x + dim->width, position.y + dim->height),
 						AttackType::ShortSlash, false);
@@ -64,9 +62,27 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 						toFight = entity;
 						h = 0;
 					}*/
-				} else
-					direction.x = (ppos.x > position.x) ? .01 : -.01;
-			} else if (entity.has_component<Wander>()) {
+				} else if (entity.has_component<Trigger>()) {
+					static bool triggering = false;
+					if (!triggering) {
+						triggering = true;
+						std::thread([&](entityx::Entity e) {
+							UISystem::fadeToggle();
+							UISystem::waitForCover();
+							UISystem::dialogImportant(e.component<Trigger>()->text);
+							UISystem::waitForDialog();
+							UISystem::fadeToggle();
+							e.destroy();
+							triggering = false;
+						}, entity).detach();
+					}
+					return;
+				}
+			}
+
+			// make the entity wander
+			// TODO initialX and range?
+			if (entity.has_component<Wander>()) {
 				auto& countdown = entity.component<Wander>()->countdown;
 
 				if (countdown > 0) {

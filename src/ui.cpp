@@ -618,6 +618,20 @@ namespace ui {
 
 		fclose(bmp);
 	}
+
+	bool handleGLEvent(SDL_Event& e) {
+		switch (e.type) {
+		case SDL_MOUSEBUTTONDOWN:
+			if ((UISystem::isDialog() | pageTexReady) && (e.button.button & SDL_BUTTON_RIGHT))
+					UISystem::advanceDialog();
+			return true;
+			break;
+		default:
+			break;
+		}
+
+		return false;
+	}
 }
 
 using namespace ui;
@@ -657,8 +671,6 @@ void InputSystem::receive(const MainSDLEvent& event)
 
 	case SDL_MOUSEBUTTONDOWN:
 		ev.emit<MouseClickEvent>(mouse, e.button.button);
-
-		UISystem::advanceDialog();
 
 		if (UISystem::isDialog() || pageTexReady) {
 			if ((e.button.button & SDL_BUTTON_RIGHT))
@@ -974,6 +986,10 @@ void UISystem::render(void)
 	}
 
 	if (!importantText.empty()) {
-		putStringCentered(offset, importantText);
+		FontSystem::setFontSize(24);
+		FontSystem::setFontZ(-9.0f);
+		putStringCentered(vec2(offset.x, 400), importantText);
+		FontSystem::setFontZ(-6.0f);
+		FontSystem::setFontSize(16);
 	}
 }

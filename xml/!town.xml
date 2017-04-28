@@ -2,7 +2,7 @@
 <include file="entities.xml"/>
 
 <World>
-    <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
+    <style background="0" bgm="assets/music/town.ogg" folder="assets/style/classic/"/>
     <generation width="320"/>
 	<weather>Sunny</weather>
     <link right="!town2.xml"/>
