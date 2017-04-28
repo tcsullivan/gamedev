@@ -58,7 +58,7 @@
 	<Visible value="0.2" />
 	<Sprite>
 		<frame>
-			<src limb="0" offset="0,0" size="48,24" drawOffset="0,0">assets/skirl.png</src>
+			<src limb="0" offset="0,0" size="192,331" drawOffset="0,0">assets/nug.png</src>
 		</frame>
 	</Sprite>
 	<Direction />
@@ -67,8 +67,8 @@
 	<Physics />
 	<Name value="SKIRL" />
 	<Wander />
-	<!--<Aggro arena="arena.xml" />-->
-	<Trigger />
+	<!--<Aggro arena="arena.xml" />
+	<Trigger />-->
 </skirl>
 
 <structure>
