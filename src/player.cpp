@@ -75,7 +75,7 @@ void PlayerSystem::create(void)
 	player.assign<Position>(0.0f, 100.0f);
 	player.assign<Direction>(0.0f, 0.0f);
 	//player.assign<Physics>(-0.001f);
-	player.assign<Physics>(1);
+	player.assign<Physics>(.25);
 	player.assign<Visible>(-0.2f);
 	player.assign<Health>(100);
 	auto sprite = player.assign<Sprite>();

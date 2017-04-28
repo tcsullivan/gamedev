@@ -3,7 +3,7 @@
 
 <World>
     <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
-    <generation width="320"/>
+    <generation width="5000"/>
 	<weather>Sunny</weather>
     <link right="!town2.xml"/>
     <spawnx>-300</spawnx>
