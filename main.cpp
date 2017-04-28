@@ -185,10 +185,10 @@ int main(int argc, char *argv[])
 
 	// exit
     Mix_HaltMusic();
-    Mix_CloseAudio();
 
     unloadTextures();
 
+	game::engine.getSystem<WorldSystem>()->die();
 	game::engine.getSystem<WindowSystem>()->die();
 
     return 0; // Calls everything passed to atexit

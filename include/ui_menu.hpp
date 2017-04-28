@@ -53,6 +53,18 @@ public:
 	void gotoParent(void);
 };
 
+class SDLReceiver : public entityx::System<SDLReceiver>, public entityx::Receiver<SDLReceiver>
+{
+public:
+	static bool clicked;
+
+	void configure(entityx::EventManager& ev)
+	{ ev.subscribe<MainSDLEvent>(*this); }
+	void receive(const MainSDLEvent& mse);
+	void update(entityx::EntityManager& en, entityx::EventManager& ev, entityx::TimeDelta dt) override 
+	{ (void)en, (void)ev, (void)dt; }
+};
+
 namespace ui {
     namespace menu {
         menuItem createButton(vec2 l, dim2 d, Color c, const char* t, MenuAction f);

@@ -35,6 +35,7 @@ WindowSystem::WindowSystem(void)
     }
     Mix_AllocateChannels(8);
     atexit(Mix_Quit);
+	atexit(Mix_CloseAudio);
 
     // create the SDL window object
     window = SDL_CreateWindow(WINDOW_TITLE,

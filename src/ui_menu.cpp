@@ -9,9 +9,37 @@
 
 #include <fstream>
 
-extern vec2 offset;
-
 static Menu* currentMenu = nullptr;
+
+void SDLReceiver::receive(const MainSDLEvent& mse)
+{
+	switch (mse.event.type) {
+	case SDL_QUIT:
+		game::endGame();
+		return;
+		break;
+	case SDL_MOUSEMOTION:
+		//ui::premouse.x = e.motion.x;
+		//ui::premouse.y = e.motion.y;
+		break;
+	case SDL_MOUSEBUTTONUP:
+		if (mse.event.button.button & SDL_BUTTON_LEFT)
+			clicked = true;
+		break;	
+	case SDL_KEYUP:
+		if (currentMenu != nullptr && mse.event.key.keysym.sym == SDLK_ESCAPE) {
+			currentMenu->gotoParent();
+			return;
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+bool SDLReceiver::clicked = false;
+
+extern vec2 offset;
 
 static Menu pauseMenu;
 static Menu optionsMenu;
@@ -216,10 +244,6 @@ namespace ui {
 			auto& SCREEN_WIDTH = game::SCREEN_WIDTH;
 			auto& SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
-            SDL_Event e;
-
-			bool clicked = false;
-
 			Render::useShader(&Render::textShader);
 
             game::config::update();
@@ -230,31 +254,6 @@ namespace ui {
             mouse.y = (offset.y+SCREEN_HEIGHT/2)-ui::premouse.y;
 
             //custom event polling for menu's so all other events are ignored
-            while(SDL_PollEvent(&e)) {
-                switch (e.type) {
-                case SDL_QUIT:
-                    game::endGame();
-                    return;
-                    break;
-                case SDL_MOUSEMOTION:
-                    premouse.x=e.motion.x;
-                    premouse.y=e.motion.y;
-                    break;
-				case SDL_MOUSEBUTTONUP:
-					if (e.button.button & SDL_BUTTON_LEFT) {
-						clicked = true;
-					}
-					break;	
-                case SDL_KEYUP:
-                    if (SDL_KEY == SDLK_ESCAPE) {
-                        currentMenu->gotoParent();
-                        return;
-                    }
-                    break;
-                default:break;
-                }
-            }
-
 			static float cMult = 1.0f;
 			static const ColorTex back (Color(0, 0, 0, 204));
 
@@ -283,18 +282,21 @@ namespace ui {
 						cMult = 0.6f;
 
                         //if the mouse is over the button and clicks
-                        if (clicked) {
-                            switch(m.member) {
-                                case 0: //normal button
-                                    m.button.func();
-                                    break;
-                                case -1:
-                                    currentMenu = m.child;
-                                    break;
-                                case -2:
-                                    currentMenu->gotoParent();
-                                default:break;
+                        if (SDLReceiver::clicked) {
+                            switch (m.member) {
+                            case 0: //normal button
+                                m.button.func();
+                                break;
+                            case -1:
+                                currentMenu = m.child;
+                                break;
+                            case -2:
+                                currentMenu->gotoParent();
+                            default:
+								break;
                             }
+
+							SDLReceiver::clicked = false;
                         }
                     }
 

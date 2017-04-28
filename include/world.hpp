@@ -176,6 +176,8 @@ public:
 	static void load(const std::string& file);
 
 	void fight(entityx::Entity entity);
+
+	void die(void);
 };
 
 #endif // WORLD_HPP_

@@ -562,6 +562,10 @@ WorldSystem::WorldSystem(void)
 
 WorldSystem::~WorldSystem(void)
 {
+}
+
+void WorldSystem::die(void)
+{
     // SDL2_mixer's object
 	if (bgmObj != nullptr)
 		Mix_FreeMusic(bgmObj);

@@ -40,6 +40,7 @@ void Engine::init(void) {
 	systems.add<AttackSystem>();
 
 	systems.add<UISystem>();
+	systems.add<SDLReceiver>();
 
     systems.configure();
 
