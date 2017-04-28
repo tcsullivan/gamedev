@@ -27,19 +27,19 @@ namespace ui {
 		 * Draws the quest UI to the screen, if enabled.
 		 */
 		void draw(void) {
-			static unsigned int textWrap = 40;
+//			static unsigned int textWrap = 40;
 
 			if (!_toggle)
 				return;
 
-			std::swap(textWrap, ui::textWrapLimit);
+//			std::swap(textWrap, ui::textWrapLimit);
 
 			float top_y = offset.y + 200;
 			ui::drawNiceBox(vec2 {offset.x - 200, top_y },
 			                vec2 {offset.x + 200, offset.y - 200 },
 			                -0.7f);
 
-			ui::putStringCentered(offset.x, top_y - 40, "Current Quests:");
+			UISystem::putStringCentered(vec2(offset.x, top_y - 40), "Current Quests:");
 			
 			/*auto y = top_y - 100;
 			const auto x = offset.x - 180;
@@ -50,7 +50,7 @@ namespace ui {
 				y -= 40; 
 			}*/
 
-			std::swap(textWrap, ui::textWrapLimit);
+//			std::swap(textWrap, ui::textWrapLimit);
 		}
 	}
 }

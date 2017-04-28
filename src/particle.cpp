@@ -98,8 +98,6 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 	(void)en;
 	(void)ev;
 
-	auto& worldSystem = *game::engine.getSystem<WorldSystem>();
-
 	for (unsigned int i = 0; i < parts.size(); i++) {
 		auto& p = parts[i];
 		auto& vel = p.velocity;
@@ -160,7 +158,7 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 		p.location.y += vel.y * dt;
 
 		// world collision
-		auto height = worldSystem.isAboveGround(p.location);
+		auto height = WorldSystem::isAboveGround(p.location);
 		if (height != 0) {
 			if (p.type == ParticleType::Drop || p.type == ParticleType::SmallPoof)
 				p.location.y = height + 5, p.velocity.y = randGet() % 10 / 40.0f;

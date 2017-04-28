@@ -52,6 +52,8 @@ namespace game {
 		 * The path of the folder to load world XML files from.
 		 */
 		extern std::string xmlFolder;
+
+		extern std::string fontFamily;
 		
 		/**
 		 * Reads the settings file (config/settings.xml) into the game.

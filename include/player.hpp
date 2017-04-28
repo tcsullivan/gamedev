@@ -15,7 +15,7 @@
 /**
  * The constant velocity the player is given when moved with the arrow keys.
  */
-constexpr const float PLAYER_SPEED_CONSTANT = 0.15f;
+constexpr const float PLAYER_SPEED_CONSTANT = 0.03f;
 
 /**
  * @class PlayerSystem

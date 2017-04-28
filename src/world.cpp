@@ -14,7 +14,6 @@ using namespace std::literals::chrono_literals;
 using namespace tinyxml2;
 
 // game headers
-#include <attack.hpp>
 #include <common.hpp>
 #include <components.hpp>
 #include <debug.hpp>
@@ -28,6 +27,16 @@ using namespace tinyxml2;
 #include <ui.hpp>
 #include <vector3.hpp>
 #include <weather.hpp>
+
+WorldData2               WorldSystem::world;
+Mix_Music*               WorldSystem::bgmObj;
+std::string              WorldSystem::bgmCurrent;
+std::vector<std::string> WorldSystem::bgFiles;
+TextureIterator          WorldSystem::bgTex;
+XMLDocument              WorldSystem::xmlDoc;
+std::string              WorldSystem::currentXMLFile;
+std::thread              WorldSystem::thAmbient;
+std::vector<vec2>        WorldSystem::stars;
 
 extern std::string xmlFolder;
 
@@ -115,9 +124,18 @@ void WorldSystem::generate(int width)
 
     // define x-coordinate of world's leftmost 'line'
     world.startX = HLINES(width * -0.5);
+
+	// gen. star coordinates
+	if (stars.empty()) {
+		stars.resize(game::SCREEN_WIDTH / 30);
+		for (auto& s : stars) {
+			s.x = world.startX + (randGet() % (int)HLINES(width));
+			s.y = game::SCREEN_HEIGHT - (randGet() % (int)HLINES(game::SCREEN_HEIGHT / 1.3f));
+		}
+	}
 }
 
-float WorldSystem::isAboveGround(const vec2& p) const
+float WorldSystem::isAboveGround(const vec2& p) 
 {
 	int line = std::clamp(static_cast<int>((p.x - world.startX) / game::HLINE),
 		0, static_cast<int>(world.data.size()));
@@ -371,6 +389,8 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Aggro>(wxml, abcd);
 					else if (tname == "Animation")
 						entity.assign<Animate>(wxml, abcd);
+					else if (tname == "Trigger")
+						entity.assign<Trigger>(wxml, abcd);
 
 					abcd = abcd->NextSiblingElement();
 				}
@@ -379,11 +399,6 @@ void WorldSystem::load(const std::string& file)
 				UserError("Unknown tag <" + tagName + "> in file " + currentXMLFile);
 			}
 		}
-
-		// hill creation
-		/*else if (tagName == "hill") {
-			addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
-		}*/
 
 		wxml = wxml->NextSiblingElement();
 	}
@@ -441,76 +456,6 @@ loadWorldFromXMLNoSave(std::string path) {
 
 	const char *ptr;
 	std::string name, sptr;
-
-    // iterate through world tags
-	while (wxml) {
-		newEntity = nullptr;
-		name = wxml->Name();
-
-   		// set spawn x for player
-		else if (name == "spawnx" && !(loadedLeft | loadedRight)) {
-			player->loc.x = std::stoi(wxml->GetText());
-		}
-
-        // mob creation
-        else if (name == "rabbit") {
-            newEntity = new Rabbit();
-        } else if (name == "bird") {
-            newEntity = new Bird();
-        } else if (name == "trigger") {
-        	newEntity = new Trigger();
-        } else if (name == "door") {
-            newEntity = new Door();
-        } else if (name == "page") {
-            newEntity = new Page();
-        } else if (name == "cat") {
-            newEntity = new Cat();
-        } else if (name == "chest") {
-			newEntity = new Chest();
-		}
-
-        // npc creation
-        else if (name == "npc") {
-			newEntity = new NPC();
-		}
-
-        // structure creation
-        else if (name == "structure") {
-			newEntity = new Structures();
-		}
-
-		// hill creation
-		else if (name == "hill") {
-			tmp->addHill(ivec2 { wxml->IntAttribute("peakx"), wxml->IntAttribute("peaky") }, wxml->UnsignedAttribute("width"));
-		}
-
-		if (newEntity != nullptr) {
-			//bool alive = true;
-			//if (wxml->QueryBoolAttribute("alive", &alive) != XML_NO_ERROR || alive) {
-				switch (newEntity->type) {
-				case NPCT:
-					tmp->addNPC(dynamic_cast<NPC *>(newEntity));
-					break;
-				case MOBT:
-					tmp->addMob(dynamic_cast<Mob *>(newEntity), vec2 {0, 0});
-					break;
-				case STRUCTURET:
-					tmp->addStructure(dynamic_cast<Structures *>(newEntity));
-					break;
-				default:
-					break;
-				}
-
-				std::swap(currentXML, _currentXML);
-				std::swap(currentXMLRaw, _currentXMLRaw);
-				newEntity->createFromXML(wxml, tmp);
-				std::swap(currentXML, _currentXML);
-				std::swap(currentXMLRaw, _currentXMLRaw);
-			//}
-		}
-
-		wxml = wxml->NextSiblingElement();
-	}
 
 	Village *vptr;
 	Structures *s;
@@ -607,18 +552,13 @@ loadWorldFromXMLNoSave(std::string path) {
 		vil = vil->NextSiblingElement();
 	}
 
-	if (!loadedLeft && !loadedRight) {
-		currentXML = _currentXML;
-		currentXMLRaw = _currentXMLRaw;
-	} else {
-		delete _currentXMLDoc;
-	}
-
 	return tmp;
 }*/
 
 WorldSystem::WorldSystem(void)
-	: bgmObj(nullptr) {}
+{
+	bgmObj = nullptr;
+}
 
 WorldSystem::~WorldSystem(void)
 {
@@ -730,16 +670,16 @@ void WorldSystem::render(void)
 	//makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
 
 	// TODO make stars dynamic (make them particles??)
-	/*static GLuint starTex = Texture::loadTexture("assets/style/classic/bg/star.png");
+	static const Texture starTex ("assets/style/classic/bg/star.png"); // TODO why in theme, not just std.?
 	const static float stardim = 24;
-	GLfloat star_coord[star.size() * 5 * 6 + 1];
-    GLfloat *si = &star_coord[0];
+	GLfloat* star_coord = new GLfloat[stars.size() * 5 * 6 + 1];
+    GLfloat* si = &star_coord[0];
 
 	if (worldShade > 0) {
 
 		auto xcoord = offset.x * 0.9f;
 
-		for (auto &s : star) {
+		for (auto &s : stars) {
 			float data[30] = {
 				s.x + xcoord, s.y, 9.7, 0, 0,
 				s.x + xcoord + stardim, s.y, 9.7, 1, 0,
@@ -752,11 +692,13 @@ void WorldSystem::render(void)
 			std::memcpy(si, data, sizeof(float) * 30);
 			si += 30;
 		}
-		glBindTexture(GL_TEXTURE_2D, starTex);
-		glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha)/255.0f);
+		starTex.use();
+		glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3);
 
-		makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(5 * sizeof(GLfloat), &star_coord[0], &star_coord[3], star.size() * 6);
-	}*/
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[0]);
+		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[3]);
+		glDrawArrays(GL_TRIANGLES, 0, stars.size() * 6);
+	}
 
 	Render::worldShader.disable();
 
@@ -1090,9 +1032,10 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 {
 	game::entities.each<Health>(
 		[](entityx::Entity e, Health& h) {
-		if (h.health <= 0)
+		if (h.health <= 0) {
 			e.kill();
 			//e.destroy();
+		}
 	});
 
 	game::entities.each<Grounded, Position, Solid>(
@@ -1141,11 +1084,6 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 			} else {
 				loc.y = data[line].groundHeight - 0.001f * dt;
 				vel.y = 0;
-				if (e.has_component<Hit>()) {
-					game::events.emit<AttackEvent>(vec2(loc.x, loc.y),
-						AttackType::SmallBoom, e.component<Hit>()->damage);
-					e.destroy();
-				}
 				if (!vel.grounded) {
 					vel.grounded = true;
 					game::engine.getSystem<ParticleSystem>()->addMultiple(20, ParticleType::SmallPoof,
@@ -1157,9 +1095,11 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 
 		// insure that the entity doesn't fall off either edge of the world.
         if (loc.x < world.startX) {
+			std::cout << "Left!\n";
 			vel.x = 0;
 			loc.x = world.startX + HLINES(0.5f);
 		} else if (loc.x + dim.width + game::HLINE > -(static_cast<int>(world.startX))) {
+			std::cout << "Right\n";
 			vel.x = 0;
 			loc.x = -(static_cast<int>(world.startX)) - dim.width - game::HLINE;
 		}
@@ -1169,26 +1109,26 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 void WorldSystem::goWorldRight(Position& p, Solid &d)
 {
 	if (!(world.toRight.empty()) && (p.x + d.width > world.startX * -1 - HLINES(5))) {
-		ui::toggleBlack();
-		ui::waitForCover();
+		UISystem::fadeToggle();
+		UISystem::waitForCover();
 		while (waitToSwap)
 			std::this_thread::sleep_for(1ms);
 		load(world.toRight);
 		game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(10));
-		ui::toggleBlack();
+		UISystem::fadeToggle();
 	}
 }
 
 void WorldSystem::goWorldLeft(Position& p)
 {
 	if (!(world.toLeft.empty()) && (p.x < world.startX + HLINES(10))) {
-		ui::toggleBlack();
-		ui::waitForCover();
+		UISystem::fadeToggle();
+		UISystem::waitForCover();
 		while (waitToSwap)
 			std::this_thread::sleep_for(1ms);
 		load(world.toLeft);
 		game::engine.getSystem<PlayerSystem>()->setX(world.startX * -1 - HLINES(15));
-		ui::toggleBlack();
+		UISystem::fadeToggle();
 	}
 }
 
@@ -1214,11 +1154,11 @@ void WorldSystem::goWorldPortal(Position& p)
 	}
 
 	if (!file.empty()) {
-		ui::toggleBlack();
-		ui::waitForCover();
+		UISystem::fadeToggle();
+		UISystem::waitForCover();
 		while (waitToSwap)
 			std::this_thread::sleep_for(1ms);
 		load(file);
-		ui::toggleBlack();
+		UISystem::fadeToggle();
 	}
 }

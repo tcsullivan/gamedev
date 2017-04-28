@@ -105,6 +105,9 @@ void PlayerSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
     (void)ev;
     (void)dt;
 
+	if (player.component<Health>()->health <= 0)
+		abort();
+
     auto& vel = *player.component<Direction>().get();
 
     if (moveLeft & !moveRight)
@@ -146,34 +149,32 @@ void PlayerSystem::receive(const KeyUpEvent &kue)
 
 void PlayerSystem::receive(const KeyDownEvent &kde)
 {
-	static auto& worldSystem = *game::engine.getSystem<WorldSystem>();
-
 	auto kc = kde.keycode;
 	auto& loc = *player.component<Position>().get();
 	auto& vel = *player.component<Direction>().get();
 
 	if ((kc == SDLK_SPACE) && game::canJump && ((vel.y > -0.01) & (vel.y < 0.01))) {
 		loc.y += HLINES(2);
-		vel.y = .4;
+		vel.y = 0.05f;
 		vel.grounded = false;
-	} else if (!ui::dialogBoxExists || ui::dialogPassive) {
+	} else if (!UISystem::isDialog()) {
 		if (kc == getControl(0)) {
-			if (!ui::fadeIntensity)
-				worldSystem.goWorldPortal(loc);
+			if (!UISystem::isFading())
+				WorldSystem::goWorldPortal(loc);
 
 		} else if (kc == getControl(1)) {
-			if (!ui::fadeEnable) {
+			if (!UISystem::isFading()) {
                 moveLeft = true;
 				moveRight = false;
 
-				worldSystem.goWorldLeft(loc);
+				WorldSystem::goWorldLeft(loc);
 			}
 		} else if (kc == getControl(2)) {
-			if (!ui::fadeEnable) {
+			if (!UISystem::isFading()) {
 				moveLeft = false;
                 moveRight = true;
 
-				worldSystem.goWorldRight(loc, *player.component<Solid>().get());
+				WorldSystem::goWorldRight(loc, *player.component<Solid>().get());
    			}
 		} else if (kc == getControl(3)) {
 			if (game::canSprint)
@@ -221,7 +222,7 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 			auto loc = getPosition();
 			auto &solid = *player.component<Solid>().get();
 			loc.x += solid.width / 2, loc.y += solid.height / 2;
-			game::events.emit<AttackEvent>(loc, AttackType::ShortSlash);
+			game::events.emit<AttackEvent>(loc, AttackType::ShortSlash, true);
 		} else if (uie.item->type == "Bow") {
 			if (game::engine.getSystem<InventorySystem>()->take("Arrow", 1)) {
 				auto e = game::entities.create();
@@ -229,7 +230,7 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 				e.assign<Position>(pos.x, pos.y + 10);
 
 				auto angle = std::atan2(uie.curs.y - pos.y, uie.curs.x - pos.x);
-				e.assign<Direction>(1 * std::cos(angle), 1 * std::sin(angle));
+				e.assign<Direction>(0.25f * std::cos(angle), 0.25f * std::sin(angle));
 
 				e.assign<Visible>(-5);
 				e.assign<Physics>();
@@ -238,14 +239,14 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 				sprite->addSpriteSegment(SpriteData(tex.sprite), 0);
 				auto dim = HLINES(sprite->getSpriteSize());
 				e.assign<Solid>(dim.x, dim.y);
-				e.assign<Hit>(10);
+				e.assign<Hit>(10, false);
 			}
 		}
 
-		/*cool.store(false);
-		std::thread([&](void) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(uie.item->cooldown));
+		cool.store(false);
+		std::thread([&](unsigned int ms) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 			cool.store(true);
-		}).detach();*/
+		}, uie.item->cooldown).detach();
 	}
 }

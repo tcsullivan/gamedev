@@ -5,6 +5,7 @@
 #include <fileio.hpp>
 #include <render.hpp>
 #include <texture.hpp>
+#include <font.hpp>
 
 #include <fstream>
 
@@ -18,8 +19,10 @@ static Menu controlsMenu;
 
 void Menu::gotoParent(void)
 {
-	if (parent == nullptr)
+	if (parent == nullptr) {
 		game::config::update();
+		FontSystem::setFontSize(16);
+	}
 	
 	currentMenu = parent;
 }
@@ -219,9 +222,9 @@ namespace ui {
 
 			Render::useShader(&Render::textShader);
 
-            setFontSize(24);
             game::config::update();
-			setFontZ(-9.0);
+            FontSystem::setFontSize(24);
+			FontSystem::setFontZ(-9.0);
 	
             mouse.x = ui::premouse.x+offset.x-(SCREEN_WIDTH/2);
             mouse.y = (offset.y+SCREEN_HEIGHT/2)-ui::premouse.y;
@@ -297,8 +300,8 @@ namespace ui {
 
 					ui::drawNiceBoxColor(loc, end, -8.6, Color(cMult, cMult, cMult, 1.0f));
                     //draw the button text
-                    putStringCentered(loc.x + (m.dim.x / 2),
-                    	loc.y + (m.dim.y / 2) - (ui::fontSize / 2),
+                    UISystem::putStringCentered(vec2(loc.x + (m.dim.x / 2),
+                    	loc.y + (m.dim.y / 2) - (FontSystem::getSize() / 2)),
                         m.text);
 
 					//if element is a slider
@@ -348,18 +351,19 @@ namespace ui {
                         	vec2(loc.x + sliderW, loc.y + (m.slider.sliderLoc * 1.05) + sliderH), -8.7, Color(cMult, cMult, cMult, 1.0f));
 
                         //draw the now combined slider text
-                        putStringCentered(loc.x + (m.dim.x/2), (loc.y + (m.dim.y*1.05)) - ui::fontSize/2, outSV);
+                        UISystem::putStringCentered(vec2(loc.x + (m.dim.x/2), (loc.y + (m.dim.y*1.05)) - FontSystem::getSize() / 2), outSV);
                     } else {
                         ui::drawNiceBoxColor(vec2(loc.x+m.slider.sliderLoc, loc.y),
                             vec2(loc.x + m.slider.sliderLoc + sliderW, loc.y + sliderH), -8.7, Color(cMult, cMult, cMult, 1.0f));
 
                         //draw the now combined slider text
-                        putStringCentered(loc.x + (m.dim.x/2), (loc.y + (m.dim.y/2)) - ui::fontSize/2, outSV);
+                        UISystem::putStringCentered(loc + (m.dim / 2) /*- FontSystem::getSize() / 2*/, outSV);
                     }
                 }
             }
-            setFontSize(16);
-			setFontZ(-8.0);
+
+            FontSystem::setFontSize(16);
+			FontSystem::setFontZ(-8.0);
         }
 
 

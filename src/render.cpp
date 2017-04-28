@@ -5,6 +5,7 @@
 #include <config.hpp>
 #include <error.hpp>
 #include <glm.hpp>
+#include <font.hpp>
 #include <texture.hpp>
 
 extern vec2 offset;
@@ -135,7 +136,7 @@ void preRender(void)
 	auto ploc = ps->getPosition();
 	offset.x = ploc.x + ps->getWidth() / 2;
 
-	const auto& worldWidth = game::engine.getSystem<WorldSystem>()->getWidth();
+	const auto& worldWidth = WorldSystem::getWidth();
 	if (worldWidth < (int)SCREEN_WIDTH2 * 2)
 		offset.x = 0;
 	else if (offset.x - SCREEN_WIDTH2 < worldWidth * -0.5f)
@@ -174,7 +175,7 @@ void render(const int& fps)
 {
 	preRender();
 
-	game::engine.getSystem<WorldSystem>()->render();
+	WorldSystem::render();
 
 	game::engine.getSystem<ParticleSystem>()->render();
 
@@ -185,14 +186,17 @@ void render(const int& fps)
 	// draw the debug overlay if desired
 	if (ui::debug) {
 		auto pos = game::engine.getSystem<PlayerSystem>()->getPosition();
-		ui::putText(offset.x - game::SCREEN_WIDTH / 2, (offset.y + game::SCREEN_HEIGHT / 2) - ui::fontSize,
+		UISystem::putText(vec2(offset.x - game::SCREEN_WIDTH / 2, (offset.y + game::SCREEN_HEIGHT / 2) - FontSystem::getSize()),
 		    "loc: %s\noffset: %s\nfps: %d\nticks: %d\npcount: %d\nxml: %s",
 			pos.toString().c_str(), offset.toString().c_str(), fps,
 			game::time::getTickCount(), game::engine.getSystem<ParticleSystem>()->getCount(),
-			game::engine.getSystem<WorldSystem>()->getXMLFile().c_str());
+			WorldSystem::getXMLFile().c_str()
+			);
 	}
 
-	ui::drawFade();
+	UISystem::render();
+
+	//ui::drawFade();
 	ui::draw();
 	
 	game::engine.getSystem<WindowSystem>()->render();

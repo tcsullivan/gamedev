@@ -3,10 +3,12 @@
 #include <entityx/entityx.h>
 #include <events.hpp>
 
+#include <attack.hpp>
 #include <render.hpp>
 #include <ui.hpp>
 #include <engine.hpp>
 #include <error.hpp>
+#include <font.hpp>
 #include <world.hpp>
 #include <brice.hpp>
 #include <quest.hpp>
@@ -22,13 +24,13 @@ static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
-	bool fight = false;
+	//bool fight = false;
 	entityx::Entity toFight;
 
 	(void)ev;
 	en.each<Position, Direction>([&](entityx::Entity entity, Position &position, Direction &direction) {
-		position.x += direction.x * dt;
-		position.y += direction.y * dt;
+		position.x += HLINES(direction.x) * dt;
+		position.y += HLINES(direction.y) * dt;
 
 		if (entity.has_component<Animate>() && entity.has_component<Sprite>()) {
 			auto animate = entity.component<Animate>();
@@ -38,7 +40,7 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 				animate->updateAnimation(1, sprite->sprite, dt);
 			else
 				animate->firstFrame(1, sprite->sprite);
-			}
+		}
 		if (entity.has_component<Dialog>() && entity.component<Dialog>()->talking) {
 			direction.x = 0;
 		} else {
@@ -48,38 +50,57 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 					fl = (direction.x < 0);
 			}
 
-			// make the entity wander
-			// TODO initialX and range?
-			if (0 && entity.has_component<Aggro>()) {
-				auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
-				if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
-					auto& h = entity.component<Health>()->health;
+			auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
+			if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
+				if (entity.has_component<Aggro>()) {
+					auto dim = entity.component<Solid>();
+					ev.emit<AttackEvent>(vec2(position.x + dim->width, position.y + dim->height),
+						AttackType::ShortSlash, false);
+					/*auto& h = entity.component<Health>()->health;
 					if (h > 0) {
 						fight = true;
 						toFight = entity;
 						h = 0;
+					}*/
+				} else if (entity.has_component<Trigger>()) {
+					static bool triggering = false;
+					if (!triggering) {
+						triggering = true;
+						std::thread([&](entityx::Entity e) {
+							UISystem::fadeToggle();
+							UISystem::waitForCover();
+							UISystem::dialogImportant(e.component<Trigger>()->text);
+							UISystem::waitForDialog();
+							UISystem::fadeToggle();
+							e.destroy();
+							triggering = false;
+						}, entity).detach();
 					}
-				} else
-					direction.x = (ppos.x > position.x) ? .05 : -.05;
-			} else if (entity.has_component<Wander>()) {
+					return;
+				}
+			}
+
+			// make the entity wander
+			// TODO initialX and range?
+			if (entity.has_component<Wander>()) {
 				auto& countdown = entity.component<Wander>()->countdown;
 
 				if (countdown > 0) {
 					countdown--;
 				} else {
 					countdown = 5000 + randGet() % 10 * 100;
-					direction.x = (randGet() % 3 - 1) * 0.02f;
+					direction.x = (randGet() % 3 - 1) * 0.004f;
 				}
 			}
 		}
 	});
 
-	if (fight) {
-		ui::toggleWhiteFast();
-		ui::waitForCover();
-		game::engine.getSystem<WorldSystem>()->fight(toFight);
-		ui::toggleWhiteFast();
-	}
+//	if (fight) {
+//		UISystem::fadeToggleFast();
+//		UISystem::waitForCover();
+		//game::engine.getSystem<WorldSystem>()->fight(toFight);
+//		UISystem::fadeToggleFast();
+//	}
 }
 
 void PhysicsSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -205,8 +226,8 @@ void RenderSystem::render(void)
 	game::entities.each<Visible, Position, Solid, Name>([](entityx::Entity e, Visible &v, Position &pos, Solid& dim, Name &name) {
 		(void)e;
 		(void)v;
-		ui::setFontZ(-5.0);
-		ui::putStringCentered(pos.x + dim.width / 2, pos.y - ui::fontSize - HLINES(0.5), name.name);
+		FontSystem::setFontZ(-5.0f);
+		UISystem::putStringCentered(vec2(pos.x + dim.width / 2, pos.y - FontSystem::getSize() - HLINES(0.5)), name.name);
 	});
 }
 
@@ -232,15 +253,15 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 					std::string questAssignedText;
 					int newIndex;
 
-					auto exml = game::engine.getSystem<WorldSystem>()->getXML()->FirstChildElement("Dialog");
+					auto exml = WorldSystem::getXML()->FirstChildElement("Dialog");
 					dialogRun.store(true);
 
 					if (e.has_component<Direction>())
 						d.talking = true;
 
 					if (d.index == 9999) {
-						ui::dialogBox(name.name, "", false, randomDialog[d.rindex % randomDialog.size()]);
-						ui::waitForDialog();
+						UISystem::dialogBox(name.name, /*"", false,*/ randomDialog[d.rindex % randomDialog.size()]);
+						UISystem::waitForDialog();
 					} else if (exml != nullptr) {
 						while (exml->StrAttribute("name") != name.name)
 							exml = exml->NextSiblingElement();
@@ -286,8 +307,8 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 										if (qname != nullptr && qsys->finish(qname) == 0) {
 											d.index = 9999;
 										} else {
-											ui::dialogBox(name.name, "", false, "Finish my quest u nug");
-											ui::waitForDialog();
+											UISystem::dialogBox(name.name, /*"", false,*/ "Finish my quest u nug");
+											UISystem::waitForDialog();
 											return;
 										}
 									//	oldidx = d.index;
@@ -303,6 +324,8 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 						std::vector<int> optionNexts;
 						if (xxml != nullptr) {
 							do {
+								UISystem::dialogAddOption(xxml->StrAttribute("name"));
+
 								options += '\"' + xxml->StrAttribute("name");
 								optionNexts.emplace_back(xxml->IntAttribute("value"));
 								xxml = xxml->NextSiblingElement();
@@ -318,11 +341,13 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 							while (*++content && isspace(*content));
 						}
 
-						ui::dialogBox(name.name, options, false, content);
-						ui::waitForDialog();
+						UISystem::dialogBox(name.name, /*options, false,*/ content);
+						UISystem::waitForDialog();
+						UISystem::waitForDialog();
 
 						if (!questAssignedText.empty())
-							ui::passiveImportantText(5000, ("Quest assigned:\n\"" + questAssignedText + "\"").c_str());
+							UISystem::dialogImportant("Quest assigned:\n\"" + questAssignedText + "\"");
+							//passiveImportantText(5000, ("Quest assigned:\n\"" + questAssignedText + "\"").c_str());
 
 						if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
 							d.index = newIndex;

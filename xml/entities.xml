@@ -62,12 +62,13 @@
 		</frame>
 	</Sprite>
 	<Direction />
-	<Health value="200" />
+	<Health value="50" />
 	<Solid />
 	<Physics />
 	<Name value="SKIRL" />
 	<Wander />
-	<Aggro arena="arena.xml" />
+	<!--<Aggro arena="arena.xml" />-->
+	<Trigger />
 </skirl>
 
 <structure>
@@ -94,3 +95,10 @@
 	<Solid />
 	<Grounded />
 </chest>
+
+<trigger>
+	<Position value="200.0,100.0" />
+	<Direction />
+	<Solid value="1.0,1.0" /> 
+	<Trigger />
+</trigger>

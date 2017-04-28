@@ -2,8 +2,8 @@
 <include file="entities.xml"/>
 
 <World>
-    <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
-    <generation width="5000"/>
+    <style background="0" bgm="assets/music/town.ogg" folder="assets/style/classic/"/>
+    <generation width="320"/>
 	<weather>Sunny</weather>
     <link right="!town2.xml"/>
     <spawnx>-300</spawnx>
@@ -18,6 +18,9 @@
 <Dialog name="Bob">
     <text id="0" nextid="1">
         <give name="Dank MayMay" count="10"/>
+		<option name="Yes" />
+		<option name="Yes daddy" />
+		<option name="Ooooh boy yesss please" />
         <content>
 			Hey there! The name's Bob. Good to see you've finally woken up from your nap by the cliff there... lol
 		</content>

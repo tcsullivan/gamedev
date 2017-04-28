@@ -4,6 +4,7 @@
 #include <components.hpp>
 #include <engine.hpp>
 #include <error.hpp>
+#include <font.hpp>
 #include <player.hpp>
 #include <render.hpp>
 #include <ui.hpp>
@@ -126,9 +127,9 @@ void InventorySystem::render(void)
 			if (n == movingItem)
 				glUniform4f(Render::textShader.uniform[WU_tex_color], .8, .8, 1, .8);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
-			ui::setFontZ(inventoryZ - 0.3); // TODO fix z's
-			ui::putText(i.loc.x, i.loc.y, std::to_string(i.count).c_str());
-			ui::setFontZ(-6);
+			FontSystem::setFontZ(inventoryZ - 0.3); // TODO fix z's
+			UISystem::putString(i.loc, std::to_string(i.count));
+			FontSystem::setFontZ(-6);
 			glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, 1);
 		}
 	}
@@ -211,7 +212,7 @@ void InventorySystem::receive(const MouseReleaseEvent &mre)
 
 		auto e = game::entities.create();
 		e.assign<Position>(mre.position.x, mre.position.y);
-		e.assign<Direction>(0, 1);
+		e.assign<Direction>(0, 0.1f);
 		e.assign<ItemDrop>(items[movingItem]);
 		e.assign<Sprite>();
 		e.component<Sprite>()->addSpriteSegment(

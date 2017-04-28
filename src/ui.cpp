@@ -6,6 +6,7 @@
 #include <bmpimage.hpp>
 #include <debug.hpp>
 #include <error.hpp>
+#include <font.hpp>
 #include <ui_menu.hpp>
 #include <vector3.hpp>
 
@@ -43,46 +44,14 @@ SDL_Keycode getControl(int index)
 	return controlMap[index];
 }
 
-/**
- *	Freetype variables
- */
-
-static FT_Library   ftl;
-static FT_Face      ftf;
-
-struct FT_Info {
-	vec2 wh;
-	vec2 bl;
-	vec2 ad;
-	GLuint tex;
-
-	FT_Info(void)
-		: tex(0) {}
-};
-
-static std::vector<FT_Info> ftData (93);
-
-static Color fontColor (255, 255, 255);
-
 /*
  *	Variables for dialog boxes / options.
  */
 
-static std::vector<std::pair<vec2, std::string>> textToDraw;
-
-static std::vector<std::pair<std::string,vec3>> dialogOptText;
-static std::string dialogBoxText;
 static bool typeOutDone = true;
 static bool typeOutSustain = false;
 
 static Mix_Chunk *dialogClick;
-
-/*
- * Fade effect flags
- */
-
-static bool fadeWhite  = false;
-static bool fadeFast   = false;
 
 bool inBattle = false;
 Mix_Chunk *battleStart;
@@ -92,55 +61,7 @@ Mix_Chunk *sanic;
 static GLuint pageTex = 0;
 static bool   pageTexReady = false;
 
-void loadFontSize(int size, std::vector<FT_Info> &data)
-{
-	FT_Set_Pixel_Sizes(ftf, 0, size);
-
-	// pre-render 'all' the characters
-	for (auto& d : data) {
-		glDeleteTextures(1, &d.tex);
-		glGenTextures(1, &d.tex);    //	Generate new texture name/locations?
-	}
-
-	for (char i = 33; i < 126; i++) {
-		// load the character from the font family file
-		UserAssert(!FT_Load_Char(ftf, i, FT_LOAD_RENDER), "Error! Unsupported character " + i);
-
-		// transfer the character's bitmap (?) to a texture for rendering
-		glBindTexture(GL_TEXTURE_2D, data[i - 33].tex);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S , GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T , GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER , GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER , GL_LINEAR);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-		/**
-		 * The just-created texture will render red-on-black if we don't do anything to it, so
-		 * here we create a buffer 4 times the size and transform the texture into an RGBA array,
-		 * making it white-on-black.
-		 */
-		auto& g = ftf->glyph;
-		std::vector<uint32_t> buf (g->bitmap.width * g->bitmap.rows, 0xFFFFFFFF);
-		for (auto j = buf.size(); j--;)
-			buf[j] ^= !g->bitmap.buffer[j] ? buf[j] : 0;
-
-		auto& d = data[i - 33];
-		d.wh.x = g->bitmap.width;
-		d.wh.y = g->bitmap.rows;
-		d.bl.x = g->bitmap_left;
-		d.bl.y = g->bitmap_top;
-		d.ad.x = g->advance.x >> 6;
-		d.ad.y = g->advance.y >> 6;
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g->bitmap.width, g->bitmap.rows,
-			          0, GL_RGBA, GL_UNSIGNED_BYTE, buf.data());
-	}
-}
-
 namespace ui {
-
-	bool fadeEnable = false;
-	int fadeIntensity = 0;
-
 	/*
 	 *	Mouse coordinates.
 	*/
@@ -149,55 +70,13 @@ namespace ui {
 	vec2 premouse={0,0};
 
 	/*
-	 *	Variety of keydown bools
-	*/
-	bool edown;
-
-	/*
 	 *	Debugging flags.
 	*/
 
 	bool debug=false;
 	bool posFlag=false;
-	bool dialogPassive = false;
-	bool dialogMerchant = false;
-	int dialogPassiveTime = 0;
-
-	int fontTransInv = 255;
-
-	/*
-	 *	Dialog stuff that needs to be 'public'.
-	*/
-
-	bool dialogBoxExists = false;
-	bool dialogImportant = false;
-	unsigned char dialogOptChosen = 0;
-
-	unsigned int textWrapLimit = 72;
-
-	/*
-	 *	Current font size. Changing this WILL NOT change the font size, see setFontSize() for
-	 *	actual font size changing.
-	*/
-
-	unsigned int fontSize;
-	float fontZ = -8.0;
-
+	
     void takeScreenshot(GLubyte* pixels);
-
-	/*
-	 *	Initialises the Freetype library, and sets a font size.
-	*/
-
-	void initFonts(void) {
-		UserAssert(!FT_Init_FreeType(&ftl), "Couldn't initialize freetype.");
-
-#ifdef DEBUG
-		DEBUG_printf("Initialized FreeType2.\n", nullptr);
-#endif // DEBUG
-
-		fontSize = 0;
-	}
 
 	void initSounds(void) {
 		dialogClick = Mix_LoadWAV("assets/sounds/click.wav");
@@ -206,181 +85,9 @@ namespace ui {
 	}
 
 	void destroyFonts(void) {
-		FT_Done_Face(ftf);
-		FT_Done_FreeType(ftl);
-
 		Mix_FreeChunk(dialogClick);
 		Mix_FreeChunk(battleStart);
 		Mix_FreeChunk(sanic);
-	}
-
-	/*
-	 *	Sets a new font family to use (*.ttf).
-	*/
-
-	void setFontFace(const char *ttf) {
-		UserAssert(!FT_New_Face(ftl, ttf, 0, &ftf), "Error! Couldn't open " +
-			std::string(ttf) + ".");
-
-#ifdef DEBUG
-		DEBUG_printf("Using font %s\n",ttf);
-#endif // DEBUG
-	}
-
-	/*
-	 *	Sets a new font size (default: 12).
-	*/
-
-	void setFontSize(unsigned int size) {
-		fontSize = size;
-		loadFontSize(size, ftData);
-	}
-
-	/*
-	 *	Set a color for font rendering (default: white).
-	 */
-	void setFontColor(int r, int g, int b, int a = 255) {
-		fontColor = Color(r, g, b, a);
-	}
-
-	/*
- 	 *	Set the font's z layer
- 	 */
-	void setFontZ(float z) {
-		fontZ = z;
-	}
-
-	/*
-	 *	Draws a character at the specified coordinates, aborting if the character is unknown.
-	 */
-	vec2 putChar(float xx,float yy,char c){
-		const auto& ch = ftData[c - 33];
-		int x = xx, y = yy;
-
-		// get dimensions of the rendered character
-		vec2 c1 = {
-			static_cast<float>(floor(x) + ch.bl.x),
-			static_cast<float>(floor(y) + ch.bl.y)
-		};
-
-		const auto& c2 = ch.wh;
-
-		// draw the character
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, ch.tex);
-
-		Render::textShader.use();
-		Render::textShader.enable();
-
-		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, 1.0f);
-
-		GLfloat tex_coord[] = {
-			0.0, 1.0,				//bottom left
-			1.0, 1.0,				//bottom right
-			1.0, 0.0,				//top right
-			1.0, 0.0,				//top right
-			0.0, 0.0,				//top left
-			0.0, 1.0,				//bottom left
-		};
-
-		GLfloat text_vert[] = {
-			c1.x, 		c1.y     -c2.y, fontZ,	//bottom left
-			c1.x+c2.x, 	c1.y	 -c2.y, fontZ, 	//bottom right
-			c1.x+c2.x, 	c1.y+c2.y-c2.y, fontZ,	//top right
-			c1.x+c2.x, 	c1.y+c2.y-c2.y, fontZ,	//top right
-			c1.x, 		c1.y+c2.y-c2.y, fontZ,	//top left
-			c1.x, 		c1.y	 -c2.y, fontZ	//bottom left
-		};
-
-        glUniform4f(Render::textShader.uniform[WU_tex_color],
-                    static_cast<float>(fontColor.red / 255),
-                    static_cast<float>(fontColor.green / 255),
-                    static_cast<float>(fontColor.blue / 255),
-                    static_cast<float>(fontColor.alpha / 255));
-
-		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, text_vert);
-		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0); // TODO seg faults
-
-		Render::textShader.disable();
-		Render::textShader.unuse();
-
-		// return the width.
-		return ch.ad;
-	}
-
-	/*
-	 *	Draw a string at the specified coordinates.
-	*/
-
-	float putString(const float x, const float y, std::string s) {
-		unsigned int i = 0, nl = 1;
-		vec2 add, o = {x, y};
-
-		// loop on each character
-		do {
-			if (dialogBoxExists && i > textWrapLimit * nl) {
- 				o.y -= fontSize * 1.05f;
- 				o.x = x;
-				++nl;
-
-				// skip a space if it's there since we just newline'd
-  				if (s[i] == ' ')
-  					i++;
-  			}
-
-			switch (s[i]) {
-			case '\r':
-			case '\t':
-				break;
-			case '\n':
-				o.y -= fontSize * 1.05f;
-				o.x = x;
-				break;
-			case '\b':
-				o.x -= add.x;
-				break;
-			case ' ':
-				o.x += fontSize / 2;
-				break;
-			default:
-				add = putChar(floor(o.x), floor(o.y), s[i]);
-				o.x += add.x;
-				o.y += add.y;
-				break;
-			}
-		} while (s[++i]);
-
-		return o.x;	// the string width
-	}
-
-	float putStringCentered(const float x, const float y, std::string s) {
-		unsigned int i = 0, lastnl = 0;
-		float width = 0, yy = y;
-
-		do {
-			switch (s[i]) {
-			case '\n':
-				putString(floor(x - width / 2), yy, s.substr(0, i));
-				lastnl = 1 + i;
-				width = 0;
-				yy -= fontSize * 1.15f;
-				break;
-			case '\b':
-				break;
-			case ' ':
-				width += fontSize / 2;
-				break;
-			default:
-				width += ftData[i].wh.x + fontSize * 0.1f;
-				break;
-			}
-		} while(s[++i]);
-
-		putString(floor(x - width / 2), yy, s.substr(lastnl));
-		return width;
 	}
 
 	/**
@@ -458,89 +165,7 @@ namespace ui {
 		return ret;
 	}
 
-	float putText(const float x, const float y, const char *str, ...) {
-		va_list args;
-	
-		va_start(args,str);
-		auto s = uisprintf(str, args);
-		va_end(args);
-
-		// draw the string and return the width
-		return putString(x, y, s);
-	}
-
-	void putTextL(vec2 c, const char *str, ...) {
-		va_list args;
-
-		va_start(args, str);
-		auto s = uisprintf(str, args);
-		va_end(args);
-
-		textToDraw.push_back(std::make_pair(c, s));
-	}
-
-	void dialogBox(std::string name, std::string opt, bool passive, std::string text, ...) {
-		va_list args;
-
-		dialogPassive = passive;
-
-		// add speaker prefix
-		dialogBoxText = name + ": ";
-
-		// handle the formatted string
-		va_start(args, text);
-		auto s = uisprintf(text.c_str(), args);
-		va_end(args);
-
-		dialogBoxText += s;
-
-		// setup option text
-		dialogOptText.clear();
-		dialogOptChosen = 0;
-
-		if (!opt.empty()) {
-			char *sopt = strtok(&opt[0], ":");
-
-			// cycle through options
-			while (sopt) {
-				dialogOptText.push_back(std::make_pair((std::string)sopt, vec3 {0,0,0}));
-				sopt = strtok(nullptr, ":");
-			}
-		}
-
-		// tell draw() that the box is ready
-		dialogBoxExists = true;
-		dialogImportant = false;
-
-		ret.clear();
-	}
-
-	/**
-	 * Wait for a dialog box to be dismissed.
-	 */
-
-	void waitForDialog(void) {
-		while (dialogBoxExists)
-			std::this_thread::sleep_for(1ms);
-	}
-
-	void waitForCover(void) {
-		auto& fi = fadeIntensity;
-		fi = 0;
-
-		while (fi < 255)
-			std::this_thread::sleep_for(1ms);
-			
-		fi = 255;
-	}
-
-	void waitForUncover(void) {
-		fadeIntensity = 255;
-		while (fadeIntensity > 0);
-		fadeIntensity = 0;
-	}
-
-	void importantText(const char *text, ...) {
+	/*void importantText(const char *text, ...) {
 		va_list args;
 
 		dialogBoxText.clear();
@@ -572,57 +197,12 @@ namespace ui {
 		dialogImportant = true;
 		dialogPassive = true;
 		dialogPassiveTime = duration;
-	}
+	}*/
 
 
 	void drawPage(const GLuint& tex) {
 		pageTex = tex;
 		pageTexReady = true;
-	}
-
-	void drawBox(vec2 c1, vec2 c2) {
-        GLfloat box[] = {c1.x, c1.y, -7.0,
-                         c2.x, c1.y, -7.0,
-                         c2.x, c2.y, -7.0,
-
-                         c2.x, c2.y, -7.0,
-                         c1.x, c2.y, -7.0,
-                         c1.x, c1.y, -7.0};
-
-        GLfloat line_strip[] = {c1.x,     c1.y, -7.1,
-                                c2.x + 1, c1.y, -7.1,
-                                c2.x + 1, c2.y, -7.1,
-                                c1.x,     c2.y, -7.1,
-                                c1.x,     c1.y, -7.1};
-
-        GLfloat box_tex[] = {0,0,
-                             1,0,
-                             1,1,
-
-                             1,1,
-                             0,1,
-                             0,0};
-
-        glActiveTexture(GL_TEXTURE0);
-		Colors::black.use();
-        glUniform1i(Render::textShader.uniform[WU_texture], 0);
-
-        Render::textShader.use();
-		Render::textShader.enable();
-
-        glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, box);
-        glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
-        glDrawArrays(GL_TRIANGLES, 0 ,6);
-
-        Colors::white.use();
-        glUniform1i(Render::textShader.uniform[WU_texture], 0);
-
-        glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, line_strip);
-        glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, box_tex);
-        glDrawArrays(GL_LINE_STRIP, 0 ,8);
-
-        Render::textShader.disable();
-		Render::textShader.unuse();
 	}
 
 	void drawNiceBox(vec2 c1, vec2 c2, float z) {
@@ -785,7 +365,6 @@ namespace ui {
 	}
 
 	void draw(void){
-		unsigned char i;
 		std::string rtext;
 
 		auto SCREEN_HEIGHT = static_cast<float>(game::SCREEN_HEIGHT);
@@ -826,7 +405,7 @@ namespace ui {
             Render::textShader.disable();
 			Render::textShader.unuse();
 
-		} else if (dialogBoxExists) {
+		} /* else if (dialogBoxExists) {
 			rtext = typeOut(dialogBoxText);
 
 			if (dialogImportant) {
@@ -840,11 +419,11 @@ namespace ui {
 					}
 				}
 
-				if (fadeIntensity == 255 || dialogPassive) {
+				*if (fadeIntensity == 255 || dialogPassive) {
 					setFontSize(24);
 					putStringCentered(offset.x,offset.y,rtext);
 					setFontSize(16);
-				}
+				}*
 			} else { //normal dialog box
 
 				float y = offset.y + SCREEN_HEIGHT / 2 - HLINES(8);
@@ -854,7 +433,7 @@ namespace ui {
 
 				setFontZ(-7.2f);
 				rtext = typeOut(dialogBoxText);
-				putString(x + HLINES(2), y - fontSize - game::HLINE, rtext);
+				UISystem::putString(vec2(x + HLINES(2), y - fontSize - game::HLINE), rtext);
 
 				for (i = 0; i < dialogOptText.size(); i++) {
 					auto& sec = dialogOptText[i].second;
@@ -884,9 +463,9 @@ namespace ui {
 		} else {
 			for (const auto &s : textToDraw)
 				putString(s.first.x, s.first.y, s.second);
-		}
+		}*/
 
-		if (!fadeIntensity) {
+		//if (!fadeIntensity) {
 			/*vec2 hub = {
 				(SCREEN_WIDTH/2+offset.x)-fontSize*10,
 				(offset.y+SCREEN_HEIGHT/2)-fontSize
@@ -964,8 +543,8 @@ namespace ui {
 
 				putStringCentered(hub.x,hub.y,"Inventory:");
 			}*/
-			setFontColor(255,255,255,255);
-		}
+		//	setFontColor(255,255,255,255);
+		//}
 
 		menu::draw();
 
@@ -977,126 +556,6 @@ namespace ui {
 		Render::useShader(&Render::textShader);
 		Render::drawRect(vec2(ui::mouse.x, ui::mouse.y - 64), vec2(ui::mouse.x + 64, ui::mouse.y), -9.9);
 		Render::textShader.unuse();
-	}
-
-	void closeBox() {
-		dialogBoxExists = false;
-		dialogMerchant = false;
-	}
-
-	void dialogAdvance(void) {
-		dialogPassive = false;
-		dialogPassiveTime = 0;
-
-		if (pageTex) {
-			glDeleteTextures(1, &pageTex);
-			pageTex = 0;
-			pageTexReady = false;
-			return;
-		}
-
-		if (!typeOutDone) {
-			if (!dialogImportant)
-				typeOutDone = true;
-			return;
-		}
-
-		for (int i = 0; i < static_cast<int>(dialogOptText.size()); i++) {
-			const auto& dot = dialogOptText[i].second;
-
-			if (mouse.x > dot.x && mouse.x < dot.z &&
-			    mouse.y > dot.y && mouse.y < dot.y + 16) { // fontSize
-				dialogOptChosen = i + 1;
-				break;
-			}
-		}
-
-		dialogBoxExists = false;
-
-		// handle important text
-		if (dialogImportant) {
-			dialogImportant = false;
-			setFontSize(16);
-		}
-	}
-
-	void drawFade(void) {
-		if (!fadeIntensity) {
-			if (fontSize != 16)
-				setFontSize(16);
-			return;
-		}
-
-		static const GLfloat tex[12] = {
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-		};
-
-		vec2 p1 (offset.x - game::SCREEN_WIDTH / 2, offset.y - game::SCREEN_HEIGHT / 2);
-		vec2 p2 (p1.x + game::SCREEN_WIDTH, p1.y + game::SCREEN_HEIGHT);
-        GLfloat backdrop[18] = {
-			p1.x, p1.y, -7.9,
-			p2.x, p1.y, -7.9,
-			p2.x, p2.y, -7.9,
-
-			p2.x, p2.y, -7.9,
-			p1.x, p2.y, -7.9,
-			p1.x, p1.y, -7.9
-		};
-
-		setFontZ(-8.2);
-		Render::textShader.use();
-		Render::textShader.enable();
-
-		Colors::black.use();
-		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, fadeIntensity / 255.0f);
-        glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
-        glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		Render::textShader.disable();
-		Render::textShader.unuse();
-		setFontZ(-8.0);
-    }
-
-	void fadeUpdate(void) {
-		if (fadeEnable) {
-			if (fadeIntensity < 150)
-				fadeIntensity += fadeFast ? 20 : 5;
-			else if (fadeIntensity < 255)
-				fadeIntensity += fadeFast ? 10 : 5;
-			else
-				fadeIntensity = 255;
-		} else {
-			if (fadeIntensity > 150)
-				fadeIntensity -= fadeFast ? 10 : 5;
-			else if (fadeIntensity > 0)
-				fadeIntensity -= fadeFast ? 20 : 5;
-			else
-				fadeIntensity = 0;
-		}
-	}
-
-	void toggleBlack(void) {
-		fadeEnable ^= true;
-		fadeWhite   = false;
-		fadeFast    = false;
-	}
-	void toggleBlackFast(void) {
-		fadeEnable ^= true;
-		fadeWhite   = false;
-		fadeFast    = true;
-	}
-	void toggleWhite(void) {
-		fadeEnable ^= true;
-		fadeWhite   = true;
-		fadeFast    = false;
-	}
-	void toggleWhiteFast(void) {
-		fadeEnable ^= true;
-		fadeWhite   = true;
-		fadeFast    = true;
-
-		//Mix_PlayChannel(1, battleStart, 0);
 	}
 
     void takeScreenshot(GLubyte* pixels) {
@@ -1159,6 +618,20 @@ namespace ui {
 
 		fclose(bmp);
 	}
+
+	bool handleGLEvent(SDL_Event& e) {
+		switch (e.type) {
+		case SDL_MOUSEBUTTONDOWN:
+			if ((UISystem::isDialog() | pageTexReady) && (e.button.button & SDL_BUTTON_RIGHT))
+					UISystem::advanceDialog();
+			return true;
+			break;
+		default:
+			break;
+		}
+
+		return false;
+	}
 }
 
 using namespace ui;
@@ -1199,25 +672,9 @@ void InputSystem::receive(const MainSDLEvent& event)
 	case SDL_MOUSEBUTTONDOWN:
 		ev.emit<MouseClickEvent>(mouse, e.button.button);
 
-		// run actions?
-		//if ((action::make = e.button.button & SDL_BUTTON_RIGHT))
-		//	/*player->inv->invHover =*/ edown = false;
-
-		textToDraw.clear();
-
-		if (dialogBoxExists || pageTexReady) {
-			// right click advances dialog
+		if (UISystem::isDialog() || pageTexReady) {
 			if ((e.button.button & SDL_BUTTON_RIGHT))
-				dialogAdvance();
-		} else {
-			// left click uses item
-			if (e.button.button & SDL_BUTTON_LEFT) {
-				/*if ((ent = currentWorld->getNearMob(*player)) != nullptr) {
-					player->inv->currentAddInteract(ent);
-				}
-					player->inv->useCurrent();*/
-			}
-
+				UISystem::advanceDialog();
 		}
 		break;
 
@@ -1242,21 +699,11 @@ void InputSystem::receive(const MainSDLEvent& event)
 		if (SDL_KEY == SDLK_ESCAPE)
 			ui::menu::toggle();
 
-		if (SDL_KEY == SDLK_q) {
-			/*auto item = player->inv->getCurrentItem();
-			if (item != nullptr) {
-				if (player->inv->takeItem(item->name, 1) == 0)
-					currentWorld->addObject(item->name, "o shit waddup",
-											player->loc.x + player->width / 2, player->loc.y + player->height / 2);
-			}*/
-		} else if (SDL_KEY == SDLK_h) {
+		if (SDL_KEY == SDLK_h) {
 			quest::toggle();
 		} else switch (SDL_KEY) {
 		case SDLK_F3:
 			debug ^= true;
-			break;
-		case SDLK_BACKSLASH:
-			dialogBoxExists = false;
 			break;
 		case SDLK_b:
 			if (debug)
@@ -1299,4 +746,250 @@ void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 	// update mouse coords
 	mouse.x = premouse.x + offset.x - (game::SCREEN_WIDTH / 2);
 	mouse.y = (offset.y + game::SCREEN_HEIGHT / 2) - premouse.y;
+}
+
+bool UISystem::fadeEnable = false;
+bool UISystem::fadeFast = false;
+int  UISystem::fadeIntensity = 0;
+
+std::string UISystem::dialogText;
+std::string UISystem::importantText;
+std::vector<DialogOption> UISystem::dialogOptions;
+int UISystem::dialogOptionResult;
+
+void UISystem::fadeToggle(void)
+{
+	fadeEnable ^= true;
+	fadeFast = false;
+
+	fadeIntensity = fadeEnable ? 0 : 255;
+}
+
+void UISystem::fadeToggleFast(void)
+{
+	fadeEnable ^= true;
+	fadeFast = true;
+}
+
+void UISystem::waitForCover(void)
+{
+	fadeIntensity = 0;
+	while (fadeIntensity < 255)
+		std::this_thread::sleep_for(1ms);
+}
+
+void UISystem::waitForUncover(void)
+{
+	fadeIntensity = 255;
+	while (fadeIntensity > 0)
+		std::this_thread::sleep_for(1ms);
+}
+
+void UISystem::putText(const vec2& p, const std::string& s, ...)
+{
+	va_list args;
+	
+	va_start(args, s);
+	putString(p, uisprintf(s.c_str(), args));
+	va_end(args);
+}
+
+void UISystem::putString(const vec2& p, const std::string& s, float wrap)
+{
+	vec2 offset = p, add;
+
+	for (auto c : s) {
+		switch (c) {
+		case '\n':
+			offset.y -= FontSystem::getSize() * 1.05f;
+			offset.x = p.x;
+			break;
+		case '\b':
+			offset.x -= add.x;
+			break;
+		case '\r':
+		case '\t':
+			break;
+		case ' ':
+			offset.x += FontSystem::getSize() / 2.0f;
+			break;
+		default:
+			add = FontSystem::putChar(floor(offset.x), floor(offset.y), c);
+			offset += add;
+			break;
+		}
+
+		if (wrap != 0.12345f && offset.x >= (wrap - 10)) {
+			offset.y -= FontSystem::getSize() * 1.05f;
+			offset.x = p.x;
+		}
+	}
+
+	//return offset.x;
+}
+
+float UISystem::putStringCentered(const vec2& p, const std::string& s, bool print)
+{
+	int i = 0, lastnl = 0;
+	float width = 0, yy = p.y;
+	auto& font = FontSystem::getFont();
+
+	do {
+		switch (s[i]) {
+		case '\n':
+			putString(vec2(floor(p.x - width / 2), yy), s.substr(0, i));
+			lastnl = 1 + i;
+			width = 0;
+			yy -= FontSystem::getSize() * 1.15f;
+			break;
+		case '\b':
+			break;
+		case ' ':
+			width += FontSystem::getSize() / 2;
+			break;
+		default:
+			width += font[i].wh.x + FontSystem::getSize() * 0.1f;
+			break;
+		}
+
+	} while(s[++i]);
+
+	if (print)
+		putString(vec2(floor(p.x - width / 2), yy), s.substr(lastnl));
+	return width;
+}
+
+void UISystem::dialogBox(const std::string& n, const std::string& s, ...)
+{
+	va_list args;
+
+	dialogText = n + ": ";
+
+	va_start(args, s);
+	dialogText += ui::uisprintf(s.c_str(), args);
+	va_end(args);
+}
+
+void UISystem::dialogAddOption(const std::string& o)
+{
+	dialogOptions.emplace_back(OptionDim(), o);
+}
+
+void UISystem::dialogImportant(const std::string& s)
+{
+	importantText = s;
+}
+
+void UISystem::waitForDialog(void)
+{
+	while (isDialog())
+		std::this_thread::sleep_for(1ms);
+}
+
+int UISystem::getDialogResult(void)
+{
+	return dialogOptionResult;
+}
+
+void UISystem::advanceDialog(void)
+{
+	dialogText.clear();
+	importantText.clear();
+
+	if (!dialogOptions.empty()) {
+		int r = 1;
+		dialogOptionResult = 0;
+		for (auto& o : dialogOptions) {
+			if (ui::mouse.x > o.first.x - o.first.width / 2 && ui::mouse.x < o.first.x + o.first.width / 2 &&
+				ui::mouse.y > o.first.y && ui::mouse.y < o.first.y + 20) {
+				dialogOptionResult = r;
+				break;
+			}
+			r++;
+		}
+
+		dialogOptions.clear();
+	}
+}
+
+void UISystem::update(entityx::EntityManager& en, entityx::EventManager& ev, entityx::TimeDelta dt)
+{
+	(void)en;
+	(void)ev;
+	(void)dt;
+}
+
+void UISystem::render(void)
+{
+	if ((fadeEnable & (fadeIntensity < 255)))
+		fadeIntensity += fadeFast ? 15 : 5;
+	else if ((!fadeEnable & (fadeIntensity > 0)))
+		fadeIntensity -= fadeFast ? 15 : 5;
+
+	if (fadeIntensity < 0)
+		fadeIntensity = 0;
+	if (fadeIntensity > 255)
+		fadeIntensity = 255;
+
+	if (fadeIntensity != 0) {
+		static const GLfloat tex[12] = {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		};
+
+		vec2 p1 (offset.x - game::SCREEN_WIDTH / 2, offset.y - game::SCREEN_HEIGHT / 2);
+		vec2 p2 (p1.x + game::SCREEN_WIDTH, p1.y + game::SCREEN_HEIGHT);
+        GLfloat backdrop[18] = {
+			p1.x, p1.y, -7.9,
+			p2.x, p1.y, -7.9,
+			p2.x, p2.y, -7.9,
+
+			p2.x, p2.y, -7.9,
+			p1.x, p2.y, -7.9,
+			p1.x, p1.y, -7.9
+		};
+
+		Render::textShader.use();
+		Render::textShader.enable();
+
+		Colors::black.use();
+		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, fadeIntensity / 255.0f);
+        glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, backdrop);
+        glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		Render::textShader.disable();
+		Render::textShader.unuse();
+		//setFontZ(-8.0);
+	}
+
+	if (!dialogText.empty()) {
+		vec2 where (offset.x - 300, game::SCREEN_HEIGHT - 60);
+		ui::drawNiceBox(vec2(where.x - 10, where.y - 200), vec2(where.x + 620, where.y + 20), -5.5f);
+		putString(where, dialogText, where.x + 600);
+
+		if (!dialogOptions.empty()) {
+			float y = where.y - 180;
+			for (auto& o : dialogOptions) {
+				o.first.x = offset.x;
+				o.first.y = y;
+				o.first.width = putStringCentered(vec2(o.first.x, o.first.y), o.second, false);
+				y += 20;
+
+				if (ui::mouse.x > o.first.x - o.first.width / 2 && ui::mouse.x < o.first.x + o.first.width / 2 &&
+					ui::mouse.y > o.first.y && ui::mouse.y < y)
+					FontSystem::setFontColor(255, 255, 0);
+
+				putStringCentered(vec2(o.first.x, o.first.y), o.second);
+				FontSystem::setFontColor(255, 255, 255);
+			}
+		}
+	}
+
+	if (!importantText.empty()) {
+		FontSystem::setFontSize(24);
+		FontSystem::setFontZ(-9.0f);
+		putStringCentered(vec2(offset.x, 400), importantText);
+		FontSystem::setFontZ(-6.0f);
+		FontSystem::setFontSize(16);
+	}
 }
