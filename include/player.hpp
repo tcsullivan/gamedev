@@ -23,22 +23,21 @@ constexpr const float PLAYER_SPEED_CONSTANT = 0.03f;
  */
 class PlayerSystem : public entityx::System<PlayerSystem>, public entityx::Receiver<PlayerSystem> {
 private:
-    entityx::Entity player;
+	static entityx::Entity player;
 
-    bool moveLeft;
-    bool moveRight;
-
-    float speed;
+	static bool moveLeft;
+	static bool moveRight;
+	static float speed;
 
 public:
-    PlayerSystem(void)
-        : moveLeft(false), moveRight(false), speed(1.0f) {}
+	PlayerSystem(void);
 
 	/**
 	 * Creates the player, adding it to the entity system.
 	 */
-	void create(void);
-	inline auto getId(void) const { return player.id(); }
+	static void create(void);
+	static inline auto getId(void)
+	{ return player.id(); }
 
 	/**
 	 * Configures events for use with the entity system.
@@ -68,20 +67,20 @@ public:
 	 * Gets the player's position.
 	 * @return the player's position
 	 */
-    vec2 getPosition(void) const;
+	static vec2 getPosition(void);
 
 	/**
 	 * Sets the player's X coordinate.
 	 * @param x the x coordinate to give the player
 	 */
-	inline void setX(const float& x)
+	static inline void setX(const float& x)
 	{ player.component<Position>().get()->x = x; }
 
 	/**
 	 * Gets the width of the player.
 	 * @return the player's width, according to its sprite
 	 */
-    inline float getWidth(void) const
+    static inline float getWidth(void) 
     { return game::entities.component<Solid>(player.id())->width; }
 };
 

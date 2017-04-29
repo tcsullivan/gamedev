@@ -29,21 +29,21 @@ struct Particle {
 
 class ParticleSystem : public entityx::System<ParticleSystem> {
 private:
-	std::vector<Particle> parts;
-	unsigned int maximum;
+	static std::vector<Particle> parts;
+	static unsigned int maximum;
 
 public:
 	ParticleSystem(unsigned int max = 2048);
 
-	void add(const vec2& pos, const ParticleType& type, const int& timeleft = 3000,
+	static void add(const vec2& pos, const ParticleType& type, const int& timeleft = 3000,
 		const unsigned char& color = 0);
-	void addMultiple(const int& count, const ParticleType& type, std::function<vec2(void)> f,
+	static void addMultiple(const int& count, const ParticleType& type, std::function<vec2(void)> f,
 		const int& timeleft = 3000, const unsigned char& color = 0);
 
-	void render(void);
+	static void render(void);
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 
-	int getCount(void) const;
+	static int getCount(void);
 };
 
 #endif // PARTICLE_HPP_

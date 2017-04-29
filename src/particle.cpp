@@ -7,9 +7,12 @@
 
 #include <mutex>
 
+std::vector<Particle> ParticleSystem::parts;
+unsigned int          ParticleSystem::maximum;
+
 ParticleSystem::ParticleSystem(unsigned int max)
-	: maximum(max)
 {
+	maximum = max;
 	parts.reserve(maximum);
 }
 
@@ -36,7 +39,7 @@ void ParticleSystem::render(void)
 	constexpr auto entrySize = (6 * 5) * sizeof(GLfloat);
 
 	static std::once_flag init;
-	std::call_once(init, [this](GLuint& vbo) {
+	std::call_once(init, [&entrySize](GLuint& vbo) {
 		// generate VBO
 		glGenBuffers(1, &vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -168,7 +171,7 @@ void ParticleSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 	}
 }
 
-int ParticleSystem::getCount(void) const
+int ParticleSystem::getCount(void) 
 {
 	return parts.size();
 }

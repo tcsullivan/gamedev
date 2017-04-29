@@ -45,7 +45,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 		en.each<Health, Position, Solid>([&](entityx::Entity e, Health& health, Position& pos, Solid& dim) {
 			if (!e.has_component<Player>() && inrange(ppos.x, pos.x, pos.x + dim.width) && inrange(ppos.y, pos.y - 2, pos.y + dim.height)) {
 				health.health -= hit.damage;
-				game::engine.getSystem<ParticleSystem>()->addMultiple(15, ParticleType::SmallBlast,
+				ParticleSystem::addMultiple(15, ParticleType::SmallBlast,
 					[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 				die = !hit.pierce;
 			} else if (WorldSystem::isAboveGround(vec2(ppos.x, ppos.y - 5)))
@@ -69,7 +69,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 					if (inrange(a.pos.x, pos.x, pos.x + dim.width, HLINES(shortSlashLength)) &&
 						inrange(a.pos.y, pos.y, pos.y + dim.height)) {
 						h.health -= a.power;
-						game::engine.getSystem<ParticleSystem>()->addMultiple(15, ParticleType::DownSlash,
+						ParticleSystem::addMultiple(15, ParticleType::DownSlash,
 							[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 					}
 				}

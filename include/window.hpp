@@ -23,22 +23,24 @@ private:
 	/**
 	 * SDL's object for the window.
 	 */
-    SDL_Window *window;
+    static SDL_Window *window;
 
 	/**
 	 * An OpenGL context, created when OpenGL is set up for use.
 	 */
-    SDL_GLContext glContext;
+    static SDL_GLContext glContext;
 
 public:
 	WindowSystem(void);
 
-	void die(void);
+	static void die(void);
 
 	void configure(entityx::EventManager &ev);
     void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override
 	{ (void)en; (void)ev; (void)dt; }
-	void render(void);
+
+	static void render(void);
+
 	void receive(const WindowResizeEvent&);	
 	void receive(const ScreenshotEvent&);
 };

@@ -655,14 +655,15 @@ public:
 
 class RenderSystem : public entityx::System<RenderSystem> {
 private:
-	std::string loadTexString;
-	Texture loadTexResult;
+	static std::string loadTexString;
+	static Texture loadTexResult;
 
 public:
-	Texture loadTexture(const std::string& file);
+	static Texture loadTexture(const std::string& file);
+	static void render(void);
+
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override
 	{ (void)en; (void)ev; (void)dt; }
-	void render(void);
 };
 
 class DialogSystem : public entityx::System<DialogSystem>, public entityx::Receiver<DialogSystem> {

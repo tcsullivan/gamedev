@@ -54,7 +54,7 @@ void Engine::init(void) {
     ui::initSounds();
 	ui::menu::init();
 	game::config::update();
-	getSystem<PlayerSystem>()->create();
+	PlayerSystem::create();
 }
 
 void Engine::update(entityx::TimeDelta dt)

@@ -132,9 +132,8 @@ void preRender(void)
 	// set the ortho
 	//
 
-	auto ps = game::engine.getSystem<PlayerSystem>();
-	auto ploc = ps->getPosition();
-	offset.x = ploc.x + ps->getWidth() / 2;
+	auto ploc = PlayerSystem::getPosition();
+	offset.x = ploc.x + PlayerSystem::getWidth() / 2;
 
 	const auto& worldWidth = WorldSystem::getWidth();
 	if (worldWidth < (int)SCREEN_WIDTH2 * 2)
@@ -178,20 +177,17 @@ void render(const int& fps)
 	preRender();
 
 	WorldSystem::render();
-
-	game::engine.getSystem<ParticleSystem>()->render();
-
-	game::engine.getSystem<RenderSystem>()->render();
-
-	game::engine.getSystem<InventorySystem>()->render();
+	ParticleSystem::render();
+	RenderSystem::render();
+	InventorySystem::render();
 
 	// draw the debug overlay if desired
 	if (ui::debug) {
-		auto pos = game::engine.getSystem<PlayerSystem>()->getPosition();
+		auto pos = PlayerSystem::getPosition();
 		UISystem::putText(vec2(offset.x - game::SCREEN_WIDTH / 2, (offset.y + game::SCREEN_HEIGHT / 2) - FontSystem::getSize()),
 		    "loc: %s\noffset: %s\nfps: %d\nticks: %d\npcount: %d\nxml: %s\nmem: %llukb (%d)",
 			pos.toString().c_str(), offset.toString().c_str(), fps,
-			game::time::getTickCount(), game::engine.getSystem<ParticleSystem>()->getCount(),
+			game::time::getTickCount(), ParticleSystem::getCount(),
 			WorldSystem::getXMLFile().c_str(), getUsedMem() / 1024, balance
 			);
 	}
@@ -201,5 +197,5 @@ void render(const int& fps)
 	//ui::drawFade();
 	ui::draw();
 	
-	game::engine.getSystem<WindowSystem>()->render();
+	WindowSystem::render();
 }

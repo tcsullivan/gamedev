@@ -117,9 +117,9 @@ int main(int argc, char *argv[])
 	/////////////////////////////
 
 
-	game::engine.getSystem<InventorySystem>()->add("Hunters Bow", 1);
-	game::engine.getSystem<InventorySystem>()->add("Wood Sword", 1);
-	game::engine.getSystem<InventorySystem>()->add("Arrow", 198);
+	InventorySystem::add("Hunters Bow", 1);
+	InventorySystem::add("Wood Sword", 1);
+	InventorySystem::add("Arrow", 198);
 
 	std::list<SDL_Event> eventQueue;
 
@@ -188,8 +188,8 @@ int main(int argc, char *argv[])
 
     unloadTextures();
 
-	game::engine.getSystem<WorldSystem>()->die();
-	game::engine.getSystem<WindowSystem>()->die();
+	WorldSystem::die();
+	WindowSystem::die();
 
     return 0; // Calls everything passed to atexit
 }

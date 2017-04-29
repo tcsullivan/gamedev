@@ -37,7 +37,7 @@ private:
 	/**
 	 * A list of all quests that are currently active.
 	 */
-	std::vector<Quest> current;
+	static std::vector<Quest> current;
 
 public:
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
@@ -49,28 +49,28 @@ public:
 	 * @param req retrieved from XML, list of what the quest wants
 	 * @return a possible error code
 	 */
-	int assign(std::string title, std::string desc, std::string req);
+	static int assign(std::string title, std::string desc, std::string req);
 
 	/**
 	 * Drops a quest through its title.
 	 * @param title the quest's title
 	 * @return a possible error code
 	 */
-	int drop(std::string title);
+	static int drop(std::string title);
 
 	/**
 	 * Finishes a quest through it's title.
 	 * @param title the quest's title
 	 * @return a possible error code
 	 */
-	int finish(std::string title);
+	static int finish(std::string title);
 
 	/**
 	 * Returns true if the system is currently taking the quest.
 	 * @param title the quest's title
 	 * @return if the quest is active.
 	 */
-	bool hasQuest(std::string title);
+	static bool hasQuest(std::string title);
 };
 
 #endif // QUEST_HPP_

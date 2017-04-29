@@ -99,41 +99,35 @@ private:
 	constexpr static float inventoryZ = -5.0f;
 	constexpr static unsigned int rowSize = 8;
 
-	/**
-	 * A 'database' of all existing items.
-	 */
-	std::unordered_map<std::string, Item> itemList;
+	static std::unordered_map<std::string, Item> itemList;
+	static std::vector<InventoryEntry> items;
 
-	/**
-	 * A vector for the player's inventory slots.
-	 */
-    std::vector<InventoryEntry> items;
+	static vec2 hotStart;
+	static vec2 hotEnd;
+	static vec2 fullStart;
+	static vec2 fullEnd;
 
+	static int movingItem;
+	static bool fullInventory;
 
-	vec2 hotStart, hotEnd;
-	vec2 fullStart, fullEnd;
-
-	int movingItem = -1;
-	bool fullInventory = false;
-
-	void loadItems(void);
+	static void loadItems(void);
 public:
-    InventorySystem(int size = 20);
+	InventorySystem(int size = 20);
 
-    void configure(entityx::EventManager &ev);
-    void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
-    void receive(const KeyDownEvent &kde);
+	void configure(entityx::EventManager &ev);
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
+	void receive(const KeyDownEvent &kde);
 	void receive(const MouseClickEvent &mce);
 	void receive(const MouseReleaseEvent &mce);
 
-	void render(void);
+	static void render(void);
 
 	/**
 	 * Adds 'count' 'name's to the inventory.
 	 * @param name the name of the item
 	 * @param count the quantity of the item to give
 	 */
-	void add(const std::string& name, int count);
+	static void add(const std::string& name, int count);
 
 	/**
 	 * Takes 'count' 'name's from the inventory.
@@ -143,11 +137,10 @@ public:
 	 * @param count the quantity of the item to take
 	 * @return true if the operation could be completed
 	 */
-	bool take(const std::string& name, int count);
+	static bool take(const std::string& name, int count);
 
-	inline Item getItem(const std::string& s) {
-		return itemList[s];
-	}
+	static inline Item getItem(const std::string& s)
+	{ return itemList[s]; }
 };
 
 #endif // INVENTORY_HPP_

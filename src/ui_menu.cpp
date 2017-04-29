@@ -29,7 +29,8 @@ void SDLReceiver::receive(const MainSDLEvent& mse)
 	case SDL_KEYUP:
 		if (currentMenu != nullptr && mse.event.key.keysym.sym == SDLK_ESCAPE) {
 			currentMenu->gotoParent();
-			return;
+		} else {
+			clicked = false;
 		}
 		break;
 	default:

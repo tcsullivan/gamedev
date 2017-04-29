@@ -965,7 +965,7 @@ void UISystem::render(void)
 	if (!dialogText.empty()) {
 		vec2 where (offset.x - 300, game::SCREEN_HEIGHT - 60);
 		ui::drawNiceBox(vec2(where.x - 10, where.y - 200), vec2(where.x + 620, where.y + 20), -5.5f);
-		putString(where, dialogText, where.x + 600);
+		putString(where, ui::typeOut(dialogText), where.x + 600);
 
 		if (!dialogOptions.empty()) {
 			float y = where.y - 180;
@@ -988,7 +988,7 @@ void UISystem::render(void)
 	if (!importantText.empty()) {
 		FontSystem::setFontSize(24);
 		FontSystem::setFontZ(-9.0f);
-		putStringCentered(vec2(offset.x, 400), importantText);
+		putStringCentered(vec2(offset.x, 400), ui::typeOut(importantText));
 		FontSystem::setFontZ(-6.0f);
 		FontSystem::setFontSize(16);
 	}

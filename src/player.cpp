@@ -68,6 +68,15 @@ static const char *animationXML =
 		</movement>\
 	</Animation>";
 
+entityx::Entity PlayerSystem::player;
+bool  PlayerSystem::moveLeft = false;
+bool  PlayerSystem::moveRight = false;
+float PlayerSystem::speed = 1.0f;
+
+PlayerSystem::PlayerSystem(void)
+{
+}
+
 void PlayerSystem::create(void)
 {
 	player = game::entities.create();
@@ -180,7 +189,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 			if (game::canSprint)
 				speed = 2.0f;
 
-			game::engine.getSystem<ParticleSystem>()->addMultiple(10, ParticleType::SmallBlast,
+			ParticleSystem::addMultiple(10, ParticleType::SmallBlast,
 				[&](){ return vec2(loc.x, loc.y); }, 500, 7);
 		} else if (kc == getControl(4)) {
 			speed = .5;
@@ -204,7 +213,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 	}
 }
 
-vec2 PlayerSystem::getPosition(void) const
+vec2 PlayerSystem::getPosition(void) 
 {
 	auto& loc = *game::entities.component<Position>(player.id()).get();
     return vec2(loc.x, loc.y);
@@ -224,7 +233,7 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 			loc.x += solid.width / 2, loc.y += solid.height / 2;
 			game::events.emit<AttackEvent>(loc, AttackType::ShortSlash, true);
 		} else if (uie.item->type == "Bow") {
-			if (game::engine.getSystem<InventorySystem>()->take("Arrow", 1)) {
+			if (InventorySystem::take("Arrow", 1)) {
 				auto e = game::entities.create();
 				auto pos = getPosition();
 				e.assign<Position>(pos.x, pos.y + 10);
@@ -235,7 +244,7 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 				e.assign<Visible>(-5);
 				e.assign<Physics>();
 				auto sprite = e.assign<Sprite>();
-				auto tex = game::engine.getSystem<InventorySystem>()->getItem("Arrow");
+				auto tex = InventorySystem::getItem("Arrow");
 				sprite->addSpriteSegment(SpriteData(tex.sprite), 0);
 				auto dim = HLINES(sprite->getSpriteSize());
 				e.assign<Solid>(dim.x, dim.y);

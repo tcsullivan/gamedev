@@ -9,6 +9,9 @@
 
 constexpr const char* WINDOW_TITLE  = "gamedev";
 
+SDL_Window*   WindowSystem::window;
+SDL_GLContext WindowSystem::glContext;
+
 WindowSystem::WindowSystem(void)
 {
     // attempt to initialize SDL

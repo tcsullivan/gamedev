@@ -20,6 +20,9 @@
 
 using namespace std::literals::chrono_literals;
 
+std::string RenderSystem::loadTexString;
+Texture     RenderSystem::loadTexResult;
+
 static std::vector<std::string> randomDialog (readFileA("assets/dialog_en-us"));
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -50,7 +53,7 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 					fl = (direction.x < 0);
 			}
 
-			auto ppos = game::engine.getSystem<PlayerSystem>()->getPosition();
+			auto ppos = PlayerSystem::getPosition();
 			if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
 				if (entity.has_component<Aggro>()) {
 					auto dim = entity.component<Solid>();
@@ -280,8 +283,7 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 						auto ixml = exml->FirstChildElement("give");
 						if (ixml != nullptr) {
 							do {
-								game::engine.getSystem<InventorySystem>()->add(
-									ixml->StrAttribute("name"), ixml->IntAttribute("count"));
+								InventorySystem::add(ixml->StrAttribute("name"), ixml->IntAttribute("count"));
 								ixml = ixml->NextSiblingElement();
 							} while (ixml != nullptr);
 						}
@@ -289,7 +291,6 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 						auto qxml = exml->FirstChildElement("quest");
 						if (qxml != nullptr) {
 							const char *qname;
-							auto qsys = game::engine.getSystem<QuestSystem>();
 
 							do {
 								// assign quest
@@ -297,14 +298,14 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 								if (qname != nullptr) {
 									questAssignedText = qname;
 									auto req = qxml->GetText();
-									qsys->assign(qname, qxml->StrAttribute("desc"), req ? req : "");
+									QuestSystem::assign(qname, qxml->StrAttribute("desc"), req ? req : "");
 								}
 
 								// check / finish quest
 								else {
 									qname = qxml->Attribute("check");
 									if (qname != nullptr) {
-										if (qname != nullptr && qsys->finish(qname) == 0) {
+										if (qname != nullptr && QuestSystem::finish(qname) == 0) {
 											d.index = 9999;
 										} else {
 											UISystem::dialogBox(name.name, /*"", false,*/ "Finish my quest u nug");

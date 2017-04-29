@@ -6,6 +6,8 @@
 #include <inventory.hpp>
 #include <tokens.hpp>
 
+std::vector<Quest> QuestSystem::current;
+
 std::string& trim(std::string& s)
 {
 	auto start = std::find_if(s.begin(), s.end(),
@@ -63,12 +65,12 @@ int QuestSystem::finish(std::string title)
 		return -1;
 
 	for (const auto& r : quest->reqs) {
-		if (!game::engine.getSystem<InventorySystem>()->take(r.first, r.second))
+		if (!InventorySystem::take(r.first, r.second))
 			return -1;
 	}
 
 	for (const auto& r : quest->rewards)
-		game::engine.getSystem<InventorySystem>()->add(r.first, r.second);
+		InventorySystem::add(r.first, r.second);
 
 	drop(title);
 

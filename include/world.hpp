@@ -177,7 +177,7 @@ public:
 
 	void fight(entityx::Entity entity);
 
-	void die(void);
+	static void die(void);
 };
 
 #endif // WORLD_HPP_

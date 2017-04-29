@@ -192,7 +192,7 @@ void WorldSystem::fight(entityx::Entity entity)
 	door.assign<Portal>(exit);
 
 	auto sprite = door.assign<Sprite>();
-	auto dtex = game::engine.getSystem<RenderSystem>()->loadTexture("assets/style/classic/door.png");
+	auto dtex = RenderSystem::loadTexture("assets/style/classic/door.png");
 	sprite->addSpriteSegment(SpriteData(dtex), 0);
 
 	auto dim = HLINES(sprite->getSpriteSize());
@@ -201,8 +201,6 @@ void WorldSystem::fight(entityx::Entity entity)
 
 void WorldSystem::load(const std::string& file)
 {
-	auto& render = *game::engine.getSystem<RenderSystem>();
-
 	entityx::Entity entity;
 
 	// check for empty file name
@@ -266,17 +264,16 @@ void WorldSystem::load(const std::string& file)
 
 	//game::entities.reset();
 	if (!savedEntities.empty()) {
-		savedEntities.emplace_back(game::engine.getSystem<PlayerSystem>()->getId());
+		savedEntities.emplace_back(PlayerSystem::getId());
 		game::entities.each<Position>(
 			[&](entityx::Entity entity, Position& p) {
 			(void)p;
-			if (std::find(savedEntities.begin(), savedEntities.end(), entity.id())
-				== savedEntities.end())
+			if (std::find(savedEntities.begin(), savedEntities.end(), entity.id()) == savedEntities.end())
 				entity.destroy();
 		}, true);
 	} else {
 		game::entities.reset();
-		game::engine.getSystem<PlayerSystem>()->create();
+		PlayerSystem::create();
 	}
 
 	// iterate through tags
@@ -313,16 +310,15 @@ void WorldSystem::load(const std::string& file)
 				UserError("<house> can only be used inside <IndoorWorld>");
 
 			//world.indoorWidth = wxml->FloatAttribute("width");
-			world.indoorTex = render.loadTexture(wxml->StrAttribute("texture")); // TODO winbloze lol
+			world.indoorTex = RenderSystem::loadTexture(wxml->StrAttribute("texture")); // TODO winbloze lol
 			auto str = wxml->StrAttribute("texture");
-			auto tex = render.loadTexture(str);
+			auto tex = RenderSystem::loadTexture(str);
 			world.indoorTex = tex;
 		}
 
 		// weather tag
 		else if (tagName == "weather") {
-			game::engine.getSystem<WeatherSystem>()->setWeather(wxml->GetText());
-			//setWeather(wxml->GetText());
+			WeatherSystem::setWeather(wxml->GetText());
 		}
 
 		// link tags
@@ -1092,7 +1088,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 				vel.y = 0;
 				if (!vel.grounded) {
 					vel.grounded = true;
-					game::engine.getSystem<ParticleSystem>()->addMultiple(20, ParticleType::SmallPoof,
+					ParticleSystem::addMultiple(20, ParticleType::SmallPoof,
 						[&](){ return vec2(loc.x + randGet() % static_cast<int>(dim.width), loc.y);}, 500, 30);
 				}
 			}
@@ -1101,11 +1097,9 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 
 		// insure that the entity doesn't fall off either edge of the world.
         if (loc.x < world.startX) {
-			std::cout << "Left!\n";
 			vel.x = 0;
 			loc.x = world.startX + HLINES(0.5f);
 		} else if (loc.x + dim.width + game::HLINE > -(static_cast<int>(world.startX))) {
-			std::cout << "Right\n";
 			vel.x = 0;
 			loc.x = -(static_cast<int>(world.startX)) - dim.width - game::HLINE;
 		}
@@ -1120,7 +1114,7 @@ void WorldSystem::goWorldRight(Position& p, Solid &d)
 		while (waitToSwap)
 			std::this_thread::sleep_for(1ms);
 		load(world.toRight);
-		game::engine.getSystem<PlayerSystem>()->setX(world.startX + HLINES(10));
+		PlayerSystem::setX(world.startX + HLINES(10));
 		UISystem::fadeToggle();
 	}
 }
@@ -1133,7 +1127,7 @@ void WorldSystem::goWorldLeft(Position& p)
 		while (waitToSwap)
 			std::this_thread::sleep_for(1ms);
 		load(world.toLeft);
-		game::engine.getSystem<PlayerSystem>()->setX(world.startX * -1 - HLINES(15));
+		PlayerSystem::setX(world.startX * -1 - HLINES(15));
 		UISystem::fadeToggle();
 	}
 }

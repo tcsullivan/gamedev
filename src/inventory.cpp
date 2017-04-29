@@ -17,6 +17,15 @@ using namespace tinyxml2;
 
 extern vec2 offset;
 
+std::unordered_map<std::string, Item> InventorySystem::itemList;
+std::vector<InventoryEntry>           InventorySystem::items;
+vec2 InventorySystem::hotStart;
+vec2 InventorySystem::hotEnd;
+vec2 InventorySystem::fullStart;
+vec2 InventorySystem::fullEnd;
+int  InventorySystem::movingItem = -1;
+bool InventorySystem::fullInventory = false;
+
 inline bool isGoodEntry(const InventoryEntry& ie) {
 	return (ie.item != nullptr) && (ie.count > 0);
 }
@@ -142,7 +151,7 @@ void InventorySystem::render(void)
 		i.item->sprite.use();
 		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
 
-		auto pos = game::engine.getSystem<PlayerSystem>()->getPosition();
+		auto pos = PlayerSystem::getPosition();
 		vec2 sta (pos.x, pos.y);
 		vec2 end (sta + (i.item->sprite.getDim() * game::HLINE));
 		GLfloat coords[18] = {

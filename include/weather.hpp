@@ -5,8 +5,7 @@
 
 #include <entityx/entityx.h>
 
-#include <config.hpp>
-#include <particle.hpp>
+#include <vector2.hpp>
 
 extern vec2 offset;
 
@@ -22,60 +21,16 @@ enum class Weather : unsigned char {
 	count
 };
 
-constexpr const char *weatherStrings[] = {
-	"Sunny",
-	"Rainy",
-	"Snowy"
-};
-
 class WeatherSystem : public entityx::System<WeatherSystem> {
 private:
-	Weather weather;
+	static Weather weather;
 
 public:
-	WeatherSystem(Weather w = Weather::Sunny)
-		: weather(w) {}
+	WeatherSystem(Weather w = Weather::Sunny);
 
-	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override {
-		(void)en;
-		(void)ev;
-		(void)dt;
+	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 
-		static auto& partSystem = *game::engine.getSystem<ParticleSystem>();
-		static int newPartDelay = 0; // TODO no
-
-		switch (weather) {
-		case Weather::Sunny:
-			break;
-		case Weather::Rainy:
-			if (newPartDelay++ == 4) {
-				newPartDelay = 0;
-				partSystem.add(vec2(offset.x - game::SCREEN_WIDTH / 2 + randGet() % game::SCREEN_WIDTH,
-					offset.y + game::SCREEN_HEIGHT / 2 + 100),
-					ParticleType::Drop, 3000, 3);
-			}
-			break;
-		case Weather::Snowy:
-			if (newPartDelay++ == 6) {
-				newPartDelay = 0;
-				partSystem.add(vec2(offset.x - game::SCREEN_WIDTH + randGet() % game::SCREEN_WIDTH * 2,
-					offset.y + game::SCREEN_HEIGHT / 2 + 50),
-					ParticleType::Confetti, 10000, 0);
-			}
-			break;
-		default:
-			break;
-		}
-	}
-
-	inline void setWeather(const std::string& w) {
-		for (int i = 0; i < static_cast<int>(Weather::count); i++) {
-			if (w == weatherStrings[i]) {
-				weather = static_cast<Weather>(i);
-				return;
-			}
-		}
-	}
+	static void setWeather(const std::string& w);
 };
 
 #endif // WEATHER_HPP_
