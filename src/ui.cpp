@@ -130,6 +130,9 @@ namespace ui {
 			tickk = tickCount + tadv;
 			ret += str[linc];
 
+			if (!isspace(str[linc]))
+				Mix_PlayChannel(0, dialogClick, 0);
+
 			if (linc < size) {
 				switch (str[++linc]) {
 				case '!':
@@ -868,6 +871,8 @@ void UISystem::dialogBox(const std::string& n, const std::string& s, ...)
 	va_start(args, s);
 	dialogText += ui::uisprintf(s.c_str(), args);
 	va_end(args);
+
+	ui::ret.clear();
 }
 
 void UISystem::dialogAddOption(const std::string& o)
@@ -878,6 +883,7 @@ void UISystem::dialogAddOption(const std::string& o)
 void UISystem::dialogImportant(const std::string& s)
 {
 	importantText = s;
+	ui::ret.clear();
 }
 
 void UISystem::waitForDialog(void)

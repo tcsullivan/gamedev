@@ -89,6 +89,15 @@ constexpr const char* buildPaths[] = {
 ** Functions section
 ** --------------------------------------------------------------------------*/
 
+/*int generateString(const std::string& s)
+{
+	int mag = 0;
+	std::stringstream ss;
+	ss.str(s);
+
+	ss >> mag >> ':';
+}*/
+
 void WorldSystem::generate(int width)
 {
 	float geninc = 0;
@@ -387,6 +396,8 @@ void WorldSystem::load(const std::string& file)
 						entity.assign<Animate>(wxml, abcd);
 					else if (tname == "Trigger")
 						entity.assign<Trigger>(wxml, abcd);
+					else if (tname == "Drop")
+						entity.assign<Drop>(wxml, abcd);
 
 					abcd = abcd->NextSiblingElement();
 				}
@@ -675,7 +686,7 @@ void WorldSystem::render(void)
 		static const float stardim = 24;
 
 		GLfloat* star_coord = new GLfloat[stars.size() * 5 * 6 + 1];
-    	auto si = &star_coord;
+    	auto si = star_coord;
 		auto xcoord = offset.x * 0.9f;
 
 		for (auto &s : stars) {
@@ -1034,6 +1045,13 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 	game::entities.each<Health>(
 		[](entityx::Entity e, Health& h) {
 		if (h.health <= 0) {
+			if (e.has_component<Drop>()) {
+				for (auto& d : e.component<Drop>()->items) {
+					auto& pos = *e.component<Position>();
+					InventorySystem::makeDrop(vec2(pos.x, pos.y), d.first, d.second);
+				}
+			}
+
 			e.kill();
 			//e.destroy();
 		}
