@@ -669,14 +669,13 @@ void WorldSystem::render(void)
 	//glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha) / 255.0f);
 	//makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
 
-	// TODO make stars dynamic (make them particles??)
-	static const Texture starTex ("assets/style/classic/bg/star.png"); // TODO why in theme, not just std.?
-	const static float stardim = 24;
-	GLfloat* star_coord = new GLfloat[stars.size() * 5 * 6 + 1];
-    GLfloat* si = &star_coord[0];
-
 	if (worldShade > 0) {
 
+		static const Texture starTex ("assets/style/classic/bg/star.png"); // TODO why in theme, not just std.?
+		static const float stardim = 24;
+
+		GLfloat* star_coord = new GLfloat[stars.size() * 5 * 6 + 1];
+    	auto si = &star_coord;
 		auto xcoord = offset.x * 0.9f;
 
 		for (auto &s : stars) {
@@ -698,9 +697,9 @@ void WorldSystem::render(void)
 		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[0]);
 		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &star_coord[3]);
 		glDrawArrays(GL_TRIANGLES, 0, stars.size() * 6);
-	}
 
-	delete[] star_coord;
+		delete[] star_coord;
+	}
 
 	Render::worldShader.disable();
 

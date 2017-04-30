@@ -35,6 +35,15 @@ std::string xmlFolder = "./xml/";
  */
 vec2 offset;
 
+std::size_t getUsedMem(void);
+void deleteRemaining(void);
+extern int balance;
+
+void print(void) {
+	std::cout << "Used memory: " << getUsedMem() << " bytes\n";
+	std::cout << "New/delete balance: " << balance << '\n';
+}
+
 /**
  * The main program.
  * Init, load, run. Die.
@@ -43,6 +52,10 @@ int main(int argc, char *argv[])
 {
 	static bool worldReset = false, worldDontReallyRun = false;
 	std::string worldActuallyUseThisXMLFile;
+
+	print();
+	atexit(print);
+	//atexit(deleteRemaining);
 
 	// handle command line args
 	if (argc > 1) {
@@ -191,7 +204,7 @@ int main(int argc, char *argv[])
 	WorldSystem::die();
 	WindowSystem::die();
 
-    return 0; // Calls everything passed to atexit
+	return 0; // Calls everything passed to atexit
 }
 
 constexpr int memEntries = 2048;
@@ -210,11 +223,24 @@ std::size_t getUsedMem(void)
 	return total;
 }
 
+void deleteRemaining(void)
+{
+	for (int i = 0; i < memEntries; i++) {
+		if (mems[i] != nullptr) {
+			balance--;
+			std::free(mems[i]);
+			mems[i] = nullptr;
+			sizs[i] = 0;
+		}
+	}
+		
+}
+
 void *operator new(std::size_t n) throw (std::bad_alloc)
 {
-	auto buf = std::malloc(n);
 	balance++;
 
+	auto buf = std::malloc(n);
 	if (buf == nullptr)
 		throw std::bad_alloc();
 
@@ -232,11 +258,10 @@ void *operator new(std::size_t n) throw (std::bad_alloc)
 void operator delete(void* p) throw ()
 {
 	if (p != nullptr) {
-		std::free(p);
 		balance--;
-
 		for (int i = 0; i < memEntries; i++) {
 			if (mems[i] == p) {
+				std::free(p);
 				mems[i] = nullptr;
 				sizs[i] = 0;
 				break;
@@ -250,11 +275,10 @@ void operator delete(void* p, std::size_t n) throw ()
 	(void)n;
 
 	if (p != nullptr) {
-		std::free(p);
 		balance--;
-
 		for (int i = 0; i < memEntries; i++) {
 			if (mems[i] == p) {
+				std::free(p);
 				mems[i] = nullptr;
 				sizs[i] = 0;
 				break;

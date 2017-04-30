@@ -219,23 +219,43 @@ void InventorySystem::receive(const MouseReleaseEvent &mre)
 			}
 		}
 
-		auto e = game::entities.create();
-		e.assign<Position>(mre.position.x, mre.position.y);
-		e.assign<Direction>(0, 0.1f);
-		e.assign<ItemDrop>(items[movingItem]);
-		e.assign<Sprite>();
-		e.component<Sprite>()->addSpriteSegment(
-			SpriteData(items[movingItem].item->sprite), vec2(0, 0));
-		auto dim = items[movingItem].item->sprite.getDim();
-		e.assign<Solid>(HLINES(dim.x), HLINES(dim.y));
-		e.assign<Visible>();
-		e.assign<Physics>();
-
+		makeDrop(mre.position, items[movingItem]);
 		items[movingItem].item = nullptr;
 		items[movingItem].count = 0;
-
 		movingItem = -1;
 	}
+}
+
+void InventorySystem::makeDrop(const vec2& p, InventoryEntry& ie)
+{
+	auto e = game::entities.create();
+	e.assign<Position>(p.x, p.y);
+	e.assign<Direction>(0, 0.1f);
+	e.assign<ItemDrop>(ie);
+	e.assign<Sprite>();
+	e.component<Sprite>()->addSpriteSegment(
+		SpriteData(ie.item->sprite), vec2(0, 0));
+	auto dim = ie.item->sprite.getDim();
+	e.assign<Solid>(HLINES(dim.x), HLINES(dim.y));
+	e.assign<Visible>();
+	e.assign<Physics>();
+}
+
+void InventorySystem::makeDrop(const vec2& p, const std::string& s, int c)
+{
+	auto item = getItem(s);
+	auto e = game::entities.create();
+	e.assign<Position>(p.x, p.y);
+	e.assign<Direction>(0, 0.1f);
+	InventoryEntry ie (item, c);
+	e.assign<ItemDrop>(ie);
+	e.assign<Sprite>();
+	e.component<Sprite>()->addSpriteSegment(
+		SpriteData(item->sprite), vec2(0, 0));
+	auto dim = item->sprite.getDim();
+	e.assign<Solid>(HLINES(dim.x), HLINES(dim.y));
+	e.assign<Visible>();
+	e.assign<Physics>();
 }
 
 void InventorySystem::receive(const KeyDownEvent &kde)

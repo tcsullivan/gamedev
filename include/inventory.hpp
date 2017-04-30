@@ -75,8 +75,8 @@ struct InventoryEntry {
 
 	vec2 loc;   /**< Used by render, to determine slot location on screen */
 
-	InventoryEntry(void)
-		: item(nullptr), count(0) {}
+	InventoryEntry(Item* i = nullptr, int c = 0, vec2 l = vec2())
+		: item(i), count(c), loc(l) {}
 };
 
 struct UseItemEvent {
@@ -139,8 +139,11 @@ public:
 	 */
 	static bool take(const std::string& name, int count);
 
-	static inline Item getItem(const std::string& s)
-	{ return itemList[s]; }
+	static void makeDrop(const vec2& p, InventoryEntry& ie);
+	static void makeDrop(const vec2& p, const std::string& s, int c);
+
+	static inline Item* getItem(const std::string& s)
+	{ return &itemList[s]; }
 };
 
 #endif // INVENTORY_HPP_
