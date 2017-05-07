@@ -31,6 +31,11 @@ namespace game {
 	 */
 	extern bool FULLSCREEN;
 
+	/**
+	 * V-Sync is enabled if this is true. Only checked at program start.
+	 */
+	extern bool vsync;
+
 	namespace config {
 		/**
 		 * The current volume level of the master channel.

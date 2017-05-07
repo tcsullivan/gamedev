@@ -37,8 +37,7 @@ XMLDocument              WorldSystem::xmlDoc;
 std::string              WorldSystem::currentXMLFile;
 std::thread              WorldSystem::thAmbient;
 std::vector<vec2>        WorldSystem::stars;
-
-extern std::string xmlFolder;
+std::string              WorldSystem::toLoad;
 
 // wait
 static bool waitToSwap = false;
@@ -98,6 +97,12 @@ constexpr const char* buildPaths[] = {
 	ss >> mag >> ':';
 }*/
 
+int WorldSystem::getLineIndex(float x)
+{
+	return std::clamp(static_cast<int>((x - world.startX) / game::HLINE),
+		0, static_cast<int>(world.data.size()));
+}
+
 void WorldSystem::generate(int width)
 {
 	float geninc = 0;
@@ -146,10 +151,7 @@ void WorldSystem::generate(int width)
 
 float WorldSystem::isAboveGround(const vec2& p) 
 {
-	int line = std::clamp(static_cast<int>((p.x - world.startX) / game::HLINE),
-		0, static_cast<int>(world.data.size()));
-
-	const auto& gh = world.data[line].groundHeight;
+	const auto& gh = world.data[getLineIndex(p.x)].groundHeight;
 	return p.y >= gh ? 0 : gh;
 }
 
@@ -160,7 +162,7 @@ bool WorldSystem::save(void)
 	if (world.indoor)
 		return false;
 
-	std::ofstream save (xmlFolder + currentXMLFile + ".dat");
+	std::ofstream save (game::config::xmlFolder + currentXMLFile + ".dat");
 
 	// signature?
 	save << "831998 ";
@@ -210,10 +212,15 @@ void WorldSystem::fight(entityx::Entity entity)
 
 void WorldSystem::load(const std::string& file)
 {
+	toLoad = file;
+}
+
+void WorldSystem::loader(void)
+{
 	entityx::Entity entity;
 
 	// check for empty file name
-	if (file.empty())
+	if (toLoad.empty())
 		return;
 
 	// save the current world's data
@@ -221,7 +228,7 @@ void WorldSystem::load(const std::string& file)
 		save();
 
 	// load file data to string
-	auto xmlPath = xmlFolder + file;
+	auto xmlPath = game::config::xmlFolder + toLoad;
 	auto xmlRaw = readFile(xmlPath);
 
 	// let tinyxml parse the file
@@ -237,7 +244,7 @@ void WorldSystem::load(const std::string& file)
 
 		if (file != nullptr) {
 			DEBUG_printf("Including file: %s\n", file);
-			toAdd.emplace_back(xmlFolder + file);
+			toAdd.emplace_back(game::config::xmlFolder + file);
 			//xmlRaw.append(readFile(xmlFolder + file));
 		} else {
 			UserError("XML Error: <include> tag file not given");
@@ -269,7 +276,7 @@ void WorldSystem::load(const std::string& file)
 	}
 
 	world.toLeft = world.toRight = "";
-	currentXMLFile = file;
+	currentXMLFile = toLoad;
 
 	//game::entities.reset();
 	if (!savedEntities.empty()) {
@@ -319,9 +326,9 @@ void WorldSystem::load(const std::string& file)
 				UserError("<house> can only be used inside <IndoorWorld>");
 
 			//world.indoorWidth = wxml->FloatAttribute("width");
-			world.indoorTex = RenderSystem::loadTexture(wxml->StrAttribute("texture")); // TODO winbloze lol
+			world.indoorTex = Texture(wxml->StrAttribute("texture")); // TODO winbloze lol
 			auto str = wxml->StrAttribute("texture");
-			auto tex = RenderSystem::loadTexture(str);
+			auto tex = Texture(str);
 			world.indoorTex = tex;
 		}
 
@@ -411,7 +418,7 @@ void WorldSystem::load(const std::string& file)
 	}
 
 	// attempt to load data
-	std::ifstream save (xmlFolder + currentXMLFile + ".dat");
+	std::ifstream save (game::config::xmlFolder + currentXMLFile + ".dat");
 	if (save.good()) {
 		// check signature
 		int signature;
@@ -444,6 +451,7 @@ void WorldSystem::load(const std::string& file)
 		save.close();
 	}
 
+	toLoad.clear();
 	game::events.emit<BGMToggleEvent>();
 }
 
@@ -591,23 +599,20 @@ void WorldSystem::render(void)
     // world width in pixels
 	int width = HLINES(world.data.size());
 
-	static bool ambientUpdaterStarted = false;
-	if (!ambientUpdaterStarted) {
-		ambientUpdaterStarted = true;
+	static std::once_flag init;
+	std::call_once(init, [&](void) {
 		thAmbient = std::thread([&](void) {
-			const bool &run = game::engine.shouldRun;
-			while (run) {
+			while (game::engine.shouldRun) {
 				float v = 75 * sin((game::time::getTickCount() + (DAY_CYCLE / 2)) / (DAY_CYCLE / PI));
 				float rg = std::clamp(.5f + (-v / 100.0f), 0.01f, .9f);
 				float b  = std::clamp(.5f + (-v / 80.0f), 0.03f, .9f);
 
 				ambient = Color(rg, rg, b, 1.0f);
-
 				std::this_thread::sleep_for(1ms);
 			}
 		});
 		thAmbient.detach();
-	}
+	});
 
 	// shade value for GLSL
 	float shadeAmbient = std::max(0.0f, static_cast<float>(-worldShade) / 50 + 0.5f); // 0 to 1.5f
@@ -619,24 +624,6 @@ void WorldSystem::render(void)
 	//GLfloat bgOff = game::time::getTickCount() / static_cast<float>(DAY_CYCLE * 2);
 	GLfloat bgOff = -0.5f * cos(PI / DAY_CYCLE * game::time::getTickCount()) + 0.5f;
 
-	GLfloat topS = .125f + bgOff;
-	GLfloat bottomS = bgOff;
-
-	if (topS < 0.0f)
-		topS += 1.0f;
-	if (bottomS < 0.0f)
-		bottomS += 1.0f;
-
-	GLfloat scrolling_tex_coord[] = {
-		0.0f,  bottomS,
-		1.0f,  bottomS,
-		1.0f,  bottomS,
-
-		1.0f,  bottomS,
-		0.0f,  bottomS,
-		0.0f,  bottomS
-	};
-
    	static const vec2 bg_tex_coord[] = {
 		vec2(0.0f, 0.0f),
         vec2(1.0f, 0.0f),
@@ -647,14 +634,17 @@ void WorldSystem::render(void)
         vec2(0.0f, 0.0f)
 	};
 
-    GLfloat back_tex_coord[] = {
-		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f,
-        offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f,
-        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
+	GLfloat bottomS = bgOff;
+	if (bottomS < 0.0f)
+		bottomS += 1.0f;
 
-        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f,
-        offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f,
-        offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f
+    GLfloat farBack[] = {
+		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, bottomS,
+        offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f, 1, bottomS,
+        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, bottomS,
+        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, bottomS,
+        offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f, 0, bottomS,
+        offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, bottomS
 	};
 
 	// rendering!!
@@ -671,17 +661,11 @@ void WorldSystem::render(void)
     bgTex(0);
 	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 
-	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, back_tex_coord);
-	glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 0, scrolling_tex_coord);
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), farBack);
+	glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), farBack + 3);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	// no more night bg
-	//bgTex++;
-	//glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.3 - static_cast<float>(alpha) / 255.0f);
-	//makeWorldDrawingSimplerEvenThoughAndyDoesntThinkWeCanMakeItIntoFunctions(0, fron_tex_coord, tex_coord, 6);
-
 	if (worldShade > 0) {
-
 		static const Texture starTex ("assets/style/classic/bg/star.png"); // TODO why in theme, not just std.?
 		static const float stardim = 24;
 
@@ -949,49 +933,34 @@ void WorldSystem::render(void)
 		static const float s = -(static_cast<float>(SCREEN_WIDTH) / 2.0f);
 		// the ending pixel of the world
 		static const float e = static_cast<float>(SCREEN_WIDTH) / 2.0f;
-
 		static const float sheight = static_cast<float>(SCREEN_HEIGHT);
 			
+		auto yOffset = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
+		GLfloat blackBar[] = {
+			s,            yOffset,           -3.5f, 0.0f, 0.0f,
+			world.startX, yOffset,           -3.5f, 1.0f, 0.0f,
+			world.startX, yOffset + sheight, -3.5f, 1.0f, 1.0f,
+			world.startX, yOffset + sheight, -3.5f, 1.0f, 1.0f,
+   			s,            yOffset + sheight, -3.5f, 0.0f, 1.0f,
+			s,            yOffset,           -3.5f, 0.0f, 0.0f
+		};
 
 		if (offset.x + world.startX > s) {
 			Colors::black.use();
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
-
-			auto off = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
-
-			GLfloat blackBarLeft[] = {
-				s,            0.0f    + off,    -3.5f, 0.0f, 0.0f,
-				world.startX, 0.0f    + off,    -3.5f, 1.0f, 0.0f,
-				world.startX, sheight + off, -3.5f, 1.0f, 1.0f,
-
-				world.startX, sheight + off, -3.5f, 1.0f, 1.0f,
-    			s,            sheight + off, -3.5f, 0.0f, 1.0f,
-				s,            0.0f 	  + off,    -3.5f, 0.0f, 0.0f
-			};
-
-	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, &blackBarLeft[0]);
-	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, &blackBarLeft[3]);
+	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
+	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
 	    	glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
 		if (offset.x - world.startX < e) {
+			blackBar[0] = blackBar[20] = blackBar[25] = -world.startX;
+			blackBar[5] = blackBar[10] = blackBar[15] = e;
+
 			Colors::black.use();
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
-		
-			auto off = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
-
-			GLfloat blackBarRight[] = {
-				-(world.startX), 0.0f    + off,    -3.5f, 0.0f, 0.0f,
-				e,               0.0f    + off,    -3.5f, 1.0f, 0.0f,
-				e,               sheight + off, -3.5f, 1.0f, 1.0f,
-
-				e,               sheight + off, -3.5f, 1.0f, 1.0f,
-    			-(world.startX), sheight + off, -3.5f, 0.0f, 1.0f,
-				-(world.startX), 0.0f    + off,    -3.5f, 0.0f, 0.0f
-			};
-
-	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, &blackBarRight[0]);
-	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, &blackBarRight[3]);
+	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
+	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
 	    	glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
@@ -1053,7 +1022,6 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 			}
 
 			e.kill();
-			//e.destroy();
 		}
 	});
 
@@ -1061,13 +1029,10 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 		[&](entityx::Entity e, Grounded &g, Position &loc, Solid &dim) {
 		(void)e;
 		if (!g.grounded) {
-			// get the line the entity is on
-			int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world.startX) / game::HLINE),
-				0, static_cast<int>(world.data.size()));
-				// make sure entity is above ground
-			const auto& data = world.data;
-			if (loc.y != data[line].groundHeight) {
-				loc.y = data[line].groundHeight;
+			// make sure entity is above ground
+			auto height = world.data[getLineIndex(loc.x + dim.width / 2)].groundHeight;
+			if (loc.y != height) {
+				loc.y = height;
 				e.remove<Grounded>();
 			}
 		}
@@ -1078,35 +1043,29 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 		(void)e;
 		// handle gravity
         if (vel.y > -2.0f)
-			vel.y -= (GRAVITY_CONSTANT * phys.g) * dt;
+			vel.y -= GRAVITY_CONSTANT * phys.g * dt;
 	});
 
 	game::entities.each<Position, Direction, Solid>(
 	    [&](entityx::Entity e, Position &loc, Direction &vel, Solid &dim) {
 		(void)e;
-		//if (health.health <= 0)
-		//	UserError("die mofo");
-
 		// get the line the entity is on
-		int line = std::clamp(static_cast<int>((loc.x + dim.width / 2 - world.startX) / game::HLINE),
-			0, static_cast<int>(world.data.size()));
+		auto line = getLineIndex(loc.x + dim.width / 2);
 
 		// make sure entity is above ground
-		const auto& data = world.data;
-		if (loc.y < data[line].groundHeight) {
+		if (loc.y < world.data[line].groundHeight) {
 			int dir = vel.x < 0 ? -1 : 1;
-			auto thing = line + dir * 2;
-			if (thing > 0 && thing < static_cast<int>(data.size()) &&
-			    data[line + dir * 2].groundHeight - 30 > data[line + dir].groundHeight) {
+			auto near = std::clamp(line + dir * 2, 0, static_cast<int>(world.data.size()));
+			if (world.data[near].groundHeight - 30 > world.data[line + dir].groundHeight) {
 				loc.x -= (PLAYER_SPEED_CONSTANT + 2.7f) * dir * 2;
 				vel.x = 0;
 			} else {
-				loc.y = data[line].groundHeight - 0.001f * dt;
+				loc.y = world.data[line].groundHeight - 0.001f * dt;
 				vel.y = 0;
 				if (!vel.grounded) {
 					vel.grounded = true;
 					ParticleSystem::addMultiple(20, ParticleType::SmallPoof,
-						[&](){ return vec2(loc.x + randGet() % static_cast<int>(dim.width), loc.y);}, 500, 30);
+						[&](){ return vec2(loc.x + randGet() % static_cast<int>(dim.width), loc.y); }, 500, 30);
 				}
 			}
 		}
@@ -1116,9 +1075,9 @@ void WorldSystem::detect(entityx::TimeDelta dt)
         if (loc.x < world.startX) {
 			vel.x = 0;
 			loc.x = world.startX + HLINES(0.5f);
-		} else if (loc.x + dim.width + game::HLINE > -(static_cast<int>(world.startX))) {
+		} else if (loc.x + dim.width + game::HLINE > -static_cast<int>(world.startX)) {
 			vel.x = 0;
-			loc.x = -(static_cast<int>(world.startX)) - dim.width - game::HLINE;
+			loc.x = -static_cast<int>(world.startX) - dim.width - game::HLINE;
 		}
 	});
 }

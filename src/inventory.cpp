@@ -91,8 +91,6 @@ void InventorySystem::render(void)
 		size = hotbarSize;
 	}
 
-	static const GLfloat tex[12] = {0,1,1,1,1,0,1,0,0,0,0,1};
-
 	// draw items
 	for (int n = 0; n < size; n++) {
 		auto &i = items[n];
@@ -103,20 +101,24 @@ void InventorySystem::render(void)
 
 		Colors::black.use();
 		glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, .6);
-		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, Colors::texCoord);
 		vec2 end = i.loc + entrySize - 6;
-		GLfloat coords[18] = {
-			i.loc.x, i.loc.y, inventoryZ - 0.1, end.x, i.loc.y, inventoryZ - 0.1, end.x, end.y, inventoryZ - 0.1,
-			end.x, end.y, inventoryZ - 0.1, i.loc.x, end.y, inventoryZ - 0.1, i.loc.x, i.loc.y, inventoryZ - 0.1
+		GLfloat coords[] = {
+			i.loc.x, i.loc.y, inventoryZ - 0.1, 0, 0,
+			end.x,   i.loc.y, inventoryZ - 0.1, 0, 0,
+			end.x,   end.y,   inventoryZ - 0.1, 0, 0,
+			end.x,   end.y,   inventoryZ - 0.1, 0, 0,
+			i.loc.x, end.y,   inventoryZ - 0.1, 0, 0,
+			i.loc.x, i.loc.y, inventoryZ - 0.1, 0, 0,
 		};
-		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
+
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), coords);
+		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), coords + 3);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, 1);
 
 		// draw the item
 		if (isGoodEntry(i)) {
 			i.item->sprite.use();
-			glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
 
 			auto& dim = i.item->sprite.getDim();
 			vec2 truDim;
@@ -128,11 +130,18 @@ void InventorySystem::render(void)
 			vec2 loc (i.loc.x + ((entrySize - 6) / 2 - truDim.x / 2), i.loc.y);
 			vec2 sta ((n == movingItem) ? ui::mouse - truDim / 2 : loc);
 			vec2 end = (n == movingItem) ? ui::mouse + truDim / 2 : loc + truDim;
-			GLfloat coords[18] = {
-				sta.x, sta.y, inventoryZ - 0.2, end.x, sta.y, inventoryZ - 0.2, end.x, end.y, inventoryZ - 0.2,
-				end.x, end.y, inventoryZ - 0.2, sta.x, end.y, inventoryZ - 0.2, sta.x, sta.y, inventoryZ - 0.2
+
+			GLfloat coords[] = {
+				sta.x, sta.y, inventoryZ - 0.2, 0, 1,
+				end.x, sta.y, inventoryZ - 0.2, 1, 1,
+				end.x, end.y, inventoryZ - 0.2, 1, 0,
+				end.x, end.y, inventoryZ - 0.2, 1, 0,
+				sta.x, end.y, inventoryZ - 0.2, 0, 0,
+				sta.x, sta.y, inventoryZ - 0.2, 0, 1,
 			};
-			glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
+
+			glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), coords);
+			glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), coords + 3);
 			if (n == movingItem)
 				glUniform4f(Render::textShader.uniform[WU_tex_color], .8, .8, 1, .8);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -149,16 +158,21 @@ void InventorySystem::render(void)
 		
 		auto& i = items[0];
 		i.item->sprite.use();
-		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex);
 
 		auto pos = PlayerSystem::getPosition();
 		vec2 sta (pos.x, pos.y);
 		vec2 end (sta + (i.item->sprite.getDim() * game::HLINE));
-		GLfloat coords[18] = {
-			sta.x, sta.y, -8, end.x, sta.y, -8, end.x, end.y, -8,
-			end.x, end.y, -8, sta.x, end.y, -8, sta.x, sta.y, -8
+		GLfloat coords[] = {
+			sta.x, sta.y, -8, 0, 1,
+			end.x, sta.y, -8, 1, 1,
+			end.x, end.y, -8, 1, 0,
+			end.x, end.y, -8, 1, 0,
+			sta.x, end.y, -8, 0, 0,
+			sta.x, sta.y, -8, 0, 1,
 		};
-		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
+
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), coords);
+		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), coords + 3);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 

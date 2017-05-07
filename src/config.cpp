@@ -12,6 +12,7 @@ namespace game {
 	unsigned int SCREEN_WIDTH;
 	unsigned int SCREEN_HEIGHT;
 	bool         FULLSCREEN;
+	bool vsync;
 
 	namespace config {
 		static XMLDocument xml;
@@ -34,6 +35,8 @@ namespace game {
 				SCREEN_HEIGHT = 768;
 			if (exml->QueryBoolAttribute("fullscreen", &FULLSCREEN) != XML_NO_ERROR)
 				FULLSCREEN = false;
+			if (exml->QueryBoolAttribute("vsync", &vsync) != XML_NO_ERROR)
+				vsync = true;
 
 			if (xml.FirstChildElement("hline")->QueryUnsignedAttribute("size", &HLINE) != XML_NO_ERROR)
 				HLINE = 3;
@@ -47,8 +50,6 @@ namespace game {
 				VOLUME_SFX = 50;
 
 			xmlFolder = xml.FirstChildElement("world")->StrAttribute("start");
-			if (xmlFolder.empty())
-				xmlFolder = "xml/";
 
 			// FONT SETUP
 			fontFamily = xml.FirstChildElement("font")->Attribute("path");

@@ -86,7 +86,7 @@ void init(void)
 		+ reinterpret_cast<const char *>(glewGetErrorString(glewError)));
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);               // anti-aliasing
-	SDL_GL_SetSwapInterval(1);                                 // v-sync
+	SDL_GL_SetSwapInterval(game::vsync);                       // v-sync
 	SDL_ShowCursor(SDL_DISABLE);                               // hide the cursor
 	glViewport(0, 0, game::SCREEN_WIDTH, game::SCREEN_HEIGHT); // pixel coordinates
 	glEnable(GL_BLEND);                                        // alpha enabling
@@ -193,9 +193,8 @@ void render(const int& fps)
 	}
 
 	UISystem::render();
-
-	//ui::drawFade();
 	ui::draw();
+	FontSystem::render();
 	
 	WindowSystem::render();
 }

@@ -1,8 +1,9 @@
 #ifndef FONT_HPP_
 #define FONT_HPP_
 
-#include <vector>
 #include <map>
+#include <memory>
+#include <vector>
 
 #include <color.hpp>
 #include <render.hpp>
@@ -28,6 +29,7 @@ private:
 
 	static std::string fontFamily;
 	static std::map<int, std::vector<FT_Info>> fontData;
+	static std::vector<std::unique_ptr<GLfloat>> drawData;
 
 	static int currentSize;
 	static Color currentColor;
@@ -45,6 +47,8 @@ public:
 	static void setFontZ(float z = -8.0f);
 
 	static vec2 putChar(float xx, float yy, char c);
+
+	static void render(void);
 
 	static inline int getSize(void)
 	{ return currentSize; }

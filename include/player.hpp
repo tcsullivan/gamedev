@@ -80,8 +80,7 @@ public:
 	 * Gets the width of the player.
 	 * @return the player's width, according to its sprite
 	 */
-    static inline float getWidth(void) 
-    { return game::entities.component<Solid>(player.id())->width; }
+    static float getWidth(void); 
 };
 
 #endif // PLAYER_HPP_

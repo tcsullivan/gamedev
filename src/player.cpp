@@ -215,8 +215,19 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 
 vec2 PlayerSystem::getPosition(void) 
 {
-	auto& loc = *game::entities.component<Position>(player.id()).get();
+	Position loc;
+	if (player)
+		loc = *game::entities.component<Position>(player.id()).get();
+
     return vec2(loc.x, loc.y);
+}
+
+float PlayerSystem::getWidth(void)
+{
+	float width = 0;
+	if (player)
+		width = game::entities.component<Solid>(player.id())->width;
+	return width;
 }
 
 void PlayerSystem::receive(const UseItemEvent& uie)

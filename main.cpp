@@ -25,24 +25,12 @@ using namespace std::literals::chrono_literals;
 #include <ui.hpp>
 #include <inventory.hpp>
 
-/**
- * The currently used folder to look for XML files in.
- */
-std::string xmlFolder = "./xml/";
+std::atomic_bool GameThread::pause;
 
 /**
  * The current center of the screen, updated in main render.
  */
 vec2 offset;
-
-std::size_t getUsedMem(void);
-void deleteRemaining(void);
-extern int balance;
-
-void print(void) {
-	std::cout << "Used memory: " << getUsedMem() << " bytes\n";
-	std::cout << "New/delete balance: " << balance << '\n';
-}
 
 /**
  * The main program.
@@ -52,10 +40,6 @@ int main(int argc, char *argv[])
 {
 	static bool worldReset = false, worldDontReallyRun = false;
 	std::string worldActuallyUseThisXMLFile;
-
-	print();
-	atexit(print);
-	//atexit(deleteRemaining);
 
 	// handle command line args
 	if (argc > 1) {
@@ -71,10 +55,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	//
 	// init the main game engine
-	//
-
 	game::engine.init();
 
 	// initialize the renderer
@@ -89,14 +70,14 @@ int main(int argc, char *argv[])
 
 	// read in all XML file names in the folder
 	std::list<std::string> xmlFiles;
-	if (getdir(std::string("./" + xmlFolder), xmlFiles))
+	if (getdir(std::string("./" + game::config::xmlFolder), xmlFiles))
 		UserError("Error reading XML files!!!");
 
 	// kill the world if needed
 	if (worldReset) {
 		for (const auto& s : xmlFiles) {
 			if (s.find(".dat", s.size() - 4) != std::string::npos) {
-				std::string re = xmlFolder;
+				std::string re = game::config::xmlFolder;
 				re.append(s);
 				auto r = re.c_str();
 				std::cout << "Removing " << r << "...\n";
@@ -123,16 +104,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	WorldSystem::loader();
+
 	/////////////////////////////
 	//                         //
 	// actually start the game //
 	//                         //
 	/////////////////////////////
-
-
-	InventorySystem::add("Hunters Bow", 1);
-	InventorySystem::add("Wood Sword", 1);
-	InventorySystem::add("Arrow", 198);
 
 	std::list<SDL_Event> eventQueue;
 
@@ -167,14 +145,15 @@ int main(int argc, char *argv[])
 			std::this_thread::sleep_for(1s);
 		});
 
-		/*GameThread gtFade ([&] {
-			ui::fadeUpdate();
-			std::this_thread::sleep_for(20ms);
-		});*/
-
 		// the render loop, renders
 		const bool &run = game::engine.shouldRun;
 		while (run) {
+			if (WorldSystem::shouldLoad()) {
+				GameThread::pauseAll();
+				WorldSystem::loader();
+				GameThread::resumeAll();
+			}
+			
 			fpsInternal++;
 			Render::render(fps);
 			
@@ -188,7 +167,6 @@ int main(int argc, char *argv[])
 		// on game end, get back together
 		gtMain.stop();
 		gtDebug.stop();
-		//gtFade.stop();
 		//game::engine.getSystem<WorldSystem>()->thAmbient.join(); // segfault or something
 	}
 

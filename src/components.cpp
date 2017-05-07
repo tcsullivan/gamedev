@@ -128,17 +128,17 @@ Texture RenderSystem::loadTexture(const std::string& file)
 }
 
 void RenderSystem::render(void)
-{
+{	
 	if (!loadTexString.empty()) {
 		loadTexResult = Texture(loadTexString, false);
 		loadTexString.clear();
 	}
-	
-	Render::worldShader.use();
-	Render::worldShader.enable();
 
 	if (!loadTexResult.isEmpty())
 		return;
+
+	Render::worldShader.use();
+	Render::worldShader.enable();
 
 	game::entities.each<Visible, Sprite, Position>([](entityx::Entity entity, Visible &visible, Sprite &sprite, Position &pos) {
 		// Verticies and shit
@@ -161,25 +161,17 @@ void RenderSystem::render(void)
 		for (auto &S : sprite.sprite) {
 			auto sp = S.first;
 			auto size = sp.size * game::HLINE;
-			vec2 drawOffset(HLINES(S.second.x), HLINES(S.second.y));
-			vec2 loc(pos.x + drawOffset.x, pos.y + drawOffset.y);
+			vec2 drawOffset (HLINES(S.second.x), HLINES(S.second.y));
+			vec2 loc (pos.x + drawOffset.x, pos.y + drawOffset.y);
 
-			GLfloat tex_coord[] = {sp.offset_tex.x, 				sp.offset_tex.y,
-								   sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y,
-								   sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y + sp.size_tex.y,
-
-								   sp.offset_tex.x, 				sp.offset_tex.y,
-								   sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y + sp.size_tex.y,
-								   sp.offset_tex.x, 				sp.offset_tex.y + sp.size_tex.y};
-			
-			GLfloat coords[] = {loc.x, 			loc.y, 			visible.z + its,
-								loc.x + size.x,	loc.y, 			visible.z + its,
-								loc.x + size.x, loc.y + size.y, visible.z + its,
-
-								loc.x,			loc.y, 			visible.z + its,
-								loc.x + size.x, loc.y + size.y, visible.z + its,
-								loc.x, 			loc.y + size.y, visible.z + its};
-
+			GLfloat verts[] = {
+				loc.x,          loc.y,          visible.z + its, sp.offset_tex.x,                 sp.offset_tex.y,
+				loc.x + size.x,	loc.y,          visible.z + its, sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y,
+				loc.x + size.x, loc.y + size.y, visible.z + its, sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y + sp.size_tex.y,
+				loc.x,          loc.y,          visible.z + its, sp.offset_tex.x,                 sp.offset_tex.y,
+				loc.x + size.x, loc.y + size.y, visible.z + its, sp.offset_tex.x + sp.size_tex.x, sp.offset_tex.y + sp.size_tex.y,
+				loc.x,          loc.y + size.y, visible.z + its, sp.offset_tex.x,                 sp.offset_tex.y + sp.size_tex.y
+			};
 
 			// make the entity hit flash red
 			// TODO
@@ -192,8 +184,8 @@ void RenderSystem::render(void)
 
 			glUniform1i(Render::worldShader.uniform[WU_texture], 0);
 
-			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, coords);
-			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 0, tex_coord);
+			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts);
+			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts + 3);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 
 			//glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);

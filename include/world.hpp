@@ -136,7 +136,11 @@ private:
 	 */
 	static std::string currentXMLFile;
 
+	static std::string toLoad;
+
 	static std::vector<vec2> stars;
+
+	static int getLineIndex(float x);
 
 public:
 	static std::thread thAmbient;
@@ -178,6 +182,10 @@ public:
 	void fight(entityx::Entity entity);
 
 	static void die(void);
+	static void loader(void);
+
+	static inline bool shouldLoad(void)
+	{ return !toLoad.empty(); }
 };
 
 #endif // WORLD_HPP_
