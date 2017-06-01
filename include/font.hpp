@@ -2,7 +2,6 @@
 #define FONT_HPP_
 
 #include <map>
-#include <memory>
 #include <vector>
 
 #include <color.hpp>
@@ -22,6 +21,17 @@ struct FT_Info {
 		: tex(0) {}
 };
 
+struct DrawData {
+	GLuint tex;
+	Color color;
+	GLfloat verts[30];
+
+	DrawData(GLuint t, Color c, std::initializer_list<GLfloat> v)
+		: tex(t), color(c) {
+		std::copy(v.begin(), v.end(), verts);
+	}
+};
+
 class FontSystem {
 private:
 	static FT_Library ftLibrary;
@@ -29,7 +39,7 @@ private:
 
 	static std::string fontFamily;
 	static std::map<int, std::vector<FT_Info>> fontData;
-	static std::vector<std::unique_ptr<GLfloat>> drawData;
+	static std::vector<DrawData> drawData;
 
 	static int currentSize;
 	static Color currentColor;

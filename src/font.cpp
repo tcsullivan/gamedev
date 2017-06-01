@@ -6,7 +6,7 @@ FT_Library FontSystem::ftLibrary;
 FT_Face    FontSystem::ftFace;
 std::string                             FontSystem::fontFamily;
 std::map<int, std::vector<FT_Info>>     FontSystem::fontData;
-std::vector<std::unique_ptr<GLfloat>> FontSystem::drawData;
+std::vector<DrawData> FontSystem::drawData;
 int   FontSystem::currentSize = 0;
 Color FontSystem::currentColor;
 float FontSystem::currentZ = -8.0f;
@@ -82,17 +82,19 @@ vec2 FontSystem::putChar(float x, float y, char c)
 	vec2 c1 (static_cast<float>(floor(x) + ch.bl.x), static_cast<float>(floor(y) + ch.bl.y));
 	vec2 c2 (c1.x + ch.wh.x, c1.y - ch.wh.y);
 
-	GLfloat verts[31] = {
-		static_cast<GLfloat>(ch.tex),
-		c1.x, c1.y, currentZ, 0, 0,
-		c2.x, c1.y, currentZ, 1, 0,
-		c2.x, c2.y, currentZ, 1, 1,
-		c2.x, c2.y, currentZ, 1, 1,
-		c1.x, c2.y, currentZ, 0, 1,
-		c1.x, c1.y, currentZ, 0, 0,
-	};
+	drawData.push_back( DrawData {
+		ch.tex,
+		currentColor,
+		{
+			c1.x, c1.y, currentZ, 0, 0,
+			c2.x, c1.y, currentZ, 1, 0,
+			c2.x, c2.y, currentZ, 1, 1,
+			c2.x, c2.y, currentZ, 1, 1,
+			c1.x, c2.y, currentZ, 0, 1,
+			c1.x, c1.y, currentZ, 0, 0,
+		}
+	});
 
-	drawData.emplace_back(reinterpret_cast<GLfloat*>(std::memcpy(new GLfloat[31], verts, 31 * sizeof(GLfloat))));
 	return ch.ad;
 }
 
@@ -101,14 +103,13 @@ void FontSystem::render(void)
 	Render::textShader.use();
 	Render::textShader.enable();
 
-	glUniform4f(Render::textShader.uniform[WU_tex_color],
-		currentColor.red, currentColor.green, currentColor.blue, currentColor.alpha);
-
 	for (const auto& d : drawData) {
+		glUniform4f(Render::textShader.uniform[WU_tex_color],
+			d.color.red, d.color.green, d.color.blue, d.color.alpha);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(d.get()[0]));
-		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), d.get() + 1);
-		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), d.get() + 4);
+		glBindTexture(GL_TEXTURE_2D, d.tex);
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), d.verts);
+		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), d.verts + 3);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 

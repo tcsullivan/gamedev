@@ -72,18 +72,6 @@ constexpr const char* bgPaths[1][8] = {
 	}
 };
 
-// pathnames of structure textures
-constexpr const char* buildPaths[] = {
-    "townhall.png",
-	"house1.png",
-    "house2.png",
-    "house1.png",
-    "house1.png",
-    "fountain1.png",
-    "lampPost1.png",
-	"brazzier.png"
-};
-
 /* ----------------------------------------------------------------------------
 ** Functions section
 ** --------------------------------------------------------------------------*/
@@ -614,6 +602,11 @@ void WorldSystem::render(void)
 		thAmbient.detach();
 	});
 
+	auto push5 = [](GLfloat *&vec, GLfloat *five) {
+		for (int i = 0; i < 5; i++)
+			*vec++ = *five++;
+	};
+
 	// shade value for GLSL
 	float shadeAmbient = std::max(0.0f, static_cast<float>(-worldShade) / 50 + 0.5f); // 0 to 1.5f
 
@@ -621,34 +614,20 @@ void WorldSystem::render(void)
 		shadeAmbient = 1;
 
 	// TODO scroll backdrop
-	//GLfloat bgOff = game::time::getTickCount() / static_cast<float>(DAY_CYCLE * 2);
-	GLfloat bgOff = -0.5f * cos(PI / DAY_CYCLE * game::time::getTickCount()) + 0.5f;
+	GLfloat skyOffset = -0.5f * cos(PI / DAY_CYCLE * game::time::getTickCount()) + 0.5f;
+	if (skyOffset < 0)
+		skyOffset++;
 
-   	static const vec2 bg_tex_coord[] = {
-		vec2(0.0f, 0.0f),
-        vec2(1.0f, 0.0f),
-        vec2(1.0f, 1.0f),
-
-        vec2(1.0f, 1.0f),
-        vec2(0.0f, 1.0f),
-        vec2(0.0f, 0.0f)
-	};
-
-	GLfloat bottomS = bgOff;
-	if (bottomS < 0.0f)
-		bottomS += 1.0f;
-
-    GLfloat farBack[] = {
-		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, bottomS,
-        offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f, 1, bottomS,
-        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, bottomS,
-        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, bottomS,
-        offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f, 0, bottomS,
-        offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, bottomS
+    GLfloat skyverts[] = {
+		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, skyOffset,
+        offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f, 1, skyOffset,
+        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, skyOffset,
+        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, skyOffset,
+        offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f, 0, skyOffset,
+        offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, skyOffset,
 	};
 
 	// rendering!!
-
     glActiveTexture(GL_TEXTURE0);
 	Render::worldShader.use();
     glUniform1i(Render::worldShader.uniform[WU_texture], 0);
@@ -661,8 +640,8 @@ void WorldSystem::render(void)
     bgTex(0);
 	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 
-	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), farBack);
-	glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), farBack + 3);
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), skyverts);
+	glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), skyverts + 3);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	if (worldShade > 0) {
@@ -696,108 +675,68 @@ void WorldSystem::render(void)
 		delete[] star_coord;
 	}
 
-	Render::worldShader.disable();
-
 	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 	glUniform4f(Render::worldShader.uniform[WU_ambient], ambient.red, ambient.green, ambient.blue, 1.0);
-	Render::worldShader.unuse();
 
-    std::vector<vec3> bg_items;
-	std::vector<vec2> bg_tex;
-
-	bgTex++;
-	auto mountainDim = bgTex.getTextureDim();
-	mountainDim.x = HLINES(mountainDim.x);
-	mountainDim.y = HLINES(mountainDim.y);
-    auto xcoord = width / 2 * -1 + offset.x * 0.85f;
-	for (int i = 0; i <= width / mountainDim.x; i++) {
-        bg_items.emplace_back(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f);
-        bg_items.emplace_back(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f);
-        bg_items.emplace_back(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f);
-
-        bg_items.emplace_back(mountainDim.x * (i + 1) + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f);
-        bg_items.emplace_back(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM + mountainDim.y, 8.0f);
-        bg_items.emplace_back(mountainDim.x * i       + xcoord, GROUND_HEIGHT_MINIMUM, 				 8.0f);
-	}
-
-    for (uint i = 0; i < bg_items.size()/6; i++) {
-        for (auto &v : bg_tex_coord)
-            bg_tex.push_back(v);
-    }
-
-    Render::worldShader.use();
-	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.01);
-
-	Render::worldShader.enable();
-
-	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, &bg_items[0]);
-	glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 0, &bg_tex[0]);
-	glDrawArrays(GL_TRIANGLES, 0, bg_items.size());
-
-	Render::worldShader.disable();
-
-    Render::worldShader.unuse();
-	// draw the remaining layers
-	static const float alphas[4] = {
-		0.6, 0.4, 0.25, 0.1
+	constexpr float parallax[5] = {
+		0.85f, 0.60f, 0.40f, 0.25f, 0.10f
 	};
-	for (int i = 0; i < 4; i++) {
+	float z = 8.0f;
+	for (int i = 0; i < 5; i++, z -= 0.1f) {
 		bgTex++;
-		auto xcoord = offset.x * alphas[i];
+		auto mountainDim = bgTex.getTextureDim() * game::HLINE;
+	    auto xcoord = width / 2 * -1 + offset.x * parallax[i];
 
-		bg_items.clear();
-		bg_tex.clear();
+		int count = width / mountainDim.x + 1;
+		GLfloat* bgItems = new GLfloat[count * 30];
+		GLfloat* bgItemsFront = bgItems;
 
-		vec2 dim = bgTex.getTextureDim() * game::HLINE;
+		for (int i = 0; i < count; i++) {
+			GLfloat five[5] = {
+				0, 0, mountainDim.x * i + xcoord, GROUND_HEIGHT_MINIMUM, z
+			};
 
-		if (world.indoor && i == 3) {
-			world.indoorTex.use();
-
-			const auto& startx = world.startX;
-			dim = world.indoorTex.getDim() * game::HLINE;
-
-			bg_items.emplace_back(startx,         GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
-	        bg_items.emplace_back(startx + dim.x, GROUND_HEIGHT_MINIMUM,	     7 - (i * 0.1f));
-	        bg_items.emplace_back(startx + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
-
-	        bg_items.emplace_back(startx + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
-	        bg_items.emplace_back(startx,         GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
-	        bg_items.emplace_back(startx,         GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
-		} else {
-			for (int j = world.startX; j <= -world.startX; j += dim.x) {
-	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
-	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
-	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
-
-	            bg_items.emplace_back(j + dim.x + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
-	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM + dim.y, 7 - (i * 0.1f));
-	            bg_items.emplace_back(j         + xcoord, GROUND_HEIGHT_MINIMUM,         7 - (i * 0.1f));
-			}
+			push5(bgItemsFront, five);
+			five[0]++, five[2] += mountainDim.x;
+			push5(bgItemsFront, five);
+			five[1]++, five[3] += mountainDim.y;
+			push5(bgItemsFront, five);
+			push5(bgItemsFront, five);
+			five[0]--, five[2] -= mountainDim.x;
+			push5(bgItemsFront, five);
+			five[1]--, five[3] -= mountainDim.y;
+			push5(bgItemsFront, five);
 		}
 
-   	    for (uint i = 0; i < bg_items.size() / 6; i++) {
-			for (auto &v : bg_tex_coord)
-				bg_tex.push_back(v);
-		}
+		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.01);
 
-        Render::worldShader.use();
-		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.075f + (0.2f * i));
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), bgItems + 2);
+		glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), bgItems);
+		glDrawArrays(GL_TRIANGLES, 0, count * 6);
 
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		Render::worldShader.enable();
-
-		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 0, bg_items.data());
-		glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 0, &bg_tex[0]);
-		glDrawArrays(GL_TRIANGLES, 0, bg_items.size());
-
-		Render::worldShader.disable();
-        Render::worldShader.unuse();
+		delete[] bgItems;
 	}
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	if (world.indoor) {
+		world.indoorTex.use();
+		auto dim = world.indoorTex.getDim() * game::HLINE;
+		GLfloat verts[] = {
+			world.startX,         GROUND_HEIGHT_MINIMUM,         z - 0.1f, 0, 0,
+			world.startX + dim.x, GROUND_HEIGHT_MINIMUM,         z - 0.1f, 1, 0,
+			world.startX + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, z - 0.1f, 1, 1,
+			world.startX + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, z - 0.1f, 1, 1,
+			world.startX,         GROUND_HEIGHT_MINIMUM + dim.y, z - 0.1f, 0, 1,
+			world.startX,         GROUND_HEIGHT_MINIMUM,         z - 0.1f, 0, 0,
+		};
+
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts);
+		glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts + 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
+	//glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.075f + (0.2f * i));
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // get the line that the player is currently standing on
     pOffset = (offset.x - world.startX) / game::HLINE;
@@ -818,11 +757,6 @@ void WorldSystem::render(void)
 		dirt.clear();
 		dirt.resize(world.data.size() * 30);
 	}
-
-	auto push5 = [](GLfloat *&vec, GLfloat *five) {
-		for (int i = 0; i < 5; i++)
-			*vec++ = *five++;
-	};
 
 	GLfloat *dirtp = &dirt[0];
     for (int i = iStart; i < iEnd; i++) {
@@ -854,10 +788,7 @@ void WorldSystem::render(void)
             world.data[i].groundHeight = 0;
     }
 
-    Render::worldShader.use();
 	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.45f);
-
-    Render::worldShader.enable();
 
     glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &dirt[2]);
     glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &dirt[0]);

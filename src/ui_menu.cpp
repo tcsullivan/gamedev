@@ -297,7 +297,6 @@ namespace ui {
 								break;
                             }
 
-							SDLReceiver::clicked = false;
                         }
                     }
 
@@ -365,6 +364,7 @@ namespace ui {
                 }
             }
 
+			SDLReceiver::clicked = false;
             FontSystem::setFontSize(16);
 			FontSystem::setFontZ(-8.0);
         }
