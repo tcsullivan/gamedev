@@ -17,7 +17,7 @@
 
 <Dialog name="Bob">
     <text id="0" nextid="1">
-        <give name="Dank MayMay" count="10"/>
+        <give name="Wood Sword" count="1"/>
 		<option name="Yes" />
 		<option name="Yes daddy" />
 		<option name="Ooooh boy yesss please" />

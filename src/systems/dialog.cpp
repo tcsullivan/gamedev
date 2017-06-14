@@ -36,9 +36,7 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 			if (((mce.position.x > pos.x) & (mce.position.x < pos.x + dim.width)) &&
 			    ((mce.position.y > pos.y) & (mce.position.y < pos.y + dim.height))) {
 
-			if (e.has_component<Flash>())
-				e.remove<Flash>();
-			e.assign<Flash>(Color(0, 255, 255));
+			e.replace<Flash>(Color(0, 255, 255));
 
 			if (!dialogRun.load()) {
 				// copy entity, windows destroys the original after thread detach

@@ -39,12 +39,13 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 	(void)ev;
 	(void)dt;
 
-	// handle attacking entities
+	// handle painful entities (e.g. arrow)
 	en.each<Hit, Position>([&](entityx::Entity p, Hit& hit, Position& ppos) {
 		bool die = false;
 		en.each<Health, Position, Solid>([&](entityx::Entity e, Health& health, Position& pos, Solid& dim) {
 			if (!e.has_component<Player>() && inrange(ppos.x, pos.x, pos.x + dim.width) && inrange(ppos.y, pos.y - 2, pos.y + dim.height)) {
 				health.health -= hit.damage;
+				e.replace<Flash>(Color(255, 0, 0));
 				ParticleSystem::addMultiple(15, ParticleType::SmallBlast,
 					[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 				die = !hit.pierce;
@@ -56,7 +57,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 			p.destroy();
 	}); 
 
-	// handle emitted attacks
+	// handle emitted attacks (player's)
 	for (const auto& a : attacks) {
 		switch (a.type) {
 		case AttackType::ShortSlash:
@@ -69,6 +70,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 					if (inrange(a.pos.x, pos.x, pos.x + dim.width, HLINES(shortSlashLength)) &&
 						inrange(a.pos.y, pos.y, pos.y + dim.height)) {
 						h.health -= a.power;
+						e.replace<Flash>(Color(255, 0, 0));
 						ParticleSystem::addMultiple(15, ParticleType::DownSlash,
 							[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 					}

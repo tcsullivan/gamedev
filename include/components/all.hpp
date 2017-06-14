@@ -7,6 +7,7 @@
 #include "dialog.hpp"
 #include "direction.hpp"
 #include "drop.hpp"
+#include "flash.hpp"
 #include "grounded.hpp"
 #include "health.hpp"
 #include "hit.hpp"
