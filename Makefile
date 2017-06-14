@@ -18,8 +18,12 @@ CXXWARN  = -Wall -Wextra -Werror -pedantic
 
 CXXSRCDIR = src
 CXXOUTDIR = out
-CXXSRC    = $(wildcard $(CXXSRCDIR)/*.cpp)
-CXXOBJ    = $(patsubst $(CXXSRCDIR)/%.cpp, $(CXXOUTDIR)/%.o, $(CXXSRC))
+CXXSRC    = $(wildcard $(CXXSRCDIR)/*.cpp) \
+			$(wildcard $(CXXSRCDIR)/systems/*.cpp) \
+			$(wildcard $(CXXSRCDIR)/components/*.cpp)
+CXXOBJ    = $(patsubst $(CXXSRCDIR)/%.cpp, $(CXXOUTDIR)/%.o, $(CXXSRC)) \
+			$(patsubst $(CXXSRCDIR)/systems/%.cpp, $(CXXOUTDIR)/systems/%.o, $(CXXSRC)) \
+			$(patsubst $(CXXSRCDIR)/components/%.cpp, $(CXXOUTDIR)/components/%.o, $(CXXSRC))
 
 EXEC = main
 
@@ -28,18 +32,23 @@ all: SPECIAL:=-ggdb game
 game: $(EXEC)
 
 clean:
-	rm -f $(EXEC)
-	rm -f out/*.o
+	@echo "  CLEAN"
+	@rm -f $(EXEC)
+	@rm -rf out
+	@mkdir out
+	@mkdir out/systems
+	@mkdir out/components
 
 $(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
-	g++ -I. -std=c++11 -c entityx/help/Pool.cc -o out/Pool.o
-	g++ -I. -std=c++11 -c entityx/help/Timer.cc -o out/Timer.o
-	g++ -I. -std=c++11 -c entityx/Event.cc -o out/Event.o
-	g++ -I. -std=c++11 -c entityx/Entity.cc -o out/Entity.o
-	g++ -I. -std=c++11 -c entityx/System.cc -o out/System.o
+	@echo "  CXX     entityx"
+	@g++ -I. -std=c++11 -c entityx/help/Pool.cc -o out/Pool.o
+	@g++ -I. -std=c++11 -c entityx/help/Timer.cc -o out/Timer.o
+	@g++ -I. -std=c++11 -c entityx/Event.cc -o out/Event.o
+	@g++ -I. -std=c++11 -c entityx/Entity.cc -o out/Entity.o
+	@g++ -I. -std=c++11 -c entityx/System.cc -o out/System.o
 	
 	@echo "  CXX/LD  main"
-	@$(CXX) $(SPECIAL) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/*.o $(LIBS)
+	@$(CXX) $(SPECIAL) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/components/*.o out/systems/*.o out/*.o $(LIBS)
 	@rm -rf xml/*.dat
 	@rm -rf storyXML/*.dat
 

@@ -68,6 +68,7 @@ void Engine::update(entityx::TimeDelta dt)
 	systems.update<WeatherSystem>(dt);
 	systems.update<ParticleSystem>(dt);
 	systems.update<AttackSystem>(dt);
+	systems.update<RenderSystem>(dt);
 	//systems.update<UISystem>(dt);
 }
 
