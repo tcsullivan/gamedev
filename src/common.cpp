@@ -123,3 +123,16 @@ std::vector<std::string> readFileA(const std::string& path)
 	return lines;
 }
 
+void copyFile(const std::string& to, const std::string& from)
+{
+	std::ifstream src (from, std::ios::binary);
+	std::ofstream dst (to, std::ios::binary);
+	dst << src.rdbuf();
+}
+
+bool fileExists(const std::string& file)
+{
+	std::ifstream f (file);
+	return f.good();
+}
+

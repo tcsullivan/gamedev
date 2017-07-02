@@ -1,6 +1,7 @@
 #include <config.hpp>
 
 #include <ui.hpp>
+#include <fileio.hpp>
 
 #include <SDL2/SDL_mixer.h>
 
@@ -26,6 +27,9 @@ namespace game {
 		std::string fontFamily;
 
 		void read(void) {
+			if (!fileExists("config/settings.xml"))
+				copyFile("config/settings.xml", "config/settings.xml.example");
+
 			xml.LoadFile("config/settings.xml");
 			auto exml = xml.FirstChildElement("screen");
 

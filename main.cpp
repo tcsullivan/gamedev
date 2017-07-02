@@ -214,7 +214,7 @@ void deleteRemaining(void)
 		
 }
 
-void *operator new(std::size_t n) throw (std::bad_alloc)
+void *operator new(std::size_t n) throw (/*std::bad_alloc*/)
 {
 	balance++;
 

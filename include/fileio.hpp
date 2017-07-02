@@ -12,4 +12,8 @@ int getdir(std::string dir, std::list<std::string>& files);
 std::string readFile(const std::string& path);
 std::vector<std::string> readFileA(const std::string& path);
 
+void copyFile(const std::string& to, const std::string& from);
+
+bool fileExists(const std::string& file);
+
 #endif // FILEIO_HPP_

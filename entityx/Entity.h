@@ -467,7 +467,7 @@ class EntityManager : entityx::help::NonCopyable {
     void each(typename identity<std::function<void(Entity entity, Components&...)>>::type f, bool dead = false) {
       static std::mutex locked;
       locked.lock();
-      for (auto it : *this) {
+      for (Entity it : *this) {
         if (dead || !it.has_component<Killed>())
           f(it, *(it.template component<Components>().get())...);
       }

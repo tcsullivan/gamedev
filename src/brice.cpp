@@ -61,6 +61,8 @@ namespace game {
 	}
 
 	void briceLoad(void) {
+		if (!fileExists("brice.dat"))
+			briceClear();
 		auto data = readFile("brice.dat");
 
 		if (data.empty()) {
