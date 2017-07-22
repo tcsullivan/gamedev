@@ -117,11 +117,6 @@ private:
 	static std::string bgmCurrent;
 
 	/**
-	 * Paths of files to get stylized textures from.
-	 */
-	static std::vector<std::string> bgFiles;
-
-	/**
 	 * Allows for iteration between background textures, for rendering.
 	 */
 	static TextureIterator bgTex;

@@ -159,6 +159,9 @@ public:
 	 */
 	inline const vec2& getTextureDim(void)
 	{ return position->getDim(); }
+
+	inline unsigned int size(void)
+	{ return textures.size(); }
 };
 
 /**

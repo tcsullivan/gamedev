@@ -31,7 +31,6 @@ using namespace tinyxml2;
 WorldData2               WorldSystem::world;
 Mix_Music*               WorldSystem::bgmObj;
 std::string              WorldSystem::bgmCurrent;
-std::vector<std::string> WorldSystem::bgFiles;
 TextureIterator          WorldSystem::bgTex;
 XMLDocument              WorldSystem::xmlDoc;
 std::string              WorldSystem::currentXMLFile;
@@ -57,33 +56,9 @@ const unsigned int GRASS_HEIGHT = HLINES(4);
 // the path of the currently loaded XML file, externally referenced in places
 static std::string currentXML;
 
-// pathnames of images for world themes
-//using StyleList = std::string[8];
-constexpr const char* bgPaths[1][8] = {
-	{ // Forest
-		"bg.png", 				// sky/background
-		"bgFarMountain.png",	// layer 1 (furthest)
-		"forestTileFar.png",	// layer 2
-		"forestTileBack.png",	// layer 3
-		"forestTileMid.png",	// layer 4
-		"forestTileFront.png",	// layer 5 (closest)
-		"dirt.png",				// ground texture
-		"grass.png"				// grass (ground-top) texture
-	}
-};
-
 /* ----------------------------------------------------------------------------
 ** Functions section
 ** --------------------------------------------------------------------------*/
-
-/*int generateString(const std::string& s)
-{
-	int mag = 0;
-	std::stringstream ss;
-	ss.str(s);
-
-	ss >> mag >> ':';
-}*/
 
 int WorldSystem::getLineIndex(float x)
 {
@@ -295,16 +270,18 @@ void WorldSystem::loader(void)
 			world.style = static_cast<WorldBGType>(styleNo);
 			world.bgm = wxml->StrAttribute("bgm");
 
-			bgFiles.clear();
-
-			for (const auto& f : bgPaths[styleNo])
-				bgFiles.push_back(world.styleFolder + "bg/" + f);
+			std::vector<std::string> bgFiles;
+			auto layerTag = wxml->FirstChildElement("layer");
+			while (layerTag != nullptr) {
+				bgFiles.emplace_back(world.styleFolder + layerTag->StrAttribute("path"));
+				layerTag = layerTag->NextSiblingElement("layer");
+			}
 
 			bgTex = TextureIterator(bgFiles);
 		}
 
-        // world generation
-        else if (tagName == "generation") {
+		// world generation
+		 else if (tagName == "generation") {
 			generate(wxml->IntAttribute("width"));
 		}
 
@@ -678,22 +655,23 @@ void WorldSystem::render(void)
 	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 	glUniform4f(Render::worldShader.uniform[WU_ambient], ambient.red, ambient.green, ambient.blue, 1.0);
 
-	constexpr float parallax[5] = {
-		0.85f, 0.60f, 0.40f, 0.25f, 0.10f
-	};
+	int layerCount = bgTex.size() - 3;
+	float parallax = 0.85f;
+	float parallaxChange = 0.75f / layerCount;
+
 	float z = 8.0f;
-	for (int i = 0; i < 5; i++, z -= 0.1f) {
+	for (int i = 0; i < layerCount; i++, z -= 0.1f, parallax -= parallaxChange) {
 		bgTex++;
 		auto mountainDim = bgTex.getTextureDim() * game::HLINE;
-	    auto xcoord = width / 2 * -1 + offset.x * parallax[i];
+	    auto xcoord = width / 2 * -1 + offset.x * parallax;
 
 		int count = width / mountainDim.x + 1;
 		GLfloat* bgItems = new GLfloat[count * 30];
 		GLfloat* bgItemsFront = bgItems;
 
-		for (int i = 0; i < count; i++) {
+		for (int j = 0; j < count; j++) {
 			GLfloat five[5] = {
-				0, 0, mountainDim.x * i + xcoord, GROUND_HEIGHT_MINIMUM, z
+				0, 0, mountainDim.x * j + xcoord, GROUND_HEIGHT_MINIMUM, z
 			};
 
 			push5(bgItemsFront, five);
