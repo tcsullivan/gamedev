@@ -21,14 +21,6 @@ using namespace tinyxml2;
 #include <vector2.hpp>
 
 /**
- * The background type enum.
- * Used to choose which set of background images should be used.
- */
-enum class WorldBGType : unsigned int {
-	Forest = 0	/**< A forest theme. */
-};
-
-/**
  * The line structure.
  * This structure is used to store the world's ground, stored in vertical
  * lines. Dirt color and grass properties are also kept track of here.
@@ -90,9 +82,7 @@ struct WorldData2 {
 	std::string toLeft, toRight; /**< File names of the worlds adjacent to this one. */
 
 	// Style variables
-	WorldBGType style;                /**< The style type of the world. */
 	std::string styleFolder;          /**< The folder to get stylized textures from. */
-	std::vector<std::string> sTexLoc; /**< File names of stylized textures for structures. */
 
 	// Music
 	std::string bgm;             /**< The path to the BGM file. */

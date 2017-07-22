@@ -2,7 +2,7 @@
 <include file="entities.xml"/>
 
 <IndoorWorld>
-	<style background="0" bgm="assets/music/theme_jazz.wav" folder="assets/style/classic/">
+	<style bgm="assets/music/theme_jazz.wav" folder="assets/style/classic/">
 		<layer path="bg/bg.png"/>
 		<layer path="bg/bgFarMountain.png"/>
 		<layer path="bg/forestTileFar.png"/>

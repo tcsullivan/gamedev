@@ -262,12 +262,6 @@ void WorldSystem::loader(void)
 		// style tag
 		if (tagName == "style") {
 			world.styleFolder = wxml->StrAttribute("folder");
-
-			unsigned int styleNo;
-			if (wxml->QueryUnsignedAttribute("background", &styleNo) != XML_NO_ERROR)
-				UserError("XML Error: No background given in <style> in " + xmlPath);
-
-			world.style = static_cast<WorldBGType>(styleNo);
 			world.bgm = wxml->StrAttribute("bgm");
 
 			std::vector<std::string> bgFiles;
