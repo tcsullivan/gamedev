@@ -32,13 +32,17 @@ public:
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 };
 
-struct OptionDim {
+struct DialogOption {
 	float x;
 	float y;
 	float width;
-};
 
-using DialogOption = std::pair<OptionDim, std::string>;
+	std::string text;
+	std::string value;
+
+	DialogOption(float _x, float _y, float _width, std::string _text, std::string _value)
+		: x(_x), y(_y), width(_width), text(_text), value(_value) {}
+};
 
 class UISystem : public entityx::System<UISystem> {
 private:
@@ -49,7 +53,7 @@ private:
 	static std::string dialogText;
 	static std::string importantText;
 	static std::vector<DialogOption> dialogOptions;
-	static int dialogOptionResult;
+	static std::string dialogOptionResult;
 
 public:
 	UISystem(void) {}
@@ -83,12 +87,12 @@ public:
 	static float putStringCentered(const vec2& p, const std::string& s, bool print = true);
 
 	static void dialogBox(const std::string& n, const std::string& s, ...);
-	static void dialogAddOption(const std::string& o);
+	static void dialogAddOption(const std::string& o, const std::string& value);
 	static void dialogImportant(const std::string& s);
 
 	static void waitForDialog(void);
 	static void advanceDialog(void);
-	static int getDialogResult(void);
+	static std::string getDialogResult(void);
 };
 
 namespace ui {

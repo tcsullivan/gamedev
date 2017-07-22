@@ -2,10 +2,19 @@
 <include file="entities.xml"/>
 
 <IndoorWorld>
-	<style background="0" bgm="assets/music/theme_jazz.wav" folder="assets/style/classic/"/>
+	<style background="0" bgm="assets/music/theme_jazz.wav" folder="assets/style/classic/">
+		<layer path="bg/bg.png"/>
+		<layer path="bg/bgFarMountain.png"/>
+		<layer path="bg/forestTileFar.png"/>
+		<layer path="bg/forestTileBack.png"/>
+		<layer path="bg/forestTileMid.png"/>
+		<layer path="bg/forestTileFront.png"/>
+		<layer path="bg/dirt.png"/>
+		<layer path="bg/grass.png"/>
+	</style>
 	<house width="800" texture="assets/style/classic/bg/insideWoodHouse.png"/>
-    <generation width="320"/>
-    <time>6000</time>
-    <!--<link outside="town.xml"/>-->
-    <npc name="Bob" hasDialog="false" spawnx="30"/>
+	<generation width="320"/>
+	<time>6000</time>
+	<!--<link outside="town.xml"/>-->
+	<npc name="Bob" hasDialog="false" spawnx="30"/>
 </IndoorWorld>

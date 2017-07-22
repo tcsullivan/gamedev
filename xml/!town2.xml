@@ -1,7 +1,16 @@
 <?xml version="1.0"?>
 <World>
-    <style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/"/>
-    <generation width="600"/>
-    <time>6000</time>
-    <link left="!town.xml"/>
+	<style background="0" bgm="assets/music/embark.wav" folder="assets/style/classic/">
+		<layer path="bg/bg.png"/>
+		<layer path="bg/bgFarMountain.png"/>
+		<layer path="bg/forestTileFar.png"/>
+		<layer path="bg/forestTileBack.png"/>
+		<layer path="bg/forestTileMid.png"/>
+		<layer path="bg/forestTileFront.png"/>
+		<layer path="bg/dirt.png"/>
+		<layer path="bg/grass.png"/>
+	</style>
+	<generation width="600"/>
+	<time>6000</time>
+	<link left="!town.xml"/>
 </World>

@@ -109,14 +109,9 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 						}
 
 						auto xxml = exml->FirstChildElement("option");
-						std::string options;
-						std::vector<int> optionNexts;
 						if (xxml != nullptr) {
 							do {
-								UISystem::dialogAddOption(xxml->StrAttribute("name"));
-
-								options += '\"' + xxml->StrAttribute("name");
-								optionNexts.emplace_back(xxml->IntAttribute("value"));
+								UISystem::dialogAddOption(xxml->StrAttribute("name"), xxml->StrAttribute("value"));
 								xxml = xxml->NextSiblingElement();
 							} while (xxml != nullptr);
 						}
@@ -130,15 +125,16 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 							while (*++content && isspace(*content));
 						}
 
-						UISystem::dialogBox(name.name, /*options, false,*/ content);
-						UISystem::waitForDialog();
+						UISystem::dialogBox(name.name, content);
 						UISystem::waitForDialog();
 
 						if (!questAssignedText.empty())
 							UISystem::dialogImportant("Quest assigned:\n\"" + questAssignedText + "\"");
 							//passiveImportantText(5000, ("Quest assigned:\n\"" + questAssignedText + "\"").c_str());
 
-						if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
+						if (!UISystem::getDialogResult().empty())
+							d.index = std::stoi(UISystem::getDialogResult());
+						else if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
 							d.index = newIndex;
 					}
 

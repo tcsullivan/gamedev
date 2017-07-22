@@ -750,7 +750,7 @@ int  UISystem::fadeIntensity = 0;
 std::string UISystem::dialogText;
 std::string UISystem::importantText;
 std::vector<DialogOption> UISystem::dialogOptions;
-int UISystem::dialogOptionResult;
+std::string UISystem::dialogOptionResult;
 
 void UISystem::fadeToggle(void)
 {
@@ -867,9 +867,9 @@ void UISystem::dialogBox(const std::string& n, const std::string& s, ...)
 	ui::ret.clear();
 }
 
-void UISystem::dialogAddOption(const std::string& o)
+void UISystem::dialogAddOption(const std::string& o, const std::string& v)
 {
-	dialogOptions.emplace_back(OptionDim(), o);
+	dialogOptions.emplace_back(0, 0, 0, o, v);
 }
 
 void UISystem::dialogImportant(const std::string& s)
@@ -884,7 +884,7 @@ void UISystem::waitForDialog(void)
 		std::this_thread::sleep_for(1ms);
 }
 
-int UISystem::getDialogResult(void)
+std::string UISystem::getDialogResult(void)
 {
 	return dialogOptionResult;
 }
@@ -896,11 +896,11 @@ void UISystem::advanceDialog(void)
 
 	if (!dialogOptions.empty()) {
 		int r = 1;
-		dialogOptionResult = 0;
+		dialogOptionResult.clear();
 		for (auto& o : dialogOptions) {
-			if (ui::mouse.x > o.first.x - o.first.width / 2 && ui::mouse.x < o.first.x + o.first.width / 2 &&
-				ui::mouse.y > o.first.y && ui::mouse.y < o.first.y + 20) {
-				dialogOptionResult = r;
+			if (ui::mouse.x > o.x - o.width / 2 && ui::mouse.x < o.x + o.width / 2 &&
+				ui::mouse.y > o.y && ui::mouse.y < o.y + 20) {
+				dialogOptionResult = o.value;
 				break;
 			}
 			r++;
@@ -933,7 +933,7 @@ void UISystem::render(void)
 		vec2 p1 (offset.x - game::SCREEN_WIDTH / 2, offset.y - game::SCREEN_HEIGHT / 2);
 		vec2 p2 (p1.x + game::SCREEN_WIDTH, p1.y + game::SCREEN_HEIGHT);
 
-        GLfloat backdrop[] = {
+		GLfloat backdrop[] = {
 			p1.x, p1.y, -7.9, 0, 0,
 			p2.x, p1.y, -7.9, 0, 0, 
 			p2.x, p2.y, -7.9, 0, 0,
@@ -947,9 +947,9 @@ void UISystem::render(void)
 
 		Colors::black.use();
 		glUniform4f(Render::textShader.uniform[WU_tex_color], 1.0f, 1.0f, 1.0f, fadeIntensity / 255.0f);
-        glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), backdrop);
-        glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), backdrop + 3);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), backdrop);
+		glVertexAttribPointer(Render::textShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), backdrop + 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		Render::textShader.disable();
 		Render::textShader.unuse();
@@ -965,16 +965,16 @@ void UISystem::render(void)
 		if (!dialogOptions.empty()) {
 			float y = where.y - 180;
 			for (auto& o : dialogOptions) {
-				o.first.x = offset.x;
-				o.first.y = y;
-				o.first.width = putStringCentered(vec2(o.first.x, o.first.y), o.second, false);
+				o.x = offset.x;
+				o.y = y;
+				o.width = putStringCentered(vec2(o.x, o.y), o.text, false);
 				y += 20;
 
-				if (ui::mouse.x > o.first.x - o.first.width / 2 && ui::mouse.x < o.first.x + o.first.width / 2 &&
-					ui::mouse.y > o.first.y && ui::mouse.y < y)
+				if (ui::mouse.x > o.x - o.width / 2 && ui::mouse.x < o.x + o.width / 2 &&
+					ui::mouse.y > o.y && ui::mouse.y < y)
 					FontSystem::setFontColor(255, 255, 0);
 
-				putStringCentered(vec2(o.first.x, o.first.y), o.second);
+				putStringCentered(vec2(o.x, o.y), o.text);
 				FontSystem::setFontColor(255, 255, 255);
 			}
 		}
