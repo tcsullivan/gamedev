@@ -28,15 +28,15 @@ using namespace tinyxml2;
 #include <vector3.hpp>
 #include <weather.hpp>
 
-WorldData2               WorldSystem::world;
-Mix_Music*               WorldSystem::bgmObj;
-std::string              WorldSystem::bgmCurrent;
-TextureIterator          WorldSystem::bgTex;
-XMLDocument              WorldSystem::xmlDoc;
-std::string              WorldSystem::currentXMLFile;
-std::thread              WorldSystem::thAmbient;
-std::vector<vec2>        WorldSystem::stars;
-std::string              WorldSystem::toLoad;
+WorldData2        WorldSystem::world;
+Mix_Music*        WorldSystem::bgmObj;
+std::string       WorldSystem::bgmCurrent;
+TextureIterator   WorldSystem::bgTex;
+XMLDocument       WorldSystem::xmlDoc;
+std::string       WorldSystem::currentXMLFile;
+std::thread       WorldSystem::thAmbient;
+std::vector<vec2> WorldSystem::stars;
+std::string       WorldSystem::toLoad;
 
 // wait
 static bool waitToSwap = false;
@@ -53,12 +53,14 @@ constexpr const float GROUND_HILLINESS      =  10.0f;
 // defines grass height in HLINEs
 const unsigned int GRASS_HEIGHT = HLINES(4);
 
-// the path of the currently loaded XML file, externally referenced in places
-static std::string currentXML;
+WorldSystem::WorldSystem(void)
+{
+	bgmObj = nullptr;
+}
 
-/* ----------------------------------------------------------------------------
-** Functions section
-** --------------------------------------------------------------------------*/
+WorldSystem::~WorldSystem(void)
+{
+}
 
 int WorldSystem::getLineIndex(float x)
 {
@@ -70,37 +72,37 @@ void WorldSystem::generate(int width)
 {
 	float geninc = 0;
 
-    // allocate space for world
-    world.data = std::vector<WorldData> (width + GROUND_HILLINESS);
+	// allocate space for world
+	world.data = std::vector<WorldData> (width + GROUND_HILLINESS);
 
-    // prepare for generation
-    world.data[0].groundHeight = GROUND_HEIGHT_INITIAL;
-    auto wditer = std::begin(world.data) + GROUND_HILLINESS;
+	// prepare for generation
+	world.data[0].groundHeight = GROUND_HEIGHT_INITIAL;
+	auto wditer = std::begin(world.data) + GROUND_HILLINESS;
 
 	if (world.indoor) {
 		std::fill(world.data.begin(), world.data.end(), WorldData {true, {0, 0}, GROUND_HEIGHT_MINIMUM + 5, 4});
 	} else {
-	    // give every GROUND_HILLINESSth entry a groundHeight value
-	    for (; wditer < std::end(world.data); wditer += GROUND_HILLINESS)
-	        wditer[-static_cast<int>(GROUND_HILLINESS)].groundHeight = wditer[0].groundHeight + (randGet() % 8 - 4);
+		// give every GROUND_HILLINESSth entry a groundHeight value
+		for (; wditer < std::end(world.data); wditer += GROUND_HILLINESS)
+			wditer[-static_cast<int>(GROUND_HILLINESS)].groundHeight = wditer[0].groundHeight + (randGet() % 8 - 4);
 
-    	// create slopes from the points that were just defined, populate the rest of the WorldData structure
-	    for (wditer = std::begin(world.data) + 1; wditer < std::end(world.data); wditer++){
-	        auto w = &*(wditer);
+		// create slopes from the points that were just defined, populate the rest of the WorldData structure
+		for (wditer = std::begin(world.data) + 1; wditer < std::end(world.data); wditer++) {
+			auto w = &*(wditer);
 
-    	    if (w->groundHeight != 0)
-	            geninc = (w[static_cast<int>(GROUND_HILLINESS)].groundHeight - w->groundHeight) / GROUND_HILLINESS;
+			if (w->groundHeight != 0)
+				geninc = (w[static_cast<int>(GROUND_HILLINESS)].groundHeight - w->groundHeight) / GROUND_HILLINESS;
 
-    	    w->groundHeight   = std::clamp(w[-1].groundHeight + geninc, GROUND_HEIGHT_MINIMUM, GROUND_HEIGHT_MAXIMUM);
-	        w->groundColor    = randGet() % 32 / 8;
-	        w->grassUnpressed = true;
-	        w->grassHeight[0] = (randGet() % 16) / 3 + HLINES(2);
-	        w->grassHeight[1] = (randGet() % 16) / 3 + HLINES(2);
-	    }
+			w->groundHeight = std::clamp(w[-1].groundHeight + geninc, GROUND_HEIGHT_MINIMUM, GROUND_HEIGHT_MAXIMUM);
+			w->groundColor    = randGet() % 32 / 8;
+			w->grassUnpressed = true;
+			w->grassHeight[0] = (randGet() % 16) / 3 + HLINES(2);
+			w->grassHeight[1] = (randGet() % 16) / 3 + HLINES(2);
+		}
 	}
 
-    // define x-coordinate of world's leftmost 'line'
-    world.startX = HLINES(width * -0.5);
+	// define x-coordinate of world's leftmost 'line'
+	world.startX = HLINES(width * -0.5);
 
 	// gen. star coordinates
 	if (stars.empty()) {
@@ -117,8 +119,6 @@ float WorldSystem::isAboveGround(const vec2& p)
 	const auto& gh = world.data[getLineIndex(p.x)].groundHeight;
 	return p.y >= gh ? 0 : gh;
 }
-
-static Color ambient;
 
 bool WorldSystem::save(void)
 {	
@@ -414,130 +414,6 @@ void WorldSystem::loader(void)
 	game::events.emit<BGMToggleEvent>();
 }
 
-/*
-World *
-loadWorldFromXMLNoSave(std::string path) {
-	XMLDocument *_currentXMLDoc;
-	static std::string _currentXML,
-	                   _currentXMLRaw;
-
-	XMLElement *wxml;
-	XMLElement *vil;
-
-	World *tmp;
-	Entity *newEntity;
-	bool Indoor;
-
-	const char *ptr;
-	std::string name, sptr;
-
-	Village *vptr;
-	Structures *s;
-
-	if (vil) {
-		vptr = tmp->addVillage(vil->StrAttribute("name"), tmp);
-		vil = vil->FirstChildElement();
-	}
-
-	while(vil) {
-		name = vil->Name();
-
-		 //READS DATA ABOUT STRUCTURE CONTAINED IN VILLAGE
-
-		if (name == "structure") {
-			s = new Structures();
-			s->createFromXML(vil, tmp);
-			tmp->addStructure(s);
-		} else if (name == "stall") {
-            sptr = vil->StrAttribute("type");
-
-            // handle markets
-            if (sptr == "market") {
-
-                // create a structure and a merchant, and pair them
-				s = new Structures();
-				s->createFromXML(vil, tmp);
-				tmp->addStructure(s);
-				tmp->addMerchant(0, 100, true);
-            }
-
-            // handle traders
-            else if (sptr == "trader") {
-				s = new Structures();
-				s->createFromXML(vil, tmp);
-				tmp->addStructure(s);
-			}
-
-            // loop through buy/sell/trade tags
-            XMLElement *sxml = vil->FirstChildElement();
-            std::string tag;
-
-			Merchant *merch = dynamic_cast<Merchant *>(*std::find_if(tmp->entity.rbegin(), tmp->entity.rend(), [&](Entity *e) {
-				return (e->type == MERCHT);
-			}));
-
-            while (sxml) {
-                tag = sxml->Name();
-
-                if (tag == "buy") { //converts price to the currencies determined in items.xml
-                    // TODO
-                } else if (tag == "sell") { //converts price so the player can sell
-                    // TODO
-                } else if (tag == "trade") { //doesn't have to convert anything, we just trade multiple items
-                	merch->trade.push_back(Trade(sxml->IntAttribute("quantity"),
-										   sxml->StrAttribute("item"),
-										   sxml->IntAttribute("quantity1"),
-										   sxml->StrAttribute("item1")));
-				} else if (tag == "text") { //this is what the merchant says
-                    XMLElement *txml = sxml->FirstChildElement();
-                    std::string textOption;
-
-                    while (txml) {
-                        textOption = txml->Name();
-                        const char* buf = txml->GetText();
-
-                        if (textOption == "greet") { //when you talk to him
-                            merch->text[0] = std::string(buf, strlen(buf));
-                            merch->toSay = &merch->text[0];
-                        } else if (textOption == "accept") { //when he accepts the trade
-                            merch->text[1] = std::string(buf, strlen(buf));
-                        } else if (textOption == "deny") { //when you don't have enough money
-                            merch->text[2] = std::string(buf, strlen(buf));
-                        } else if (textOption == "leave") { //when you leave the merchant
-                            merch->text[3] = std::string(buf, strlen(buf));
-                        }
-                        txml = txml->NextSiblingElement();
-                    }
-                }
-
-                sxml = sxml->NextSiblingElement();
-			}
-		}
-
-        float buildx = tmp->getStructurePos(-1).x;
-
-		if (buildx < vptr->start.x)
-			vptr->start.x = buildx;
-
-		if (buildx > vptr->end.x)
-			vptr->end.x = buildx;
-
-		//go to the next element in the village block
-		vil = vil->NextSiblingElement();
-	}
-
-	return tmp;
-}*/
-
-WorldSystem::WorldSystem(void)
-{
-	bgmObj = nullptr;
-}
-
-WorldSystem::~WorldSystem(void)
-{
-}
-
 void WorldSystem::die(void)
 {
     // SDL2_mixer's object
@@ -547,6 +423,8 @@ void WorldSystem::die(void)
 
 void WorldSystem::render(void)
 {
+	static Color ambient;
+
 	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
 	const auto SCREEN_HEIGHT = game::SCREEN_HEIGHT;
 
@@ -589,26 +467,26 @@ void WorldSystem::render(void)
 	if (skyOffset < 0)
 		skyOffset++;
 
-    GLfloat skyverts[] = {
+	GLfloat skyverts[] = {
 		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, skyOffset,
-        offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f, 1, skyOffset,
-        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, skyOffset,
-        offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, skyOffset,
-        offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f, 0, skyOffset,
-        offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, skyOffset,
+		offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f, 1, skyOffset,
+		offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, skyOffset,
+		offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, skyOffset,
+		offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f, 0, skyOffset,
+		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, skyOffset,
 	};
 
 	// rendering!!
-    glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);
 	Render::worldShader.use();
-    glUniform1i(Render::worldShader.uniform[WU_texture], 0);
+	glUniform1i(Render::worldShader.uniform[WU_texture], 0);
 	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
 	glUniform4f(Render::worldShader.uniform[WU_ambient], 1.0, 1.0, 1.0, 1.0);
-    Render::worldShader.enable();
+	Render::worldShader.enable();
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    bgTex(0);
+	bgTex(0);
 	glUniform4f(Render::worldShader.uniform[WU_tex_color], 1.0, 1.0, 1.0, 1.0);
 
 	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), skyverts);
@@ -620,7 +498,7 @@ void WorldSystem::render(void)
 		static const float stardim = 24;
 
 		GLfloat* star_coord = new GLfloat[stars.size() * 5 * 6 + 1];
-    	auto si = star_coord;
+		auto si = star_coord;
 		auto xcoord = offset.x * 0.9f;
 
 		for (auto &s : stars) {
@@ -657,7 +535,7 @@ void WorldSystem::render(void)
 	for (int i = 0; i < layerCount; i++, z -= 0.1f, parallax -= parallaxChange) {
 		bgTex++;
 		auto mountainDim = bgTex.getTextureDim() * game::HLINE;
-	    auto xcoord = width / 2 * -1 + offset.x * parallax;
+		auto xcoord = width / 2 * -1 + offset.x * parallax;
 
 		int count = width / mountainDim.x + 1;
 		GLfloat* bgItems = new GLfloat[count * 30];
@@ -707,22 +585,22 @@ void WorldSystem::render(void)
 	}
 
 	//glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.075f + (0.2f * i));
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    // get the line that the player is currently standing on
-    pOffset = (offset.x - world.startX) / game::HLINE;
+	// get the line that the player is currently standing on
+	pOffset = (offset.x - world.startX) / game::HLINE;
 
-    // only draw world within player vision
-    iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / game::HLINE) - GROUND_HILLINESS),
+	// only draw world within player vision
+	iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / game::HLINE) - GROUND_HILLINESS),
 	                    0, static_cast<int>(world.data.size()));
 	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / game::HLINE) + 2),
                       0, static_cast<int>(world.data.size() - GROUND_HILLINESS));
 
-    // draw the dirt
+	// draw the dirt
 	waitToSwap = true;
 
-    bgTex++;
+	bgTex++;
 
 	static std::vector<GLfloat> dirt;
 	if (dirt.size() != world.data.size() * 30) {
@@ -731,16 +609,15 @@ void WorldSystem::render(void)
 	}
 
 	GLfloat *dirtp = &dirt[0];
-    for (int i = iStart; i < iEnd; i++) {
-        if (world.data[i].groundHeight <= 0) { // TODO holes (andy) TODO TODO TODO
-            world.data[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
-            //glColor4ub(0, 0, 0, 255);
-        } else {
-            //safeSetColorA(150, 150, 150, 255);
-        }
+	for (int i = iStart; i < iEnd; i++) {
+		if (world.data[i].groundHeight <= 0) { // TODO holes (andy)
+			world.data[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
+			//glColor4ub(0, 0, 0, 255);
+		} else {
+			//safeSetColorA(150, 150, 150, 255);
+		}
 
-        int ty = world.data[i].groundHeight / 64 + world.data[i].groundColor;
-
+		int ty = world.data[i].groundHeight / 64 + world.data[i].groundColor;
 		GLfloat five[5] = {
 			0, 0, world.startX + HLINES(i), world.data[i].groundHeight - GRASS_HEIGHT, -4
 		};
@@ -756,22 +633,22 @@ void WorldSystem::render(void)
 		five[1] = 0, five[3] = world.data[i].groundHeight - GRASS_HEIGHT;
 		push5(dirtp, five);
 
-        if (world.data[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1)
-            world.data[i].groundHeight = 0;
-    }
+		if (world.data[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1)
+			world.data[i].groundHeight = 0;
+	}
 
 	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.45f);
 
-    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &dirt[2]);
-    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &dirt[0]);
-    glDrawArrays(GL_TRIANGLES, 0 , dirt.size() / 5);
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &dirt[2]);
+	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &dirt[0]);
+	glDrawArrays(GL_TRIANGLES, 0 , dirt.size() / 5);
 
-    Render::worldShader.disable();
+	Render::worldShader.disable();
 	Render::worldShader.unuse();
 
 	if (!world.indoor) {
 		bgTex++;
-	    //safeSetColorA(255, 255, 255, 255); TODO TODO TODO 
+		//safeSetColorA(255, 255, 255, 255); TODO
 
 		static std::vector<GLfloat> grass;
 		if (grass.size() != world.data.size() * 60) {
@@ -781,8 +658,8 @@ void WorldSystem::render(void)
 
 		GLfloat *grassp = &grass[0];
 		for (int i = iStart; i < iEnd; i++) {
-        	auto wd = world.data[i];
-	        auto gh = wd.grassHeight;
+			auto wd = world.data[i];
+			auto gh = wd.grassHeight;
 
 			// flatten the grass if the player is standing on it.
 			if (!wd.grassUnpressed) {
@@ -791,7 +668,7 @@ void WorldSystem::render(void)
 			}
 
 			// actually draw the grass.
-	        if (wd.groundHeight) {
+			if (wd.groundHeight) {
 				float five[5] = {
 					0, 1, world.startX + HLINES(i), wd.groundHeight + gh[0], -3
 				};
@@ -820,17 +697,17 @@ void WorldSystem::render(void)
 				push5(grassp, five);
 				five[1]--, five[3] = wd.groundHeight + gh[1];
 				push5(grassp, five);
-	        }
+			}
 		}
 
-	    Render::worldShader.use();
+		Render::worldShader.use();
 		glUniform1f(Render::worldShader.uniform[WU_light_impact], 1.0f);
 
-	    Render::worldShader.enable();
+		Render::worldShader.enable();
 
-	    glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[2]);
-	    glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[0]);
-	    glDrawArrays(GL_TRIANGLES, 0 , grass.size() / 5);
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[2]);
+		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[0]);
+		glDrawArrays(GL_TRIANGLES, 0 , grass.size() / 5);
 
 		// the starting pixel of the world
 		static const float s = -(static_cast<float>(SCREEN_WIDTH) / 2.0f);
@@ -851,9 +728,9 @@ void WorldSystem::render(void)
 		if (offset.x + world.startX > s) {
 			Colors::black.use();
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
-	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
-	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
-	    	glDrawArrays(GL_TRIANGLES, 0, 6);
+			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
+			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
 		if (offset.x - world.startX < e) {
@@ -862,14 +739,13 @@ void WorldSystem::render(void)
 
 			Colors::black.use();
 			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
-	    	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
-	    	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
-	    	glDrawArrays(GL_TRIANGLES, 0, 6);
+			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
+			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
 		Render::worldShader.disable();
 		Render::worldShader.unuse();
-
 	} else {
 		Render::useShader(&Render::worldShader);
 		Render::worldShader.use();
@@ -904,7 +780,7 @@ void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, 
 	(void)en;
 	(void)ev;
 
-    // fade in music if not playing
+	// fade in music if not playing
 	if (!Mix_PlayingMusic() && bgmObj != nullptr)
 		Mix_FadeInMusic(bgmObj, -1, 2000);
 
@@ -945,7 +821,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 		[&](entityx::Entity e, Direction &vel, Physics &phys) {
 		(void)e;
 		// handle gravity
-        if (vel.y > -2.0f)
+		if (vel.y > -2.0f)
 			vel.y -= GRAVITY_CONSTANT * phys.g * dt;
 	});
 
@@ -975,7 +851,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 
 
 		// insure that the entity doesn't fall off either edge of the world.
-        if (loc.x < world.startX) {
+		if (loc.x < world.startX) {
 			vel.x = 0;
 			loc.x = world.startX + HLINES(0.5f);
 		} else if (loc.x + dim.width + game::HLINE > -static_cast<int>(world.startX)) {

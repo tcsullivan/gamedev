@@ -16,6 +16,7 @@
 #include <tinyxml2.h>
 using namespace tinyxml2;
 
+#include <attack.hpp>
 #include <events.hpp>
 #include <texture.hpp>
 
@@ -33,36 +34,12 @@ struct Item {
 	int cooldown;
 
 	Item(void)
-		: value(0), stackSize(1) {}
+		: value(0), stackSize(1), cooldown(0) {}
 
-	/**
-	 * Constructs an item from XML.
-	 * @param the xml element (<item />)
-	 */
-	Item(XMLElement* e) {
-		name = e->StrAttribute("name");
-		type = e->StrAttribute("type");
-		
-		value = 0;
-		e->QueryIntAttribute("value", &value);
-		stackSize = 1;
-		e->QueryIntAttribute("maxStackSize", &stackSize);
-		
-		sprite = Texture(e->StrAttribute("sprite"));
-
-		if (e->Attribute("sound") != nullptr)
-			sound = Mix_LoadWAV(e->Attribute("sound"));
-		else
-			sound = nullptr;
-
-		cooldown = 250;
-		e->QueryIntAttribute("cooldown", &cooldown);
-	}
-
-	~Item(void) {
+	/*~Item(void) {
 		if (sound != nullptr)
 			Mix_FreeChunk(sound);
-	}
+	}*/
 };
 
 /**
@@ -80,11 +57,12 @@ struct InventoryEntry {
 };
 
 struct UseItemEvent {
-	Item* item;
 	vec2 curs;
+	Item* item;
+	Attack* attack;
 
-	UseItemEvent(Item* i, vec2 c)
-		: item(i), curs(c) {}
+	UseItemEvent(vec2 c, Item* i, Attack* a = nullptr)
+		: curs(c), item(i), attack(a) {}
 };
 
 /**
@@ -100,6 +78,7 @@ private:
 	constexpr static unsigned int rowSize = 8;
 
 	static std::unordered_map<std::string, Item> itemList;
+	static std::unordered_map<std::string, Attack> attackList;
 	static std::vector<InventoryEntry> items;
 
 	static vec2 hotStart;

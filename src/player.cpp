@@ -143,16 +143,7 @@ void PlayerSystem::receive(const KeyUpEvent &kue)
 	} else if (kc == getControl(3) || kc == getControl(4)) {
 		speed = 1.0f;
 	} else if (kc == getControl(5)) {
-		/*if (p->inv->invHover) {
-			p->inv->invHover = false;
-		} else {
-			if (!p->inv->selected)
-				p->inv->invOpening ^= true;
-			else
-				p->inv->selected = false;
-
-			p->inv->mouseSel = false;
-		}*/
+		// TODO ...?
 	}
 }
 
@@ -194,17 +185,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 		} else if (kc == getControl(4)) {
 			speed = .5;
 		} else if (kc == getControl(5)) {
-			//static int heyOhLetsGo = 0;
-			//edown = true;
-			// start hover counter?
-			//if (!heyOhLetsGo) {
-			//	heyOhLetsGo = game::time::getTickCount();
-			//	p->inv->mouseSel = false;
-			//}
-
-			// run hover thing
-			//if (game::time::getTickCount() - heyOhLetsGo >= 2 && !(p->inv->invOpen) && !(p->inv->selected))
-			//	p->inv->invHover = true;
+			// hmmm
 		}
 	} else if (kc == SDLK_DELETE) {
 		game::endGame();
@@ -242,9 +223,11 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 			auto loc = getPosition();
 			auto &solid = *player.component<Solid>().get();
 			loc.x += solid.width / 2, loc.y += solid.height / 2;
-			game::events.emit<AttackEvent>(loc, AttackType::ShortSlash, true);
+			if (player.component<Sprite>()->faceLeft)
+				uie.attack->range.x *= -1;
+			game::events.emit<AttackEvent>(loc, *uie.attack, true);
 		} else if (uie.item->type == "Bow") {
-			if (InventorySystem::take("Arrow", 1)) {
+			/*if (InventorySystem::take("Arrow", 1)) {
 				auto e = game::entities.create();
 				auto pos = getPosition();
 				e.assign<Position>(pos.x, pos.y + 10);
@@ -260,7 +243,7 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 				auto dim = HLINES(sprite->getSpriteSize());
 				e.assign<Solid>(dim.x, dim.y);
 				e.assign<Hit>(10, false);
-			}
+			}*/
 		}
 
 		cool.store(false);

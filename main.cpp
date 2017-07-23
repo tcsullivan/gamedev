@@ -175,9 +175,9 @@ int main(int argc, char *argv[])
 	WorldSystem::save();
 
 	// exit
-    Mix_HaltMusic();
+	Mix_HaltMusic();
 
-    unloadTextures();
+	unloadTextures();
 
 	WorldSystem::die();
 	WindowSystem::die();

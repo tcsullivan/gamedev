@@ -1,5 +1,5 @@
-#ifndef FIGHT_HPP_
-#define FIGHT_HPP_
+#ifndef ATTACK_HPP_
+#define ATTACK_HPP_
 
 #include <entityx/entityx.h>
 
@@ -7,19 +7,22 @@
 
 #include <vector2.hpp>
 
-enum class AttackType : char {
-	ShortSlash,
-	LongSlash,
+struct Attack {
+	int power;
+	vec2 offset;
+	vec2 range;
+	vec2 vel; // TODO use
+	vec2 accel; // TODO use
 };
 
 struct AttackEvent {
-	AttackEvent(vec2 p, AttackType at, bool fp, int pow = 10)
-		: pos(p), type(at), fromplayer(fp), power(pow) {}
+	AttackEvent(vec2 p, Attack at, bool fp)
+		: pos(p), attack(at), fromplayer(fp) {}
 
 	vec2 pos;
-	AttackType type;
+	Attack attack;
+
 	bool fromplayer;
-	int power;
 };
 
 class AttackSystem : public entityx::System<AttackSystem>, public entityx::Receiver<AttackSystem> {
@@ -27,8 +30,6 @@ private:
 	std::forward_list<AttackEvent> attacks;
 
 public:
-	explicit AttackSystem() = default;
-
 	void configure(entityx::EventManager& ev) {
 		ev.subscribe<AttackEvent>(*this);
 	}
@@ -37,4 +38,4 @@ public:
 	void update(entityx::EntityManager& en, entityx::EventManager& ev, entityx::TimeDelta dt) override;
 };
 
-#endif // FIGHT_HPP_
+#endif // ATTACK_HPP_

@@ -24,9 +24,13 @@ struct vector2 {
 	}
 
 	vector2<T>& operator=(const std::string& s) {
-		auto comma = s.find(',');
-		x = std::stoi(s.substr(0, comma));
-		y = std::stoi(s.substr(comma + 1));
+		if (s.empty()) {
+			x = y = 0;
+		} else {
+			auto comma = s.find(',');
+			x = std::stoi(s.substr(0, comma));
+			y = std::stoi(s.substr(comma + 1));
+		}
 		return *this;
 	}
 

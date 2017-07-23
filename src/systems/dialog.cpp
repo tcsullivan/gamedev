@@ -51,7 +51,7 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 						d.talking = true;
 
 					if (d.index == 9999) {
-						UISystem::dialogBox(name.name, /*"", false,*/ randomDialog[d.rindex % randomDialog.size()]);
+						UISystem::dialogBox(name.name, randomDialog[d.rindex % randomDialog.size()]);
 						UISystem::waitForDialog();
 					} else if (exml != nullptr) {
 						while (exml->StrAttribute("name") != name.name)
@@ -96,7 +96,7 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 										if (qname != nullptr && QuestSystem::finish(qname) == 0) {
 											d.index = 9999;
 										} else {
-											UISystem::dialogBox(name.name, /*"", false,*/ "Finish my quest u nug");
+											UISystem::dialogBox(name.name, "Finish my quest u nug");
 											UISystem::waitForDialog();
 											return;
 										}

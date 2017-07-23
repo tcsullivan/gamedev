@@ -4,14 +4,15 @@
 #include <string>
 #include <fstream>
 #include <istream>
+#include <sstream>
 
 #include <common.hpp>
 #include <error.hpp>
 #include <fileio.hpp>
 
-extern std::vector<std::string> StringTokenizer(const std::string& str, char delim);
-
 static std::unordered_map<std::string, std::string> brice;
+
+std::vector<std::string> StringTokenizer(const std::string& str, char delim);
 
 namespace game {
 	bool canJump;
@@ -105,3 +106,16 @@ namespace game {
 		setValue("canSprint", std::to_string(canSprint));
 	}
 }
+
+std::vector<std::string> StringTokenizer(const std::string& str, char delim)
+{
+	std::vector<std::string> tokens;
+	std::istringstream is (str);
+	std::string token;
+
+	while (getline(is, token, delim))
+		tokens.emplace_back(token);
+
+	return tokens;
+}
+

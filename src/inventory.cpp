@@ -17,8 +17,9 @@ using namespace tinyxml2;
 
 extern vec2 offset;
 
-std::unordered_map<std::string, Item> InventorySystem::itemList;
-std::vector<InventoryEntry>           InventorySystem::items;
+std::unordered_map<std::string, Item>   InventorySystem::itemList;
+std::unordered_map<std::string, Attack> InventorySystem::attackList;
+std::vector<InventoryEntry>             InventorySystem::items;
 vec2 InventorySystem::hotStart;
 vec2 InventorySystem::hotEnd;
 vec2 InventorySystem::fullStart;
@@ -38,7 +39,7 @@ InventorySystem::InventorySystem(int size)
 
 void InventorySystem::configure(entityx::EventManager &ev)
 {
-    ev.subscribe<KeyDownEvent>(*this);
+	ev.subscribe<KeyDownEvent>(*this);
 	ev.subscribe<MouseClickEvent>(*this);
 	ev.subscribe<MouseReleaseEvent>(*this);
 }
@@ -47,13 +48,42 @@ void InventorySystem::loadItems(void) {
 	XMLDocument doc;
 	doc.LoadFile(itemsPath);
 
-	auto item = doc.FirstChildElement("item");
-	UserAssert(item != nullptr, "No items found");
+	auto itm = doc.FirstChildElement("item");
+	UserAssert(itm != nullptr, "No items found");
 
-	do {
-		itemList.emplace(item->StrAttribute("name"), item);
-		item = item->NextSiblingElement("item");
-	} while (item != nullptr);
+	while (itm != nullptr) {
+		Item item;
+		item.name = itm->StrAttribute("name");
+		UserAssert(!item.name.empty(), "Item must have a name");
+		item.type = itm->StrAttribute("type");
+		UserAssert(!item.type.empty(), "Item must have a type");
+		item.value = 0;
+		itm->QueryIntAttribute("value", &item.value);
+		item.stackSize = 1;
+		itm->QueryIntAttribute("maxStackSize", &item.stackSize);
+		item.sprite = Texture(itm->StrAttribute("sprite"));
+		if (itm->Attribute("sound") != nullptr)
+			item.sound = Mix_LoadWAV(itm->Attribute("sound"));
+		else
+			item.sound = nullptr;
+		item.cooldown = 250;
+		itm->QueryIntAttribute("cooldown", &item.cooldown);
+
+		auto atk = itm->FirstChildElement("attack");
+		if (atk != nullptr) {
+			Attack attack;
+			attack.power = 0;
+			atk->QueryIntAttribute("power", &attack.power);
+			attack.offset = atk->StrAttribute("offset");
+			attack.range  = atk->StrAttribute("range");
+			attack.vel    = atk->StrAttribute("velocity");
+			attack.accel  = atk->StrAttribute("accel");
+			attackList.emplace(item.name, attack);
+		}
+
+		itemList.emplace(item.name, item);
+		itm = itm->NextSiblingElement("item");
+	}
 }
 
 void InventorySystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
@@ -209,7 +239,11 @@ void InventorySystem::receive(const MouseClickEvent &mce)
 				}
 			}
 		} else if (isGoodEntry(items[0])) {
-			game::events.emit<UseItemEvent>(items[0].item, mce.position);
+			auto attack = attackList.find(items[0].item->name); 
+			if (attack == attackList.end())
+				game::events.emit<UseItemEvent>(mce.position, items[0].item);
+			else
+				game::events.emit<UseItemEvent>(mce.position, items[0].item, &attack->second);
 		}
 	}
 }

@@ -39,11 +39,7 @@ void FontSystem::setFontSize(int size)
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER , GL_LINEAR);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-			/**
-			 * The just-created texture will render red-on-black if we don't do anything to it, so
-			 * here we create a buffer 4 times the size and transform the texture into an RGBA array,
-			 * making it white-on-black.
-			 */
+			// convert red-on-black to RGBA
 			auto& g = ftFace->glyph;
 			std::vector<uint32_t> buf (g->bitmap.width * g->bitmap.rows, 0xFFFFFFFF);
 			for (auto j = buf.size(); j--;)

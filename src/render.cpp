@@ -143,8 +143,8 @@ void preRender(void)
 	else if (offset.x + SCREEN_WIDTH2 > worldWidth *  0.5f)
 		offset.x = ((worldWidth *  0.5f) - SCREEN_WIDTH2);
 
-	// ortho y snapping
-	offset.y = std::max(ploc.y /*+ player->height / 2*/, SCREEN_HEIGHT2);
+	// ortho y snapping (TODO center w/ height)
+	offset.y = std::max(ploc.y, SCREEN_HEIGHT2);
 
 	// "setup"
 	glm::mat4 projection = glm::ortho(floor(offset.x - SCREEN_WIDTH2),             // left

@@ -6,9 +6,6 @@
 #include <player.hpp>
 #include <world.hpp>
 
-constexpr int shortSlashLength = 20;
-constexpr int longSlashLength = 40;
-
 // math helpers because we don't trust stdlib
 template<typename T>
 inline T abs(const T& n) {
@@ -59,27 +56,24 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 
 	// handle emitted attacks (player's)
 	for (const auto& a : attacks) {
-		switch (a.type) {
-		case AttackType::ShortSlash:
-		case AttackType::LongSlash:
-			en.each<Position, Solid, Health>(
-				[&a](entityx::Entity e, Position& pos, Solid& dim, Health& h) {
-					if (!(e.has_component<Player>() ^ a.fromplayer))
-						return;
+		vec2 point = a.pos + a.attack.offset;
+		vec2 size = a.attack.range;
+		point.y -= size.y / 2; // center range height
 
-					if (inrange(a.pos.x, pos.x, pos.x + dim.width, HLINES(shortSlashLength)) &&
-						inrange(a.pos.y, pos.y, pos.y + dim.height)) {
-						h.health -= a.power;
-						e.replace<Flash>(Color(255, 0, 0));
-						ParticleSystem::addMultiple(15, ParticleType::DownSlash,
-							[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
-					}
+		en.each<Position, Solid, Health>(
+			[&](entityx::Entity e, Position& pos, Solid& dim, Health& h) {
+				if (!(e.has_component<Player>() ^ a.fromplayer)) // no self-harm please
+					return;
+
+				if (inrange(point.x, pos.x, pos.x + dim.width, HLINES(size.x)) &&
+					inrange(point.y, pos.y, pos.y + dim.height, HLINES(size.y))) {
+					h.health -= a.attack.power;
+					e.replace<Flash>(Color(255, 0, 0));
+					ParticleSystem::addMultiple(15, ParticleType::DownSlash,
+						[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 				}
-			);
-			break;
-		default:
-			break;
-		}
+			}
+		);
 	}
 
 	attacks.clear();

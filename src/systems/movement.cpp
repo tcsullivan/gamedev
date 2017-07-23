@@ -46,9 +46,8 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			auto ppos = PlayerSystem::getPosition();
 			if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
 				if (entity.has_component<Aggro>()) {
-					auto dim = entity.component<Solid>();
-					ev.emit<AttackEvent>(vec2(position.x + dim->width, position.y + dim->height),
-						AttackType::ShortSlash, false);
+					//auto dim = entity.component<Solid>();
+					//ev.emit<AttackEvent>(vec2(position.x + dim->width, position.y + dim->height), ATTACKKKKKK, false);
 					/*auto& h = entity.component<Health>()->health;
 					if (h > 0) {
 						fight = true;
