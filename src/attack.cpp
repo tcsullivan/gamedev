@@ -45,12 +45,11 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 		en.each<Health, Position, Solid>([&](entityx::Entity e, Health& health, Position& pos, Solid& dim) {
 			if (!e.has_component<Player>() && inrange(ppos.x, pos.x, pos.x + dim.width) && inrange(ppos.y, pos.y - 2, pos.y + dim.height)) {
 				health.health -= hit.damage;
-				if (hit.effect.size() == 0)
-					e.replace<Flash>(Color(255, 0, 0));
-				else
+				e.replace<Flash>(Color(255, 0, 0));
+				if (hit.effect.size() > 0)
 					effects.emplace_back(vec2(ppos.x, ppos.y), hit.effect);
-				ParticleSystem::addMultiple(15, ParticleType::SmallBlast,
-					[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
+				//ParticleSystem::addMultiple(15, ParticleType::SmallBlast,
+				//	[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 				die = !hit.pierce;
 			} else if (WorldSystem::isAboveGround(vec2(ppos.x, ppos.y - 5)))
 				die = true;
@@ -74,10 +73,8 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 				if (inrange(point.x, pos.x, pos.x + dim.width, HLINES(size.x)) &&
 					inrange(point.y, pos.y, pos.y + dim.height, HLINES(size.y))) {
 					h.health -= a.attack.power;
-
-					if (a.attack.effect.size() == 0)
-						e.replace<Flash>(Color(255, 0, 0));
-					else
+					e.replace<Flash>(Color(255, 0, 0));
+					if (a.attack.effect.size() > 0)
 						effects.emplace_back(point, a.attack.effect);
 					//ParticleSystem::addMultiple(15, ParticleType::DownSlash,
 					//	[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
