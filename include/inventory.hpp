@@ -25,12 +25,13 @@ using namespace tinyxml2;
  * Contains the information neccessary for an item.
  */
 struct Item {
-	std::string name; /**< The name of the item */
-	std::string type; /**< The type of the item */
-	int value;        /**< The value/worth of the item */
-	int stackSize;    /**< The stack size of the item */
-	Texture sprite;   /**< The texture for the item (in inventory) */
-	Mix_Chunk* sound; /**< The sound to play on item use */
+	std::string name;       /**< The name of the item */
+	std::string type;       /**< The type of the item */
+	int value;              /**< The value/worth of the item */
+	int stackSize;          /**< The stack size of the item */
+	Texture sprite;         /**< The texture for the item (in inventory) */
+	TextureIterator effect; /**< Animation played on item use */
+	Mix_Chunk* sound;       /**< The sound to play on item use */
 	int cooldown;
 
 	Item(void)

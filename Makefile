@@ -4,7 +4,7 @@ CC  = gcc
 CXX = g++
 
 ifeq ($(TARGET_OS),linux)
-	LIBS = -lpthread -lGL -lGLEW -lfreetype \
+	LIBS = -Llib -lgif -lpthread -lGL -lGLEW -lfreetype \
 	       -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2main
 endif
 ifeq ($(TARGET_OS),win32)

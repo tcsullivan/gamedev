@@ -4,6 +4,7 @@
 #include <engine.hpp>
 #include <particle.hpp>
 #include <player.hpp>
+#include <render.hpp>
 #include <world.hpp>
 
 // math helpers because we don't trust stdlib
@@ -25,6 +26,8 @@ bool inrange(float point, float left, float right)
 	return point > left && point < right;
 }
 
+std::vector<AttackSystem::AttackAnimation> AttackSystem::effects;
+
 void AttackSystem::receive(const AttackEvent& ae)
 {
 	attacks.emplace_front(ae);
@@ -42,7 +45,10 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 		en.each<Health, Position, Solid>([&](entityx::Entity e, Health& health, Position& pos, Solid& dim) {
 			if (!e.has_component<Player>() && inrange(ppos.x, pos.x, pos.x + dim.width) && inrange(ppos.y, pos.y - 2, pos.y + dim.height)) {
 				health.health -= hit.damage;
-				e.replace<Flash>(Color(255, 0, 0));
+				if (hit.effect.size() == 0)
+					e.replace<Flash>(Color(255, 0, 0));
+				else
+					effects.emplace_back(vec2(ppos.x, ppos.y), hit.effect);
 				ParticleSystem::addMultiple(15, ParticleType::SmallBlast,
 					[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 				die = !hit.pierce;
@@ -68,9 +74,13 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 				if (inrange(point.x, pos.x, pos.x + dim.width, HLINES(size.x)) &&
 					inrange(point.y, pos.y, pos.y + dim.height, HLINES(size.y))) {
 					h.health -= a.attack.power;
-					e.replace<Flash>(Color(255, 0, 0));
-					ParticleSystem::addMultiple(15, ParticleType::DownSlash,
-						[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
+
+					if (a.attack.effect.size() == 0)
+						e.replace<Flash>(Color(255, 0, 0));
+					else
+						effects.emplace_back(point, a.attack.effect);
+					//ParticleSystem::addMultiple(15, ParticleType::DownSlash,
+					//	[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
 				}
 			}
 		);
@@ -79,3 +89,30 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 	attacks.clear();
 }
 
+#define RATE 3
+void AttackSystem::render(void)
+{
+	float z = -9.9f;
+	Render::worldShader.use();
+	Render::worldShader.enable();
+	for (auto& ae : effects) {
+		ae.effect(ae.counter / RATE); // bind current frame
+		auto dim = ae.effect.getTextureDim();
+		GLfloat verts[] = {
+			ae.pos.x,         ae.pos.y,         z, 0, 0,
+			ae.pos.x + dim.x, ae.pos.y,         z, 1, 0,
+			ae.pos.x + dim.x, ae.pos.y + dim.y, z, 1, 1,
+			ae.pos.x + dim.x, ae.pos.y + dim.y, z, 1, 1,
+			ae.pos.x,         ae.pos.y + dim.y, z, 0, 1,
+			ae.pos.x,         ae.pos.y,         z, 0, 0
+		};
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts);
+		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts + 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+	Render::worldShader.disable();
+	Render::worldShader.unuse();
+
+	effects.erase(std::remove_if(effects.begin(), effects.end(), [](auto& e) { return ++e.counter >= e.effect.size() * RATE; }),
+		effects.end());
+}

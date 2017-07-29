@@ -227,7 +227,7 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 				uie.attack->range.x *= -1;
 			game::events.emit<AttackEvent>(loc, *uie.attack, true);
 		} else if (uie.item->type == "Bow") {
-			/*if (InventorySystem::take("Arrow", 1)) {
+			if (InventorySystem::take("Arrow", 1)) {
 				auto e = game::entities.create();
 				auto pos = getPosition();
 				e.assign<Position>(pos.x, pos.y + 10);
@@ -242,8 +242,10 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 				sprite->addSpriteSegment(SpriteData(tex->sprite), 0);
 				auto dim = HLINES(sprite->getSpriteSize());
 				e.assign<Solid>(dim.x, dim.y);
-				e.assign<Hit>(10, false);
-			}*/
+				e.assign<Hit>(uie.attack->power, false);
+				if (uie.attack->effect.size() > 0)
+					e.component<Hit>()->effect = uie.attack->effect;
+			}
 		}
 
 		cool.store(false);

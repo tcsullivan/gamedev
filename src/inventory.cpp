@@ -78,6 +78,8 @@ void InventorySystem::loadItems(void) {
 			attack.range  = atk->StrAttribute("range");
 			attack.vel    = atk->StrAttribute("velocity");
 			attack.accel  = atk->StrAttribute("accel");
+			if (atk->Attribute("effect") != nullptr)
+				attack.effect.appendGIF(atk->StrAttribute("effect")); 
 			attackList.emplace(item.name, attack);
 		}
 

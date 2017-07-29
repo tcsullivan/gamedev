@@ -18,9 +18,11 @@
 
 <!-- WEAPONS -->
 <item name="Wood Sword"     type="Sword"    damage="3"  maxStackSize="1"  sound="assets/sounds/longSwing.wav"  sprite="assets/items/SWORD_WOOD.png" cooldown="250">
-	<attack range="6, 2" power="1" />
+	<attack range="6, 2" power="1" effect="assets/effects/starAttack.gif"/>
 </item>
-<item name="Hunters Bow"    type="Bow"      damage="2"  maxStackSize="1"    sprite="assets/items/bow.png" cooldown="600" />
+<item name="Hunters Bow"    type="Bow"      damage="2"  maxStackSize="1"    sprite="assets/items/bow.png" cooldown="600">
+	<attack power="4" effect="assets/effects/starAttack.gif"/>
+</item>
 <item name="Arrow"    type="Arrow"    damage="1"  maxStackSize="99"   sprite="assets/items/arrow_crude.png"/>
 
 <!-- UTILITIES -->

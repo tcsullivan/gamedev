@@ -178,6 +178,7 @@ void render(const int& fps)
 
 	WorldSystem::render();
 	ParticleSystem::render();
+	AttackSystem::render();
 	RenderSystem::render();
 	InventorySystem::render();
 

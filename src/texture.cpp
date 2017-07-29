@@ -9,6 +9,7 @@
 #include <config.hpp>
 #include <debug.hpp>
 #include <error.hpp>
+#include <gif_lib.h>
 
 namespace Colors
 {
@@ -149,6 +150,48 @@ void TextureIterator::operator()(const int &index)
 	position->use();
 }
 
+void TextureIterator::appendGIF(const std::string& gif)
+{
+	int* error = nullptr;
+	auto handle = DGifOpenFileName(gif.c_str(), error);
+	UserAssert(handle != nullptr && error == nullptr, "Failed to load GIF: " + gif);
+	UserAssert(DGifSlurp(handle) == GIF_OK, "Failed to extract from GIF: " + gif);
+
+	for (int i = 0; i < handle->ImageCount; i++) {
+		vec2 dim (handle->SavedImages[i].ImageDesc.Width,
+			handle->SavedImages[i].ImageDesc.Height);
+		int pcount = dim.x * dim.y;
+		auto buf = new GLubyte[pcount * 4];
+		auto bits = handle->SavedImages[i].RasterBits;
+		auto map = handle->SColorMap->Colors;
+		for (int j = 0; j < pcount; j++) {
+			//if (bits[j * 4] == handle->SBackGroundColor) {
+			auto c = map[bits[j]];
+			if (c.Red == 0xFF && c.Green == 0xFF && c.Blue == 0xFF) {
+				buf[j * 4] = buf[j * 4 + 1] = buf[j * 4 + 2] = buf[j * 4 + 3] = 0;
+			} else {
+				buf[j * 4 + 0] = c.Red;
+				buf[j * 4 + 1] = c.Green;
+				buf[j * 4 + 2] = c.Blue;
+				buf[j * 4 + 3] = 0xFF;
+			}
+		}
+
+		GLuint object;
+		glGenTextures(1, &object);
+		glBindTexture(GL_TEXTURE_2D, object);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dim.x, dim.y, 0, GL_RGBA,
+			GL_UNSIGNED_BYTE, buf);
+
+		textures.emplace_back(gif, object, dim);
+		delete[] buf;
+	}
+}
 
 void unloadTextures(void)
 {

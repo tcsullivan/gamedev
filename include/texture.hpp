@@ -137,6 +137,9 @@ public:
 	 * @param l the list of textures
 	 */
 	TextureIterator(const std::vector<std::string> &l);
+
+	void appendGIF(const std::string& gif);
+
 	/**
 	 * Shifts to the next texture in the array, stopping at the end if we're there.
 	 * Also binds the texture.
@@ -148,19 +151,21 @@ public:
 	 * Also binds the texture.
 	 */
 	void operator--(int) noexcept;
+
 	/**
 	 * Goes to the given index in the list.
 	 * @param index the index to use
 	 */
-	void operator()(const int &index);
+	void operator()(const int& index);
+
 	/**
 	 * Gets the dimensions of the currently selected texture.
 	 * @return the texture's dimensions
 	 */
-	inline const vec2& getTextureDim(void)
+	inline const vec2& getTextureDim(void) const
 	{ return position->getDim(); }
 
-	inline unsigned int size(void)
+	inline unsigned int size(void) const
 	{ return textures.size(); }
 };
 

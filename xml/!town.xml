@@ -26,10 +26,9 @@
 
 <Dialog name="Bob">
     <text id="0" nextid="1">
-        <give name="Wood Sword" count="1"/>
+	    <give name="Hunters Bow" count="1"/>
+	    <give name="Arrow" count="50"/>
 		<option name="Yes" />
-		<option name="Yes daddy" />
-		<option name="Ooooh boy yesss please" />
         <content>
 			Hey there! The name's Bob. Good to see you've finally woken up from your nap by the cliff there... lol
 		</content>
