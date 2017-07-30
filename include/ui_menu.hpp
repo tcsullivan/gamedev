@@ -60,7 +60,7 @@ public:
 
 	void configure(entityx::EventManager& ev)
 	{ ev.subscribe<MainSDLEvent>(*this); }
-	void receive(const MainSDLEvent& mse);
+	bool receive(const MainSDLEvent& mse);
 	void update(entityx::EntityManager& en, entityx::EventManager& ev, entityx::TimeDelta dt) override 
 	{ (void)en, (void)ev, (void)dt; }
 };

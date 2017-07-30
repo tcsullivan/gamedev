@@ -60,8 +60,9 @@ public:
 	 * A handler for the game ending event.
 	 * @param gee game end event data
 	 */
-	inline void receive(const GameEndEvent &gee) {
+	inline bool receive(const GameEndEvent &gee) {
 		shouldRun = !(gee.really);
+		return false;
 	}
 };
 

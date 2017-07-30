@@ -53,15 +53,15 @@ public:
 	 * Handles key up events for the player.
 	 * @param kue key up event data
 	 */
-    void receive(const KeyUpEvent&);
+    bool receive(const KeyUpEvent&);
 
 	/**
 	 * Handles key down events for the player.
 	 * @param kde key down event data
 	 */
-    void receive(const KeyDownEvent&);
+    bool receive(const KeyDownEvent&);
 
-	void receive(const UseItemEvent&);
+	bool receive(const UseItemEvent&);
 
 	/**
 	 * Gets the player's position.

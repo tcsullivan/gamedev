@@ -28,9 +28,10 @@ bool inrange(float point, float left, float right)
 
 std::vector<AttackSystem::AttackAnimation> AttackSystem::effects;
 
-void AttackSystem::receive(const AttackEvent& ae)
+bool AttackSystem::receive(const AttackEvent& ae)
 {
 	attacks.emplace_front(ae);
+	return true;
 }
 
 void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev, entityx::TimeDelta dt)

@@ -11,12 +11,12 @@
 
 static Menu* currentMenu = nullptr;
 
-void SDLReceiver::receive(const MainSDLEvent& mse)
+bool SDLReceiver::receive(const MainSDLEvent& mse)
 {
 	switch (mse.event.type) {
 	case SDL_QUIT:
 		game::endGame();
-		return;
+		return true;
 		break;
 	case SDL_MOUSEMOTION:
 		//ui::premouse.x = e.motion.x;
@@ -36,6 +36,7 @@ void SDLReceiver::receive(const MainSDLEvent& mse)
 	default:
 		break;
 	}
+	return true;
 }
 
 bool SDLReceiver::clicked = false;

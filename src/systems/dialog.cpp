@@ -25,7 +25,7 @@ void DialogSystem::configure(entityx::EventManager &ev)
 	ev.subscribe<MouseClickEvent>(*this);
 }
 
-void DialogSystem::receive(const MouseClickEvent &mce)
+bool DialogSystem::receive(const MouseClickEvent &mce)
 {
 	game::entities.each<Position, Solid, Dialog, Name>(
 		[&](entityx::Entity e, Position &pos, Solid &dim, Dialog &d, Name &name) {
@@ -144,6 +144,7 @@ void DialogSystem::receive(const MouseClickEvent &mce)
 			}
 		}
 	});
+	return true;
 }
 
 void DialogSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)

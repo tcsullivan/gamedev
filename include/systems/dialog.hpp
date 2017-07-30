@@ -8,7 +8,7 @@
 class DialogSystem : public entityx::System<DialogSystem>, public entityx::Receiver<DialogSystem> {
 public:
 	void configure(entityx::EventManager&);
-	void receive(const MouseClickEvent&);
+	bool receive(const MouseClickEvent&);
 	void update(entityx::EntityManager&, entityx::EventManager&, entityx::TimeDelta) override;
 };
 

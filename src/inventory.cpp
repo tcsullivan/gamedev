@@ -212,7 +212,7 @@ void InventorySystem::render(void)
 	Render::textShader.unuse();
 }
 
-void InventorySystem::receive(const MouseClickEvent &mce)
+bool InventorySystem::receive(const MouseClickEvent &mce)
 {
 	if (mce.button == SDL_BUTTON_RIGHT) {
 		game::entities.each<ItemDrop>([&](entityx::Entity e, ItemDrop& id) {
@@ -248,9 +248,10 @@ void InventorySystem::receive(const MouseClickEvent &mce)
 				game::events.emit<UseItemEvent>(mce.position, items[0].item, &attack->second);
 		}
 	}
+	return true;
 }
 
-void InventorySystem::receive(const MouseReleaseEvent &mre)
+bool InventorySystem::receive(const MouseReleaseEvent &mre)
 {
 	if (movingItem != -1) {
 		int end = fullInventory ? items.size() : hotbarSize;
@@ -265,7 +266,7 @@ void InventorySystem::receive(const MouseReleaseEvent &mre)
 				}
 
 				movingItem = -1;
-				return;
+				return true;
 			}
 		}
 
@@ -274,6 +275,7 @@ void InventorySystem::receive(const MouseReleaseEvent &mre)
 		items[movingItem].count = 0;
 		movingItem = -1;
 	}
+	return true;
 }
 
 void InventorySystem::makeDrop(const vec2& p, InventoryEntry& ie)
@@ -308,11 +310,11 @@ void InventorySystem::makeDrop(const vec2& p, const std::string& s, int c)
 	e.assign<Physics>();
 }
 
-void InventorySystem::receive(const KeyDownEvent &kde)
+bool InventorySystem::receive(const KeyDownEvent &kde)
 {
-    if (kde.keycode == SDLK_e) {
+    if (kde.keycode == SDLK_e)
 		fullInventory ^= true;
-	}
+	return true;
 }
 
 void InventorySystem::add(const std::string& name, int count)

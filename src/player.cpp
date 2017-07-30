@@ -132,7 +132,7 @@ void PlayerSystem::update(entityx::EntityManager &en, entityx::EventManager &ev,
 		vel.x /= 2.0f;
 }
 
-void PlayerSystem::receive(const KeyUpEvent &kue)
+bool PlayerSystem::receive(const KeyUpEvent &kue)
 {
 	auto kc = kue.keycode;
 
@@ -145,9 +145,10 @@ void PlayerSystem::receive(const KeyUpEvent &kue)
 	} else if (kc == getControl(5)) {
 		// TODO ...?
 	}
+	return true;
 }
 
-void PlayerSystem::receive(const KeyDownEvent &kde)
+bool PlayerSystem::receive(const KeyDownEvent &kde)
 {
 	auto kc = kde.keycode;
 	auto& loc = *player.component<Position>().get();
@@ -192,6 +193,7 @@ void PlayerSystem::receive(const KeyDownEvent &kde)
 	} else if (kc == SDLK_t) {
 		game::time::tick(50);
 	}
+	return true;
 }
 
 vec2 PlayerSystem::getPosition(void) 
@@ -211,7 +213,7 @@ float PlayerSystem::getWidth(void)
 	return width;
 }
 
-void PlayerSystem::receive(const UseItemEvent& uie)
+bool PlayerSystem::receive(const UseItemEvent& uie)
 {
 	static std::atomic_bool cool (true);
 
@@ -254,4 +256,5 @@ void PlayerSystem::receive(const UseItemEvent& uie)
 			cool.store(true);
 		}, uie.item->cooldown).detach();
 	}
+	return true;
 }

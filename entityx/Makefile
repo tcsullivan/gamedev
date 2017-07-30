@@ -1,3 +1,5 @@
+# gamedev CHANGE - changed output of libentityx to ../lib/
+
 INC = -I..
 FLG = -std=gnu++11
 
@@ -12,5 +14,6 @@ all:
 	g++ $(INC) $(FLG) -c Event.cc -o out/Event.o
 	g++ $(INC) $(FLG) -c Entity.cc -o out/Entity.o
 	g++ $(INC) $(FLG) -c System.cc -o out/System.o
-	ar rvs libentityx.a out/*.o
+	ar rvs ../lib/libentityx.a out/*.o
 #	g++ out/*.o -shared -o ../entityx.so
+	rm -rf out

@@ -41,8 +41,8 @@ public:
 
 	static void render(void);
 
-	void receive(const WindowResizeEvent&);	
-	void receive(const ScreenshotEvent&);
+	bool receive(const WindowResizeEvent&);	
+	bool receive(const ScreenshotEvent&);
 };
 
 #endif // WINDOW_HPP_

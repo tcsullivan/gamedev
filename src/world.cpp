@@ -758,11 +758,11 @@ void WorldSystem::render(void)
 	waitToSwap = false;
 }
 
-void WorldSystem::receive(const BGMToggleEvent &bte)
+bool WorldSystem::receive(const BGMToggleEvent &bte)
 {
 	if (bte.world == nullptr || world.bgm != bte.file) {
 		if (bgmCurrent == world.bgm)
-			return;
+			return true;
 
 		Mix_FadeOutMusic(800);
 
@@ -773,6 +773,7 @@ void WorldSystem::receive(const BGMToggleEvent &bte)
 		bgmObj = Mix_LoadMUS(world.bgm.c_str());
 		Mix_PlayMusic(bgmObj, -1);
 	}
+	return true;
 }
 
 void WorldSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)

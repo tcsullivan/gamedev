@@ -4,7 +4,7 @@ CC  = gcc
 CXX = g++
 
 ifeq ($(TARGET_OS),linux)
-	LIBS = -Llib -lgif -lpthread -lGL -lGLEW -lfreetype \
+	LIBS = -Llib -lgif -lentityx -lpthread -lGL -lGLEW -lfreetype \
 	       -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2main
 endif
 ifeq ($(TARGET_OS),win32)
@@ -40,13 +40,6 @@ clean:
 	@mkdir out/components
 
 $(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
-	@echo "  CXX     entityx"
-	@g++ -I. -std=c++11 -c entityx/help/Pool.cc -o out/Pool.o
-	@g++ -I. -std=c++11 -c entityx/help/Timer.cc -o out/Timer.o
-	@g++ -I. -std=c++11 -c entityx/Event.cc -o out/Event.o
-	@g++ -I. -std=c++11 -c entityx/Entity.cc -o out/Entity.o
-	@g++ -I. -std=c++11 -c entityx/System.cc -o out/System.o
-	
 	@echo "  CXX/LD  main"
 	@$(CXX) $(SPECIAL) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/components/*.o out/systems/*.o out/*.o $(LIBS)
 	@rm -rf xml/*.dat

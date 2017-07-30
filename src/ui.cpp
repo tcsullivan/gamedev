@@ -631,7 +631,7 @@ namespace ui {
 
 using namespace ui;
 
-void InputSystem::receive(const MainSDLEvent& event)
+bool InputSystem::receive(const MainSDLEvent& event)
 {
 	const auto& e = event.event;
 	auto& ev = game::events;
@@ -730,6 +730,7 @@ void InputSystem::receive(const MainSDLEvent& event)
 		break;
 		
 	}
+	return true;
 }
 
 void InputSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)

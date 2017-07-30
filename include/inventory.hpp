@@ -96,9 +96,9 @@ public:
 
 	void configure(entityx::EventManager &ev);
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
-	void receive(const KeyDownEvent &kde);
-	void receive(const MouseClickEvent &mce);
-	void receive(const MouseReleaseEvent &mce);
+	bool receive(const KeyDownEvent &kde);
+	bool receive(const MouseClickEvent &mce);
+	bool receive(const MouseReleaseEvent &mce);
 
 	static void render(void);
 

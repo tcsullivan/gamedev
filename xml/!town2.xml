@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <World>
-	<style bgm="assets/music/embark.wav" folder="assets/style/classic/">
+	<style bgm="assets/music/ozone.ogg" folder="assets/style/classic/">
 		<layer path="bg/bg.png"/>
 		<layer path="bg/bgFarMountain.png"/>
 		<layer path="bg/forestTileFar.png"/>
@@ -10,7 +10,7 @@
 		<layer path="bg/dirt.png"/>
 		<layer path="bg/grass.png"/>
 	</style>
-	<generation width="600"/>
+	<generation width="1000"/>
 	<time>6000</time>
 	<link left="!town.xml"/>
 </World>

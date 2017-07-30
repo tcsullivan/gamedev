@@ -28,7 +28,7 @@ public:
 		ev.subscribe<MainSDLEvent>(*this);
 	}
 
-	void receive(const MainSDLEvent& event);
+	bool receive(const MainSDLEvent& event);
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 };
 

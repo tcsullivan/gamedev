@@ -148,7 +148,7 @@ public:
 
 	static float isAboveGround(const vec2& p); //const;
 
-	void receive(const BGMToggleEvent &bte);
+	bool receive(const BGMToggleEvent &bte);
 	void update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt) override;
 	static void render(void);
 

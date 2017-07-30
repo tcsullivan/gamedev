@@ -37,7 +37,7 @@ class BaseEvent {
 };
 
 
-typedef Simple::Signal<void (const void*)> EventSignal;
+typedef Simple::Signal<bool (const void*)> EventSignal;
 typedef std::shared_ptr<EventSignal> EventSignalPtr;
 typedef std::weak_ptr<EventSignal> EventSignalWeakPtr;
 
@@ -123,7 +123,7 @@ class EventManager : entityx::help::NonCopyable {
    */
   template <typename E, typename Receiver>
   void subscribe(Receiver &receiver) {
-    void (Receiver::*receive)(const E &) = &Receiver::receive;
+    bool (Receiver::*receive)(const E &) = &Receiver::receive;
     auto sig = signal_for(Event<E>::family());
     auto wrapper = EventCallbackWrapper<E>(std::bind(receive, &receiver, std::placeholders::_1));
     auto connection = sig->connect(wrapper);
@@ -205,9 +205,9 @@ class EventManager : entityx::help::NonCopyable {
   // Functor used as an event signal callback that casts to E.
   template <typename E>
   struct EventCallbackWrapper {
-    explicit EventCallbackWrapper(std::function<void(const E &)> callback) : callback(callback) {}
-    void operator()(const void *event) { callback(*(static_cast<const E*>(event))); }
-    std::function<void(const E &)> callback;
+    explicit EventCallbackWrapper(std::function<bool(const E &)> callback) : callback(callback) {}
+    bool operator()(const void *event) { return callback(*(static_cast<const E*>(event))); }
+    std::function<bool(const E &)> callback;
   };
 
   std::vector<EventSignalPtr> handlers_;

@@ -47,7 +47,7 @@ public:
 		ev.subscribe<AttackEvent>(*this);
 	}
 
-	void receive(const AttackEvent& ae);
+	bool receive(const AttackEvent& ae);
 	void update(entityx::EntityManager& en, entityx::EventManager& ev, entityx::TimeDelta dt) override;
 	static void render(void);
 };
