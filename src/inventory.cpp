@@ -4,12 +4,15 @@
 #include <components.hpp>
 #include <engine.hpp>
 #include <error.hpp>
+#include <fileio.hpp>
 #include <font.hpp>
 #include <player.hpp>
 #include <render.hpp>
 #include <ui.hpp>
 
 #include <forward_list>
+#include <iostream>
+#include <fstream>
 #include <unordered_map>
 
 #include <tinyxml2.h>
@@ -248,7 +251,7 @@ bool InventorySystem::receive(const MouseClickEvent &mce)
 				game::events.emit<UseItemEvent>(mce.position, items[0].item, &attack->second);
 		}
 	}
-	return true;
+	return false;
 }
 
 bool InventorySystem::receive(const MouseReleaseEvent &mre)
@@ -383,4 +386,43 @@ bool InventorySystem::take(const std::string& name, int count)
 	}
 
 	return true;
+}
+
+bool InventorySystem::save(void)
+{	
+	std::ofstream s (game::config::xmlFolder + "inventory.dat");
+
+	// signature?
+	s << "831998\n";
+
+	for (const auto& i : items) {
+		if (i.item != nullptr && i.count > 0)
+			s << std::string(i.item->name) << '\n' << i.count << '\n';
+	}
+	
+	// end of list?
+	s.close();
+	return true;
+}
+
+void InventorySystem::load(void)
+{
+	// attempt to load data
+	std::ifstream sf (game::config::xmlFolder + "inventory.dat");
+	if (sf.good()) {
+		sf.close();
+		auto lines = readFileA(game::config::xmlFolder + "inventory.dat");
+
+		// check signature
+		if (std::stoi(lines[0]) != 831998)
+			UserError("Save file signature is invalid... (delete it)");
+
+		for (unsigned int i = 1; i < lines.size(); i += 2) {
+			if (lines[i].size() > 0) {
+				int count = std::stoi(lines[i + 1]);
+				if (count > 0)
+					add(lines[i], count);
+			}
+		}
+	}
 }

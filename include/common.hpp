@@ -23,11 +23,11 @@ constexpr float PI = 3.1415926535f;
  */
 unsigned int millis(void);
 
-namespace std {
+/*namespace std {
 	template<class T>
 	constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
 		return (v > hi) ? hi : ((v > lo) ? v : lo);
 	}
-}
+}*/
 
 #endif // COMMON_HPP_

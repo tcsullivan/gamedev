@@ -124,6 +124,9 @@ public:
 
 	static inline Item* getItem(const std::string& s)
 	{ return &itemList[s]; }
+
+	static bool save(void);
+	static void load(void);
 };
 
 #endif // INVENTORY_HPP_

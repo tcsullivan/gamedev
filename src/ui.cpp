@@ -691,10 +691,9 @@ bool InputSystem::receive(const MainSDLEvent& event)
 	case SDL_KEYUP:
 		ev.emit<KeyUpEvent>(SDL_KEY);
 
-		if (SDL_KEY == SDLK_ESCAPE)
+		if (SDL_KEY == SDLK_ESCAPE) {
 			ui::menu::toggle();
-
-		if (SDL_KEY == SDLK_h) {
+		} else if (SDL_KEY == SDLK_h) {
 			quest::toggle();
 		} else switch (SDL_KEY) {
 		case SDLK_F3:

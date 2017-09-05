@@ -144,7 +144,7 @@ bool DialogSystem::receive(const MouseClickEvent &mce)
 			}
 		}
 	});
-	return true;
+	return false;
 }
 
 void DialogSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)

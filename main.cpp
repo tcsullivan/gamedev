@@ -106,6 +106,8 @@ int main(int argc, char *argv[])
 
 	WorldSystem::loader();
 
+	InventorySystem::load();
+
 	/////////////////////////////
 	//                         //
 	// actually start the game //
@@ -172,6 +174,7 @@ int main(int argc, char *argv[])
 
 	// save
 	game::briceSave();
+	InventorySystem::save();
 	WorldSystem::save();
 
 	// exit
