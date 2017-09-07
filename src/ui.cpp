@@ -665,11 +665,11 @@ bool InputSystem::receive(const MainSDLEvent& event)
 		break;
 
 	case SDL_MOUSEBUTTONDOWN:
-		ev.emit<MouseClickEvent>(mouse, e.button.button);
-
 		if (UISystem::isDialog() || pageTexReady) {
 			if ((e.button.button & SDL_BUTTON_RIGHT))
 				UISystem::advanceDialog();
+		} else {
+			ev.emit<MouseClickEvent>(mouse, e.button.button);
 		}
 		break;
 

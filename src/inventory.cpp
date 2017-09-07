@@ -251,7 +251,7 @@ bool InventorySystem::receive(const MouseClickEvent &mce)
 				game::events.emit<UseItemEvent>(mce.position, items[0].item, &attack->second);
 		}
 	}
-	return false;
+	return true;
 }
 
 bool InventorySystem::receive(const MouseReleaseEvent &mre)

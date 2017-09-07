@@ -27,15 +27,17 @@ void DialogSystem::configure(entityx::EventManager &ev)
 
 bool DialogSystem::receive(const MouseClickEvent &mce)
 {
+	static bool continueEvent;
+
+	continueEvent = true;
 	game::entities.each<Position, Solid, Dialog, Name>(
 		[&](entityx::Entity e, Position &pos, Solid &dim, Dialog &d, Name &name) {
 			static std::atomic_bool dialogRun;
-			(void)e;
-			(void)d;
 
 			if (((mce.position.x > pos.x) & (mce.position.x < pos.x + dim.width)) &&
 			    ((mce.position.y > pos.y) & (mce.position.y < pos.y + dim.height))) {
 
+			continueEvent = false;
 			e.replace<Flash>(Color(0, 255, 255));
 
 			if (!dialogRun.load()) {
@@ -141,10 +143,12 @@ bool DialogSystem::receive(const MouseClickEvent &mce)
 					d.talking = false;
 					dialogRun.store(false);
 				}).detach();
-			}
-		}
-	});
-	return false;
+			} // dialogRun check
+
+			} // mouse check
+		} // .each
+	);
+	return continueEvent;
 }
 
 void DialogSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)

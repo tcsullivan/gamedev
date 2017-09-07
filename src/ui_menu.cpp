@@ -13,19 +13,19 @@ static Menu* currentMenu = nullptr;
 
 bool SDLReceiver::receive(const MainSDLEvent& mse)
 {
+	if (currentMenu == nullptr)
+		return true;
+
 	switch (mse.event.type) {
 	case SDL_QUIT:
 		game::endGame();
-		return true;
-		break;
-	case SDL_MOUSEMOTION:
-		//ui::premouse.x = e.motion.x;
-		//ui::premouse.y = e.motion.y;
 		break;
 	case SDL_MOUSEBUTTONUP:
 		if (mse.event.button.button & SDL_BUTTON_LEFT)
 			clicked = true;
-		break;	
+		break;
+	case SDL_MOUSEBUTTONDOWN:
+		break; // consume events	
 	case SDL_KEYUP:
 		if (currentMenu != nullptr && mse.event.key.keysym.sym == SDLK_ESCAPE) {
 			currentMenu->gotoParent();
@@ -33,10 +33,14 @@ bool SDLReceiver::receive(const MainSDLEvent& mse)
 			clicked = false;
 		}
 		break;
+	case SDL_KEYDOWN:
+		break; // consume events
 	default:
+		return true;
 		break;
 	}
-	return true;
+
+	return false;
 }
 
 bool SDLReceiver::clicked = false;

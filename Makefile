@@ -38,12 +38,11 @@ clean:
 	@mkdir out
 	@mkdir out/systems
 	@mkdir out/components
+	@rm -f xml/*.dat
 
 $(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
 	@echo "  CXX/LD  main"
 	@$(CXX) $(SPECIAL) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/components/*.o out/systems/*.o out/*.o $(LIBS)
-	@rm -rf xml/*.dat
-	@rm -rf storyXML/*.dat
 
 $(CXXOUTDIR)/%.o: $(CXXSRCDIR)/%.cpp
 	@echo "  CXX    " $<

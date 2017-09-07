@@ -50,7 +50,7 @@
 </Dialog>
 
 <Dialog name="Sanc">
-    <text id="0">
+    <text id="0" nexit="0" pause="true">
         <set id="Slow" value="0"/>
         <set id="canSprint" value="1"/>
         <set id="canJump" value="1"/>

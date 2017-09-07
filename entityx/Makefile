@@ -9,6 +9,7 @@ FILES = help/Pool.cc \
 	Entity.cc \
 	System.cc
 all:
+	mkdir out
 	g++ $(INC) $(FLG) -c help/Pool.cc -o out/Pool.o
 	g++ $(INC) $(FLG) -c help/Timer.cc -o out/Timer.o
 	g++ $(INC) $(FLG) -c Event.cc -o out/Event.o

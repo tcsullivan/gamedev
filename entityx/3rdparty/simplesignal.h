@@ -26,9 +26,9 @@ template <typename Result>
 struct CollectorLast {
   typedef Result CollectorResult;
   explicit CollectorLast() : last_() {}
-  inline bool operator()(Result r) {
+  inline CollectorResult operator()(Result r) {
     last_ = r;
-    return true;
+    return last_;
   }
   CollectorResult result() { return last_; }
 
