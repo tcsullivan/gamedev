@@ -877,6 +877,11 @@ std::string UISystem::getDialogResult(void)
 
 void UISystem::advanceDialog(void)
 {
+	if (!typeOutDone) {
+		typeOutDone = true;
+		return;
+	}
+
 	dialogText.clear();
 	importantText.clear();
 
