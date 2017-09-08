@@ -613,20 +613,6 @@ namespace ui {
 
 		fclose(bmp);
 	}
-
-	bool handleGLEvent(SDL_Event& e) {
-		switch (e.type) {
-		case SDL_MOUSEBUTTONDOWN:
-			if ((UISystem::isDialog() | pageTexReady) && (e.button.button & SDL_BUTTON_RIGHT))
-					UISystem::advanceDialog();
-			return true;
-			break;
-		default:
-			break;
-		}
-
-		return false;
-	}
 }
 
 using namespace ui;

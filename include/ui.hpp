@@ -130,8 +130,6 @@ namespace ui {
  	 */
 
 	void takeScreenshot(GLubyte *pixels);
-
-	bool handleGLEvent(SDL_Event& e);
 }
 
 #endif // UI_HPP_

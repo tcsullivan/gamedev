@@ -130,10 +130,10 @@ int main(int argc, char *argv[])
 				game::time::tick();
 			}
 
-			while (!eventQueue.empty()) {
-				game::events.emit<MainSDLEvent>(eventQueue.back());
-				eventQueue.pop_back();
-			}
+			auto clone = eventQueue;
+			eventQueue.clear();
+			for (auto& e : clone)
+				game::events.emit<MainSDLEvent>(e);
 
 			game::engine.update(game::time::getDeltaTime());
 			std::this_thread::sleep_for(1ms);
@@ -160,10 +160,8 @@ int main(int argc, char *argv[])
 			Render::render(fps);
 			
 			SDL_Event e;
-			while (SDL_PollEvent(&e)) {
-				ui::handleGLEvent(e);
+			while (SDL_PollEvent(&e))
 				eventQueue.push_back(e);
-			}
 		}
 
 		// on game end, get back together
