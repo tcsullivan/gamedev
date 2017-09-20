@@ -16,5 +16,20 @@
 	<generation width="320"/>
 	<time>6000</time>
 	<!--<link outside="town.xml"/>-->
-	<npc name="Bob" hasDialog="false" spawnx="30"/>
+	<npc name="Bob" hasDialog="true" spawnx="30"/>
 </IndoorWorld>
+
+<Dialog name="Bob">
+	<text id="0" nextid="1">
+		<content>
+			Hey there lil' guy! Someone lookin' for some stuff?
+		</content>
+	</text>
+	<text id="1">
+		<give name="Debug" count="5"/>
+		<content>
+			Here ya' go boy!
+		</content>
+	</text>
+</Dialog>
+

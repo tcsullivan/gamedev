@@ -42,12 +42,12 @@ bool DialogSystem::receive(const MouseClickEvent &mce)
 
 			if (!dialogRun.load()) {
 				// copy entity, windows destroys the original after thread detach
+				dialogRun.store(true);
 				std::thread([e, &pos, &dim, &d, &name] {
 					std::string questAssignedText;
 					int newIndex;
 
 					auto exml = WorldSystem::getXML()->FirstChildElement("Dialog");
-					dialogRun.store(true);
 
 					if (e.has_component<Direction>())
 						d.talking = true;
@@ -100,7 +100,7 @@ bool DialogSystem::receive(const MouseClickEvent &mce)
 										} else {
 											UISystem::dialogBox(name.name, "Finish my quest u nug");
 											UISystem::waitForDialog();
-											return;
+											goto END;
 										}
 									//	oldidx = d.index;
 									//	d.index = qxml->UnsignedAttribute("fail");
@@ -139,7 +139,7 @@ bool DialogSystem::receive(const MouseClickEvent &mce)
 						else if (exml->QueryIntAttribute("nextid", &newIndex) == XML_NO_ERROR)
 							d.index = newIndex;
 					}
-
+END:
 					d.talking = false;
 					dialogRun.store(false);
 				}).detach();

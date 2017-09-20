@@ -320,30 +320,34 @@ bool InventorySystem::receive(const KeyDownEvent &kde)
 	return true;
 }
 
+void InventorySystem::add(const std::string& name, int count, int slot)
+{
+	auto& ie = items[slot];
+
+	if (isGoodEntry(ie)) {
+		if (ie.item->name != name)
+			return; // TODO behavior?
+		ie.count += count;
+	} else {
+		ie.item = &itemList[name];
+		ie.count = count;
+	}
+
+	if (ie.count > ie.item->stackSize) {
+		int diff = ie.count - ie.item->stackSize;
+		ie.count = ie.item->stackSize;
+		add(name, diff);
+	}
+}
+
 void InventorySystem::add(const std::string& name, int count)
 {
-	auto i = std::find_if(items.begin(), items.end(),
-		[&name](const InventoryEntry& ie) {
-			// either matching item that isn't filled, or empty slow
-			return (ie.item != nullptr && ie.item->name == name && ie.count < ie.item->stackSize) || ie.count == 0;
-		});
-
-	if (i != items.end()) {
-		auto& ie = *i;
-
-		// update the slot
-		if (!isGoodEntry(ie)) {
-			ie.item = &itemList[name];
-			ie.count = count;
-		} else {
-			ie.count += count;
-		}
-
-		// handle overflow
-		if (ie.count > ie.item->stackSize) {
-			int diff = ie.count - ie.item->stackSize;
-			ie.count = ie.item->stackSize;
-			add(name, diff);
+	for (unsigned int i = 0; i < items.size(); i++) {
+		if ((items[i].item != nullptr && items[i].item->name == name
+			&& items[i].count < items[i].item->stackSize)
+			|| items[i].count == 0) {
+			add(name, count, static_cast<int>(i));
+			break;
 		}
 	}
 }
@@ -395,9 +399,11 @@ bool InventorySystem::save(void)
 	// signature?
 	s << "831998\n";
 
+	int idx = 0;
 	for (const auto& i : items) {
 		if (i.item != nullptr && i.count > 0)
-			s << std::string(i.item->name) << '\n' << i.count << '\n';
+			s << std::string(i.item->name) << '\n' << i.count << '\n' << idx << '\n';
+		idx++;
 	}
 	
 	// end of list?
@@ -417,11 +423,12 @@ void InventorySystem::load(void)
 		if (std::stoi(lines[0]) != 831998)
 			UserError("Save file signature is invalid... (delete it)");
 
-		for (unsigned int i = 1; i < lines.size(); i += 2) {
+		for (unsigned int i = 1; i < lines.size(); i += 3) {
 			if (lines[i].size() > 0) {
 				int count = std::stoi(lines[i + 1]);
+				int slot = std::stoi(lines[i + 2]);
 				if (count > 0)
-					add(lines[i], count);
+					add(lines[i], count, slot);
 			}
 		}
 	}

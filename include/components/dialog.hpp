@@ -7,7 +7,7 @@
 
 struct Dialog : public Component {
 	Dialog(int idx = 0)
-		: index(idx), rindex((idx == 9999) ? randGet() : idx), talking(false) {}
+		: index(idx), rindex(randGet()), talking(false) {}
 	Dialog(XMLElement* imp, XMLElement* def) {
 		fromXML(imp, def);
 	}

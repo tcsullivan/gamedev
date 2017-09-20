@@ -91,6 +91,7 @@ private:
 	static bool fullInventory;
 
 	static void loadItems(void);
+	static void add(const std::string& name, int count, int slot);
 public:
 	InventorySystem(int size = 20);
 
