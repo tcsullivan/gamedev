@@ -41,9 +41,10 @@ void FontSystem::setFontSize(int size)
 
 			// convert red-on-black to RGBA
 			auto& g = ftFace->glyph;
-			std::vector<uint32_t> buf (g->bitmap.width * g->bitmap.rows, 0xFFFFFFFF);
+			std::vector<uint32_t> buf (g->bitmap.width * g->bitmap.rows, 0x00FFFFFF);
 			for (auto j = buf.size(); j--;)
-				buf[j] ^= !g->bitmap.buffer[j] ? buf[j] : 0;
+				buf[j] |= g->bitmap.buffer[j] << 24;
+//				buf[j] ^= !g->bitmap.buffer[j] ? buf[j] : 0;
 
 			d.wh.x = g->bitmap.width;
 			d.wh.y = g->bitmap.rows;

@@ -55,7 +55,7 @@ void Menu::gotoParent(void)
 {
 	if (parent == nullptr) {
 		game::config::update();
-		FontSystem::setFontSize(16);
+		FontSystem::setFontSize(FontSystem::SizeSmall);
 	}
 	
 	currentMenu = parent;
@@ -253,7 +253,7 @@ namespace ui {
 			Render::useShader(&Render::textShader);
 
             game::config::update();
-            FontSystem::setFontSize(24);
+            FontSystem::setFontSize(FontSystem::SizeLarge);
 			FontSystem::setFontZ(-9.0);
 	
             mouse.x = ui::premouse.x+offset.x-(SCREEN_WIDTH/2);
@@ -370,7 +370,7 @@ namespace ui {
             }
 
 			SDLReceiver::clicked = false;
-            FontSystem::setFontSize(16);
+            FontSystem::setFontSize(FontSystem::SizeSmall);
 			FontSystem::setFontZ(-8.0);
         }
 

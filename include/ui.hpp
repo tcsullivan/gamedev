@@ -83,7 +83,7 @@ public:
 	 */
 
 	static void putText(const vec2& p, const std::string& s, ...);
-	static void putString(const vec2& p, const std::string& s, float wrap = 0.12345f);
+	static void putString(const vec2& p, const std::string& s, float wrap = 0);
 	static float putStringCentered(const vec2& p, const std::string& s, bool print = true);
 
 	static void dialogBox(const std::string& n, const std::string& s, ...);

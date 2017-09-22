@@ -4,6 +4,9 @@
 #include <string>
 #include <type_traits>
 
+#include <sstream>
+#include <iomanip>
+
 template<typename T>
 struct vector2 {
 	static_assert(std::is_arithmetic<T>::value, "vector2 members must be an arithmetic type (i.e. numbers)");
@@ -123,8 +126,18 @@ struct vector2 {
 	}
 
 	// other functions
-	std::string toString(void) const {
-		return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
+	std::string toString(int precision = -1) const {
+		std::stringstream ss;
+		std::string sx, sy;
+		ss << std::fixed;
+		if (precision > -1)
+			ss << std::setprecision(precision);
+		ss << x;
+		sx = ss.str();
+		ss.str(std::string());
+		ss << y;
+		sy = ss.str();
+		return "(" + sx + ", " + sy + ")";
 	}
 };
 

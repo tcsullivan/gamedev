@@ -47,7 +47,7 @@ void Engine::init(void) {
 	// init ui
 
 	FontSystem::init(game::config::fontFamily);
-	FontSystem::setFontSize(16);
+	FontSystem::setFontSize(FontSystem::SizeSmall);
 	FontSystem::setFontColor(1, 1, 1);
 	FontSystem::setFontZ(-6.0f);
 

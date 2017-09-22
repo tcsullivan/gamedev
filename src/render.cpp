@@ -187,7 +187,7 @@ void render(const int& fps)
 		auto pos = PlayerSystem::getPosition();
 		UISystem::putText(vec2(offset.x - game::SCREEN_WIDTH / 2, (offset.y + game::SCREEN_HEIGHT / 2) - FontSystem::getSize()),
 		    "loc: %s\noffset: %s\nfps: %d\nticks: %d\npcount: %d\nxml: %s\nmem: %llukb (%d)",
-			pos.toString().c_str(), offset.toString().c_str(), fps,
+			pos.toString(2).c_str(), offset.toString(2).c_str(), fps,
 			game::time::getTickCount(), ParticleSystem::getCount(),
 			WorldSystem::getXMLFile().c_str(), getUsedMem() / 1024, balance
 			);

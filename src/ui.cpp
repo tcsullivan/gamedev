@@ -20,6 +20,7 @@
 #include <events.hpp>
 #include <window.hpp>
 #include <player.hpp>
+#include <tokens.hpp>
 
 #include <chrono>
 
@@ -779,34 +780,42 @@ void UISystem::putString(const vec2& p, const std::string& s, float wrap)
 {
 	vec2 offset = p, add;
 
-	for (auto c : s) {
-		switch (c) {
-		case '\n':
+	int sum;
+	for (auto word : tokens(s, ' ')) {
+		sum = 0;
+		for (auto c : word)
+			sum += FontSystem::getCharWidth(c);
+		if (wrap > 0 && offset.x + sum > wrap) {
 			offset.y -= FontSystem::getSize() * 1.05f;
 			offset.x = p.x;
-			break;
-		case '\b':
-			offset.x -= add.x;
-			break;
-		case '\r':
-		case '\t':
-			break;
-		case ' ':
-			offset.x += FontSystem::getSize() / 2.0f;
-			break;
-		default:
-			add = FontSystem::putChar(floor(offset.x), floor(offset.y), c);
-			offset += add;
-			break;
+		}
+		
+		for (auto c : word) {
+			switch (c) {
+			case '\n':
+				//offset.y -= FontSystem::getSize() * 1.05f;
+				//offset.x = p.x;
+				break;
+			case '\b':
+				//offset.x -= add.x;
+				break;
+			case '\r':
+			case '\t':
+				break;
+			default:
+				add = FontSystem::putChar(floor(offset.x), floor(offset.y), c);
+				offset.x += add.x;
+				break;
+			}
+
+			/*if (wrap != 0.12345f && offset.x >= (wrap - 10)) {
+				offset.y -= FontSystem::getSize() * 1.05f;
+				offset.x = p.x;
+			}*/
 		}
 
-		if (wrap != 0.12345f && offset.x >= (wrap - 10)) {
-			offset.y -= FontSystem::getSize() * 1.05f;
-			offset.x = p.x;
-		}
+		offset.x += FontSystem::getSize() / 2.0f;
 	}
-
-	//return offset.x;
 }
 
 float UISystem::putStringCentered(const vec2& p, const std::string& s, bool print)
@@ -972,10 +981,10 @@ void UISystem::render(void)
 	}
 
 	if (!importantText.empty()) {
-		FontSystem::setFontSize(24);
+		FontSystem::setFontSize(FontSystem::SizeLarge);
 		FontSystem::setFontZ(-9.0f);
 		putStringCentered(vec2(offset.x, 400), ui::typeOut(importantText));
 		FontSystem::setFontZ(-6.0f);
-		FontSystem::setFontSize(16);
+		FontSystem::setFontSize(FontSystem::SizeSmall);
 	}
 }

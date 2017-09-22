@@ -51,6 +51,9 @@ public:
 		FT_Done_FreeType(ftLibrary);
 	}
 
+	constexpr static inline int SizeSmall = 16;
+	constexpr static inline int SizeLarge = 24;
+
 	static void init(const std::string& ttf);
 	static void setFontSize(int size);
 	static void setFontColor(float r, float g, float b);
@@ -65,6 +68,9 @@ public:
 
 	static inline auto& getFont(void)
 	{ return fontData.at(currentSize); }
+
+	static inline auto getCharWidth(char c)
+	{ return fontData.at(currentSize)[c - 33].wh.x; }
 };
 
 #endif // FONT_HPP_
