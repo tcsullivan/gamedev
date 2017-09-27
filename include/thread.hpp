@@ -1,12 +1,7 @@
 #ifndef THREAD_HPP_
 #define THREAD_HPP_
 
-#ifndef __WIN32__
 #include <thread>
-#else
-#include <win32thread.hpp>
-#endif // __WIN32__
-
 #include <atomic>
 #include <entityx/entityx.h>
 

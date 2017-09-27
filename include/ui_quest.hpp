@@ -5,6 +5,7 @@
 #ifndef UI_QUEST_HPP_
 #define UI_QUEST_HPP_
 
+#include <quest.hpp>
 #include <ui.hpp>
 #include <vector2.hpp>
 
@@ -27,13 +28,9 @@ namespace ui {
 		 * Draws the quest UI to the screen, if enabled.
 		 */
 		void draw(void) {
-//			static unsigned int textWrap = 40;
-
 			if (!_toggle)
 				return;
-
-//			std::swap(textWrap, ui::textWrapLimit);
-
+			
 			float top_y = offset.y + 200;
 			ui::drawNiceBox(vec2 {offset.x - 200, top_y },
 			                vec2 {offset.x + 200, offset.y - 200 },
@@ -41,16 +38,15 @@ namespace ui {
 
 			UISystem::putStringCentered(vec2(offset.x, top_y - 40), "Current Quests:");
 			
-			/*auto y = top_y - 100;
+			const auto& titles = QuestSystem::getQuestTitles();
+			auto y = top_y - 100;
 			const auto x = offset.x - 180;
-			for (const auto &q : player->qh.current) {
-				ui::putText(x, y, q.title.c_str());
+			for (const auto t : titles) {
+				UISystem::putString(vec2(x, y), t);
 				y -= 20;
-				ui::putText(x + 40, y, q.desc.c_str());
-				y -= 40; 
-			}*/
-
-//			std::swap(textWrap, ui::textWrapLimit);
+				//ui::putText(x + 40, y, q.desc.c_str());
+				//y -= 40; 
+			}
 		}
 	}
 }

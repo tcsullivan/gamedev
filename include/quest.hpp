@@ -71,6 +71,13 @@ public:
 	 * @return if the quest is active.
 	 */
 	static bool hasQuest(std::string title);
+	
+	static inline auto getQuestTitles(void) {
+		std::forward_list<std::string> titles;
+		for (const auto& q : current)
+			titles.emplace_front(q.name);
+		return titles;
+	}
 };
 
 #endif // QUEST_HPP_

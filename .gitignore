@@ -1,4 +1,5 @@
 main
+main.exe
 doc/**
 storyXML/*.dat
 xml/*.dat

@@ -10,6 +10,10 @@
 #include <dirent.h>
 #include <errno.h>
 
+#else
+	
+#include <windows.h>
+
 #endif // __WIN32__
 
 int getdir(std::string dir, std::list<std::string>& files)

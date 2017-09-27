@@ -8,7 +8,7 @@ ifeq ($(TARGET_OS),linux)
 	       -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2main
 endif
 ifeq ($(TARGET_OS),win32)
-	LIBS = -lopengl32 -lglew32 -lmingw32 \
+	LIBS = -lgif -Llib -lentityx -lopengl32 -lglew32 -lmingw32 \
 	       -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
 endif
 

@@ -72,7 +72,7 @@ void ParticleSystem::render(void)
 		};
 
 		//glBufferSubData(GL_ARRAY_BUFFER, offset, entrySize, coords);
-		std::memcpy((void *)((unsigned long)vbobuf + offset), coords, entrySize);
+		std::memcpy(reinterpret_cast<void*>(reinterpret_cast<unsigned long long>(vbobuf) + offset), coords, entrySize);
 	}
 
 	UserAssert(glUnmapBuffer(GL_ARRAY_BUFFER) == GL_TRUE, "Failed to unmap the particle VBO");

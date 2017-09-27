@@ -1,5 +1,3 @@
-#ifndef __WIN32__
-
 #ifndef BMP_IMAGE_HPP
 #define BMP_IMAGE_HPP
 
@@ -34,5 +32,3 @@ typedef struct {
 } __attribute__((packed)) BITMAPINFOHEADER;
 
 #endif // BMP_IMAGE_HPP
-
-#endif // __WIN32__
