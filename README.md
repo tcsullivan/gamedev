@@ -2,6 +2,7 @@ gamedev
 =======
 
 gamedev was started as a high school project between drumsetmonkey and tcsullivan, written in C++ and using SDL2/OpenGL. The goal of this project was to have a completed commercial-grade video game available for Linux and Windows users; the plan was to profit off the game once it and the engine were finished. Through the first year and a half of development we quickly learned that the game's engine would need the most focus, as we were starting from complete scratch. Due to this, there is no playable, plot-based game.  
+  
 However, the engine is still growing. Development has now slowed to a crawl with the start of our college lives, but changes will still be made every now and then. Maybe a true video game will eventually come out of this, but the engine will most likely always remain open source.
 
 Build Requirements
@@ -16,8 +17,9 @@ The 'gamedev' project can be built on both Linux-based and Windows operating sys
 * GLEW
 * giflib
 * lua (liblua linked into program)
-
-Windows builds are done with msys2, 64-bit. The compiler must support C++17.
+  
+Windows builds are done with msys2, 64-bit. The compiler must support C++17.  
+  
 Build Preparation
 -----------------
 
