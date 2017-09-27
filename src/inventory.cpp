@@ -421,7 +421,7 @@ void InventorySystem::load(void)
 
 		// check signature
 		if (std::stoi(lines[0]) != 831998)
-			UserError("Save file signature is invalid... (delete it)");
+			UserError("Inventory save file signature is invalid... (delete it)");
 
 		for (unsigned int i = 1; i < lines.size(); i += 3) {
 			if (lines[i].size() > 0) {

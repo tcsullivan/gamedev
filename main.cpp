@@ -24,6 +24,7 @@ using namespace std::literals::chrono_literals;
 #include <render.hpp>
 #include <ui.hpp>
 #include <inventory.hpp>
+#include <quest.hpp>
 
 std::atomic_bool GameThread::pause;
 
@@ -107,6 +108,7 @@ int main(int argc, char *argv[])
 	WorldSystem::loader();
 
 	InventorySystem::load();
+	QuestSystem::load();
 
 	/////////////////////////////
 	//                         //
@@ -172,6 +174,7 @@ int main(int argc, char *argv[])
 
 	// save
 	game::briceSave();
+	QuestSystem::save();
 	InventorySystem::save();
 	WorldSystem::save();
 

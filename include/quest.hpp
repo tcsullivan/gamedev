@@ -78,6 +78,9 @@ public:
 			titles.emplace_front(q.name);
 		return titles;
 	}
+
+	static void save(void);
+	static void load(void);
 };
 
 #endif // QUEST_HPP_

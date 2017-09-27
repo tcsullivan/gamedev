@@ -4,11 +4,11 @@ CC  = gcc
 CXX = g++
 
 ifeq ($(TARGET_OS),linux)
-	LIBS = -Llib -lgif -lentityx -lpthread -lGL -lGLEW -lfreetype \
+	LIBS = -Llib -lgif -llua -lentityx -lpthread -lGL -lGLEW -lfreetype \
 	       -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2main
 endif
 ifeq ($(TARGET_OS),win32)
-	LIBS = -lgif -Llib -lentityx -lopengl32 -lglew32 -lmingw32 \
+	LIBS = -Llib -lgif -llua -lentityx -lopengl32 -lglew32 -lmingw32 \
 	       -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lfreetype
 endif
 

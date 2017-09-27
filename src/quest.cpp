@@ -1,8 +1,12 @@
 #include <quest.hpp>
 
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 #include <engine.hpp>
+#include <error.hpp>
+#include <fileio.hpp>
 #include <inventory.hpp>
 #include <tokens.hpp>
 
@@ -81,4 +85,38 @@ bool QuestSystem::hasQuest(std::string title)
 {
 	return (std::find_if(std::begin(current), std::end(current),
 		[&title](const Quest& q) { return (q.name == title); }) != std::end(current));
+}
+
+void QuestSystem::save(void)
+{
+	std::ofstream s (game::config::xmlFolder + "quest.dat");
+
+	// signature?
+	s << "831998\n";
+
+	for (const auto& q : current) {
+		s << q.name << '\n' << q.desc << '\n';
+		for (const auto& r : q.reqs)
+			s << r.first << ',' << std::to_string(r.second) << ',';
+		s << "Reward,";
+		for (const auto& r : q.rewards)
+			s << r.first << ',' << std::to_string(r.second) << ',';
+		s << '\n';
+	}
+}
+
+void QuestSystem::load(void)
+{
+	std::ifstream sf (game::config::xmlFolder + "quest.dat");
+	if (sf.good()) {
+		sf.close();
+		auto lines = readFileA(game::config::xmlFolder + "quest.dat");
+
+		// check signature
+		if (std::stoi(lines[0]) != 831998)
+			UserError("Quest save file signature is invalid... (delete it)");
+
+		for (unsigned int i = 1; i < lines.size(); i += 3)
+			assign(lines[i], lines[i + 1], lines[i + 2]);
+	}
 }

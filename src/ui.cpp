@@ -793,8 +793,8 @@ void UISystem::putString(const vec2& p, const std::string& s, float wrap)
 		for (auto c : word) {
 			switch (c) {
 			case '\n':
-				//offset.y -= FontSystem::getSize() * 1.05f;
-				//offset.x = p.x;
+				offset.y -= FontSystem::getSize() * 1.05f;
+				offset.x = p.x;
 				break;
 			case '\b':
 				//offset.x -= add.x;

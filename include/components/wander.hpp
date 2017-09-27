@@ -1,16 +1,18 @@
 #ifndef COMPONENTS_WANDER_HPP_
 #define COMPONENTS_WANDER_HPP_
 
+#include <string>
+
+#include <systems/lua.hpp>
+
 /**
  * Causes the entity to wander about.
  */
 struct Wander {
-	Wander(float ix = 0, float r = 0)
-		: initialX(ix), range(r), countdown(0) {}
+	Wander(const std::string& s = "")
+		: script(LuaSystem::makeScript(s)) {}
 
-	float initialX;
-	float range;
-	int countdown;
+	LuaScript script;
 };
 
 #endif // COMPONENTS_WANDER_HPP_

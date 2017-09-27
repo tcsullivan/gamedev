@@ -350,9 +350,10 @@ void WorldSystem::loader(void)
 						entity.assign<Dialog>(wxml, abcd);
 					else if (tname == "Grounded")
 						entity.assign<Grounded>(); // no need to pass xmls...
-					else if (tname == "Wander")
-						entity.assign<Wander>();
-					else if (tname == "Hop")
+					else if (tname == "Wander") {
+						auto script = abcd->GetText();
+						entity.assign<Wander>(script != nullptr ? script : "");
+					} else if (tname == "Hop")
 						entity.assign<Hop>();
 					else if (tname == "Health")
 						entity.assign<Health>(wxml, abcd);

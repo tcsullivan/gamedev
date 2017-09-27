@@ -50,7 +50,19 @@
 	<Physics />
 	<Name value="Daddy" />
 	<Dialog />
-	<Wander />
+	<Wander>
+		countdown = 0
+		velx = 0
+
+		update = function()
+			if (countdown == 0) then
+				countdown = 5000 + math.random(0, 2000)
+				velx = (math.random(0, 3) - 1) * 0.004
+			end
+			countdown = countdown - 1
+			return velx, 0
+		end
+	</Wander>
 </npc>
 
 <skirl>

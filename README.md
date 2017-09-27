@@ -14,10 +14,10 @@ The 'gamedev' project can be built on both Linux-based and Windows operating sys
 * SDL2, including SDL2_image and SDL2_mixer
 * FreeType 2
 * GLEW
-* libgif if not on 64-bit linux
+* giflib
+* lua (liblua linked into program)
 
-Windows builds are done with msys2, 64-bit. The compiler must support C++17. libgif for amd64 linux is currently included in the lib/ folder, so any other build set-up must supply their own copy, and change the Makefile accordingly (see what is done for win32 builds, for example).
-
+Windows builds are done with msys2, 64-bit. The compiler must support C++17.
 Build Preparation
 -----------------
 

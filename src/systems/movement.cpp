@@ -75,14 +75,16 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			// make the entity wander
 			// TODO initialX and range?
 			if (entity.has_component<Wander>()) {
-				auto& countdown = entity.component<Wander>()->countdown;
+				auto vel = entity.component<Wander>()->script();
+				direction.x = vel.x;
+				/*auto& countdown = entity.component<Wander>()->countdown;
 
 				if (countdown > 0) {
 					countdown--;
 				} else {
 					countdown = 5000 + randGet() % 10 * 100;
 					direction.x = (randGet() % 3 - 1) * 0.004f;
-				}
+				}*/
 			}
 		}
 	});
