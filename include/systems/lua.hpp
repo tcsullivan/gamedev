@@ -3,13 +3,17 @@
 
 #include <string>
 #include <lua.hpp>
+#include <tuple>
+#include <vector>
 
-#include <vector2.hpp>
+using LuaVariable = std::tuple<std::string, float&>;
 
 class LuaScript {
 private:
 	lua_State* state;
 	std::string script;
+
+	void setGlobal(const LuaVariable&);
 
 public:
 	LuaScript(const std::string& sc = "")
@@ -20,15 +24,8 @@ public:
 		lua_pcall(state, 0, 0, 0);
 	}
 
-	inline auto operator()(void) {
-		lua_getglobal(state, "update");
-		lua_pcall(state, 0, LUA_MULTRET, 0);
-		if (lua_gettop(state) != 2)
-			return vec2();
-		vec2 ret (lua_tonumber(state, 1), lua_tonumber(state, 2));
-		lua_pop(state, 2);
-		return ret;
-	}
+	void operator()(std::vector<LuaVariable> vars);
+	void operator()(void);
 };
 
 class LuaSystem {

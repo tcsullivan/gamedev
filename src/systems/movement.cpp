@@ -75,8 +75,8 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			// make the entity wander
 			// TODO initialX and range?
 			if (entity.has_component<Wander>()) {
-				auto vel = entity.component<Wander>()->script();
-				direction.x = vel.x;
+				entity.component<Wander>()->script({LuaVariable("vely", direction.y),
+					LuaVariable("velx", direction.x)});
 				/*auto& countdown = entity.component<Wander>()->countdown;
 
 				if (countdown > 0) {
