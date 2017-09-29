@@ -15,11 +15,22 @@ private:
 
 	void setGlobal(const LuaVariable&);
 
+	static void replace(std::string& s, const std::string& rid, const std::string& put) {
+		for (unsigned int i = 0; i < s.size(); i++) {
+			if (s.substr(i, rid.size()) == rid) {
+				s.replace(i, rid.size(), put);
+				i += put.size() - 1;
+			}
+		}
+	}
+
 public:
 	LuaScript(const std::string& sc = "")
 		: script(sc) {
 		state = luaL_newstate();
 		luaL_openlibs(state);
+		replace(script, "&lt;", "<");
+		replace(script, "&gt;", ">");
 		luaL_loadstring(state, script.c_str());
 		lua_pcall(state, 0, 0, 0);
 	}

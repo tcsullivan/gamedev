@@ -4,7 +4,7 @@ CC  = gcc
 CXX = g++
 
 ifeq ($(TARGET_OS),linux)
-	LIBS = -Llib -lgif -llua -lentityx -lpthread -lGL -lGLEW -lfreetype \
+	LIBS = -Llib -lgif -llua5.3 -lentityx -lpthread -lGL -lGLEW -lfreetype \
 	       -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2main
 endif
 ifeq ($(TARGET_OS),win32)
@@ -13,7 +13,7 @@ ifeq ($(TARGET_OS),win32)
 endif
 
 CXXFLAGS = -ggdb -m$(TARGET_BITS) -std=c++17 -fext-numeric-literals
-CXXINC   = -Iinclude -Iinclude/freetype -I.
+CXXINC   = -Iinclude -Iinclude/freetype -Iinclude/lua -I.
 CXXWARN  = -Wall -Wextra -Werror -pedantic
 
 CXXSRCDIR = src
