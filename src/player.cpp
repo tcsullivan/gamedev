@@ -244,7 +244,7 @@ bool PlayerSystem::receive(const UseItemEvent& uie)
 				sprite->addSpriteSegment(SpriteData(tex->sprite), 0);
 				auto dim = HLINES(sprite->getSpriteSize());
 				e.assign<Solid>(dim.x, dim.y);
-				e.assign<Hit>(uie.attack->power, false);
+				e.assign<Hit>(uie.attack);
 				if (uie.attack->effect.size() > 0)
 					e.component<Hit>()->effect = uie.attack->effect;
 			}

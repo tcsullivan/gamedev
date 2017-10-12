@@ -77,14 +77,6 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			if (entity.has_component<Wander>()) {
 				entity.component<Wander>()->script({LuaVariable("vely", direction.y),
 					LuaVariable("velx", direction.x)});
-				/*auto& countdown = entity.component<Wander>()->countdown;
-
-				if (countdown > 0) {
-					countdown--;
-				} else {
-					countdown = 5000 + randGet() % 10 * 100;
-					direction.x = (randGet() % 3 - 1) * 0.004f;
-				}*/
 			}
 		}
 	});

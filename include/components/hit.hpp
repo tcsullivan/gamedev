@@ -3,14 +3,14 @@
 
 #include "base.hpp"
 
+#include <attack.hpp>
 #include <texture.hpp>
 
 struct Hit : public Component {
-	Hit(int d, bool p = false)
-		: damage(d), pierce(p) {}
+	Hit(Attack* a)
+		: attack(a) {}
 
-	int damage;
-	bool pierce;
+	Attack* attack;
 	TextureIterator effect;
 
 	void fromXML(XMLElement* imp, XMLElement* def) final {

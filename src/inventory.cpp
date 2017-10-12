@@ -75,14 +75,15 @@ void InventorySystem::loadItems(void) {
 		auto atk = itm->FirstChildElement("attack");
 		if (atk != nullptr) {
 			Attack attack;
-			attack.power = 0;
-			atk->QueryIntAttribute("power", &attack.power);
 			attack.offset = atk->StrAttribute("offset");
 			attack.range  = atk->StrAttribute("range");
 			attack.vel    = atk->StrAttribute("velocity");
 			attack.accel  = atk->StrAttribute("accel");
 			if (atk->Attribute("effect") != nullptr)
-				attack.effect.appendGIF(atk->StrAttribute("effect")); 
+				attack.effect.appendGIF(atk->StrAttribute("effect"));
+			auto script = atk->GetText();
+			attack.script = LuaScript(script != nullptr ? script : "");
+			AttackSystem::initLua(attack.script);
 			attackList.emplace(item.name, attack);
 		}
 

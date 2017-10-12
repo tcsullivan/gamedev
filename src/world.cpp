@@ -353,6 +353,7 @@ void WorldSystem::loader(void)
 					else if (tname == "Wander") {
 						auto script = abcd->GetText();
 						entity.assign<Wander>(script != nullptr ? script : "");
+						//entity.component<Wander>()->script.addFunction("getpos", PlayerSystem::getPosition);
 					} else if (tname == "Hop")
 						entity.assign<Hop>();
 					else if (tname == "Health")

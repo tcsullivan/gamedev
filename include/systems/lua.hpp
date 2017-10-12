@@ -13,7 +13,8 @@ private:
 	lua_State* state;
 	std::string script;
 
-	void setGlobal(const LuaVariable&);
+	void setGlobal(const LuaVariable&) const;
+	void getReturns(std::vector<double>& rets) const;
 
 	static void replace(std::string& s, const std::string& rid, const std::string& put) {
 		for (unsigned int i = 0; i < s.size(); i++) {
@@ -35,8 +36,19 @@ public:
 		lua_pcall(state, 0, 0, 0);
 	}
 
-	void operator()(std::vector<LuaVariable> vars);
-	void operator()(void);
+	inline lua_State* getState(void)
+	{ return state; }
+
+	inline void addFunction(const std::string& name, lua_CFunction func) {
+		lua_pushcclosure(state, func, 0);
+		lua_setglobal(state, name.c_str());
+	}
+
+	void operator()(const std::string& func, std::vector<LuaVariable> vars) const;
+	void operator()(const std::string& func, std::vector<double>& rets, std::vector<LuaVariable> vars) const;
+	void operator()(std::vector<LuaVariable> vars) const;
+	void operator()(std::vector<double>& rets, std::vector<LuaVariable> vars) const;
+	void operator()(const std::string& func = "update") const;
 };
 
 class LuaSystem {

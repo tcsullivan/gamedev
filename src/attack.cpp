@@ -34,6 +34,34 @@ bool AttackSystem::receive(const AttackEvent& ae)
 	return true;
 }
 
+namespace lua {
+	static entityx::Entity* entity;
+
+	inline void setEntity(entityx::Entity* e) {
+		entity = e;
+	}
+
+	int flash(lua_State* state) {
+		float r = lua_tonumber(state, 1);
+		float g = lua_tonumber(state, 2);
+		float b = lua_tonumber(state, 3);
+		entity->replace<Flash>(Color(r, g, b));
+		return 0;
+	}
+
+	int damage(lua_State* state) {
+		float d = lua_tonumber(state, 1);
+		entity->component<Health>()->health -= d;
+		return 0;
+	}
+}
+
+void AttackSystem::initLua(LuaScript& s)
+{
+	s.addFunction("flash", lua::flash);
+	s.addFunction("damage", lua::damage); 
+}
+
 void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev, entityx::TimeDelta dt)
 {
 	(void)en;
@@ -44,14 +72,15 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 	en.each<Hit, Position>([&](entityx::Entity p, Hit& hit, Position& ppos) {
 		bool die = false;
 		en.each<Health, Position, Solid>([&](entityx::Entity e, Health& health, Position& pos, Solid& dim) {
+			(void)health;
 			if (!e.has_component<Player>() && inrange(ppos.x, pos.x, pos.x + dim.width) && inrange(ppos.y, pos.y - 2, pos.y + dim.height)) {
-				health.health -= hit.damage;
-				e.replace<Flash>(Color(255, 0, 0));
+				lua::setEntity(&e);
+				hit.attack->script();
 				if (hit.effect.size() > 0)
 					effects.emplace_back(vec2(ppos.x, ppos.y), hit.effect);
 				//ParticleSystem::addMultiple(15, ParticleType::SmallBlast,
 				//	[&](){ return vec2(pos.x + dim.width / 2, pos.y + dim.height / 2); }, 300, 7);
-				die = !hit.pierce;
+				die = true;
 			} else if (WorldSystem::isAboveGround(vec2(ppos.x, ppos.y - 5)))
 				die = true;
 		});
@@ -68,13 +97,14 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 
 		en.each<Position, Solid, Health>(
 			[&](entityx::Entity e, Position& pos, Solid& dim, Health& h) {
+				(void)h;
 				if (!(e.has_component<Player>() ^ a.fromplayer)) // no self-harm please
 					return;
 
 				if (inrange(point.x, pos.x, pos.x + dim.width, HLINES(size.x)) &&
 					inrange(point.y, pos.y, pos.y + dim.height, HLINES(size.y))) {
-					h.health -= a.attack.power;
-					e.replace<Flash>(Color(255, 0, 0));
+					lua::setEntity(&e);
+					a.attack.script();
 					if (a.attack.effect.size() > 0)
 						effects.emplace_back(point, a.attack.effect);
 					//ParticleSystem::addMultiple(15, ParticleType::DownSlash,

@@ -6,16 +6,17 @@
 #include <forward_list>
 #include <vector>
 
+#include <systems/lua.hpp>
 #include <texture.hpp>
 #include <vector2.hpp>
 
 struct Attack {
-	int power;
 	vec2 offset;
 	vec2 range;
 	vec2 vel; // TODO use
 	vec2 accel; // TODO use
 
+	LuaScript script;
 	TextureIterator effect;
 };
 
@@ -50,6 +51,8 @@ public:
 	bool receive(const AttackEvent& ae);
 	void update(entityx::EntityManager& en, entityx::EventManager& ev, entityx::TimeDelta dt) override;
 	static void render(void);
+
+	static void initLua(LuaScript& s);
 };
 
 #endif // ATTACK_HPP_
