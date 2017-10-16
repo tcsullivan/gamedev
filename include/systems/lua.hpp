@@ -44,11 +44,11 @@ public:
 		lua_setglobal(state, name.c_str());
 	}
 
+	void operator()(const std::string& func = "update") const;
 	void operator()(const std::string& func, std::vector<LuaVariable> vars) const;
 	void operator()(const std::string& func, std::vector<double>& rets, std::vector<LuaVariable> vars) const;
 	void operator()(std::vector<LuaVariable> vars) const;
 	void operator()(std::vector<double>& rets, std::vector<LuaVariable> vars) const;
-	void operator()(const std::string& func = "update") const;
 };
 
 class LuaSystem {

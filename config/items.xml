@@ -19,15 +19,26 @@
 <!-- WEAPONS -->
 <item name="Wood Sword"     type="Sword"    damage="3"  maxStackSize="1"  sound="assets/sounds/longSwing.wav"  sprite="assets/items/SWORD_WOOD.png" cooldown="250">
 	<attack range="6, 2" power="1" effect="assets/effects/starAttack.gif">
-		update = function()
+		i = 1
+
+		effect = function()
 			flash(255, 0, 0)
 			damage(8)
+		end
+
+		hit = function()
+			if (i &lt; 30) then
+				xrange = i
+				i = i + 1
+			else
+				xrange = 0
+			end
 		end
 	</attack>
 </item>
 <item name="Hunters Bow"    type="Bow"      damage="2"  maxStackSize="1"    sprite="assets/items/bow.png" cooldown="600">
 	<attack effect="assets/effects/starAttack.gif">
-		update = function()
+		effect = function()
 			flash(255, 0, 255)
 			damage(4)
 		end

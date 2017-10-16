@@ -17,7 +17,7 @@ void main()
 	vec4 pixTex = texture2D(texture, texLoc);
     if (pixTex.a < 0.1f) 
 		discard;
-  
+   
 	vec4 shadeColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	if (lightImpact > 0.0f) {
 		for (int i = 0; i < lightSize; i++) {

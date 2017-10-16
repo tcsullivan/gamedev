@@ -75,7 +75,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 			(void)health;
 			if (!e.has_component<Player>() && inrange(ppos.x, pos.x, pos.x + dim.width) && inrange(ppos.y, pos.y - 2, pos.y + dim.height)) {
 				lua::setEntity(&e);
-				hit.attack->script();
+				hit.attack->script("effect");
 				if (hit.effect.size() > 0)
 					effects.emplace_back(vec2(ppos.x, ppos.y), hit.effect);
 				//ParticleSystem::addMultiple(15, ParticleType::SmallBlast,
@@ -91,9 +91,13 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 
 	// handle emitted attacks (player's)
 	for (const auto& a : attacks) {
+		//vec2 point = a.pos + a.attack.offset;
+		//vec2 size = a.attack.range;
+		//point.y -= size.y / 2; // center range height
+		
 		vec2 point = a.pos + a.attack.offset;
-		vec2 size = a.attack.range;
-		point.y -= size.y / 2; // center range height
+		vec2 size;
+		a.attack.script("hit", {LuaVariable("xrange", size.x)});
 
 		en.each<Position, Solid, Health>(
 			[&](entityx::Entity e, Position& pos, Solid& dim, Health& h) {
@@ -104,7 +108,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 				if (inrange(point.x, pos.x, pos.x + dim.width, HLINES(size.x)) &&
 					inrange(point.y, pos.y, pos.y + dim.height, HLINES(size.y))) {
 					lua::setEntity(&e);
-					a.attack.script();
+					a.attack.script("effect");
 					if (a.attack.effect.size() > 0)
 						effects.emplace_back(point, a.attack.effect);
 					//ParticleSystem::addMultiple(15, ParticleType::DownSlash,
@@ -126,13 +130,14 @@ void AttackSystem::render(void)
 	for (auto& ae : effects) {
 		ae.effect(ae.counter / RATE); // bind current frame
 		auto dim = ae.effect.getTextureDim();
+		auto s = ae.pos - (dim / 2);
 		GLfloat verts[] = {
-			ae.pos.x,         ae.pos.y,         z, 0, 0,
-			ae.pos.x + dim.x, ae.pos.y,         z, 1, 0,
-			ae.pos.x + dim.x, ae.pos.y + dim.y, z, 1, 1,
-			ae.pos.x + dim.x, ae.pos.y + dim.y, z, 1, 1,
-			ae.pos.x,         ae.pos.y + dim.y, z, 0, 1,
-			ae.pos.x,         ae.pos.y,         z, 0, 0
+			s.x,         s.y,         z, 0, 0,
+			s.x + dim.x, s.y,         z, 1, 0,
+			s.x + dim.x, s.y + dim.y, z, 1, 1,
+			s.x + dim.x, s.y + dim.y, z, 1, 1,
+			s.x,         s.y + dim.y, z, 0, 1,
+			s.x,         s.y,         z, 0, 0
 		};
 		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts);
 		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts + 3);
