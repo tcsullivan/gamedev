@@ -45,16 +45,16 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 
 			auto ppos = PlayerSystem::getPosition();
 			if (ppos.x > position.x && ppos.x < position.x + entity.component<Solid>()->width) {
-				if (entity.has_component<Aggro>()) {
+				/*if (entity.has_component<Aggro>()) {
 					//auto dim = entity.component<Solid>();
 					//ev.emit<AttackEvent>(vec2(position.x + dim->width, position.y + dim->height), ATTACKKKKKK, false);
-					/*auto& h = entity.component<Health>()->health;
+					auto& h = entity.component<Health>()->health;
 					if (h > 0) {
 						fight = true;
 						toFight = entity;
 						h = 0;
-					}*/
-				} else if (entity.has_component<Trigger>()) {
+					}
+				} else*/ if (entity.has_component<Trigger>()) {
 					static bool triggering = false;
 					if (!triggering) {
 						triggering = true;
@@ -72,11 +72,40 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 				}
 			}
 
+			static auto doAttack = [](lua_State* s) -> int {
+				vec2 pos (lua_tonumber(s, 1), lua_tonumber(s, 2));
+				LuaScript script ("effect = function()\nflash(255,0,0)\ndamage(1)\nend\n\
+					hit = function()\nxrange = 5\nend");
+				AttackSystem::initLua(script);
+				Attack attack = {vec2(), vec2(5, 5), vec2(), vec2(),
+					script, TextureIterator()};
+				game::events.emit<AttackEvent>(AttackEvent(pos,
+					attack, false));
+				return 0;
+			};
+
 			// make the entity wander
 			// TODO initialX and range?
 			if (entity.has_component<Wander>()) {
-				entity.component<Wander>()->script({LuaVariable("vely", direction.y),
-					LuaVariable("velx", direction.x)});
+				float aggro = 0;
+				LuaList vars = {
+					LuaVariable("vely", direction.y),
+					LuaVariable("velx", direction.x),
+					LuaVariable("playerx", ppos.x),
+					LuaVariable("playery", ppos.y),
+					LuaVariable("selfx", position.x),
+					LuaVariable("selfy", position.y),
+					LuaVariable("aggro", aggro)
+				};
+
+				bool hasAggro = entity.has_component<Aggro>();
+				if (hasAggro)
+					aggro = entity.component<Aggro>()->yes ? 1 : 0;
+				if (aggro)
+					entity.component<Wander>()->script.addFunction("attack", doAttack);
+				entity.component<Wander>()->script(aggro ? "hostile" : "update", vars);
+				if (hasAggro)
+					entity.component<Aggro>()->yes = aggro > 0 ? 1 : 0;
 			}
 		}
 	});

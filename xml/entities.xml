@@ -86,9 +86,13 @@
 			end
 			countdown = countdown - 1
 		end
+
+		hostile = function()
+
+		end
 	</Wander>
-	<!--<Aggro arena="arena.xml" />
-	<Trigger />-->
+	<Aggro/>
+	<!--<Trigger />-->
 	<Drop>
 		<item name="Arrow" min="3" max="5" />
 	</Drop>
@@ -108,8 +112,18 @@
 	<Name value="birb" />
 	<Wander>
 		countdown = 0
+		onetime = 0
 
 		update = function()
+			if (onetime == 0) then
+				onetime = 1
+				selfy = playery + 300
+			end
+
+			if (math.abs(selfx - playerx) &lt;= 150) then
+				aggro = 1
+			end
+
 			if (countdown == 0) then
 				countdown = math.random(3000, 5000)
 				if (velx &gt;= 0) then
@@ -123,7 +137,38 @@
 			end
 			countdown = countdown - 1
 		end
+
+		dipping = 0
+		oldy = 0
+
+		hostile = function()
+			if (dipping == 1) then
+				if (selfy &gt;= oldy) then
+					dipping = 0
+					aggro = 0
+					vely = 0
+					onetime = 0
+				else
+					vely = vely + 0.0006
+					if (math.abs(vely) &lt; 0.01) then
+						attack(selfx, selfy)
+					end
+				end
+			else
+				if (selfy - playery &gt; 200) then
+					if (playerx &gt;= selfx) then
+						velx = 0.01
+					else
+						velx = -0.01
+					end
+					dipping = 1
+					oldy = selfy
+					vely = -.2
+				end
+			end
+		end
 	</Wander>
+	<Aggro/>
 </birb>
 
 <structure>

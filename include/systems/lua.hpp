@@ -7,6 +7,8 @@
 #include <vector>
 
 using LuaVariable = std::tuple<std::string, float&>;
+using LuaList = std::vector<LuaVariable>;
+using LuaRetList = std::vector<double>;
 
 class LuaScript {
 private:
@@ -14,7 +16,7 @@ private:
 	std::string script;
 
 	void setGlobal(const LuaVariable&) const;
-	void getReturns(std::vector<double>& rets) const;
+	void getReturns(LuaRetList& rets) const;
 
 	static void replace(std::string& s, const std::string& rid, const std::string& put) {
 		for (unsigned int i = 0; i < s.size(); i++) {
@@ -45,10 +47,10 @@ public:
 	}
 
 	void operator()(const std::string& func = "update") const;
-	void operator()(const std::string& func, std::vector<LuaVariable> vars) const;
-	void operator()(const std::string& func, std::vector<double>& rets, std::vector<LuaVariable> vars) const;
-	void operator()(std::vector<LuaVariable> vars) const;
-	void operator()(std::vector<double>& rets, std::vector<LuaVariable> vars) const;
+	void operator()(const std::string& func, LuaList vars) const;
+	void operator()(const std::string& func, LuaRetList& rets, LuaList vars) const;
+	void operator()(LuaList vars) const;
+	void operator()(LuaRetList& rets, LuaList vars) const;
 };
 
 class LuaSystem {

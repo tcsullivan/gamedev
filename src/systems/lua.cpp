@@ -6,7 +6,7 @@ void LuaScript::setGlobal(const LuaVariable& nv) const
 	lua_setglobal(state, std::get<std::string>(nv).c_str());
 }
 
-void LuaScript::getReturns(std::vector<double>& rets) const
+void LuaScript::getReturns(LuaRetList& rets) const
 {
 	int count = lua_gettop(state);
 	for (int i = 1; i <= count; i++)
@@ -14,7 +14,7 @@ void LuaScript::getReturns(std::vector<double>& rets) const
 	lua_pop(state, count);
 }
 
-void LuaScript::operator()(const std::string& func, std::vector<LuaVariable> vars) const
+void LuaScript::operator()(const std::string& func, LuaList vars) const
 {
 	for (auto& v : vars)
 		setGlobal(v);
@@ -25,8 +25,8 @@ void LuaScript::operator()(const std::string& func, std::vector<LuaVariable> var
 	}
 }
 
-void LuaScript::operator()(const std::string& func, std::vector<double>& rets,
-	std::vector<LuaVariable> vars) const
+void LuaScript::operator()(const std::string& func, LuaRetList& rets,
+	LuaList vars) const
 {
 	for (auto& v : vars)
 		setGlobal(v);
@@ -38,7 +38,7 @@ void LuaScript::operator()(const std::string& func, std::vector<double>& rets,
 	}
 }
 
-void LuaScript::operator()(std::vector<LuaVariable> vars) const
+void LuaScript::operator()(LuaList vars) const
 {
 	for (auto& v : vars)
 		setGlobal(v);
@@ -49,7 +49,7 @@ void LuaScript::operator()(std::vector<LuaVariable> vars) const
 	}
 }
 
-void LuaScript::operator()(std::vector<double>& rets, std::vector<LuaVariable> vars) const
+void LuaScript::operator()(LuaRetList& rets, LuaList vars) const
 {
 	for (auto& v : vars)
 		setGlobal(v);

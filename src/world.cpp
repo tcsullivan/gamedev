@@ -150,10 +150,11 @@ static std::vector<entityx::Entity::Id> savedEntities;
 
 void WorldSystem::fight(entityx::Entity entity)
 {
+	UserError("fights unimplemented?");
 	std::string exit = currentXMLFile;
 
 	savedEntities.emplace_back(entity.id());
-	load(entity.component<Aggro>()->arena);
+	//load(entity.component<Aggro>()->arena);
 	savedEntities.clear();
 
 	entity.component<Health>()->health = entity.component<Health>()->maxHealth;

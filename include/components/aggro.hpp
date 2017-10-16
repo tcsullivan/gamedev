@@ -7,18 +7,17 @@
  * Causes the entity to get mad at the player, charge and fight.
  */
 struct Aggro : public Component {
-	Aggro(const std::string& a)
-		: arena(a) {}
+	Aggro(bool y = false)
+		: yes(y) {}
 	Aggro(XMLElement* imp, XMLElement* def) {
 		fromXML(imp, def);
 	}
 
-	std::string arena;
+	bool yes;
 
 	void fromXML(XMLElement* imp, XMLElement* def) final {
-		(void)imp;
-		// TODO null check..?, imp given
-		arena = def->StrAttribute("arena");
+		(void)imp, (void)def;
+		// TODO
 	}
 };
 
