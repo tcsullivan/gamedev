@@ -109,6 +109,13 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 					inrange(point.y, pos.y, pos.y + dim.height, HLINES(size.y))) {
 					lua::setEntity(&e);
 					a.attack.script("effect");
+					if (pos.x < point.x) {
+						e.component<Direction>()->x = -0.1;
+						e.component<Direction>()->y = 0.1;
+					} else {
+						e.component<Direction>()->x = 0.1;
+						e.component<Direction>()->y = 0.1;
+					}
 					if (a.attack.effect.size() > 0)
 						effects.emplace_back(point, a.attack.effect);
 					//ParticleSystem::addMultiple(15, ParticleType::DownSlash,

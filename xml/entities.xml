@@ -80,6 +80,10 @@
 		countdown = 0
 
 		update = function()
+			if (velx &lt; 0 and math.abs(selfx - playerx) &lt; 150) then
+				aggro = 1
+			end
+
 			if (countdown == 0) then
 				countdown = math.random(3000, 5000)
 				velx = math.random(-1, 1) * 0.005
@@ -88,7 +92,15 @@
 		end
 
 		hostile = function()
+			if (playerx &lt;= selfx) then
+				velx = -0.01
+			else
+				velx = 0.01
+			end
 
+			if (math.abs(playerx - selfx) &lt; 50) then
+				attack(selfx, selfy)
+			end
 		end
 	</Wander>
 	<Aggro/>
@@ -110,6 +122,7 @@
 	<Solid />
 	<Physics />
 	<Name value="birb" />
+	<Health value="60" />
 	<Wander>
 		countdown = 0
 		onetime = 0

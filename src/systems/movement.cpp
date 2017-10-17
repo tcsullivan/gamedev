@@ -87,14 +87,16 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 			// make the entity wander
 			// TODO initialX and range?
 			if (entity.has_component<Wander>()) {
+				auto dim = entity.component<Solid>();
 				float aggro = 0;
+				vec2 self (position.x + dim->width / 2, position.y + dim->height / 2);
 				LuaList vars = {
 					LuaVariable("vely", direction.y),
 					LuaVariable("velx", direction.x),
 					LuaVariable("playerx", ppos.x),
 					LuaVariable("playery", ppos.y),
-					LuaVariable("selfx", position.x),
-					LuaVariable("selfy", position.y),
+					LuaVariable("selfx", self.x),
+					LuaVariable("selfy", self.y),
 					LuaVariable("aggro", aggro)
 				};
 
@@ -106,6 +108,9 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 				entity.component<Wander>()->script(aggro ? "hostile" : "update", vars);
 				if (hasAggro)
 					entity.component<Aggro>()->yes = aggro > 0 ? 1 : 0;
+
+				position.x = self.x - dim->width / 2;
+				position.y = self.y - dim->height / 2;
 			}
 		}
 	});
