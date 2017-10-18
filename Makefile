@@ -13,7 +13,7 @@ ifeq ($(TARGET_OS),win32)
 endif
 
 CXXFLAGS = -ggdb -m$(TARGET_BITS) -std=c++17 -fext-numeric-literals
-CXXINC   = -Iinclude -Iinclude/freetype -Iinclude/lua -I.
+CXXINC   = -Iinclude -Iinclude/freetype -I.
 CXXWARN  = -Wall -Wextra -Werror -pedantic
 
 CXXSRCDIR = src

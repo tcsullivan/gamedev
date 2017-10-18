@@ -241,7 +241,9 @@ bool PlayerSystem::receive(const UseItemEvent& uie)
 				e.assign<Physics>();
 				auto sprite = e.assign<Sprite>();
 				auto tex = InventorySystem::getItem("Arrow");
-				sprite->addSpriteSegment(SpriteData(tex->sprite), 0);
+				auto frame = SpriteData(tex->sprite);
+				frame.veltate = true;
+				sprite->addSpriteSegment(frame, 0);
 				auto dim = HLINES(sprite->getSpriteSize());
 				e.assign<Solid>(dim.x, dim.y);
 				e.assign<Hit>(uie.attack);

@@ -23,6 +23,7 @@
 	<structure inside="bobshouse.xml" type="1" position="10.0,100.0"/>
 	<skirl />
 	<birb position="-300.0,100.0" />
+	<firefly />
 </World>
 
 <Dialog name="Bob">

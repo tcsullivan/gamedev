@@ -22,6 +22,8 @@ struct SpriteData {
 	vec2 size_tex;
 
 	unsigned int limb;
+
+	bool veltate = false;
 };
 
 using Frame = std::vector<std::pair<SpriteData, vec2>>;

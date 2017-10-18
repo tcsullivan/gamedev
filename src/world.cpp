@@ -326,9 +326,14 @@ void WorldSystem::loader(void)
 				while (abcd) {
 					std::string tname = abcd->Name();
 
-					if (tname == "Position")
+					if (tname == "Position") {
 						entity.assign<Position>(wxml, abcd);
-					else if (tname == "Visible")
+						auto pos = entity.component<Position>();
+						if (pos->x == 0 && pos->y == 0) {
+							pos->x = (randGet() % static_cast<int>(world.startX * 1.9f)) + world.startX;
+							pos->y = 150;
+						}
+					} else if (tname == "Visible")
 						entity.assign<Visible>(wxml, abcd);
 					else if (tname == "Sprite")
 						entity.assign<Sprite>(wxml, abcd);
@@ -354,7 +359,6 @@ void WorldSystem::loader(void)
 					else if (tname == "Wander") {
 						auto script = abcd->GetText();
 						entity.assign<Wander>(script != nullptr ? script : "");
-						//entity.component<Wander>()->script.addFunction("getpos", PlayerSystem::getPosition);
 					} else if (tname == "Hop")
 						entity.assign<Hop>();
 					else if (tname == "Health")

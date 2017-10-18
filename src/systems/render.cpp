@@ -76,6 +76,16 @@ void RenderSystem::render(void)
 				loc.x,          loc.y + size.y, visible.z + its, sp.offset_tex.x,                 sp.offset_tex.y + sp.size_tex.y
 			};
 
+			if (S.first.veltate) {
+				auto vel = entity.component<Direction>();
+				float angle = static_cast<float>(std::atan(vel->y / vel->x)) * 180 / 3.14f;
+				auto toOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(-pos.x, -pos.y, 0.0f));
+				auto rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 0.0f, 1.0f));
+				auto toBack = glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, 0.0f));
+				auto fine = toBack * rotation * toOrigin;
+				glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(fine));
+			}
+
 			sp.tex.use();
 
 			glUniform1i(Render::worldShader.uniform[WU_texture], 0);
