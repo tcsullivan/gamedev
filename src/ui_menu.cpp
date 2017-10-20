@@ -179,16 +179,16 @@ namespace ui {
 			Color black (0, 0, 0);
 			// Create the main pause menu
 			pauseMenu.items.push_back(ui::menu::createParentButton(
-				vec2(-128, 100), obSize, black, "Resume"));
+				vec2(-128, 150), obSize, black, "Resume"));
 
 			pauseMenu.items.push_back(ui::menu::createChildButton(
-				vec2(-128, 0), obSize, black, "Options", &optionsMenu));
+				vec2(-128, 50), obSize, black, "Options", &optionsMenu));
 
 			pauseMenu.items.push_back(ui::menu::createChildButton(
-				vec2(-128, -100), obSize, black, "Controls", &controlsMenu));
+				vec2(-128, -50), obSize, black, "Controls", &controlsMenu));
 
 			pauseMenu.items.push_back(ui::menu::createButton(
-				vec2(-128, -200), obSize, black, "Save and Quit",
+				vec2(-128, -150), obSize, black, "Save and Quit",
 				[]() {
 					game::config::update(); // TODO necessary?
 					game::config::save();
@@ -196,7 +196,7 @@ namespace ui {
 				} ));
 
 			pauseMenu.items.push_back(ui::menu::createButton(
-				vec2(-128, -300), obSize, black, "Segfault",
+				vec2(-128, -250), obSize, black, "Segfault",
 				[]() { ++*((int *)0); } ));
 
 			// Create the options (sound) menu

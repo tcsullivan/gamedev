@@ -232,7 +232,8 @@ bool PlayerSystem::receive(const UseItemEvent& uie)
 			if (InventorySystem::take("Arrow", 1)) {
 				auto e = game::entities.create();
 				auto pos = getPosition();
-				e.assign<Position>(pos.x, pos.y + 10);
+				auto dim = player.component<Solid>();
+				e.assign<Position>(pos.x + dim->width / 2, pos.y + dim->height / 2);
 
 				auto angle = std::atan2(uie.curs.y - pos.y, uie.curs.x - pos.x);
 				e.assign<Direction>(0.25f * std::cos(angle), 0.25f * std::sin(angle));
@@ -244,12 +245,16 @@ bool PlayerSystem::receive(const UseItemEvent& uie)
 				auto frame = SpriteData(tex->sprite);
 				frame.veltate = true;
 				sprite->addSpriteSegment(frame, 0);
-				auto dim = HLINES(sprite->getSpriteSize());
-				e.assign<Solid>(dim.x, dim.y);
+				auto adim = sprite->getSpriteSize();
+				e.assign<Solid>(adim.x, adim.y);
+				uie.attack->range.y = player.component<Solid>()->height;
 				e.assign<Hit>(uie.attack);
 				if (uie.attack->effect.size() > 0)
 					e.component<Hit>()->effect = uie.attack->effect;
 			}
+		} else if (uie.item->type == "Food") {
+			player.component<Health>()->health = player.component<Health>()->maxHealth;
+			InventorySystem::take(uie.item->name, 1);
 		}
 
 		cool.store(false);

@@ -33,6 +33,7 @@ struct Item {
 	TextureIterator effect; /**< Animation played on item use */
 	Mix_Chunk* sound;       /**< The sound to play on item use */
 	int cooldown;
+	vec2 drawOffset;
 
 	Item(void)
 		: value(0), stackSize(1), cooldown(0) {}

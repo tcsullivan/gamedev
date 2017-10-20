@@ -96,7 +96,8 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 		//point.y -= size.y / 2; // center range height
 		
 		vec2 point = a.pos + a.attack.offset;
-		vec2 size;
+		vec2 size (0, a.attack.range.y);
+		point.y -= size.y / 2;
 		a.attack.script("hit", {LuaVariable("xrange", size.x)});
 
 		en.each<Position, Solid, Health>(

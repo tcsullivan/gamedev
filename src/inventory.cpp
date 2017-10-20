@@ -71,6 +71,8 @@ void InventorySystem::loadItems(void) {
 			item.sound = nullptr;
 		item.cooldown = 250;
 		itm->QueryIntAttribute("cooldown", &item.cooldown);
+		auto drawOffset = itm->StrAttribute("drawOffset");
+		item.drawOffset = drawOffset;
 
 		auto atk = itm->FirstChildElement("attack");
 		if (atk != nullptr) {
@@ -197,6 +199,7 @@ void InventorySystem::render(void)
 
 		auto pos = PlayerSystem::getPosition();
 		vec2 sta (pos.x, pos.y);
+		sta += i.item->drawOffset;
 		vec2 end (sta + (i.item->sprite.getDim() * game::HLINE));
 		GLfloat coords[] = {
 			sta.x, sta.y, -8, 0, 1,
@@ -219,17 +222,32 @@ void InventorySystem::render(void)
 bool InventorySystem::receive(const MouseClickEvent &mce)
 {
 	if (mce.button == SDL_BUTTON_RIGHT) {
-		game::entities.each<ItemDrop>([&](entityx::Entity e, ItemDrop& id) {
-			auto& posComp = *e.component<Position>();
-			auto& dimComp = *e.component<Solid>();
-			vec2 sta (posComp.x, posComp.y);
-			vec2 end (sta.x + dimComp.width, sta.y + dimComp.height);
+		if ((mce.position > hotStart && mce.position < hotEnd) ||
+			(fullInventory && mce.position > fullStart && mce.position < fullEnd)) {
+			int end = fullInventory ? items.size() : hotbarSize;
+			for (int i = 0;	i < end; i++) {
+				if (!isGoodEntry(items[i]))
+					continue;
 
-			if (mce.position > sta && mce.position < end) {
-				add(id.item.item->name, id.item.count);
-				e.destroy();
+				if (mce.position > items[i].loc && mce.position < items[i].loc + entrySize) {
+					if (items[i].item->type == "Food")
+						game::events.emit<UseItemEvent>(mce.position, items[i].item);
+					break;
+				}
 			}
-		});
+		} else {
+			game::entities.each<ItemDrop>([&](entityx::Entity e, ItemDrop& id) {
+				auto& posComp = *e.component<Position>();
+				auto& dimComp = *e.component<Solid>();
+				vec2 sta (posComp.x, posComp.y);
+				vec2 end (sta.x + dimComp.width, sta.y + dimComp.height);
+
+				if (mce.position > sta && mce.position < end) {
+					add(id.item.item->name, id.item.count);
+					e.destroy();
+				}
+			});
+		}
 	} else if (mce.button == SDL_BUTTON_LEFT) {
 		if ((mce.position > hotStart && mce.position < hotEnd) ||
 			(fullInventory && mce.position > fullStart && mce.position < fullEnd)) {
