@@ -5,9 +5,18 @@
 
 static unsigned int tickCount = 0;
 static unsigned int deltaTime = 1;
+static bool paused = false;
 
 namespace game {
     namespace time {
+		void togglePause(void) {
+			paused ^= true;
+		}
+
+		void togglePause(bool state) {
+			paused = state;
+		}
+
         void setTickCount(unsigned int t) {
             tickCount = t;
         }
@@ -17,7 +26,7 @@ namespace game {
         }
 
         unsigned int getDeltaTime(void) {
-            return (deltaTime > 0) ? deltaTime : 1;
+            return paused ? 0 : ((deltaTime > 0) ? deltaTime : 1);
         }
 
         void tick(void) {

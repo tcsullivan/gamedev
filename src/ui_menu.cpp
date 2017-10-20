@@ -3,6 +3,7 @@
 #include <common.hpp>
 #include <engine.hpp>
 #include <fileio.hpp>
+#include <gametime.hpp>
 #include <render.hpp>
 #include <texture.hpp>
 #include <font.hpp>
@@ -56,6 +57,7 @@ void Menu::gotoParent(void)
 	if (parent == nullptr) {
 		game::config::update();
 		FontSystem::setFontSize(FontSystem::SizeSmall);
+		game::time::togglePause(false);
 	}
 	
 	currentMenu = parent;
@@ -241,6 +243,8 @@ namespace ui {
 
 		void toggle(void) {
 			currentMenu = &pauseMenu;
+			if (currentMenu != nullptr)
+				game::time::togglePause(true);
 		}
 
         void draw(void) {

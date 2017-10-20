@@ -7,6 +7,9 @@
 
 namespace game {
     namespace time {
+		void togglePause(void);
+		void togglePause(bool state);
+
 		/**
 		 * Sets the game's tick count to the desired amount.
 		 * @param t desired tick count
