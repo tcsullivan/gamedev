@@ -17,6 +17,10 @@ namespace game {
 			paused = state;
 		}
 
+		bool isPaused(void) {
+			return paused;
+		}
+
         void setTickCount(unsigned int t) {
             tickCount = t;
         }
@@ -30,11 +34,13 @@ namespace game {
         }
 
         void tick(void) {
-            tickCount++;
+			if (!paused)
+	            tickCount++;
         }
 
         void tick(unsigned int ticks) {
-            tickCount += ticks;
+			if (!paused)
+	            tickCount += ticks;
         }
 
         void mainLoopHandler(void) {
@@ -52,7 +58,7 @@ namespace game {
 			static unsigned int accum = 0;
 
             accum += deltaTime;
-            if (accum > MSEC_PER_TICK) {
+            if (!paused && accum > MSEC_PER_TICK) {
         		accum = 0.0f;
                 return true;
         	}

@@ -137,7 +137,8 @@ int main(int argc, char *argv[])
 			for (auto& e : clone)
 				game::events.emit<MainSDLEvent>(e);
 
-			game::engine.update(game::time::getDeltaTime());
+			if (!game::time::isPaused())
+				game::engine.update(game::time::getDeltaTime());
 			std::this_thread::sleep_for(1ms);
 		});
 		
