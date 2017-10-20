@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<include file="entities.xml"/>
+
+<World>
+	<style bgm="assets/music/town.ogg" folder="assets/style/winter/">
+		<layer path="bg/bg.png"/>
+		<layer path="bg/bgFarMountain.png"/>
+		<!--<layer path="bg/forestTileFar.png"/>
+		<layer path="bg/forestTileBack.png"/>
+		<layer path="bg/forestTileMid.png"/>
+		<layer path="bg/forestTileFront.png"/>-->
+		<layer path="bg/dirt.png"/>
+		<layer path="bg/grass.png"/>
+	</style>
+	<generation width="500"/>
+	<weather>Snowy</weather>
+	<spawnx>-300</spawnx>
+	<time>13500</time>
+	<npc name="Sanc" hasDialog="false"/>
+	<firefly />
+	<firefly />
+	<firefly />
+	<firefly />
+	<firefly />
+</World>
+
