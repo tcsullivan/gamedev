@@ -59,20 +59,22 @@ void ParticleSystem::render(void)
 	auto vbobuf = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	UserAssert(vbobuf != nullptr, "Failed to map the particle VBO");
 
+	float z = Render::ZRange::Particle;
 	for (unsigned int i = 0, offset = 0; i < parts.size(); i++, offset += entrySize) {
 		const auto& p = parts[i];
 		static const auto& hl = game::HLINE;
 		GLfloat coords[30] = {
-			p.location.x,      p.location.y,      -1, p.color.x, p.color.y,
-			p.location.x,      p.location.y + hl, -1, p.color.x, p.color.y,
-			p.location.x + hl, p.location.y + hl, -1, p.color.x, p.color.y,
-			p.location.x + hl, p.location.y + hl, -1, p.color.x, p.color.y,
-			p.location.x + hl, p.location.y,      -1, p.color.x, p.color.y,
-			p.location.x,      p.location.y,      -1, p.color.x, p.color.y
+			p.location.x,      p.location.y,      z, p.color.x, p.color.y,
+			p.location.x,      p.location.y + hl, z, p.color.x, p.color.y,
+			p.location.x + hl, p.location.y + hl, z, p.color.x, p.color.y,
+			p.location.x + hl, p.location.y + hl, z, p.color.x, p.color.y,
+			p.location.x + hl, p.location.y,      z, p.color.x, p.color.y,
+			p.location.x,      p.location.y,      z, p.color.x, p.color.y
 		};
 
 		//glBufferSubData(GL_ARRAY_BUFFER, offset, entrySize, coords);
 		std::memcpy(reinterpret_cast<void*>(reinterpret_cast<unsigned long long>(vbobuf) + offset), coords, entrySize);
+		z -= 0.0001;
 	}
 
 	UserAssert(glUnmapBuffer(GL_ARRAY_BUFFER) == GL_TRUE, "Failed to unmap the particle VBO");

@@ -103,6 +103,7 @@ void InventorySystem::update(entityx::EntityManager &en, entityx::EventManager &
 
 void InventorySystem::render(void)
 {
+	float inventoryZ = Render::ZRange::Inventory;
 	int size = items.size();
 
 	// calculate positions
@@ -141,12 +142,12 @@ void InventorySystem::render(void)
 		glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, .6);
 		vec2 end = i.loc + entrySize - 6;
 		GLfloat coords[] = {
-			i.loc.x, i.loc.y, inventoryZ - 0.1, 0, 0,
-			end.x,   i.loc.y, inventoryZ - 0.1, 0, 0,
-			end.x,   end.y,   inventoryZ - 0.1, 0, 0,
-			end.x,   end.y,   inventoryZ - 0.1, 0, 0,
-			i.loc.x, end.y,   inventoryZ - 0.1, 0, 0,
-			i.loc.x, i.loc.y, inventoryZ - 0.1, 0, 0,
+			i.loc.x, i.loc.y, inventoryZ - 0.1f, 0, 0,
+			end.x,   i.loc.y, inventoryZ - 0.1f, 0, 0,
+			end.x,   end.y,   inventoryZ - 0.1f, 0, 0,
+			end.x,   end.y,   inventoryZ - 0.1f, 0, 0,
+			i.loc.x, end.y,   inventoryZ - 0.1f, 0, 0,
+			i.loc.x, i.loc.y, inventoryZ - 0.1f, 0, 0,
 		};
 
 		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), coords);
@@ -170,12 +171,12 @@ void InventorySystem::render(void)
 			vec2 end = (n == movingItem) ? ui::mouse + truDim / 2 : loc + truDim;
 
 			GLfloat coords[] = {
-				sta.x, sta.y, inventoryZ - 0.2, 0, 1,
-				end.x, sta.y, inventoryZ - 0.2, 1, 1,
-				end.x, end.y, inventoryZ - 0.2, 1, 0,
-				end.x, end.y, inventoryZ - 0.2, 1, 0,
-				sta.x, end.y, inventoryZ - 0.2, 0, 0,
-				sta.x, sta.y, inventoryZ - 0.2, 0, 1,
+				sta.x, sta.y, inventoryZ - 0.2f, 0, 1,
+				end.x, sta.y, inventoryZ - 0.2f, 1, 1,
+				end.x, end.y, inventoryZ - 0.2f, 1, 0,
+				end.x, end.y, inventoryZ - 0.2f, 1, 0,
+				sta.x, end.y, inventoryZ - 0.2f, 0, 0,
+				sta.x, sta.y, inventoryZ - 0.2f, 0, 1,
 			};
 
 			glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), coords);
@@ -183,9 +184,9 @@ void InventorySystem::render(void)
 			if (n == movingItem)
 				glUniform4f(Render::textShader.uniform[WU_tex_color], .8, .8, 1, .8);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
-			FontSystem::setFontZ(inventoryZ - 0.3); // TODO fix z's
+			FontSystem::setFontZ(inventoryZ - 0.3f);
 			UISystem::putString(i.loc, std::to_string(i.count));
-			FontSystem::setFontZ(-6);
+			FontSystem::setFontZ();
 			glUniform4f(Render::textShader.uniform[WU_tex_color], 1, 1, 1, 1);
 		}
 	}
@@ -201,13 +202,14 @@ void InventorySystem::render(void)
 		vec2 sta (pos.x, pos.y);
 		sta += i.item->drawOffset;
 		vec2 end (sta + (i.item->sprite.getDim() * game::HLINE));
+		float z = Render::ZRange::Attack + 0.1f;
 		GLfloat coords[] = {
-			sta.x, sta.y, -8, 0, 1,
-			end.x, sta.y, -8, 1, 1,
-			end.x, end.y, -8, 1, 0,
-			end.x, end.y, -8, 1, 0,
-			sta.x, end.y, -8, 0, 0,
-			sta.x, sta.y, -8, 0, 1,
+			sta.x, sta.y, z, 0, 1,
+			end.x, sta.y, z, 1, 1,
+			end.x, end.y, z, 1, 0,
+			end.x, end.y, z, 1, 0,
+			sta.x, end.y, z, 0, 0,
+			sta.x, sta.y, z, 0, 1,
 		};
 
 		glVertexAttribPointer(Render::textShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), coords);

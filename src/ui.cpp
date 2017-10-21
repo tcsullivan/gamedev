@@ -342,14 +342,14 @@ namespace ui {
 		quest::draw();
 
 		if (pageTexReady) {
-
+			float z = Render::ZRange::Important;
             GLfloat page_verts[] = {
-				offset.x - 300, SCREEN_HEIGHT - 100, -6.0, 0, 0,
-				offset.x + 300, SCREEN_HEIGHT - 100, -6.0, 1, 0,
-				offset.x + 300, SCREEN_HEIGHT - 600, -6.0, 1, 1,
-				offset.x + 300, SCREEN_HEIGHT - 600, -6.0, 1, 1,
-				offset.x - 300, SCREEN_HEIGHT - 600, -6.0, 0, 1,
-				offset.x - 300, SCREEN_HEIGHT - 100, -6.0, 0, 0,
+				offset.x - 300, SCREEN_HEIGHT - 100, z, 0, 0,
+				offset.x + 300, SCREEN_HEIGHT - 100, z, 1, 0,
+				offset.x + 300, SCREEN_HEIGHT - 600, z, 1, 1,
+				offset.x + 300, SCREEN_HEIGHT - 600, z, 1, 1,
+				offset.x - 300, SCREEN_HEIGHT - 600, z, 0, 1,
+				offset.x - 300, SCREEN_HEIGHT - 100, z, 0, 0,
 			};
 
             glActiveTexture(GL_TEXTURE0);
@@ -375,7 +375,7 @@ namespace ui {
 		glActiveTexture(GL_TEXTURE0);
 		mouseTex.use();
 		Render::useShader(&Render::textShader);
-		Render::drawRect(vec2(ui::mouse.x, ui::mouse.y - 64), vec2(ui::mouse.x + 64, ui::mouse.y), -9.9);
+		Render::drawRect(vec2(ui::mouse.x, ui::mouse.y - 64), vec2(ui::mouse.x + 64, ui::mouse.y), Render::ZRange::Mouse);
 		Render::textShader.unuse();
 	}
 
@@ -758,13 +758,14 @@ void UISystem::render(void)
 		vec2 p1 (offset.x - game::SCREEN_WIDTH / 2, offset.y - game::SCREEN_HEIGHT / 2);
 		vec2 p2 (p1.x + game::SCREEN_WIDTH, p1.y + game::SCREEN_HEIGHT);
 
+		float z = Render::ZRange::Fade;
 		GLfloat backdrop[] = {
-			p1.x, p1.y, -7.9, 0, 0,
-			p2.x, p1.y, -7.9, 0, 0, 
-			p2.x, p2.y, -7.9, 0, 0,
-			p2.x, p2.y, -7.9, 0, 0,
-			p1.x, p2.y, -7.9, 0, 0,
-			p1.x, p1.y, -7.9, 0, 0,
+			p1.x, p1.y, z, 0, 0,
+			p2.x, p1.y, z, 0, 0, 
+			p2.x, p2.y, z, 0, 0,
+			p2.x, p2.y, z, 0, 0,
+			p1.x, p2.y, z, 0, 0,
+			p1.x, p1.y, z, 0, 0,
 		};
 
 		Render::textShader.use();
@@ -778,13 +779,14 @@ void UISystem::render(void)
 
 		Render::textShader.disable();
 		Render::textShader.unuse();
-		//setFontZ(-8.0);
 	}
 
 	if (!dialogText.empty()) {
+		float z = Render::ZRange::Dialog;
 		vec2 where (offset.x - 300, game::SCREEN_HEIGHT - 60);
-		ui::drawNiceBox(vec2(where.x - 10, where.y - 200), vec2(where.x + 620, where.y + 20), -5.5f);
-		FontSystem::setFontZ(-6.0f);
+		ui::drawNiceBox(vec2(where.x - 10, where.y - 200), vec2(where.x + 620, where.y + 20),
+			z);
+		FontSystem::setFontZ(z - 0.1f);
 		putString(where, ui::typeOut(dialogText), where.x + 600);
 
 		if (!dialogOptions.empty()) {
@@ -807,9 +809,10 @@ void UISystem::render(void)
 
 	if (!importantText.empty()) {
 		FontSystem::setFontSize(FontSystem::SizeLarge);
-		FontSystem::setFontZ(-9.0f);
+		FontSystem::setFontZ(Render::ZRange::Fade - 0.05f);
 		putStringCentered(vec2(offset.x, 400), ui::typeOut(importantText));
-		FontSystem::setFontZ(-6.0f);
 		FontSystem::setFontSize(FontSystem::SizeSmall);
 	}
+
+	FontSystem::setFontZ();
 }

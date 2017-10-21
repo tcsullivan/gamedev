@@ -430,6 +430,8 @@ void WorldSystem::die(void)
 
 void WorldSystem::render(void)
 {
+	float z = Render::ZRange::World;
+
 	static Color ambient;
 
 	const auto SCREEN_WIDTH = game::SCREEN_WIDTH;
@@ -475,12 +477,12 @@ void WorldSystem::render(void)
 		skyOffset++;
 
 	GLfloat skyverts[] = {
-		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, skyOffset,
-		offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, 9.9f, 1, skyOffset,
-		offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, skyOffset,
-		offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, 9.9f, 1, skyOffset,
-		offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, 9.9f, 0, skyOffset,
-		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, 9.9f, 0, skyOffset,
+		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, z, 0, skyOffset,
+		offset.x + backgroundOffset.x + 5, offset.y - backgroundOffset.y, z, 1, skyOffset,
+		offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, z, 1, skyOffset,
+		offset.x + backgroundOffset.x + 5, offset.y + backgroundOffset.y, z, 1, skyOffset,
+		offset.x - backgroundOffset.x - 5, offset.y + backgroundOffset.y, z, 0, skyOffset,
+		offset.x - backgroundOffset.x - 5, offset.y - backgroundOffset.y, z, 0, skyOffset,
 	};
 
 	// rendering!!
@@ -510,12 +512,12 @@ void WorldSystem::render(void)
 
 		for (auto &s : stars) {
 			float data[30] = {
-				s.x + xcoord, s.y, 9.7, 0, 0,
-				s.x + xcoord + stardim, s.y, 9.7, 1, 0,
-				s.x + xcoord + stardim, s.y + stardim, 9.7, 1, 1,
-				s.x + xcoord + stardim, s.y + stardim, 9.7, 1, 1,
-				s.x + xcoord, s.y + stardim, 9.7, 0, 1,
-				s.x + xcoord, s.y, 9.7, 0, 0
+				s.x + xcoord, s.y, z - 0.1f, 0, 0,
+				s.x + xcoord + stardim, s.y, z - 0.1f, 1, 0,
+				s.x + xcoord + stardim, s.y + stardim, z - 0.1f, 1, 1,
+				s.x + xcoord + stardim, s.y + stardim, z - 0.1f, 1, 1,
+				s.x + xcoord, s.y + stardim, z - 0.1f, 0, 1,
+				s.x + xcoord, s.y, z - 0.1f, 0, 0
 			};
 
 			std::memcpy(si, data, sizeof(float) * 30);
@@ -538,7 +540,7 @@ void WorldSystem::render(void)
 	float parallax = 0.85f;
 	float parallaxChange = 0.75f / layerCount;
 
-	float z = 8.0f;
+	z -= 0.2f;
 	for (int i = 0; i < layerCount; i++, z -= 0.1f, parallax -= parallaxChange) {
 		bgTex++;
 		auto mountainDim = bgTex.getTextureDim() * game::HLINE;
@@ -578,12 +580,12 @@ void WorldSystem::render(void)
 		world.indoorTex.use();
 		auto dim = world.indoorTex.getDim() * game::HLINE;
 		GLfloat verts[] = {
-			world.startX,         GROUND_HEIGHT_MINIMUM,         z - 0.1f, 0, 0,
-			world.startX + dim.x, GROUND_HEIGHT_MINIMUM,         z - 0.1f, 1, 0,
-			world.startX + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, z - 0.1f, 1, 1,
-			world.startX + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, z - 0.1f, 1, 1,
-			world.startX,         GROUND_HEIGHT_MINIMUM + dim.y, z - 0.1f, 0, 1,
-			world.startX,         GROUND_HEIGHT_MINIMUM,         z - 0.1f, 0, 0,
+			world.startX,         GROUND_HEIGHT_MINIMUM,         z, 0, 0,
+			world.startX + dim.x, GROUND_HEIGHT_MINIMUM,         z, 1, 0,
+			world.startX + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, z, 1, 1,
+			world.startX + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, z, 1, 1,
+			world.startX,         GROUND_HEIGHT_MINIMUM + dim.y, z, 0, 1,
+			world.startX,         GROUND_HEIGHT_MINIMUM,         z, 0, 0,
 		};
 
 		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts);
@@ -608,6 +610,7 @@ void WorldSystem::render(void)
 	waitToSwap = true;
 
 	bgTex++;
+	z = Render::ZRange::Ground;
 
 	static std::vector<GLfloat> dirt;
 	if (dirt.size() != world.data.size() * 30) {
@@ -626,7 +629,7 @@ void WorldSystem::render(void)
 
 		int ty = world.data[i].groundHeight / 64 + world.data[i].groundColor;
 		GLfloat five[5] = {
-			0, 0, world.startX + HLINES(i), world.data[i].groundHeight - GRASS_HEIGHT, -4
+			0, 0, world.startX + HLINES(i), world.data[i].groundHeight - GRASS_HEIGHT, z - 0.1f
 		};
 
 		push5(dirtp, five);
@@ -677,7 +680,7 @@ void WorldSystem::render(void)
 			// actually draw the grass.
 			if (wd.groundHeight) {
 				float five[5] = {
-					0, 1, world.startX + HLINES(i), wd.groundHeight + gh[0], -3
+					0, 1, world.startX + HLINES(i), wd.groundHeight + gh[0], z - 0.2f
 				};
 
 				push5(grassp, five);
@@ -724,12 +727,12 @@ void WorldSystem::render(void)
 			
 		auto yOffset = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
 		GLfloat blackBar[] = {
-			s,            yOffset,           -3.5f, 0.0f, 0.0f,
-			world.startX, yOffset,           -3.5f, 1.0f, 0.0f,
-			world.startX, yOffset + sheight, -3.5f, 1.0f, 1.0f,
-			world.startX, yOffset + sheight, -3.5f, 1.0f, 1.0f,
-   			s,            yOffset + sheight, -3.5f, 0.0f, 1.0f,
-			s,            yOffset,           -3.5f, 0.0f, 0.0f
+			s,            yOffset,           z - 0.3f, 0.0f, 0.0f,
+			world.startX, yOffset,           z - 0.3f, 1.0f, 0.0f,
+			world.startX, yOffset + sheight, z - 0.3f, 1.0f, 1.0f,
+			world.startX, yOffset + sheight, z - 0.3f, 1.0f, 1.0f,
+   			s,            yOffset + sheight, z - 0.3f, 0.0f, 1.0f,
+			s,            yOffset,           z - 0.3f, 0.0f, 0.0f
 		};
 
 		if (offset.x + world.startX > s) {
@@ -758,7 +761,7 @@ void WorldSystem::render(void)
 		Render::worldShader.use();
 		Colors::red.use();
 		vec2 ll = vec2 {world.startX, GROUND_HEIGHT_MINIMUM};
-		Render::drawRect(ll, ll + vec2(world.indoorTex.getDim().x, 4), -3);
+		Render::drawRect(ll, ll + vec2(world.indoorTex.getDim().x, 4), z - 1);
 		Render::worldShader.unuse();
 	}
 

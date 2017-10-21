@@ -109,7 +109,7 @@ void RenderSystem::render(void)
 				}
 			}
 
-			its-=.01;
+			its -= 0.01f;
 		}
 		glUniformMatrix4fv(Render::worldShader.uniform[WU_transform], 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 
@@ -118,13 +118,14 @@ void RenderSystem::render(void)
 			auto& health = *entity.component<Health>();
 			width *= health.health / static_cast<float>(health.maxHealth);
 
+			float Z = Render::ZRange::Ground - 0.3f;
 			GLfloat health_coord[] = {
-				pos.x, pos.y, -9, 0, 0,
-				pos.x + width, pos.y, -9, 0, 0,
-				pos.x + width, pos.y - 5, -9, 0, 0,
-				pos.x + width, pos.y - 5, -9, 0, 0,
-				pos.x, pos.y - 5, -9, 0, 0,
-				pos.x, pos.y, -9, 0, 0,
+				pos.x, pos.y, Z, 0, 0,
+				pos.x + width, pos.y, Z, 0, 0,
+				pos.x + width, pos.y - 5, Z, 0, 0,
+				pos.x + width, pos.y - 5, Z, 0, 0,
+				pos.x, pos.y - 5, Z, 0, 0,
+				pos.x, pos.y, Z, 0, 0,
 			};
 
 			Colors::red.use();
@@ -132,17 +133,17 @@ void RenderSystem::render(void)
 			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), health_coord + 3);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
+
+		if (entity.has_component<Name>()) {
+			FontSystem::setFontZ(Render::ZRange::Ground - 0.3f);
+			UISystem::putStringCentered(vec2(pos.x + entity.component<Solid>()->width / 2,
+				pos.y - FontSystem::getSize() - HLINES(0.5)), entity.component<Name>()->name);
+		}
 	});
 
+	FontSystem::setFontZ();
 	Render::worldShader.disable();
 	Render::worldShader.unuse();
-
-	game::entities.each<Visible, Position, Solid, Name>([](entityx::Entity e, Visible &v, Position &pos, Solid& dim, Name &name) {
-		(void)e;
-		(void)v;
-		FontSystem::setFontZ(-5.0f);
-		UISystem::putStringCentered(vec2(pos.x + dim.width / 2, pos.y - FontSystem::getSize() - HLINES(0.5)), name.name);
-	});
 }
 
 void RenderSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)

@@ -253,8 +253,11 @@ bool PlayerSystem::receive(const UseItemEvent& uie)
 					e.component<Hit>()->effect = uie.attack->effect;
 			}
 		} else if (uie.item->type == "Food") {
-			player.component<Health>()->health = player.component<Health>()->maxHealth;
-			InventorySystem::take(uie.item->name, 1);
+			auto health = player.component<Health>();
+			if (health->health < health->maxHealth) {
+				health->health = health->maxHealth;
+				InventorySystem::take(uie.item->name, 1);
+			}
 		}
 
 		cool.store(false);

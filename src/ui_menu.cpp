@@ -248,6 +248,8 @@ namespace ui {
 		}
 
         void draw(void) {
+			float z = Render::ZRange::Menu;
+
 			if (currentMenu == nullptr)
 				return;
 
@@ -258,7 +260,7 @@ namespace ui {
 
             game::config::update();
             FontSystem::setFontSize(FontSystem::SizeLarge);
-			FontSystem::setFontZ(-9.0);
+			FontSystem::setFontZ(z - 0.03f);
 	
             mouse.x = ui::premouse.x+offset.x-(SCREEN_WIDTH/2);
             mouse.y = (offset.y+SCREEN_HEIGHT/2)-ui::premouse.y;
@@ -272,7 +274,7 @@ namespace ui {
 
 			back.use();
 			Render::drawRect(vec2(offset.x - SCREEN_WIDTH / 2 - 1, offset.y - (SCREEN_HEIGHT / 2)),
-			                 vec2(offset.x + SCREEN_WIDTH / 2, offset.y + (SCREEN_HEIGHT / 2)), -8.5);
+			    vec2(offset.x + SCREEN_WIDTH / 2, offset.y + (SCREEN_HEIGHT / 2)), z);
 
 			Render::textShader.unuse();
 
@@ -309,7 +311,7 @@ namespace ui {
                         }
                     }
 
-					ui::drawNiceBoxColor(loc, end, -8.6, Color(cMult, cMult, cMult, 1.0f));
+					ui::drawNiceBoxColor(loc, end, z - 0.01f, Color(cMult, cMult, cMult, 1.0f));
                     //draw the button text
                     UISystem::putStringCentered(vec2(loc.x + (m.dim.x / 2),
                     	loc.y + (m.dim.y / 2) - (FontSystem::getSize() / 2)),
@@ -334,7 +336,7 @@ namespace ui {
                         m.slider.sliderLoc *= m.dim.x - sliderW;
                     }
 
-					ui::drawNiceBoxColor(loc, end, -8.6, Color(.5f, .5f, .5f, 1.0f));
+					ui::drawNiceBoxColor(loc, end, z - 0.02f, Color(.5f, .5f, .5f, 1.0f));
 
                     //test if mouse is inside of the slider's borders
                     if ((mouse.x >= loc.x && mouse.x <= end.x) && (mouse.y >= loc.y && mouse.y <= end.y)) {
@@ -375,7 +377,7 @@ namespace ui {
 
 			SDLReceiver::clicked = false;
             FontSystem::setFontSize(FontSystem::SizeSmall);
-			FontSystem::setFontZ(-8.0);
+			FontSystem::setFontZ();
         }
 
 

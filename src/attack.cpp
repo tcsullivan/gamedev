@@ -132,7 +132,7 @@ void AttackSystem::update(entityx::EntityManager& en, entityx::EventManager& ev,
 #define RATE 3
 void AttackSystem::render(void)
 {
-	float z = -9.9f;
+	float z = Render::ZRange::Attack;
 	Render::worldShader.use();
 	Render::worldShader.enable();
 	for (auto& ae : effects) {
@@ -150,6 +150,7 @@ void AttackSystem::render(void)
 		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts);
 		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts + 3);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		z -= 0.05f;
 	}
 	Render::worldShader.disable();
 	Render::worldShader.unuse();

@@ -76,7 +76,6 @@ private:
 	constexpr static const char* itemsPath = "config/items.xml";
 	constexpr static int entrySize = 70;
 	constexpr static int hotbarSize = 4;
-	constexpr static float inventoryZ = -5.0f;
 	constexpr static unsigned int rowSize = 8;
 
 	static std::unordered_map<std::string, Item> itemList;

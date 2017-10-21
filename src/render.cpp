@@ -177,25 +177,26 @@ void render(const int& fps)
 	preRender();
 
 	WorldSystem::render();
-	ParticleSystem::render();
-	AttackSystem::render();
 	RenderSystem::render();
+	AttackSystem::render();
+	ParticleSystem::render();
+	UISystem::render();
 	InventorySystem::render();
+	ui::draw();
+	FontSystem::render();
 
 	// draw the debug overlay if desired
 	if (ui::debug) {
 		auto pos = PlayerSystem::getPosition();
+		FontSystem::setFontZ(Render::ZRange::Debug);
 		UISystem::putText(vec2(offset.x - game::SCREEN_WIDTH / 2, (offset.y + game::SCREEN_HEIGHT / 2) - FontSystem::getSize()),
 		    "loc: %s\noffset: %s\nfps: %d\nticks: %d\npcount: %d\nxml: %s\nmem: %llukb (%d)",
 			pos.toString(2).c_str(), offset.toString(2).c_str(), fps,
 			game::time::getTickCount(), ParticleSystem::getCount(),
 			WorldSystem::getXMLFile().c_str(), getUsedMem() / 1024, balance
 			);
+		FontSystem::setFontZ();
 	}
-
-	UISystem::render();
-	ui::draw();
-	FontSystem::render();
 	
 	WindowSystem::render();
 }

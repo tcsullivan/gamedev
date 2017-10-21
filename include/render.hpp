@@ -66,6 +66,22 @@ typedef enum {
 } WorldUniform;
 
 namespace Render {
+	namespace ZRange {
+		constexpr float World     =  9.9f;
+		constexpr float RenderSys =  5.0f;
+		constexpr float Ground    = -4.5f;
+		constexpr float Attack    = -5.0f;
+		constexpr float Particle  = -8.0f;
+		constexpr float Important = -8.5f;
+		constexpr float Inventory = -9.0f;
+		constexpr float Dialog    = -9.3f;
+		constexpr float Quest     = -9.5f;
+		constexpr float Fade      = -9.7f;
+		constexpr float Menu      = -9.8f;
+		constexpr float Mouse     = -9.89f;
+		constexpr float Debug     = -9.9f;
+	}
+
     extern Shader worldShader;
     extern Shader textShader;
 

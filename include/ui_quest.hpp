@@ -30,12 +30,13 @@ namespace ui {
 		void draw(void) {
 			if (!_toggle)
 				return;
-			
-			float top_y = offset.y + 200;
-			ui::drawNiceBox(vec2 {offset.x - 200, top_y },
-			                vec2 {offset.x + 200, offset.y - 200 },
-			                -0.7f);
 
+			float z = Render::ZRange::Quest;
+			float top_y = offset.y + 200;
+			ui::drawNiceBox(vec2 {offset.x - 200, top_y }, vec2 {offset.x + 200, offset.y - 200 },
+				z);
+
+			FontSystem::setFontZ(z - 0.01f);
 			UISystem::putStringCentered(vec2(offset.x, top_y - 40), "Current Quests:");
 			
 			const auto& titles = QuestSystem::getQuestTitles();
@@ -47,6 +48,7 @@ namespace ui {
 				//ui::putText(x + 40, y, q.desc.c_str());
 				//y -= 40; 
 			}
+			FontSystem::setFontZ();
 		}
 	}
 }
