@@ -10,6 +10,7 @@
 	</Sprite>
 	<Direction />
 	<Solid />
+	<Illuminate radius="100" />
 	<Wander>
 		countdown = 0
 

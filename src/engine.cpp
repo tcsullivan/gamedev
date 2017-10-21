@@ -13,6 +13,7 @@
 #include <particle.hpp>
 #include <weather.hpp>
 #include <attack.hpp>
+#include <systems/light.hpp>
 
 Engine::Engine(void)
     : shouldRun(true), systems(game::entities, game::events)
@@ -40,6 +41,7 @@ void Engine::init(void) {
 	systems.add<AttackSystem>();
 
 	systems.add<UISystem>();
+	systems.add<LightSystem>();
 	systems.add<SDLReceiver>();
 
     systems.configure();
@@ -69,6 +71,7 @@ void Engine::update(entityx::TimeDelta dt)
 	systems.update<ParticleSystem>(dt);
 	systems.update<AttackSystem>(dt);
 	systems.update<RenderSystem>(dt);
+	systems.update<LightSystem>(dt);
 	//systems.update<UISystem>(dt);
 }
 

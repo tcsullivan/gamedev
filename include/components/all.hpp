@@ -13,6 +13,7 @@
 #include "hit.hpp"
 #include "hop.hpp"
 #include "itemdrop.hpp"
+#include "light.hpp"
 #include "name.hpp"
 #include "physics.hpp"
 #include "player.hpp"

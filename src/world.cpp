@@ -371,6 +371,8 @@ void WorldSystem::loader(void)
 						entity.assign<Trigger>(wxml, abcd);
 					else if (tname == "Drop")
 						entity.assign<Drop>(wxml, abcd);
+					else if (tname == "Illuminate")
+						entity.assign<Illuminate>(wxml, abcd);
 
 					abcd = abcd->NextSiblingElement();
 				}

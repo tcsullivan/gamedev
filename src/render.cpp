@@ -7,6 +7,7 @@
 #include <glm.hpp>
 #include <font.hpp>
 #include <texture.hpp>
+#include <systems/light.hpp>
 
 extern vec2 offset;
 
@@ -198,5 +199,6 @@ void render(const int& fps)
 		FontSystem::setFontZ();
 	}
 	
+	LightSystem::render();
 	WindowSystem::render();
 }
