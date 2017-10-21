@@ -260,7 +260,7 @@ namespace ui {
 
             game::config::update();
             FontSystem::setFontSize(FontSystem::SizeLarge);
-			FontSystem::setFontZ(z - 0.03f);
+			FontSystem::setFontZ(z - 0.04f);
 	
             mouse.x = ui::premouse.x+offset.x-(SCREEN_WIDTH/2);
             mouse.y = (offset.y+SCREEN_HEIGHT/2)-ui::premouse.y;
@@ -361,13 +361,13 @@ namespace ui {
 					//draw the slider handle
 					if (m.dim.y > m.dim.x) {
                         ui::drawNiceBoxColor(vec2(loc.x, loc.y + (m.slider.sliderLoc * 1.05)),
-                        	vec2(loc.x + sliderW, loc.y + (m.slider.sliderLoc * 1.05) + sliderH), -8.7, Color(cMult, cMult, cMult, 1.0f));
+                        	vec2(loc.x + sliderW, loc.y + (m.slider.sliderLoc * 1.05) + sliderH), z - 0.03f, Color(cMult, cMult, cMult, 1.0f));
 
                         //draw the now combined slider text
                         UISystem::putStringCentered(vec2(loc.x + (m.dim.x/2), (loc.y + (m.dim.y*1.05)) - FontSystem::getSize() / 2), outSV);
                     } else {
                         ui::drawNiceBoxColor(vec2(loc.x+m.slider.sliderLoc, loc.y),
-                            vec2(loc.x + m.slider.sliderLoc + sliderW, loc.y + sliderH), -8.7, Color(cMult, cMult, cMult, 1.0f));
+                            vec2(loc.x + m.slider.sliderLoc + sliderW, loc.y + sliderH), z - 0.03f, Color(cMult, cMult, cMult, 1.0f));
 
                         //draw the now combined slider text
                         UISystem::putStringCentered(loc + (m.dim / 2) /*- FontSystem::getSize() / 2*/, outSV);
