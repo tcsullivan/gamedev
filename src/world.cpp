@@ -27,6 +27,7 @@ using namespace tinyxml2;
 #include <ui.hpp>
 #include <vector3.hpp>
 #include <weather.hpp>
+#include <systems/lua.hpp>
 
 WorldData2        WorldSystem::world;
 Mix_Music*        WorldSystem::bgmObj;
@@ -66,6 +67,34 @@ int WorldSystem::getLineIndex(float x)
 {
 	return std::clamp(static_cast<int>((x - world.startX) / game::HLINE),
 		0, static_cast<int>(world.data.size()));
+}
+
+void WorldSystem::generate(LuaScript& script)
+{
+	int i = 0;
+	world.data.clear();
+	do {
+		float h, g[2];
+		script("ground", {LuaVariable("height", h)});
+		if (h == -1.0f)
+			break;
+		script("grass", {LuaVariable("height", g[0])});
+		script("grass", {LuaVariable("height", g[1])});
+		world.data.push_back(WorldData {true, {g[0], g[1]}, h,
+			static_cast<unsigned char>(randGet() % 32 / 8)});
+	} while (++i);
+
+	// define x-coordinate of world's leftmost 'line'
+	world.startX = HLINES(i * -0.5);
+
+	// gen. star coordinates
+	if (stars.empty()) {
+		stars.resize(game::SCREEN_WIDTH / 30);
+		for (auto& s : stars) {
+			s.x = world.startX + (randGet() % (int)HLINES(i));
+			s.y = game::SCREEN_HEIGHT - (randGet() % (int)HLINES(game::SCREEN_HEIGHT / 1.3f));
+		}
+	}
 }
 
 void WorldSystem::generate(int width)
@@ -191,6 +220,8 @@ void WorldSystem::loader(void)
 	if (!currentXMLFile.empty())
 		save();
 
+	LightSystem::clear();
+
 	// load file data to string
 	auto xmlPath = game::config::xmlFolder + toLoad;
 	auto xmlRaw = readFile(xmlPath);
@@ -277,7 +308,13 @@ void WorldSystem::loader(void)
 
 		// world generation
 		 else if (tagName == "generation") {
-			generate(wxml->IntAttribute("width"));
+			auto text = wxml->GetText();
+			if (text == nullptr)
+				generate(wxml->IntAttribute("width"));
+			else {
+				LuaScript script (text);
+				generate(script);
+			}
 		}
 
 		// indoor stuff

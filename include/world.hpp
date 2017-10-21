@@ -159,6 +159,7 @@ public:
 	static void goWorldRight(Position& p, Solid &d);
 	static void goWorldPortal(Position& p);
 
+	static void generate(LuaScript& script);
 	static void generate(int width = 0);
 
 	static bool save(void);

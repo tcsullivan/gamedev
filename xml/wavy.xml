@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<World>
+	<style bgm="assets/music/town.ogg" folder="assets/style/winter/">
+		<layer path="bg/bg.png"/>
+		<layer path="bg/bgFarMountain.png"/>
+		<layer path="bg/dirt.png"/>
+		<layer path="bg/grass.png"/>
+	</style>
+	<generation>
+		x = 0
+		ground = function()
+			if (x == 600) then
+				height = -1
+			else
+				height = math.sin(x * 3.14 / 90) * 50 + 60
+			end
+			x = x + 1
+		end
+
+		grass = function()
+			height = math.random(2, 4)
+		end
+	</generation>
+	<weather>Rainy</weather>
+	<time>10000</time>
+</World>
+

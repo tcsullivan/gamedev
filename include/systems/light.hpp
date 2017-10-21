@@ -29,6 +29,9 @@ public:
 	static int addLight(vec2 pos, float radius, Color color = Color(1, 1, 1));
 	static void updateLight(int index, vec2 pos, float radius = -1);
 	static void removeLight(int index);
+
+	static inline void clear(void)
+	{ lights.clear(); }
 };
 
 #endif // SYSTEM_LIGHT_HPP_
