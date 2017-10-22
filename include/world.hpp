@@ -160,7 +160,6 @@ public:
 	static void goWorldPortal(Position& p);
 
 	static void generate(LuaScript& script);
-	static void generate(int width = 0);
 
 	static bool save(void);
 	static void load(const std::string& file);

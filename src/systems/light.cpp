@@ -26,7 +26,7 @@ void LightSystem::render(void) {
 	unsigned int offset = 0;
 	for (const auto& l : lights) {
 		coords[offset] = l.pos.x, coords[offset + 1] = l.pos.y,
-			coords[offset + 2] = 0, coords[offset + 3] = l.radius;
+			coords[offset + 2] = -5, coords[offset + 3] = l.radius;
 		colors[offset] = l.color.red, colors[offset + 1] = l.color.green,
 			colors[offset + 2] = l.color.blue, colors[offset + 3] = 1.0f;
 		offset += 4;

@@ -2,7 +2,7 @@
 <include file="entities.xml"/>
 
 <IndoorWorld>
-	<style bgm="assets/music/theme_jazz.wav" folder="assets/style/classic/">
+	<style bgm="assets/music/theme_jazz.wav" folder="assets/style/indoors/">
 		<layer path="bg/bg.png"/>
 		<layer path="bg/bgFarMountain.png"/>
 		<layer path="bg/forestTileFar.png"/>
@@ -10,10 +10,26 @@
 		<layer path="bg/forestTileMid.png"/>
 		<layer path="bg/forestTileFront.png"/>
 		<layer path="bg/dirt.png"/>
-		<layer path="bg/grass.png"/>
+		<layer path="bg/carpet.png"/>
 	</style>
 	<house width="800" texture="assets/style/classic/bg/insideWoodHouse.png"/>
-	<generation width="320"/>
+	<generation>
+		x = 0
+
+		ground = function()
+			if (x == 320) then
+				height = -1
+			else
+				height = 60
+			end
+
+			x = x + 1
+		end
+
+		grass = function()
+			height = 2
+		end
+	</generation>
 	<time>6000</time>
 	<!--<link outside="town.xml"/>-->
 	<npc name="Bob" hasDialog="true" spawnx="30"/>

@@ -45,15 +45,6 @@ static bool waitToSwap = false;
 // externally referenced in main.cpp
 int worldShade = 0;
 
-// ground-generating constants
-constexpr const float GROUND_HEIGHT_INITIAL =  80.0f;
-constexpr const float GROUND_HEIGHT_MINIMUM =  60.0f;
-constexpr const float GROUND_HEIGHT_MAXIMUM = 110.0f;
-constexpr const float GROUND_HILLINESS      =  10.0f;
-
-// defines grass height in HLINEs
-const unsigned int GRASS_HEIGHT = HLINES(4);
-
 WorldSystem::WorldSystem(void)
 {
 	bgmObj = nullptr;
@@ -92,52 +83,6 @@ void WorldSystem::generate(LuaScript& script)
 		stars.resize(game::SCREEN_WIDTH / 30);
 		for (auto& s : stars) {
 			s.x = world.startX + (randGet() % (int)HLINES(i));
-			s.y = game::SCREEN_HEIGHT - (randGet() % (int)HLINES(game::SCREEN_HEIGHT / 1.3f));
-		}
-	}
-}
-
-void WorldSystem::generate(int width)
-{
-	float geninc = 0;
-
-	// allocate space for world
-	world.data = std::vector<WorldData> (width + GROUND_HILLINESS);
-
-	// prepare for generation
-	world.data[0].groundHeight = GROUND_HEIGHT_INITIAL;
-	auto wditer = std::begin(world.data) + GROUND_HILLINESS;
-
-	if (world.indoor) {
-		std::fill(world.data.begin(), world.data.end(), WorldData {true, {0, 0}, GROUND_HEIGHT_MINIMUM + 5, 4});
-	} else {
-		// give every GROUND_HILLINESSth entry a groundHeight value
-		for (; wditer < std::end(world.data); wditer += GROUND_HILLINESS)
-			wditer[-static_cast<int>(GROUND_HILLINESS)].groundHeight = wditer[0].groundHeight + (randGet() % 8 - 4);
-
-		// create slopes from the points that were just defined, populate the rest of the WorldData structure
-		for (wditer = std::begin(world.data) + 1; wditer < std::end(world.data); wditer++) {
-			auto w = &*(wditer);
-
-			if (w->groundHeight != 0)
-				geninc = (w[static_cast<int>(GROUND_HILLINESS)].groundHeight - w->groundHeight) / GROUND_HILLINESS;
-
-			w->groundHeight = std::clamp(w[-1].groundHeight + geninc, GROUND_HEIGHT_MINIMUM, GROUND_HEIGHT_MAXIMUM);
-			w->groundColor    = randGet() % 32 / 8;
-			w->grassUnpressed = true;
-			w->grassHeight[0] = (randGet() % 16) / 3 + HLINES(2);
-			w->grassHeight[1] = (randGet() % 16) / 3 + HLINES(2);
-		}
-	}
-
-	// define x-coordinate of world's leftmost 'line'
-	world.startX = HLINES(width * -0.5);
-
-	// gen. star coordinates
-	if (stars.empty()) {
-		stars.resize(game::SCREEN_WIDTH / 30);
-		for (auto& s : stars) {
-			s.x = world.startX + (randGet() % (int)HLINES(width));
 			s.y = game::SCREEN_HEIGHT - (randGet() % (int)HLINES(game::SCREEN_HEIGHT / 1.3f));
 		}
 	}
@@ -307,14 +252,9 @@ void WorldSystem::loader(void)
 		}
 
 		// world generation
-		 else if (tagName == "generation") {
-			auto text = wxml->GetText();
-			if (text == nullptr)
-				generate(wxml->IntAttribute("width"));
-			else {
-				LuaScript script (text);
-				generate(script);
-			}
+		else if (tagName == "generation") {
+			LuaScript script (wxml->GetText());
+			generate(script);
 		}
 
 		// indoor stuff
@@ -591,7 +531,7 @@ void WorldSystem::render(void)
 
 		for (int j = 0; j < count; j++) {
 			GLfloat five[5] = {
-				0, 0, mountainDim.x * j + xcoord, GROUND_HEIGHT_MINIMUM, z
+				0, 0, mountainDim.x * j + xcoord, 0, z
 			};
 
 			push5(bgItemsFront, five);
@@ -619,12 +559,12 @@ void WorldSystem::render(void)
 		world.indoorTex.use();
 		auto dim = world.indoorTex.getDim() * game::HLINE;
 		GLfloat verts[] = {
-			world.startX,         GROUND_HEIGHT_MINIMUM,         z, 0, 0,
-			world.startX + dim.x, GROUND_HEIGHT_MINIMUM,         z, 1, 0,
-			world.startX + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, z, 1, 1,
-			world.startX + dim.x, GROUND_HEIGHT_MINIMUM + dim.y, z, 1, 1,
-			world.startX,         GROUND_HEIGHT_MINIMUM + dim.y, z, 0, 1,
-			world.startX,         GROUND_HEIGHT_MINIMUM,         z, 0, 0,
+			world.startX,         0,         z, 0, 0,
+			world.startX + dim.x, 0,         z, 1, 0,
+			world.startX + dim.x, dim.y, z, 1, 1,
+			world.startX + dim.x, dim.y, z, 1, 1,
+			world.startX,         dim.y, z, 0, 1,
+			world.startX,         0,         z, 0, 0,
 		};
 
 		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts);
@@ -640,10 +580,10 @@ void WorldSystem::render(void)
 	pOffset = (offset.x - world.startX) / game::HLINE;
 
 	// only draw world within player vision
-	iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / game::HLINE) - GROUND_HILLINESS),
+	iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / game::HLINE)),
 	                    0, static_cast<int>(world.data.size()));
 	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / game::HLINE) + 2),
-                      0, static_cast<int>(world.data.size() - GROUND_HILLINESS));
+                      0, static_cast<int>(world.data.size()));
 
 	// draw the dirt
 	waitToSwap = true;
@@ -659,16 +599,9 @@ void WorldSystem::render(void)
 
 	GLfloat *dirtp = &dirt[0];
 	for (int i = iStart; i < iEnd; i++) {
-		if (world.data[i].groundHeight <= 0) { // TODO holes (andy)
-			world.data[i].groundHeight = GROUND_HEIGHT_MINIMUM - 1;
-			//glColor4ub(0, 0, 0, 255);
-		} else {
-			//safeSetColorA(150, 150, 150, 255);
-		}
-
 		int ty = world.data[i].groundHeight / 64 + world.data[i].groundColor;
 		GLfloat five[5] = {
-			0, 0, world.startX + HLINES(i), world.data[i].groundHeight - GRASS_HEIGHT, z - 0.1f
+			0, 0, world.startX + HLINES(i), world.data[i].groundHeight, z - 0.1f
 		};
 
 		push5(dirtp, five);
@@ -679,11 +612,8 @@ void WorldSystem::render(void)
 		push5(dirtp, five);
 		five[0]--, five[2] -= game::HLINE;
 		push5(dirtp, five);
-		five[1] = 0, five[3] = world.data[i].groundHeight - GRASS_HEIGHT;
+		five[1] = 0, five[3] = world.data[i].groundHeight;
 		push5(dirtp, five);
-
-		if (world.data[i].groundHeight == GROUND_HEIGHT_MINIMUM - 1)
-			world.data[i].groundHeight = 0;
 	}
 
 	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.45f);
@@ -695,114 +625,104 @@ void WorldSystem::render(void)
 	Render::worldShader.disable();
 	Render::worldShader.unuse();
 
-	if (!world.indoor) {
-		bgTex++;
-		//safeSetColorA(255, 255, 255, 255); TODO
+	bgTex++;
 
-		static std::vector<GLfloat> grass;
-		if (grass.size() != world.data.size() * 60) {
-			grass.clear();
-			grass.resize(world.data.size() * 60);
-		}
-
-		GLfloat *grassp = &grass[0];
-		for (int i = iStart; i < iEnd; i++) {
-			auto wd = world.data[i];
-			auto gh = wd.grassHeight;
-
-			// flatten the grass if the player is standing on it.
-			if (!wd.grassUnpressed) {
-				gh[0] /= 4;
-				gh[1] /= 4;
-			}
-
-			// actually draw the grass.
-			if (wd.groundHeight) {
-				float five[5] = {
-					0, 1, world.startX + HLINES(i), wd.groundHeight + gh[0], z - 0.2f
-				};
-
-				push5(grassp, five);
-				five[0]++, five[1]--, five[2] += HLINES(0.5f);
-				push5(grassp, five);
-				five[1]++, five[3] = wd.groundHeight - GRASS_HEIGHT;
-				push5(grassp, five);
-				push5(grassp, five);
-				five[0]--, five[2] -= HLINES(0.5f);
-				push5(grassp, five);
-				five[1]--, five[3] = wd.groundHeight + gh[0];
-				push5(grassp, five);
-				five[1]++;
-
-				five[2] = world.startX + HLINES(i + 0.5), five[3] = wd.groundHeight + gh[1];
-
-				push5(grassp, five);
-				five[0]++, five[1]--, five[2] += HLINES(0.5f) + 1;
-				push5(grassp, five);
-				five[1]++, five[3] = wd.groundHeight - GRASS_HEIGHT;
-				push5(grassp, five);
-				push5(grassp, five);
-				five[0]--, five[2] -= HLINES(0.5f) + 1;
-				push5(grassp, five);
-				five[1]--, five[3] = wd.groundHeight + gh[1];
-				push5(grassp, five);
-			}
-		}
-
-		Render::worldShader.use();
-		glUniform1f(Render::worldShader.uniform[WU_light_impact], 1.0f);
-
-		Render::worldShader.enable();
-
-		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[2]);
-		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[0]);
-		glDrawArrays(GL_TRIANGLES, 0 , grass.size() / 5);
-
-		// the starting pixel of the world
-		static const float s = -(static_cast<float>(SCREEN_WIDTH) / 2.0f);
-		// the ending pixel of the world
-		static const float e = static_cast<float>(SCREEN_WIDTH) / 2.0f;
-		static const float sheight = static_cast<float>(SCREEN_HEIGHT);
-			
-		auto yOffset = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
-		GLfloat blackBar[] = {
-			s,            yOffset,           z - 0.3f, 0.0f, 0.0f,
-			world.startX, yOffset,           z - 0.3f, 1.0f, 0.0f,
-			world.startX, yOffset + sheight, z - 0.3f, 1.0f, 1.0f,
-			world.startX, yOffset + sheight, z - 0.3f, 1.0f, 1.0f,
-   			s,            yOffset + sheight, z - 0.3f, 0.0f, 1.0f,
-			s,            yOffset,           z - 0.3f, 0.0f, 0.0f
-		};
-
-		if (offset.x + world.startX > s) {
-			Colors::black.use();
-			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
-			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
-			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-		}
-
-		if (offset.x - world.startX < e) {
-			blackBar[0] = blackBar[20] = blackBar[25] = -world.startX;
-			blackBar[5] = blackBar[10] = blackBar[15] = e;
-
-			Colors::black.use();
-			glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
-			glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
-			glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-		}
-
-		Render::worldShader.disable();
-		Render::worldShader.unuse();
-	} else {
-		Render::useShader(&Render::worldShader);
-		Render::worldShader.use();
-		Colors::red.use();
-		vec2 ll = vec2 {world.startX, GROUND_HEIGHT_MINIMUM};
-		Render::drawRect(ll, ll + vec2(world.indoorTex.getDim().x, 4), z - 1);
-		Render::worldShader.unuse();
+	static std::vector<GLfloat> grass;
+	if (grass.size() != world.data.size() * 60) {
+		grass.clear();
+		grass.resize(world.data.size() * 60);
 	}
+
+	GLfloat *grassp = &grass[0];
+	for (int i = iStart; i < iEnd; i++) {
+		auto wd = world.data[i];
+		auto gh = wd.grassHeight;
+
+		// flatten the grass if the player is standing on it.
+		if (!world.indoor && !wd.grassUnpressed) {
+			gh[0] /= 4;
+			gh[1] /= 4;
+		}
+
+		// actually draw the grass.
+		if (wd.groundHeight) {
+			float five[5] = {
+				0, 1, world.startX + HLINES(i), wd.groundHeight + gh[0], z - 0.2f
+			};
+
+			push5(grassp, five);
+			five[0]++, five[1]--, five[2] += HLINES(0.5f);
+			push5(grassp, five);
+			five[1]++, five[3] = wd.groundHeight;
+			push5(grassp, five);
+			push5(grassp, five);
+			five[0]--, five[2] -= HLINES(0.5f);
+			push5(grassp, five);
+			five[1]--, five[3] = wd.groundHeight + gh[0];
+			push5(grassp, five);
+			five[1]++;
+
+			five[2] = world.startX + HLINES(i + 0.5), five[3] = wd.groundHeight + gh[1];
+
+			push5(grassp, five);
+			five[0]++, five[1]--, five[2] += HLINES(0.5f) + 1;
+			push5(grassp, five);
+			five[1]++, five[3] = wd.groundHeight;
+			push5(grassp, five);
+			push5(grassp, five);
+			five[0]--, five[2] -= HLINES(0.5f) + 1;
+			push5(grassp, five);
+			five[1]--, five[3] = wd.groundHeight + gh[1];
+			push5(grassp, five);
+		}
+	}
+
+	Render::worldShader.use();
+	glUniform1f(Render::worldShader.uniform[WU_light_impact], 1.0f);
+
+	Render::worldShader.enable();
+
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[2]);
+	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[0]);
+	glDrawArrays(GL_TRIANGLES, 0 , grass.size() / 5);
+
+	// the starting pixel of the world
+	static const float s = -(static_cast<float>(SCREEN_WIDTH) / 2.0f);
+	// the ending pixel of the world
+	static const float e = static_cast<float>(SCREEN_WIDTH) / 2.0f;
+	static const float sheight = static_cast<float>(SCREEN_HEIGHT);
+			
+	auto yOffset = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
+	GLfloat blackBar[] = {
+		s,            yOffset,           z - 0.3f, 0.0f, 0.0f,
+		world.startX, yOffset,           z - 0.3f, 1.0f, 0.0f,
+		world.startX, yOffset + sheight, z - 0.3f, 1.0f, 1.0f,
+		world.startX, yOffset + sheight, z - 0.3f, 1.0f, 1.0f,
+   		s,            yOffset + sheight, z - 0.3f, 0.0f, 1.0f,
+		s,            yOffset,           z - 0.3f, 0.0f, 0.0f
+	};
+
+	if (offset.x + world.startX > s) {
+		Colors::black.use();
+		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
+		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
+	if (offset.x - world.startX < e) {
+		blackBar[0] = blackBar[20] = blackBar[25] = -world.startX;
+		blackBar[5] = blackBar[10] = blackBar[15] = e;
+
+		Colors::black.use();
+		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
+		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
+		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
+	Render::worldShader.disable();
+	Render::worldShader.unuse();
 
 	waitToSwap = false;
 }
