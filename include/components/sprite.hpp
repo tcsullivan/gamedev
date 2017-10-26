@@ -56,6 +56,7 @@ struct Sprite : public Component {
 		auto frames = developFrame(def);
 		if (!frames.empty())
 			sprite = frames.at(0);
+		faceLeft = false;
 	}
 
 	Frame sprite;

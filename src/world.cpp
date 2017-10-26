@@ -69,6 +69,8 @@ void WorldSystem::generate(LuaScript& script)
 		script("ground", {LuaVariable("height", h)});
 		if (h == -1.0f)
 			break;
+		if (h > 5000)
+			h = 5000;
 		script("grass", {LuaVariable("height", g[0])});
 		script("grass", {LuaVariable("height", g[1])});
 		world.data.push_back(WorldData {true, {g[0], g[1]}, h,

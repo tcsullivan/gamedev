@@ -3,6 +3,8 @@
 
 #include "base.hpp"
 
+#include <SDL2/SDL_mixer.h>
+
 /**
  * @struct Health
  * @brief Gives and entity health and stuff.
@@ -19,6 +21,7 @@ struct Health : public Component {
 
 	int health; /**< The current amount of health */
 	int maxHealth; /**< The maximum amount of health */
+	Mix_Chunk* ouch; /**< Sound made when attacked */
 
 	void fromXML(XMLElement* imp, XMLElement* def) final {
 		(void)imp;
@@ -27,6 +30,11 @@ struct Health : public Component {
 		if (def->QueryIntAttribute("value", &health) != XML_NO_ERROR)
 			health = 1;
 		maxHealth = health;
+		auto o = def->Attribute("ouch");
+		if (o != nullptr)
+			ouch = Mix_LoadWAV(o);
+		else
+			ouch = nullptr;
 	}
 };
 

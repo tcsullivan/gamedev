@@ -51,7 +51,10 @@ namespace lua {
 
 	int damage(lua_State* state) {
 		float d = lua_tonumber(state, 1);
-		entity->component<Health>()->health -= d;
+		auto h = entity->component<Health>();
+		h->health -= d;
+		if (h->ouch != nullptr)
+			Mix_PlayChannel(0, h->ouch, 0);
 		return 0;
 	}
 }

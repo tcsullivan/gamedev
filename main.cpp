@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
 {
 	static bool worldReset = false, worldDontReallyRun = false;
 	std::string worldActuallyUseThisXMLFile;
+	std::string worldActuallyUseThisXMLFolder;
 
 	// handle command line args
 	if (argc > 1) {
@@ -53,6 +54,8 @@ int main(int argc, char *argv[])
 				worldDontReallyRun = true;
 			else if (s == "--xml" || s == "-x")
 				worldActuallyUseThisXMLFile = argv[i + 1];
+			else if (s == "--folder" || s == "-f")
+				worldActuallyUseThisXMLFolder = argv[i + 1];
 		}
 	}
 
@@ -68,6 +71,9 @@ int main(int argc, char *argv[])
 	// load some saved data
 	game::briceLoad();
 	game::briceUpdate();
+
+	if (!worldActuallyUseThisXMLFolder.empty())
+		game::config::xmlFolder = worldActuallyUseThisXMLFolder;
 
 	// read in all XML file names in the folder
 	std::list<std::string> xmlFiles;

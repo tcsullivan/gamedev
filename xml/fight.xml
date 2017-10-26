@@ -1,6 +1,6 @@
-<?xml version="1.0"?>
+<include file="entities.xml" />
 <World>
-	<style bgm="assets/music/ozone.ogg" folder="assets/style/classic/">
+	<style bgm="assets/music/fight.ogg" folder="assets/style/classic/">
 		<layer path="bg/bg.png"/>
 		<layer path="bg/bgFarMountain.png"/>
 		<layer path="bg/forestTileFar.png"/>
@@ -14,10 +14,15 @@
 		x = 0
 
 		ground = function()
-			if (x == 600) then
+			if (x == 240) then
 				height = -1
 			else
-				height = 60 + math.random(0,6) / 2
+				height = 1 / math.cos((x / 1.19 - 100) * 3.14 / 180)
+				if (height &lt; 0 or height &gt; 800) then
+					height = 800
+				else
+					height = height + 60
+				end
 			end
 
 			x = x + 1
@@ -28,5 +33,5 @@
 		end
 	</generation>
 	<time>6000</time>
-	<link left="!town.xml"/>
+	<skirl />
 </World>
