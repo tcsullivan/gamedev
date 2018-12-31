@@ -2,7 +2,7 @@
 #define SYSTEMS_LUA_HPP_
 
 #include <string>
-#include <lua.hpp>
+#include <lua5.3/lua.hpp>
 #include <tuple>
 #include <vector>
 

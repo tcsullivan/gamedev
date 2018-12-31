@@ -54,7 +54,7 @@ namespace lua {
 		auto h = entity->component<Health>();
 		h->health -= d;
 		if (h->ouch != nullptr)
-			Mix_PlayChannel(0, h->ouch, 0);
+			Mix_PlayChannel(1, h->ouch, 0);
 		return 0;
 	}
 }
@@ -140,7 +140,7 @@ void AttackSystem::render(void)
 	Render::worldShader.enable();
 	for (auto& ae : effects) {
 		ae.effect(ae.counter / RATE); // bind current frame
-		auto dim = ae.effect.getTextureDim();
+		auto dim = ae.effect.getTextureDim() * game::HLINE;
 		auto s = ae.pos - (dim / 2);
 		GLfloat verts[] = {
 			s.x,         s.y,         z, 0, 0,

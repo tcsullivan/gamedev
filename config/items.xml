@@ -37,7 +37,7 @@
 	</attack>
 </item>
 <item name="Hunters Bow" type="Bow" drawOffset="5,16" maxStackSize="1" sound="assets/sounds/shortSwing.wav" sprite="assets/items/bow.png" cooldown="600">
-	<attack effect="assets/effects/starAttack.gif">
+	<attack effect="assets/effects/bowhit.gif">
 		effect = function()
 			flash(255, 0, 255)
 			damage(4)
