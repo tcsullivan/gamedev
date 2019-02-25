@@ -12,22 +12,7 @@
 		<layer path="bg/dirt.png"/>
 		<layer path="bg/grass.png"/>
 	</style>
-	<generation>
-		x = 0
-
-		ground = function()
-			if (x == 320) then
-				height = -1
-			else
-				height = 1 / math.pow(2, (x - 50) / 2) + 60 
-			end
-			x = x + 1
-		end
-
-		grass = function()
-			height = math.random(2, 7)
-		end
-	</generation>
+	<generation>assets/testground.png</generation>
 	<weather>Sunny</weather>
 	<link right="!town2.xml"/>
 	<spawnx>-300</spawnx>
@@ -37,7 +22,6 @@
 	<structure type="1" position="300.0,100.0"/>
 	<structure inside="bobshouse.xml" type="1" position="10.0,100.0"/>
 	<skirl />
-	<birb position="-300.0,100.0" />
 	<firefly />
 </World>
 

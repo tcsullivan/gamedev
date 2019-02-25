@@ -13,23 +13,7 @@
 		<layer path="bg/carpet.png"/>
 	</style>
 	<house width="800" texture="assets/style/classic/bg/insideWoodHouse.png"/>
-	<generation>
-		x = 0
-
-		ground = function()
-			if (x == 320) then
-				height = -1
-			else
-				height = 60
-			end
-
-			x = x + 1
-		end
-
-		grass = function()
-			height = 2
-		end
-	</generation>
+	<generation>testground.png</generation>
 	<time>6000</time>
 	<!--<link outside="town.xml"/>-->
 	<npc name="Bob" hasDialog="true" spawnx="30"/>

@@ -11,6 +11,60 @@
 #include <error.hpp>
 #include <gif_lib.h>
 
+ObjectTexture::ObjectTexture(const std::string filename)
+{
+	valid = !filename.empty();
+	if (!valid)
+		return;
+
+	auto image = IMG_Load(filename.c_str());
+
+	// format: RGBA8
+	solidMap.resize(image->w * image->h);
+	auto rgba = ((uint8_t *)image->pixels) + 3;
+	auto iter = solidMap.begin();
+	for (int i = 0; i < image->w * image->h; i++) {
+		*iter++ = *rgba > 0;
+		rgba += 4;
+	}
+
+	GLuint object;
+	glGenTextures(1, &object);				// Turns "object" into a texture
+	glBindTexture(GL_TEXTURE_2D, object);	// Binds "object" to the top of the stack
+	glPixelStoref(GL_UNPACK_ALIGNMENT, 1);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	// Sets the "min" filter
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	// The the "max" filter of the stack
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Wrap the texture to the matrix
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); //
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->w, image->h, 0,
+				 GL_RGBA, GL_UNSIGNED_BYTE, image->pixels);
+
+	name = filename;
+	tex = object;
+	dim = vec2 {(float)image->w, (float)image->h};
+
+	// free the SDL_Surface
+	SDL_FreeSurface(image);
+}
+
+int ObjectTexture::getHeight(int index)
+{
+	if (index < 0 || index > dim.x)
+		return 100;
+
+	unsigned int h;
+	for (h = 0; h < dim.y; h++) {
+		if (solidMap[h * dim.x + index])
+			return dim.y - h;
+	}
+	return 0;
+}
+
+bool ObjectTexture::isInsideObject(vec2 coord) const {
+	coord /= 2;
+	return solidMap[(int)coord.y * (int)dim.x + (int)coord.x];
+}
+
 namespace Colors
 {
 	ColorTex white;

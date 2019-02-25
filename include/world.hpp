@@ -69,7 +69,7 @@ constexpr const unsigned int INDOOR_FLOOR_HEIGHT = (INDOOR_FLOOR_HEIGHTT + INDOO
 struct WorldData2 {
 
 	// Data variables
-	std::vector<WorldData> data; /**< The world's ground data. */
+	ObjectTexture ground;
 	float startX;                /**< The furthest left coordinate of the world. */
 
 	// Indoor variables
@@ -125,8 +125,6 @@ private:
 
 	static std::vector<vec2> stars;
 
-	static int getLineIndex(float x);
-
 public:
 	static std::thread thAmbient;
 
@@ -159,7 +157,8 @@ public:
 	static void goWorldRight(Position& p, Solid &d);
 	static void goWorldPortal(Position& p);
 
-	static void generate(LuaScript& script);
+	static void generate(const char *file);
+	static float getGroundHeight(float x);
 
 	static bool save(void);
 	static void load(const std::string& file);

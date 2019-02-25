@@ -21,6 +21,11 @@ class LightSystem : public entityx::System<LightSystem> {
 private:
 	static std::vector<Light> lights;
 
+	static GLfloat *colorData;
+	static GLfloat *coordData;
+
+	static void resizeLights(void);
+
 public:
 	void update(entityx::EntityManager& en, entityx::EventManager& ev, entityx::TimeDelta dt) override;
 

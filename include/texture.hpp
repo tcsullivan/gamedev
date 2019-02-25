@@ -174,4 +174,19 @@ public:
  */
 void unloadTextures(void);
 
+class ObjectTexture : public Texture {
+private:
+	std::vector<bool> solidMap;
+	bool valid;
+
+public:
+	ObjectTexture(const std::string filename = "");
+
+	int getHeight(int index);
+	bool isInsideObject(vec2 coord) const;
+	inline bool isValid(void) {
+		return valid;
+	}
+};
+
 #endif //TEXTURE_HPP_

@@ -54,45 +54,30 @@ WorldSystem::~WorldSystem(void)
 {
 }
 
-int WorldSystem::getLineIndex(float x)
+void WorldSystem::generate(const char *file)
 {
-	return std::clamp(static_cast<int>((x - world.startX) / game::HLINE),
-		0, static_cast<int>(world.data.size()));
-}
-
-void WorldSystem::generate(LuaScript& script)
-{
-	int i = 0;
-	world.data.clear();
-	do {
-		float h, g[2];
-		script("ground", {LuaVariable("height", h)});
-		if (h == -1.0f)
-			break;
-		if (h > 5000)
-			h = 5000;
-		script("grass", {LuaVariable("height", g[0])});
-		script("grass", {LuaVariable("height", g[1])});
-		world.data.push_back(WorldData {true, {g[0], g[1]}, h,
-			static_cast<unsigned char>(randGet() % 32 / 8)});
-	} while (++i);
-
-	// define x-coordinate of world's leftmost 'line'
-	world.startX = HLINES(i * -0.5);
+	world.ground = ObjectTexture(file);
+	auto width = world.ground.getDim().x;
+	world.startX = width / -2;
 
 	// gen. star coordinates
 	if (stars.empty()) {
 		stars.resize(game::SCREEN_WIDTH / 30);
 		for (auto& s : stars) {
-			s.x = world.startX + (randGet() % (int)HLINES(i));
+			s.x = world.startX + (randGet() % (int)width);
 			s.y = game::SCREEN_HEIGHT - (randGet() % (int)HLINES(game::SCREEN_HEIGHT / 1.3f));
 		}
 	}
 }
 
+float WorldSystem::getGroundHeight(float x)
+{
+	return world.ground.getHeight((int)(x - world.startX));
+}
+
 float WorldSystem::isAboveGround(const vec2& p) 
 {
-	const auto& gh = world.data[getLineIndex(p.x)].groundHeight;
+	auto gh = getGroundHeight(p.x);
 	return p.y >= gh ? 0 : gh;
 }
 
@@ -255,8 +240,7 @@ void WorldSystem::loader(void)
 
 		// world generation
 		else if (tagName == "generation") {
-			LuaScript script (wxml->GetText());
-			generate(script);
+			generate(wxml->GetText());
 		}
 
 		// indoor stuff
@@ -421,10 +405,8 @@ void WorldSystem::render(void)
 	const vector2<int> backgroundOffset
 		(static_cast<int>(SCREEN_WIDTH) / 2, static_cast<int>(SCREEN_HEIGHT) / 2);
 
-	int iStart, iEnd, pOffset;
-
     // world width in pixels
-	int width = HLINES(world.data.size());
+	int width = world.ground.getDim().x;
 
 	static std::once_flag init;
 	std::call_once(init, [&](void) {
@@ -557,176 +539,30 @@ void WorldSystem::render(void)
 		delete[] bgItems;
 	}
 
+	vec2 dim;
 	if (world.indoor) {
 		world.indoorTex.use();
-		auto dim = world.indoorTex.getDim() * game::HLINE;
-		GLfloat verts[] = {
-			world.startX,         0,         z, 0, 0,
-			world.startX + dim.x, 0,         z, 1, 0,
-			world.startX + dim.x, dim.y, z, 1, 1,
-			world.startX + dim.x, dim.y, z, 1, 1,
-			world.startX,         dim.y, z, 0, 1,
-			world.startX,         0,         z, 0, 0,
-		};
-
-		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts);
-		glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts + 3);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		dim = world.indoorTex.getDim();
+	} else {
+		world.ground.use();
+		dim = world.ground.getDim();
 	}
 
-	//glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.075f + (0.2f * i));
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	// get the line that the player is currently standing on
-	pOffset = (offset.x - world.startX) / game::HLINE;
-
-	// only draw world within player vision
-	iStart = std::clamp(static_cast<int>(pOffset - (SCREEN_WIDTH / 2 / game::HLINE)),
-	                    0, static_cast<int>(world.data.size()));
-	iEnd = std::clamp(static_cast<int>(pOffset + (SCREEN_WIDTH / 2 / game::HLINE) + 2),
-                      0, static_cast<int>(world.data.size()));
-
-	// draw the dirt
-	waitToSwap = true;
-
-	bgTex++;
-	z = Render::ZRange::Ground;
-
-	static std::vector<GLfloat> dirt;
-	if (dirt.size() != world.data.size() * 30) {
-		dirt.clear();
-		dirt.resize(world.data.size() * 30);
-	}
-
-	GLfloat *dirtp = &dirt[0];
-	for (int i = iStart; i < iEnd; i++) {
-		int ty = world.data[i].groundHeight / 64 + world.data[i].groundColor;
-		GLfloat five[5] = {
-			0, 0, world.startX + HLINES(i), world.data[i].groundHeight, z - 0.1f
-		};
-
-		push5(dirtp, five);
-		five[0]++, five[2] += game::HLINE;
-		push5(dirtp, five);
-		five[1] += ty, five[3] = 0;
-		push5(dirtp, five);
-		push5(dirtp, five);
-		five[0]--, five[2] -= game::HLINE;
-		push5(dirtp, five);
-		five[1] = 0, five[3] = world.data[i].groundHeight;
-		push5(dirtp, five);
-	}
-
-	glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.45f);
-
-	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &dirt[2]);
-	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &dirt[0]);
-	glDrawArrays(GL_TRIANGLES, 0 , dirt.size() / 5);
-
-	Render::worldShader.disable();
-	Render::worldShader.unuse();
-
-	bgTex++;
-
-	static std::vector<GLfloat> grass;
-	if (grass.size() != world.data.size() * 60) {
-		grass.clear();
-		grass.resize(world.data.size() * 60);
-	}
-
-	GLfloat *grassp = &grass[0];
-	for (int i = iStart; i < iEnd; i++) {
-		auto wd = world.data[i];
-		auto gh = wd.grassHeight;
-
-		// flatten the grass if the player is standing on it.
-		if (!world.indoor && !wd.grassUnpressed) {
-			gh[0] /= 4;
-			gh[1] /= 4;
-		}
-
-		// actually draw the grass.
-		if (wd.groundHeight) {
-			float five[5] = {
-				0, 1, world.startX + HLINES(i), wd.groundHeight + gh[0], z - 0.2f
-			};
-
-			push5(grassp, five);
-			five[0]++, five[1]--, five[2] += HLINES(0.5f);
-			push5(grassp, five);
-			five[1]++, five[3] = wd.groundHeight;
-			push5(grassp, five);
-			push5(grassp, five);
-			five[0]--, five[2] -= HLINES(0.5f);
-			push5(grassp, five);
-			five[1]--, five[3] = wd.groundHeight + gh[0];
-			push5(grassp, five);
-			five[1]++;
-
-			five[2] = world.startX + HLINES(i + 0.5), five[3] = wd.groundHeight + gh[1];
-
-			push5(grassp, five);
-			five[0]++, five[1]--, five[2] += HLINES(0.5f) + 1;
-			push5(grassp, five);
-			five[1]++, five[3] = wd.groundHeight;
-			push5(grassp, five);
-			push5(grassp, five);
-			five[0]--, five[2] -= HLINES(0.5f) + 1;
-			push5(grassp, five);
-			five[1]--, five[3] = wd.groundHeight + gh[1];
-			push5(grassp, five);
-		}
-	}
-
-	Render::worldShader.use();
-	glUniform1f(Render::worldShader.uniform[WU_light_impact], 1.0f);
-
-	Render::worldShader.enable();
-
-	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[2]);
-	glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &grass[0]);
-	glDrawArrays(GL_TRIANGLES, 0 , grass.size() / 5);
-
-	// the starting pixel of the world
-	static const float s = -(static_cast<float>(SCREEN_WIDTH) / 2.0f);
-	// the ending pixel of the world
-	static const float e = static_cast<float>(SCREEN_WIDTH) / 2.0f;
-	static const float sheight = static_cast<float>(SCREEN_HEIGHT);
-			
-	auto yOffset = offset.y - static_cast<float>(SCREEN_HEIGHT) / 2.0f;
-	GLfloat blackBar[] = {
-		s,            yOffset,           z - 0.3f, 0.0f, 0.0f,
-		world.startX, yOffset,           z - 0.3f, 1.0f, 0.0f,
-		world.startX, yOffset + sheight, z - 0.3f, 1.0f, 1.0f,
-		world.startX, yOffset + sheight, z - 0.3f, 1.0f, 1.0f,
-   		s,            yOffset + sheight, z - 0.3f, 0.0f, 1.0f,
-		s,            yOffset,           z - 0.3f, 0.0f, 0.0f
+	GLfloat verts[] = {
+		world.startX,         0,         z, 0, 0,
+		world.startX + dim.x, 0,         z, 1, 0,
+		world.startX + dim.x, dim.y, z, 1, 1,
+		world.startX + dim.x, dim.y, z, 1, 1,
+		world.startX,         dim.y, z, 0, 1,
+		world.startX,         0,         z, 0, 0,
 	};
 
-	if (offset.x + world.startX > s) {
-		Colors::black.use();
-		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
-		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
-		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-	}
-
-	if (offset.x - world.startX < e) {
-		blackBar[0] = blackBar[20] = blackBar[25] = -world.startX;
-		blackBar[5] = blackBar[10] = blackBar[15] = e;
-
-		Colors::black.use();
-		glUniform1f(Render::worldShader.uniform[WU_light_impact], 0.0f);
-		glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar);
-		glVertexAttribPointer(Render::worldShader.tex, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, blackBar + 3);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-	}
+	glVertexAttribPointer(Render::worldShader.coord, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts);
+	glVertexAttribPointer(Render::worldShader.tex  , 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), verts + 3);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	Render::worldShader.disable();
 	Render::worldShader.unuse();
-
-	waitToSwap = false;
 }
 
 bool WorldSystem::receive(const BGMToggleEvent &bte)
@@ -781,7 +617,7 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 		(void)e;
 		if (!g.grounded) {
 			// make sure entity is above ground
-			auto height = world.data[getLineIndex(loc.x + dim.width / 2)].groundHeight;
+			auto height = getGroundHeight(loc.x + dim.width / 2);
 			if (loc.y != height) {
 				loc.y = height;
 				e.remove<Grounded>();
@@ -800,25 +636,24 @@ void WorldSystem::detect(entityx::TimeDelta dt)
 	game::entities.each<Position, Direction, Solid>(
 	    [&](entityx::Entity e, Position &loc, Direction &vel, Solid &dim) {
 		(void)e;
-		// get the line the entity is on
-		auto line = getLineIndex(loc.x + dim.width / 2);
 
 		// make sure entity is above ground
-		if (loc.y < world.data[line].groundHeight) {
-			int dir = vel.x < 0 ? -1 : 1;
+		auto height = getGroundHeight(loc.x + dim.width / 2);
+		if (loc.y < height) {
+			/*int dir = vel.x < 0 ? -1 : 1;
 			auto near = std::clamp(line + dir * 2, 0, static_cast<int>(world.data.size()));
 			if (world.data[near].groundHeight - 30 > world.data[line + dir].groundHeight) {
 				loc.x -= (PLAYER_SPEED_CONSTANT + 2.7f) * dir * 2;
 				vel.x = 0;
-			} else {
-				loc.y = world.data[line].groundHeight - 0.001f * dt;
+			} else {*/
+				loc.y = height - 0.001f * dt;
 				vel.y = 0;
 				if (!vel.grounded) {
 					vel.grounded = true;
 					ParticleSystem::addMultiple(20, ParticleType::SmallPoof,
 						[&](){ return vec2(loc.x + randGet() % static_cast<int>(dim.width), loc.y); }, 500, 30);
 				}
-			}
+			//}
 		}
 
 

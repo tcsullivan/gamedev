@@ -10,10 +10,20 @@
 
 #include <thread>
 
-#include <attack.hpp>
 #include <events.hpp>
 #include <player.hpp>
 #include <ui.hpp>
+
+LuaScript MovementSystem::hitPlayer;
+Attack MovementSystem::playerAttack;
+
+int MovementSystem::doAttack(lua_State* s)
+{
+	vec2 pos (lua_tonumber(s, 1), lua_tonumber(s, 2));
+	game::events.emit<AttackEvent>(AttackEvent(pos,
+		playerAttack, false));
+	return 0;
+}
 
 void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &ev, entityx::TimeDelta dt)
 {
@@ -71,18 +81,6 @@ void MovementSystem::update(entityx::EntityManager &en, entityx::EventManager &e
 					return;
 				}
 			}
-
-			static auto doAttack = [](lua_State* s) -> int {
-				vec2 pos (lua_tonumber(s, 1), lua_tonumber(s, 2));
-				LuaScript script ("effect = function()\nflash(255,0,0)\ndamage(1)\nend\n\
-					hit = function()\nxrange = 5\nend");
-				AttackSystem::initLua(script);
-				Attack attack = {vec2(), vec2(5, 5), vec2(), vec2(),
-					script, TextureIterator()};
-				game::events.emit<AttackEvent>(AttackEvent(pos,
-					attack, false));
-				return 0;
-			};
 
 			// make the entity wander
 			// TODO initialX and range?

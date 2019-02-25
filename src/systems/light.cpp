@@ -6,6 +6,17 @@
 
 std::vector<Light> LightSystem::lights;
 
+GLfloat *LightSystem::colorData = nullptr;
+GLfloat *LightSystem::coordData = nullptr;
+
+void LightSystem::resizeLights(void)
+{
+	delete colorData;
+	delete coordData;
+	colorData = new GLfloat[lights.size() * 4];
+	coordData = new GLfloat[lights.size() * 4];
+}
+
 void LightSystem::update(entityx::EntityManager& en, entityx::EventManager& ev, entityx::TimeDelta dt) {
 	(void)ev;
 	(void)dt;
@@ -20,23 +31,20 @@ void LightSystem::update(entityx::EntityManager& en, entityx::EventManager& ev, 
 }
 
 void LightSystem::render(void) {
-	auto coords = new GLfloat[lights.size() * 4];
-	auto colors = new GLfloat[lights.size() * 4];
-
 	unsigned int offset = 0;
 	for (const auto& l : lights) {
-		coords[offset] = l.pos.x, coords[offset + 1] = l.pos.y,
-			coords[offset + 2] = -5, coords[offset + 3] = l.radius;
-		colors[offset] = l.color.red, colors[offset + 1] = l.color.green,
-			colors[offset + 2] = l.color.blue, colors[offset + 3] = 1.0f;
+		coordData[offset] = l.pos.x, coordData[offset + 1] = l.pos.y,
+			coordData[offset + 2] = -5, coordData[offset + 3] = l.radius;
+		colorData[offset] = l.color.red, colorData[offset + 1] = l.color.green,
+			colorData[offset + 2] = l.color.blue, colorData[offset + 3] = 1.0f;
 		offset += 4;
 	}
 
 	Render::worldShader.use();
 	Render::worldShader.enable();
 
-	glUniform4fv(Render::worldShader.uniform[WU_light], lights.size(), coords);
-	glUniform4fv(Render::worldShader.uniform[WU_light_color], lights.size(), colors);
+	glUniform4fv(Render::worldShader.uniform[WU_light], lights.size(), coordData);
+	glUniform4fv(Render::worldShader.uniform[WU_light_color], lights.size(), colorData);
 	glUniform1i(Render::worldShader.uniform[WU_light_size], lights.size());
 
 	Render::worldShader.disable();
@@ -45,6 +53,7 @@ void LightSystem::render(void) {
 
 int LightSystem::addLight(vec2 pos, float radius, Color color) {
 	lights.emplace_back(pos, radius, color);
+	resizeLights();
 	return lights.size() - 1;
 }
 
@@ -56,5 +65,6 @@ void LightSystem::updateLight(int index, vec2 pos, float radius) {
 
 void LightSystem::removeLight(int index) {
 	lights.erase(lights.begin() + index);
+	resizeLights();
 }
 
