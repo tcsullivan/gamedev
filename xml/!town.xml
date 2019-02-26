@@ -12,7 +12,7 @@
 		<layer path="bg/dirt.png"/>
 		<layer path="bg/grass.png"/>
 	</style>
-	<generation>assets/testground.png</generation>
+	<ground path="assets/testground.png"/>
 	<weather>Sunny</weather>
 	<link right="!town2.xml"/>
 	<spawnx>-300</spawnx>

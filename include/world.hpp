@@ -21,18 +21,6 @@ using namespace tinyxml2;
 #include <vector2.hpp>
 
 /**
- * The line structure.
- * This structure is used to store the world's ground, stored in vertical
- * lines. Dirt color and grass properties are also kept track of here.
- */
-struct WorldData {
-    bool          grassUnpressed; /**< squishes grass if false */
-    float         grassHeight[2]; /**< height of the two grass blades */
-    float         groundHeight;   /**< height of the 'line' */
-    unsigned char groundColor;    /**< a value that affects the ground's color */
-};
-
-/**
  * Defines how many game ticks it takes to go from day to night or vice versa.
  * Technically a half day cycle...
  */
@@ -46,40 +34,18 @@ constexpr const unsigned int DAY_CYCLE = 10000;
 constexpr const float GRAVITY_CONSTANT = 0.001f;
 
 /**
- * Defines the thickness of the floor in an indoor world.
- */
-constexpr const unsigned int INDOOR_FLOOR_THICKNESS = 50;
-
-/**
- * Defines how far each floor can be from the next (height).
- */
-constexpr const unsigned int INDOOR_FLOOR_HEIGHTT = 400;
-
-/**
- * Gets a combined height of the floor and the area before it.
- * This value is commonly used for operations like moving between floors.
- */
-constexpr const unsigned int INDOOR_FLOOR_HEIGHT = (INDOOR_FLOOR_HEIGHTT + INDOOR_FLOOR_THICKNESS);
-
-/**
  * World data.
  * Contains all necessary data for a world. An instance of this is kept in the
  * world system, and is populated through it's load() function.
  */
-struct WorldData2 {
-
+struct WorldData {
 	// Data variables
 	ObjectTexture ground;
 	float startX;                /**< The furthest left coordinate of the world. */
 
-	// Indoor variables
-	bool indoor;                 /**< Set to true if this is an indoor world. */
-	Texture indoorTex;           /**< The house's inside texture. */
-	std::string outdoor;         /**< The file name of the outdoor world. */
-	vec2 outdoorCoords;          /**< The coordinates the player should spawn to when exiting. */
-
 	// World linkage
 	std::string toLeft, toRight; /**< File names of the worlds adjacent to this one. */
+	std::string outdoor;         /**< The file name of the outdoor world. */
 
 	// Style variables
 	std::string styleFolder;          /**< The folder to get stylized textures from. */
@@ -98,7 +64,7 @@ private:
 	/**
 	 * The world's data.
 	 */
-	static WorldData2 world;
+	static WorldData world;
 
 	/**
 	 * SDL's object for handling the background music.

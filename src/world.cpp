@@ -29,7 +29,7 @@ using namespace tinyxml2;
 #include <weather.hpp>
 #include <systems/lua.hpp>
 
-WorldData2        WorldSystem::world;
+WorldData         WorldSystem::world;
 Mix_Music*        WorldSystem::bgmObj;
 std::string       WorldSystem::bgmCurrent;
 TextureIterator   WorldSystem::bgTex;
@@ -83,9 +83,6 @@ float WorldSystem::isAboveGround(const vec2& p)
 
 bool WorldSystem::save(void)
 {	
-	if (world.indoor)
-		return false;
-
 	std::ofstream save (game::config::xmlFolder + currentXMLFile + ".dat");
 
 	// signature?
@@ -190,19 +187,11 @@ void WorldSystem::loader(void)
 	auto wxml = xmlDoc.FirstChildElement("World");
 	if (wxml != nullptr) {
 		wxml = wxml->FirstChildElement();
-		world.indoor = false;
 	} else {
-		wxml = xmlDoc.FirstChildElement("IndoorWorld");
-		UserAssert(wxml != nullptr, "XML Error: Cannot find a <World> or <IndoorWorld> tag in " + xmlPath);
-		wxml = wxml->FirstChildElement();
-		world.indoor = true;
-		if (world.outdoor.empty()) {
-			world.outdoor = currentXMLFile;
-			world.outdoorCoords = vec2(0, 100);
-		}
+		UserAssert(0, "XML Error: Cannot find a <World> or <IndoorWorld> tag in " + xmlPath);
 	}
 
-	world.toLeft = world.toRight = "";
+	world.toLeft = world.toRight = world.outdoor = "";
 	currentXMLFile = toLoad;
 
 	//game::entities.reset();
@@ -239,20 +228,8 @@ void WorldSystem::loader(void)
 		}
 
 		// world generation
-		else if (tagName == "generation") {
-			generate(wxml->GetText());
-		}
-
-		// indoor stuff
-		else if (tagName == "house") {
-			if (!world.indoor)
-				UserError("<house> can only be used inside <IndoorWorld>");
-
-			//world.indoorWidth = wxml->FloatAttribute("width");
-			world.indoorTex = Texture(wxml->StrAttribute("texture")); // TODO winbloze lol
-			auto str = wxml->StrAttribute("texture");
-			auto tex = Texture(str);
-			world.indoorTex = tex;
+		else if (tagName == "ground") {
+			generate(wxml->Attribute("path"));
 		}
 
 		// weather tag
@@ -262,16 +239,14 @@ void WorldSystem::loader(void)
 
 		// link tags
 		else if (tagName == "link") {
-			auto linkTo = wxml->Attribute("left");
-			if (linkTo != nullptr) {
+			if (auto linkTo = wxml->Attribute("left"); linkTo != nullptr)
 				world.toLeft = linkTo;
-			} else {
-				linkTo = wxml->Attribute("right");
-				if (linkTo != nullptr)
-					world.toRight = linkTo;
-				else
-					UserError("<link> doesn't handle left or right... huh");
-			}
+			else if (auto linkTo = wxml->Attribute("right"); linkTo != nullptr)
+				world.toRight = linkTo;
+			else if (auto linkTo = wxml->Attribute("outside"); linkTo != nullptr)
+				world.outdoor = linkTo;
+			else
+				UserError("<link> tag with bad attribute");
 		}
 
 		// time setting
@@ -539,15 +514,8 @@ void WorldSystem::render(void)
 		delete[] bgItems;
 	}
 
-	vec2 dim;
-	if (world.indoor) {
-		world.indoorTex.use();
-		dim = world.indoorTex.getDim();
-	} else {
-		world.ground.use();
-		dim = world.ground.getDim();
-	}
-
+	world.ground.use();
+	auto dim = world.ground.getDim();
 	GLfloat verts[] = {
 		world.startX,         0,         z, 0, 0,
 		world.startX + dim.x, 0,         z, 1, 0,
@@ -698,18 +666,15 @@ void WorldSystem::goWorldPortal(Position& p)
 {
 	std::string file;
 
-	if (world.indoor) {
+	if (!world.outdoor.empty()) {
 		file = world.outdoor;
-		p.x = world.outdoorCoords.x; // ineffective, player is regen'd
-		p.y = world.outdoorCoords.y;
+		world.outdoor = "";
 	} else {
 		game::entities.each<Position, Solid, Portal>(
 			[&](entityx::Entity entity, Position& loc, Solid &dim, Portal &portal) {
 			(void)entity;
 			if (!(portal.toFile.empty()) && p.x > loc.x && p.x < loc.x + dim.width)  {
 				file = portal.toFile;
-				world.outdoor = currentXMLFile;
-				world.outdoorCoords = vec2(loc.x + dim.width / 2, 100);
 				return;
 			}
 		});

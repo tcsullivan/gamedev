@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <include file="entities.xml"/>
 
-<IndoorWorld>
+<World>
 	<style bgm="assets/music/theme_jazz.wav" folder="assets/style/indoors/">
 		<layer path="bg/bg.png"/>
 		<layer path="bg/bgFarMountain.png"/>
@@ -12,12 +12,12 @@
 		<layer path="bg/dirt.png"/>
 		<layer path="bg/carpet.png"/>
 	</style>
-	<house width="800" texture="assets/style/classic/bg/insideWoodHouse.png"/>
-	<generation>testground.png</generation>
+	<!--<house width="800" texture="assets/style/classic/bg/insideWoodHouse.png"/>-->
+	<ground path="assets/bobground.png"/>
 	<time>6000</time>
-	<!--<link outside="town.xml"/>-->
+	<link outside="!town.xml"/>
 	<npc name="Bob" hasDialog="true" spawnx="30"/>
-</IndoorWorld>
+</World>
 
 <Dialog name="Bob">
 	<text id="0" nextid="1">
