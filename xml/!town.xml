@@ -13,7 +13,7 @@
 		<layer path="bg/grass.png"/>
 	</style>
 	<ground path="assets/testground.png"/>
-	<weather>Sunny</weather>
+	<weather>Snowy</weather>
 	<link right="!town2.xml"/>
 	<spawnx>-300</spawnx>
 	<time>8000</time>

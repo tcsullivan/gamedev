@@ -40,9 +40,9 @@ clean:
 	@mkdir out/components
 	@rm -f xml/*.dat
 
-$(EXEC): $(CXXOUTDIR)/$(CXXOBJ) main.cpp
+$(EXEC): $(CXXOUTDIR)/$(CXXOBJ)
 	@echo "  CXX/LD  main"
-	@$(CXX) $(SPECIAL) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) main.cpp out/components/*.o out/systems/*.o out/*.o $(LIBS)
+	@$(CXX) $(SPECIAL) $(CXXFLAGS) $(CXXINC) $(CXXWARN) -o $(EXEC) out/components/*.o out/systems/*.o out/*.o $(LIBS)
 
 $(CXXOUTDIR)/%.o: $(CXXSRCDIR)/%.cpp
 	@echo "  CXX    " $<
