@@ -1,3 +1,5 @@
+**Hey!** We're giving this another go! [gamedev**2**](https://github.com/tcsullivan/gamedev2)
+
 gamedev
 =======
 
