@@ -42,7 +42,7 @@ namespace ui {
 			const auto& titles = QuestSystem::getQuestTitles();
 			auto y = top_y - 100;
 			const auto x = offset.x - 180;
-			for (const auto t : titles) {
+			for (const auto& t : titles) {
 				UISystem::putString(vec2(x, y), t);
 				y -= 20;
 				//ui::putText(x + 40, y, q.desc.c_str());
